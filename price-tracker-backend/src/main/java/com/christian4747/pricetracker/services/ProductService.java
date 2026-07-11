@@ -3,9 +3,9 @@ package com.christian4747.pricetracker.services;
 import com.christian4747.pricetracker.daos.ProductDAO;
 import com.christian4747.pricetracker.models.Product;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 public class ProductService {
@@ -17,7 +17,7 @@ public class ProductService {
         this.productDAO = productDAO;
     }
 
-    public List<Product> getAllProducts() {
-        return productDAO.findAll();
+    public Page<Product> getAllProducts(Pageable pageable) {
+        return productDAO.findAll(pageable);
     }
 }

@@ -2,6 +2,7 @@ package com.christian4747.pricetracker.controllers;
 
 import com.christian4747.pricetracker.models.Product;
 import com.christian4747.pricetracker.services.ProductService;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,7 +24,7 @@ public class ProductController {
 
     @GetMapping
     @RequestMapping("/all")
-    public ResponseEntity<List<Product>> getAllProducts() {
-        return ResponseEntity.ok(productService.getAllProducts());
+    public ResponseEntity<List<Product>> getAllProducts(Pageable pageable) {
+        return ResponseEntity.ok(productService.getAllProducts(pageable).getContent());
     }
 }
