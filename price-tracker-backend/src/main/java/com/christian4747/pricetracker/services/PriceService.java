@@ -18,6 +18,11 @@ public class PriceService {
         this.priceDAO = priceDAO;
     }
 
+    /**
+     * Gets all the Prices in 'prices' database table. Uses pagination (default 20 per page).
+     * @param pageable Pagination settings
+     * @return A list of Prices (default 20)
+     */
     public Page<Price> getAllPrices(Pageable pageable) {
         return priceDAO.findAll(pageable);
     }

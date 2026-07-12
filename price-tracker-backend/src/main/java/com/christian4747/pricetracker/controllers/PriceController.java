@@ -5,10 +5,7 @@ import com.christian4747.pricetracker.services.PriceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -24,6 +21,11 @@ public class PriceController {
         this.priceService = priceService;
     }
 
+    /**
+     * Gets all the Prices in 'prices' database table. Uses pagination (default 20 per page).
+     * @param pageable Pagination settings
+     * @return A list of Prices (default 20)
+     */
     @GetMapping
     @RequestMapping("/all")
     public ResponseEntity<List<Price>> getAllPrices(Pageable pageable) {
