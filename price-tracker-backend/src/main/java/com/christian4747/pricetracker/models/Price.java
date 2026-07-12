@@ -2,6 +2,8 @@ package com.christian4747.pricetracker.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.stereotype.Component;
 
 import java.sql.Timestamp;
@@ -15,23 +17,20 @@ public class Price {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int priceId;
 
-    @Column
-    private String currency;
-
-    @Column
+    @Column(nullable = false)
     private double amount;
 
-    @Column
-    private Timestamp added;
+    private String currency;
 
-    @Column
-    private Timestamp updated;
+    private Timestamp priceStart;
 
-    @Column
-    private Timestamp priceStarted;
+    private Timestamp priceEnd;
 
-    @Column
-    private Timestamp priceEnded;
+    @CreationTimestamp
+    private Timestamp createdAt;
+
+    @UpdateTimestamp
+    private Timestamp updatedAt;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "productId")
@@ -41,14 +40,14 @@ public class Price {
     public Price() {
     }
 
-    public Price(int priceId, String currency, double amount, Timestamp added, Timestamp updated, Timestamp priceStarted, Timestamp priceEnded, Product product) {
+    public Price(int priceId, double amount, String currency, Timestamp priceStart, Timestamp priceEnd, Timestamp createdAt, Timestamp updatedAt, Product product) {
         this.priceId = priceId;
-        this.currency = currency;
         this.amount = amount;
-        this.added = added;
-        this.updated = updated;
-        this.priceStarted = priceStarted;
-        this.priceEnded = priceEnded;
+        this.currency = currency;
+        this.priceStart = priceStart;
+        this.priceEnd = priceEnd;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
         this.product = product;
     }
 
@@ -60,14 +59,6 @@ public class Price {
         this.priceId = priceId;
     }
 
-    public String getCurrency() {
-        return currency;
-    }
-
-    public void setCurrency(String currency) {
-        this.currency = currency;
-    }
-
     public double getAmount() {
         return amount;
     }
@@ -76,36 +67,44 @@ public class Price {
         this.amount = amount;
     }
 
-    public Timestamp getAdded() {
-        return added;
+    public String getCurrency() {
+        return currency;
     }
 
-    public void setAdded(Timestamp added) {
-        this.added = added;
+    public void setCurrency(String currency) {
+        this.currency = currency;
     }
 
-    public Timestamp getUpdated() {
-        return updated;
+    public Timestamp getPriceStart() {
+        return priceStart;
     }
 
-    public void setUpdated(Timestamp updated) {
-        this.updated = updated;
+    public void setPriceStart(Timestamp priceStart) {
+        this.priceStart = priceStart;
     }
 
-    public Timestamp getPriceStarted() {
-        return priceStarted;
+    public Timestamp getPriceEnd() {
+        return priceEnd;
     }
 
-    public void setPriceStarted(Timestamp priceStarted) {
-        this.priceStarted = priceStarted;
+    public void setPriceEnd(Timestamp priceEnd) {
+        this.priceEnd = priceEnd;
     }
 
-    public Timestamp getPriceEnded() {
-        return priceEnded;
+    public Timestamp getCreatedAt() {
+        return createdAt;
     }
 
-    public void setPriceEnded(Timestamp priceEnded) {
-        this.priceEnded = priceEnded;
+    public void setCreatedAt(Timestamp createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Timestamp getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Timestamp updatedAt) {
+        this.updatedAt = updatedAt;
     }
 
     public Product getProduct() {
@@ -120,12 +119,12 @@ public class Price {
     public String toString() {
         return "Price{" +
                 "priceId=" + priceId +
-                ", currency='" + currency + '\'' +
                 ", amount=" + amount +
-                ", added=" + added +
-                ", updated=" + updated +
-                ", priceStarted=" + priceStarted +
-                ", priceEnded=" + priceEnded +
+                ", currency='" + currency + '\'' +
+                ", priceStart=" + priceStart +
+                ", priceEnd=" + priceEnd +
+                ", createdAt=" + createdAt +
+                ", updatedAt=" + updatedAt +
                 ", product=" + product +
                 '}';
     }

@@ -1,9 +1,11 @@
 package com.christian4747.pricetracker.models;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.stereotype.Component;
 
+import java.sql.Timestamp;
 import java.util.List;
 
 @Component
@@ -18,11 +20,15 @@ public class Product {
     @Column(nullable = false)
     private String name;
 
-    @Column
     private String link;
 
-    @Column
     private String store;
+
+    @CreationTimestamp
+    private Timestamp createdAt;
+
+    @UpdateTimestamp
+    private Timestamp updatedAt;
 
     @OneToMany(mappedBy = "product", fetch = FetchType.EAGER, cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<Price> prices;
@@ -30,11 +36,14 @@ public class Product {
     public Product() {
     }
 
-    public Product(int productId, String name, String link, String store) {
+    public Product(int productId, String name, String link, String store, Timestamp createdAt, Timestamp updatedAt, List<Price> prices) {
         this.productId = productId;
         this.name = name;
         this.link = link;
         this.store = store;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+        this.prices = prices;
     }
 
     public int getProductId() {
@@ -69,6 +78,22 @@ public class Product {
         this.store = store;
     }
 
+    public Timestamp getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Timestamp createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Timestamp getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Timestamp updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
     public List<Price> getPrices() {
         return prices;
     }
@@ -84,6 +109,8 @@ public class Product {
                 ", name='" + name + '\'' +
                 ", link='" + link + '\'' +
                 ", store='" + store + '\'' +
+                ", createdAt=" + createdAt +
+                ", updatedAt=" + updatedAt +
                 ", prices=" + prices +
                 '}';
     }
