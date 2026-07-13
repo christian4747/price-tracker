@@ -49,7 +49,17 @@ public class PriceController {
      */
     @GetMapping
     public ResponseEntity<List<Price>> getAllPrices(Pageable pageable) {
-        return ResponseEntity.ok(priceService.getAllPrices(pageable).getContent());
+        return ResponseEntity.ok(priceService.getAllPrices(pageable));
+    }
+
+    /**
+     * Gets the Price in the 'prices' database table with the given ID.
+     * @param priceId ID of the Price to get
+     * @return The Price associated with the given ID
+     */
+    @GetMapping("/{priceId}")
+    public ResponseEntity<Price> getPriceById(@PathVariable Integer priceId) {
+        return ResponseEntity.ok(priceService.getPriceById(priceId));
     }
 
     /**

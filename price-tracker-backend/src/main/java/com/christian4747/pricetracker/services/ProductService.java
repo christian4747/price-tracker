@@ -4,10 +4,10 @@ import com.christian4747.pricetracker.daos.ProductDAO;
 import com.christian4747.pricetracker.models.Product;
 import com.christian4747.pricetracker.models.dtos.IncomingProductDTO;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -62,12 +62,26 @@ public class ProductService {
     }
 
     /**
-     * Gets all the Products in 'products' database table. Uses pagination (default 20 per page).
+     * Gets all the Products in the 'products' database table. Uses pagination (default 20 per page).
      * @param pageable Pagination settings
      * @return A list of Products (default 20)
      */
-    public Page<Product> getAllProducts(Pageable pageable) {
-        return productDAO.findAll(pageable);
+    public List<Product> getAllProducts(Pageable pageable) {
+        return productDAO.findAll(pageable).getContent();
+    }
+
+    /**
+     * Gets the Product in the 'products' database table with the given ID.
+     * @param productId ID of the Product to get
+     * @return The Product associated with the given ID
+     */
+    public Product getProductById(Integer productId) {
+        Optional<Product> existingProduct = productDAO.findById(productId);
+
+        if (existingProduct.isEmpty())
+            throw new IllegalArgumentException("Product with ID " + productId + " does not exist!");
+
+        return existingProduct.get();
     }
 
     /**

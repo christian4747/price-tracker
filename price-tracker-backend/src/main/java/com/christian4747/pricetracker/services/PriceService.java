@@ -6,10 +6,10 @@ import com.christian4747.pricetracker.models.Price;
 import com.christian4747.pricetracker.models.Product;
 import com.christian4747.pricetracker.models.dtos.IncomingPriceDTO;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 
@@ -66,12 +66,27 @@ public class PriceService {
     }
 
     /**
-     * Gets all the Prices in 'prices' database table. Uses pagination (default 20 per page).
+     * Gets all the Prices in the 'prices' database table. Uses pagination (default 20 per page).
      * @param pageable Pagination settings
      * @return A list of Prices (default 20)
      */
-    public Page<Price> getAllPrices(Pageable pageable) {
-        return priceDAO.findAll(pageable);
+    public List<Price> getAllPrices(Pageable pageable) {
+        return priceDAO.findAll(pageable).getContent();
+    }
+
+    /**
+     * Gets the Price in the 'prices' database table with the given ID.
+     * @param priceId ID of the Price to get
+     * @return The Price associated with the given ID
+     */
+    public Price getPriceById(Integer priceId) {
+
+        Optional<Price> existingPrice = priceDAO.findById(priceId);
+
+        if (existingPrice.isEmpty())
+            throw new IllegalArgumentException("Price with ID " + priceId + " does not exist!");
+
+        return existingPrice.get();
     }
 
     /**

@@ -47,7 +47,17 @@ public class ProductController {
      */
     @GetMapping
     public ResponseEntity<List<Product>> getAllProducts(Pageable pageable) {
-        return ResponseEntity.ok(productService.getAllProducts(pageable).getContent());
+        return ResponseEntity.ok(productService.getAllProducts(pageable));
+    }
+
+    /**
+     * Gets the Product in the 'products' database table with the given ID.
+     * @param productId ID of the Product to get
+     * @return The Product associated with the given ID
+     */
+    @GetMapping("/{productId}")
+    public ResponseEntity<Product> getProductById(@PathVariable Integer productId) {
+        return ResponseEntity.ok(productService.getProductById(productId));
     }
 
     /**
