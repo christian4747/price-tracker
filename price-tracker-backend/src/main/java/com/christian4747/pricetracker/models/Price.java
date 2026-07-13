@@ -22,9 +22,9 @@ public class Price {
 
     private String currency;
 
-    private Timestamp priceStart;
+    private Timestamp priceStarted;
 
-    private Timestamp priceEnd;
+    private Timestamp priceEnded;
 
     @CreationTimestamp
     private Timestamp createdAt;
@@ -40,12 +40,12 @@ public class Price {
     public Price() {
     }
 
-    public Price(int priceId, double amount, String currency, Timestamp priceStart, Timestamp priceEnd, Timestamp createdAt, Timestamp updatedAt, Product product) {
+    public Price(int priceId, double amount, String currency, Timestamp priceStarted, Timestamp priceEnded, Timestamp createdAt, Timestamp updatedAt, Product product) {
         this.priceId = priceId;
         this.amount = amount;
         this.currency = currency;
-        this.priceStart = priceStart;
-        this.priceEnd = priceEnd;
+        this.priceStarted = priceStarted;
+        this.priceEnded = priceEnded;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
         this.product = product;
@@ -75,20 +75,20 @@ public class Price {
         this.currency = currency;
     }
 
-    public Timestamp getPriceStart() {
-        return priceStart;
+    public Timestamp getPriceStarted() {
+        return priceStarted;
     }
 
-    public void setPriceStart(Timestamp priceStart) {
-        this.priceStart = priceStart;
+    public void setPriceStarted(Timestamp priceStarted) {
+        this.priceStarted = priceStarted;
     }
 
-    public Timestamp getPriceEnd() {
-        return priceEnd;
+    public Timestamp getPriceEnded() {
+        return priceEnded;
     }
 
-    public void setPriceEnd(Timestamp priceEnd) {
-        this.priceEnd = priceEnd;
+    public void setPriceEnded(Timestamp priceEnded) {
+        this.priceEnded = priceEnded;
     }
 
     public Timestamp getCreatedAt() {
@@ -121,8 +121,8 @@ public class Price {
                 "priceId=" + priceId +
                 ", amount=" + amount +
                 ", currency='" + currency + '\'' +
-                ", priceStart=" + priceStart +
-                ", priceEnd=" + priceEnd +
+                ", priceStarted=" + priceStarted +
+                ", priceEnded=" + priceEnded +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
                 ", product=" + product +

@@ -21,15 +21,6 @@ public class ProductService {
     }
 
     /**
-     * Gets all the Products in 'products' database table. Uses pagination (default 20 per page).
-     * @param pageable Pagination settings
-     * @return A list of Products (default 20)
-     */
-    public Page<Product> getAllProducts(Pageable pageable) {
-        return productDAO.findAll(pageable);
-    }
-
-    /**
      * Adds a new Product to the 'products' database table.
      * @param productDTO The new Product details
      * @return The newly added Product
@@ -37,7 +28,7 @@ public class ProductService {
     public Product addProduct(IncomingProductDTO productDTO) {
         Optional<Product> existingProduct = productDAO.findByName(productDTO.getName());
 
-        if (existingProduct.isPresent()) {
+        if (existingProduct.isPresent() && existingProduct.get().getStore().equals(productDTO.getStore())) {
             throw new IllegalArgumentException("Product already exists!");
         }
 
@@ -52,5 +43,52 @@ public class ProductService {
         );
 
         return productDAO.save(newProduct);
+    }
+
+    /**
+     * Deletes a Product from the 'products' database table.
+     * @param productId The ID of the Product to delete
+     * @return The deleted Product
+     */
+    public Product deleteProduct(Integer productId) {
+        Optional<Product> existingProduct = productDAO.findById(productId);
+
+        if (existingProduct.isPresent()) {
+            productDAO.deleteById(productId);
+            return existingProduct.get();
+        } else {
+            throw new IllegalArgumentException("Product with ID " + productId + " does not exist!");
+        }
+    }
+
+    /**
+     * Gets all the Products in 'products' database table. Uses pagination (default 20 per page).
+     * @param pageable Pagination settings
+     * @return A list of Products (default 20)
+     */
+    public Page<Product> getAllProducts(Pageable pageable) {
+        return productDAO.findAll(pageable);
+    }
+
+    /**
+     * Updates a Product from the 'products' database table.
+     * @param productId The ID of the Product to update
+     * @param productDTO The updated Product details
+     * @return The updated product
+     */
+    public Product updateProduct(Integer productId, IncomingProductDTO productDTO) {
+        Optional<Product> existingProduct = productDAO.findById(productId);
+
+        if (existingProduct.isEmpty()) {
+            throw new IllegalArgumentException("Product with ID " + productId + " does not exist!");
+        }
+
+        Product productToUpdate = existingProduct.get();
+
+        productToUpdate.setName(productDTO.getName());
+        productToUpdate.setLink(productDTO.getLink());
+        productToUpdate.setStore(productDTO.getStore());
+
+        return productDAO.save(productToUpdate);
     }
 }
