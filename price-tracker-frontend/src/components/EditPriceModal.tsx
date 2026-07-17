@@ -1,0 +1,28 @@
+import Button from "./Button"
+import Input from "./Input"
+import Modal from "./Modal"
+import type { ModalSettings } from "../App";
+
+type Props = {
+    hidden: boolean,
+    setModalSettings: React.Dispatch<React.SetStateAction<ModalSettings>>
+}
+
+const EditPriceModal = (props: Props) => {
+    return (
+        <Modal
+            hidden={props.hidden}
+        >
+            <div className="text-4xl font-mono font-bold flex justify-center">Edit Price</div>
+            <Input placeholder="Price"></Input>
+            <Input placeholder="Currency"></Input>
+            <Input placeholder="Start Date"></Input>
+            <div className="flex gap-2 justify-center">
+                <Button>Save</Button>
+                <Button onClick={() => {props.setModalSettings(prev => ({...prev, editPriceHidden: !prev.editPriceHidden}))}}>Cancel</Button>
+            </div>
+        </Modal>
+    )
+}
+
+export default EditPriceModal
