@@ -4,14 +4,31 @@ import { FaLink } from "react-icons/fa6";
 import { MdExpandMore, MdEdit, MdDelete } from "react-icons/md";
 import Button from "./Button";
 import { FiPlus } from "react-icons/fi";
-import { ModalContext, type Product } from "../App";
+import { ModalContext } from "../App";
+import Price from "./Price";
+import PriceBanner from "./PriceBanner";
 
-type Props = {
-    price: number,
-    banner: string
+type ExpandButtonProps = {
+    hidden: boolean,
+    setHidden: React.Dispatch<React.SetStateAction<boolean>>
 }
 
-const Product = (props: Props) => {
+const ExpandButton = ({hidden, setHidden}: ExpandButtonProps) => {
+    return (
+        <div onClick={() => {setHidden(!hidden)}}>
+            <MdExpandMore className={hidden ? "transition duration-300" : "transition duration-300 rotate-180"} size={48} />
+        </div>
+    )
+}
+
+type ProductProps = {
+    productName: string,
+    price: number,
+    bannerType?: 'one-year' | 'two-year' | 'all-time',
+    discountPercent: number
+}
+
+const Product = (props: ProductProps) => {
     const {setModalSettings} = useContext(ModalContext) as ModalContext
     const [hideLowerContent, setHideLowerContent] = useState(true);
 
@@ -38,104 +55,10 @@ const Product = (props: Props) => {
         }
     ]
 
-    const getPrice = (banner: string) => {
-        if (banner == '1') {
-            return (
-                <div className='flex gap-3 items-center'>
-                    <div className='bg-[#2EBE65] text-[#F4F4F4] rounded-sm p-2 font-mono font-bold min-w-[130px] flex justify-center'>
-                        1 YEAR LOW
-                    </div>
-
-                    <div className="font-mono font-bold text-[#2EBE65]">
-                        -50%
-                    </div>
-                    <div className="font-mono font-bold">
-                        $4.99
-                    </div>
-                    <div onClick={() => {setHideLowerContent(!hideLowerContent)}}>
-                        <MdExpandMore className={hideLowerContent ? "transition duration-300" : "transition duration-300 rotate-180"} size={48} />
-                    </div>
-                </div>
-            )
-        } else if (banner == '2') {
-            return (
-                <div className='flex gap-3 items-center'>
-                    <div className='bg-[#59BCE6] text-[#F4F4F4] rounded-sm p-2 font-mono font-bold min-w-[130px] flex justify-center'>
-                        2 YEAR LOW
-                    </div>
-
-                    <div className="font-mono font-bold text-[#59BCE6]">
-                        -80%
-                    </div>
-                    <div className="font-mono font-bold">
-                        $1.99
-                    </div>
-                    <div onClick={() => {setHideLowerContent(!hideLowerContent)}}>
-                        <MdExpandMore className={hideLowerContent ? "transition duration-300" : "transition duration-300 rotate-180"} size={48} />
-                    </div>
-                </div>
-            )
-        } else if (banner == '3') {
-            return (
-                <div className='flex gap-3 items-center'>
-                    <div className='bg-[#F0585A] text-[#F4F4F4] rounded-sm p-2 font-mono font-bold min-w-[130px] flex justify-center'>
-                        LOWEST EVER
-                    </div>
-
-                    <div className="font-mono font-bold text-[#F0585A]">
-                        -90%
-                    </div>
-                    <div className="font-mono font-bold">
-                        $0.99
-                    </div>
-                    <div onClick={() => {setHideLowerContent(!hideLowerContent)}}>
-                        <MdExpandMore className={hideLowerContent ? "transition duration-300" : "transition duration-300 rotate-180"} size={48} />
-                    </div>
-                </div>
-            )
-        } else if (banner == '4') {
-            return (
-                <div className='flex gap-3 items-center'>
-                    <div className="font-mono font-bold text-[#2EBE65]">
-                        -50%
-                    </div>
-                    <div className="font-mono font-bold">
-                        ${props.price}
-                    </div>
-                    <div onClick={() => {setHideLowerContent(!hideLowerContent)}}>
-                        <MdExpandMore className={hideLowerContent ? "transition duration-300" : "transition duration-300 rotate-180"} size={48} />
-                    </div>
-                </div>
-            )
-        } else if (banner == '5') {
-            return (
-                <div className='flex gap-3 items-center'>
-                    <div className="font-mono font-bold">
-                        -10%
-                    </div>
-                    <div className="font-mono font-bold">
-                        ${props.price}
-                    </div>
-                    <div onClick={() => {setHideLowerContent(!hideLowerContent)}}>
-                        <MdExpandMore className={hideLowerContent ? "transition duration-300" : "transition duration-300 rotate-180"} size={48} />
-                    </div>
-                </div>
-            )
-        } else {
-            return (
-                <div className='flex gap-3 items-center'>
-                    <div className="font-mono font-bold">
-                        ${props.price}
-                    </div>
-                    <div onClick={() => {setHideLowerContent(!hideLowerContent)}}>
-                        <MdExpandMore className={hideLowerContent ? "transition duration-300" : "transition duration-300 rotate-180"} size={48} />
-                    </div>
-                </div>
-            )
-        }
-    }
-
-    const price = getPrice(props.banner)
+    const priceBanner =
+        props.bannerType ?
+        <PriceBanner discountPercent={props.discountPercent} bannerType={props.bannerType} />
+        : <PriceBanner discountPercent={props.discountPercent} />
 
     return (
         <>
@@ -144,7 +67,7 @@ const Product = (props: Props) => {
                 <div className='h-full w-full flex justify-between items-center'>
                     <div className='flex gap-3 items-baseline-last'>
                         <div className="font-bold text-3xl font-mono">
-                            Product {props.banner}
+                            {props.productName}
                         </div>
                         <div className="font-mono">
                             Store
@@ -160,7 +83,14 @@ const Product = (props: Props) => {
                         </div>
                     </div>
 
-                    {price}
+                    <div className='flex gap-3 items-center font-mono font-bold'>
+                        {priceBanner}
+                        <div>
+                            ${props.price}
+                        </div>
+                        <ExpandButton hidden={hideLowerContent} setHidden={setHideLowerContent}/>
+                    </div>
+                    
                 </div>
 
                 {/* Lower content */}
@@ -174,62 +104,26 @@ const Product = (props: Props) => {
                     </div>
                     <div className='flex flex-col w-3/10 border-1 border-[#BCBBBD] rounded-sm overflow-hidden justify-between'>
                         <div className='flex flex-col overflow-hidden bg-[#BCBBBD] font-bold font-mono'>
-                            <div className="flex justify-between even:bg-[#F4F4F4] group/product">
-                                <div className="pl-2">
-                                    04/01/26
-                                </div>
-                                <div className="pr-2 flex items-center gap-1">
-                                    <div>${props.price}</div>
-                                    <div className="hidden group-hover/product:block" onClick={() => setModalSettings(prev => ({...prev, editPriceHidden: false}))}>
-                                        <MdEdit />
-                                    </div>
-                                    <div className="hidden group-hover/product:block" onClick={() => setModalSettings(prev => ({...prev, deletePriceHidden: false}))}>
-                                        <MdDelete />
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="flex justify-between even:bg-[#F4F4F4] group/product">
-                                <div className="pl-2">
-                                    03/01/26
-                                </div>
-                                <div className="pr-2 flex items-center gap-1">
-                                    <div>$4.99</div>
-                                    <div className="hidden group-hover/product:block" onClick={() => setModalSettings(prev => ({...prev, editPriceHidden: false}))}>
-                                        <MdEdit />
-                                    </div>
-                                    <div className="hidden group-hover/product:block" onClick={() => setModalSettings(prev => ({...prev, deletePriceHidden: false}))}>
-                                        <MdDelete />
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="flex justify-between even:bg-[#F4F4F4] group/product">
-                                <div className="pl-2">
-                                    02/01/26
-                                </div>
-                                <div className="pr-2 flex items-center gap-1">
-                                    <div>$4.99</div>
-                                    <div className="hidden group-hover/product:block" onClick={() => setModalSettings(prev => ({...prev, editPriceHidden: false}))}>
-                                        <MdEdit />
-                                    </div>
-                                    <div className="hidden group-hover/product:block" onClick={() => setModalSettings(prev => ({...prev, deletePriceHidden: false}))}>
-                                        <MdDelete />
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="flex justify-between even:bg-[#F4F4F4] group/product">
-                                <div className="pl-2">
-                                    01/01/26
-                                </div>
-                                <div className="pr-2 flex items-center gap-1">
-                                    <div>$9.99</div>
-                                    <div className="hidden group-hover/product:block" onClick={() => setModalSettings(prev => ({...prev, editPriceHidden: false}))}>
-                                        <MdEdit />
-                                    </div>
-                                    <div className="hidden group-hover/product:block" onClick={() => setModalSettings(prev => ({...prev, deletePriceHidden: false}))}>
-                                        <MdDelete />
-                                    </div>
-                                </div>
-                            </div>
+                            <Price 
+                                price={9.99}
+                                priceStarted={'04/01/26'}
+                                setModalSettings={setModalSettings}
+                            />
+                            <Price 
+                                price={4.99}
+                                priceStarted={'03/01/26'}
+                                setModalSettings={setModalSettings}
+                            />
+                            <Price 
+                                price={4.99}
+                                priceStarted={'02/01/26'}
+                                setModalSettings={setModalSettings}
+                            />
+                            <Price 
+                                price={9.99}
+                                priceStarted={'01/01/26'}
+                                setModalSettings={setModalSettings}
+                            />
                         </div>
                         <Button
                             onClick={() => {setModalSettings(prev => ({...prev, addPriceHidden: false}))}}

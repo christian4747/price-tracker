@@ -2,22 +2,22 @@ import { createContext, useState } from 'react';
 import './App.css'
 import Home from './pages/Home';
 
-interface Product {
+interface ProductType {
     productId: number,
     name: string,
     link: string,
     store: string,
     createdAt: string,
     updatedAt: string,
-    prices: Price[]
+    prices: PriceType[]
 }
 
 interface ProductContext {
-    selectedProduct: Product, 
-    setSelectedProduct: React.Dispatch<React.SetStateAction<Product>>
+    selectedProduct: ProductType, 
+    setSelectedProduct: React.Dispatch<React.SetStateAction<ProductType>>
 }
 
-interface Price {
+interface PriceType {
     priceId: number,
     amount: string,
     currency: string,
@@ -29,8 +29,8 @@ interface Price {
 }
 
 interface PriceContext {
-    selectedPrice: Price, 
-    setSelectedPrice: React.Dispatch<React.SetStateAction<Price>>
+    selectedPrice: PriceType, 
+    setSelectedPrice: React.Dispatch<React.SetStateAction<PriceType>>
 }
 
 interface ModalSettings {
@@ -53,7 +53,7 @@ const ModalContext = createContext<ModalContext | null>(null);
 
 function App() {
 
-    const [selectedProduct, setSelectedProduct] = useState<Product>(
+    const [selectedProduct, setSelectedProduct] = useState<ProductType>(
         {
             productId: 0,
             name: '',
@@ -65,7 +65,7 @@ function App() {
         }
     )
 
-    const [selectedPrice, setSelectedPrice] = useState<Price>(
+    const [selectedPrice, setSelectedPrice] = useState<PriceType>(
         {
             priceId: 0,
             amount: '',
@@ -103,4 +103,4 @@ function App() {
 
 export default App
 export {ProductContext, PriceContext, ModalContext}
-export type {Product, Price, ModalSettings}
+export type {ProductType, PriceType, ModalSettings}

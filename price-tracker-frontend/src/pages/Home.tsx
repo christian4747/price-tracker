@@ -1,5 +1,4 @@
 import { useContext } from "react"
-import Product from "../components/Product"
 import Button from "../components/Button";
 import { FiPlus } from "react-icons/fi";
 import { ModalContext } from "../App";
@@ -9,6 +8,7 @@ import EditProductModal from "../components/EditProductModal";
 import EditPriceModal from "../components/EditPriceModal";
 import DeleteProductModal from "../components/DeleteProductModal";
 import DeletePriceModal from "../components/DeletePriceModal";
+import Product from "../components/Product";
 
 function Home() {
     const {modalSettings, setModalSettings} = useContext(ModalContext) as ModalContext
@@ -32,12 +32,12 @@ function Home() {
             </div>
 
             <div className="flex flex-col gap-2 mb-5">
-                <Product price={4.99} banner={'1'} />
-                <Product price={1.99} banner={'2'} />
-                <Product price={0.99} banner={'3'} />
-                <Product price={4.99} banner={'4'} />
-                <Product price={8.99} banner={'5'} />
-                <Product price={9.99} banner={'6'} />
+                <Product productName={"Product 1"} price={4.99} discountPercent={50} bannerType={'one-year'} />
+                <Product productName={"Product 2"} price={1.99} discountPercent={80} bannerType={'two-year'} />
+                <Product productName={"Product 3"} price={0.99} discountPercent={90} bannerType={'all-time'} />
+                <Product productName={"Product 4"} price={4.99} discountPercent={50} />
+                <Product productName={"Product 5"} price={8.99} discountPercent={10} />
+                <Product productName={"Product 6"} price={9.99} discountPercent={0} />
             </div>
             
             <AddProductModal hidden={modalSettings.addProductHidden} setModalSettings={setModalSettings}/>
