@@ -1,6 +1,6 @@
 import React from 'react'
 import { MdDelete, MdEdit } from 'react-icons/md'
-import type { ModalSettings } from '../App'
+import type { ModalSettings } from '../../App'
 
 type Props = {
     priceId?: number,

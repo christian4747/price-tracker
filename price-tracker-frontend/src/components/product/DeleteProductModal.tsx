@@ -1,6 +1,6 @@
-import Button from "./Button"
-import Modal from "./Modal"
-import type { ModalSettings } from "../App";
+import Button from "../common/Button"
+import Modal from "../common/Modal"
+import type { ModalSettings } from "../../App";
 
 type Props = {
     hidden: boolean,

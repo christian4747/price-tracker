@@ -1,6 +1,6 @@
 import { createContext, useState } from 'react';
 import './App.css'
-import Home from './pages/Home';
+import Home from './pages/HomePage';
 
 interface ProductType {
     productId: number,

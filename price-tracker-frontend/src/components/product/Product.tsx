@@ -2,11 +2,11 @@ import { useContext, useState } from "react";
 import { Line, LineChart, Tooltip, XAxis } from "recharts";
 import { FaLink } from "react-icons/fa6";
 import { MdExpandMore, MdEdit, MdDelete } from "react-icons/md";
-import Button from "./Button";
+import Button from "../common/Button";
 import { FiPlus } from "react-icons/fi";
-import { ModalContext } from "../App";
-import Price from "./Price";
-import PriceBanner from "./PriceBanner";
+import { ModalContext } from "../../App";
+import Price from "../price/Price";
+import PriceBanner from "../price/PriceBanner";
 
 type ExpandButtonProps = {
     hidden: boolean,

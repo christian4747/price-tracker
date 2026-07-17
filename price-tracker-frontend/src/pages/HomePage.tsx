@@ -1,14 +1,14 @@
 import { useContext } from "react"
-import Button from "../components/Button";
+import Button from "../components/common/Button";
 import { FiPlus } from "react-icons/fi";
 import { ModalContext } from "../App";
-import AddProductModal from "../components/AddProductModal";
-import AddPriceModal from "../components/AddPriceModal";
-import EditProductModal from "../components/EditProductModal";
-import EditPriceModal from "../components/EditPriceModal";
-import DeleteProductModal from "../components/DeleteProductModal";
-import DeletePriceModal from "../components/DeletePriceModal";
-import Product from "../components/Product";
+import AddProductModal from "../components/product/AddProductModal";
+import AddPriceModal from "../components/price/AddPriceModal";
+import EditProductModal from "../components/product/EditProductModal";
+import EditPriceModal from "../components/price/EditPriceModal";
+import DeleteProductModal from "../components/product/DeleteProductModal";
+import DeletePriceModal from "../components/price/DeletePriceModal";
+import Product from "../components/product/Product";
 
 function Home() {
     const {modalSettings, setModalSettings} = useContext(ModalContext) as ModalContext
