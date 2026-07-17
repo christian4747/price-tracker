@@ -17,10 +17,10 @@ const Price = (props: Props) => {
             </div>
             <div className="pr-2 flex items-center gap-1">
                 <div>${props.price}</div>
-                <div className="hidden group-hover/product:block" onClick={() => props.setModalSettings(prev => ({...prev, editPriceHidden: false}))}>
+                <div className="hidden group-hover/product:block cursor-pointer" onClick={() => props.setModalSettings(prev => ({...prev, editPriceHidden: false}))}>
                     <MdEdit />
                 </div>
-                <div className="hidden group-hover/product:block" onClick={() => props.setModalSettings(prev => ({...prev, deletePriceHidden: false}))}>
+                <div className="hidden group-hover/product:block cursor-pointer" onClick={() => props.setModalSettings(prev => ({...prev, deletePriceHidden: false}))}>
                     <MdDelete />
                 </div>
             </div>

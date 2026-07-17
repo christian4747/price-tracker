@@ -15,7 +15,7 @@ type ExpandButtonProps = {
 
 const ExpandButton = ({hidden, setHidden}: ExpandButtonProps) => {
     return (
-        <div onClick={() => {setHidden(!hidden)}}>
+        <div className="cursor-pointer" onClick={() => {setHidden(!hidden)}}>
             <MdExpandMore className={hidden ? "transition duration-300" : "transition duration-300 rotate-180"} size={48} />
         </div>
     )
@@ -57,8 +57,8 @@ const Product = (props: ProductProps) => {
 
     const priceBanner =
         props.bannerType ?
-        <PriceBanner discountPercent={props.discountPercent} bannerType={props.bannerType} />
-        : <PriceBanner discountPercent={props.discountPercent} />
+        <PriceBanner discountPercent={props.discountPercent} bannerType={props.bannerType} price={props.price} />
+        : <PriceBanner discountPercent={props.discountPercent} price={props.price} />
 
     return (
         <>
@@ -72,22 +72,19 @@ const Product = (props: ProductProps) => {
                         <div className="font-mono">
                             Store
                         </div>
-                        <div>
+                        <a className="cursor-pointer" href="http://localhost:5173/" target="_blank">
                             <FaLink />
-                        </div>
-                        <div className="hidden group-hover:block" onClick={() => setModalSettings(prev => ({...prev, editProductHidden: false}))}>
+                        </a>
+                        <div className="hidden group-hover:block cursor-pointer" onClick={() => setModalSettings(prev => ({...prev, editProductHidden: false}))}>
                             <MdEdit />
                         </div>
-                        <div className="hidden group-hover:block" onClick={() => setModalSettings(prev => ({...prev, deleteProductHidden: false}))}>
+                        <div className="hidden group-hover:block cursor-pointer" onClick={() => setModalSettings(prev => ({...prev, deleteProductHidden: false}))}>
                             <MdDelete />
                         </div>
                     </div>
 
                     <div className='flex gap-3 items-center font-mono font-bold'>
                         {priceBanner}
-                        <div>
-                            ${props.price}
-                        </div>
                         <ExpandButton hidden={hideLowerContent} setHidden={setHideLowerContent}/>
                     </div>
                     
