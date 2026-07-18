@@ -1,11 +1,11 @@
 type PriceBannerTextProps = {
     children: React.ReactNode,
-    bannerColor: string
+    className: string
 }
 
-const PriceBannerText = ({children, bannerColor}: PriceBannerTextProps) => {
+const PriceBannerText = ({children, className}: PriceBannerTextProps) => {
     return (
-        <div className={`bg-[${bannerColor}] text-[#F4F4F4] rounded-sm p-2 font-mono font-bold min-w-[130px] flex justify-center`}>
+        <div className={'text-[#F4F4F4] rounded-sm p-2 font-mono font-bold min-w-[130px] flex justify-center ' + className}>
             {children}
         </div>
     )
@@ -37,7 +37,7 @@ type BannerProps = {
 const OneYearBanner = ({discountPercent, price}: BannerProps) => {
     return (
         <>
-            <PriceBannerText bannerColor="#2EBE65">
+            <PriceBannerText className="bg-[#2EBE65]">
                 1 YEAR LOW
             </PriceBannerText>
 
@@ -54,7 +54,7 @@ const OneYearBanner = ({discountPercent, price}: BannerProps) => {
 const TwoYearBanner = ({discountPercent, price}: BannerProps) => {
     return (
         <>
-            <PriceBannerText bannerColor="#59BCE6">
+            <PriceBannerText className="bg-[#59BCE6]">
                 2 YEAR LOW
             </PriceBannerText>
 
@@ -70,7 +70,7 @@ const TwoYearBanner = ({discountPercent, price}: BannerProps) => {
 const AllTimeBanner = ({discountPercent, price}: BannerProps) => {
     return (
         <>
-            <PriceBannerText bannerColor="#F0585A">
+            <PriceBannerText className="bg-[#F0585A]">
                 LOWEST EVER
             </PriceBannerText>
 
