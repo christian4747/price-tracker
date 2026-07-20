@@ -2,39 +2,14 @@ import Button from "../common/Button"
 import Input from "../common/Input"
 import Modal from "../common/Modal"
 import type { PriceDTO, ProductModalProps } from "../../utils/Types";
-import axios from "axios";
-import api from "../../services/api";
-import { useState } from "react";
-import type { ProductType } from "../../App";
 
 type AddPriceModalProps = ProductModalProps & {
-    setProduct: React.Dispatch<React.SetStateAction<ProductType>>
+    priceDTO: PriceDTO,
+    setPriceDTO: React.Dispatch<React.SetStateAction<PriceDTO>>,
+    addPrice: () => void
 }
 
-const AddPriceModal = ({hidden, toggleHidden, product, setProduct}: AddPriceModalProps) => {
-
-    const [priceToAdd, setPriceToAdd] = useState<PriceDTO>(
-        {amount: 0, currency: '', priceStarted: '', priceEnded: '', productId: product.productId}
-    )
-
-    const addPrice = async () => {
-        await axios.post(api.getRootUrl() + "/prices", priceToAdd)
-        .then((res) => {
-            toggleHidden()
-            setProduct(prev => ({...prev, prices: [...prev.prices, res.data]}))
-            resetPriceToAdd()
-            console.log(res)
-        })
-        .catch((err) => {
-            console.log(`Error occurred while adding ${setPriceToAdd.name}`)
-            console.log(err)
-        })
-    }
-
-    const resetPriceToAdd = () => {
-        setPriceToAdd({amount: 0, currency: '', priceStarted: '', priceEnded: '', productId: product.productId})
-    }
-
+const AddPriceModal = ({hidden, toggleHidden, addPrice, priceDTO, setPriceDTO}: AddPriceModalProps) => {
     return (
         <Modal
             hidden={hidden}
@@ -42,24 +17,24 @@ const AddPriceModal = ({hidden, toggleHidden, product, setProduct}: AddPriceModa
             <div className="text-4xl font-mono font-bold flex justify-center">Add Price</div>
             <Input
                 placeholder="Price"
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {setPriceToAdd(prev => ({...prev, amount: parseFloat(e.target.value)}))}}
-                value={priceToAdd.amount}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {setPriceDTO(prev => ({...prev, amount: parseFloat(e.target.value)}))}}
+                value={priceDTO.amount}
             />
             <Input
                 placeholder="Currency"
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {setPriceToAdd(prev => ({...prev, currency: e.target.value}))}}
-                value={priceToAdd.currency}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {setPriceDTO(prev => ({...prev, currency: e.target.value}))}}
+                value={priceDTO.currency}
             />
             <Input
                 placeholder="Start Date"
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {setPriceToAdd(prev => ({...prev, priceStarted: e.target.value}))}}
-                value={priceToAdd.priceStarted}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {setPriceDTO(prev => ({...prev, priceStarted: e.target.value}))}}
+                value={priceDTO.priceStarted}
                 type="datetime-local"
             />
             <Input
                 placeholder="End Date"
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {setPriceToAdd(prev => ({...prev, priceEnded: e.target.value}))}}
-                value={priceToAdd.priceEnded}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {setPriceDTO(prev => ({...prev, priceEnded: e.target.value}))}}
+                value={priceDTO.priceEnded}
                 type="datetime-local"
             />
             <div className="flex gap-2 justify-center">

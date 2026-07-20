@@ -1,8 +1,6 @@
-import type { MouseEventHandler } from "react"
-
 type Props = {
     children?: React.ReactNode,
-    onClick?: MouseEventHandler<HTMLButtonElement> | undefined,
+    onClick?: any,
     className?: string
 }
 

@@ -1,29 +1,13 @@
 import Button from "../common/Button"
 import Modal from "../common/Modal"
-import type { PriceModalProps } from "../../utils/Types";
-import axios from "axios";
-import api from "../../services/api";
-import type { ProductType } from "../../App";
+import type { PriceModalProps, ProductType } from "../../utils/Types";
 
 type DeletePriceModalProps = PriceModalProps & {
-    setProduct: React.Dispatch<React.SetStateAction<ProductType>>
+    setProduct: React.Dispatch<React.SetStateAction<ProductType>>,
+    deletePrice: () => any
 }
 
-const DeletePriceModal = ({hidden, toggleHidden, price, setProduct}: DeletePriceModalProps) => {
-
-    const deletePrice = async () => {
-        await axios.delete(api.getRootUrl() + "/prices/" + price.priceId)
-        .then((res) => {
-            toggleHidden()
-            setProduct((prev) => ({...prev, prices: prev.prices.filter((p) => p != price)}))
-            console.log(res)
-        })
-        .catch((err) => {
-            console.log(`Error occurred while deleting ${price.priceId}: ${price.amount} ${price.priceStarted}`)
-            console.log(err)
-        })
-    }
-
+const DeletePriceModal = ({hidden, toggleHidden, price, deletePrice}: DeletePriceModalProps) => {
     return (
         <Modal
             hidden={hidden}

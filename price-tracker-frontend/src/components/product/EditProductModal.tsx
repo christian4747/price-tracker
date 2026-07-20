@@ -1,35 +1,15 @@
 import Button from "../common/Button"
 import Input from "../common/Input"
 import Modal from "../common/Modal"
-import { useState } from "react";
-import type { ProductDTO, ProductModalProps } from "../../utils/Types";
-import axios from "axios";
-import api from "../../services/api";
+import type { ModalProps, ProductDTO, ProductType } from "../../utils/Types";
 
-const EditProductModal = ({hidden, toggleHidden, product}: ProductModalProps) => {
-    const [productDTO, setProductDTO] = useState<ProductDTO>({
-        name: product.name,
-        store: product.store,
-        link: product.link
-    })
+type EditPriceModalProps = ModalProps & {
+    editProduct: (product: ProductType, productDTO: ProductDTO) => Promise<void>,
+    productDTO: ProductDTO,
+    setProductDTO: React.Dispatch<React.SetStateAction<ProductDTO>>
+}
 
-    const editProduct = async () => {
-        await axios.put(api.getRootUrl() + "/products/" + product.productId.toString(), productDTO)
-            .then((res) => {
-                product.name = productDTO.name
-                product.store = productDTO.store
-                product.link = productDTO.link
-
-                toggleHidden()
-                console.log(res)
-            })
-            .catch((err) => {
-                console.log(`Error occurred while updating ${product.productId}: ${product.name}`)
-                console.log(err)
-            })
-    }
-    
-
+const EditProductModal = ({hidden, toggleHidden, editProduct, productDTO, setProductDTO}: EditPriceModalProps) => {
     return (
         <Modal
             hidden={hidden}

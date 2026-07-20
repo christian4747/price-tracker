@@ -7,16 +7,16 @@ type Props = {
     type?: string
 }
 
-const Input = (props: Props) => {
+const Input = ({children, className, placeholder, onChange, value, type}: Props) => {
     return (
         <input
-            type={props.type}
-            className={"border-1 border-[#BCBBBD] rounded-sm p-1 " + props.className}
-            placeholder={props.placeholder}
-            onChange={props.onChange}
-            value={props.value}
+            type={type}
+            className={"border-1 border-[#BCBBBD] rounded-sm p-1 " + className}
+            placeholder={placeholder}
+            onChange={onChange}
+            value={value}
         >
-            {props.children}
+            {children}
         </input>
     )
 }

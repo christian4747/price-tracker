@@ -2,48 +2,14 @@ import Button from "../common/Button"
 import Input from "../common/Input"
 import Modal from "../common/Modal"
 import type { ModalProps, PriceDTO } from "../../utils/Types";
-import { useState } from "react";
-import axios from "axios";
-import api from "../../services/api";
-import type { PriceType, ProductType } from "../../App";
 
 type EditPriceModalProps = ModalProps & {
-    productId: number,
-    price: PriceType,
-    setProduct: React.Dispatch<React.SetStateAction<ProductType>>
+    editPrice: () => Promise<void>,
+    priceDTO: PriceDTO,
+    setPriceDTO: React.Dispatch<React.SetStateAction<PriceDTO>>
 }
 
-const EditPriceModal = ({hidden, toggleHidden, productId, price, setProduct}: EditPriceModalProps) => {
-
-    const [priceDTO, setPriceDTO] = useState<PriceDTO>(
-        {amount: parseFloat(price.amount), currency: price.currency || '', priceStarted: price.priceStarted || '', priceEnded: price.priceEnded || '', productId: productId}
-    )
-
-    const editPrice = async () => {
-        await axios.put(api.getRootUrl() + "/prices/" + price.priceId.toString(), priceDTO)
-            .then((res) => {
-                setProduct((prev) => {
-                    const idx = prev.prices.indexOf(price)
-                    const prices = prev.prices.map((p, i) => {
-                        if (i === idx) {
-                            p.amount = priceDTO.amount.toString()
-                            p.priceStarted = priceDTO.priceStarted.toString()
-                            p.priceEnded = priceDTO.priceEnded.toString()
-                        }
-                        return p
-                    })
-
-                    return ({...prev, prices: prices})
-                })
-                toggleHidden()
-                console.log(res)
-            })
-            .catch((err) => {
-                console.log('Error occurred while updating price')
-                console.log(err)
-            })
-    }
-
+const EditPriceModal = ({hidden, toggleHidden, editPrice, priceDTO, setPriceDTO }: EditPriceModalProps) => {
     return (
         <Modal
             hidden={hidden}

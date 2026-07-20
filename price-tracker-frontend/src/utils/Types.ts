@@ -1,4 +1,23 @@
-import type { PriceType, ProductType } from "../App"
+type ProductType = {
+    productId: number,
+    name: string,
+    link: string,
+    store: string,
+    createdAt: string,
+    updatedAt: string,
+    prices: PriceType[]
+}
+
+type PriceType = {
+    priceId: number,
+    amount: string,
+    currency: string,
+    priceStarted: string,
+    priceEnded: string,
+    createdAt: string,
+    updatedAt: string,
+    productId: number
+}
 
 type ModalProps = {
     hidden: boolean,
@@ -27,4 +46,4 @@ type PriceDTO = {
     productId: number
 }
 
-export type {ModalProps, ProductModalProps, PriceModalProps, ProductDTO, PriceDTO}
+export type {ModalProps, ProductModalProps, PriceModalProps, ProductDTO, PriceDTO, PriceType, ProductType}
