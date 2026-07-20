@@ -1,15 +1,17 @@
+import type { MouseEventHandler } from "react"
+
 type Props = {
-    children?: any,
-    onClick?: any,
-    className?: any
+    children?: React.ReactNode,
+    onClick?: MouseEventHandler<HTMLButtonElement> | undefined,
+    className?: string
 }
 
-const Button = (props: Props) => {
-    const className = `min-w-25 min-h-10 rounded-md bg-[#332933] text-[#F4F4F4] flex justify-center items-center font-bold ${props.className}`
+const Button = ({children, onClick, className}: Props) => {
+    const buttonClass = `min-w-25 min-h-10 rounded-md bg-[#332933] text-[#F4F4F4] flex justify-center items-center font-bold ${className}`
 
     return (
-        <button onClick={props.onClick} className={className + " cursor-pointer"}>
-            {props.children}
+        <button onClick={onClick} className={buttonClass + " cursor-pointer"}>
+            {children}
         </button>
     )
 }

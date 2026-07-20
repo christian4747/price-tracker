@@ -31,7 +31,7 @@ const DiscountDisplay = ({discountPercent, className}: DiscountDisplayProps) => 
 
 type BannerProps = {
     discountPercent: number,
-    price: number
+    price: string
 }
 
 const OneYearBanner = ({discountPercent, price}: BannerProps) => {
@@ -99,14 +99,25 @@ const NoBanner = ({discountPercent, price}: BannerProps) => {
 
 type PriceBannerProps = {
     bannerType?: 'one-year' | 'two-year' | 'all-time',
-    discountPercent: number,
-    price: number
+    discountPercent?: number,
+    price?: string
 }
 
 const PriceBanner = (props: PriceBannerProps) => {
-    if (!props.bannerType && props.discountPercent > 0) {
+    if (!props.price && !props.discountPercent) 
+        return <></>
+    
+
+    if (!props.price)
+        return <></>
+    
+    if (!props.discountPercent) 
+        return <NoBanner discountPercent={0} price={props.price} />
+    
+
+    if (!props.bannerType && props.discountPercent > 0) 
         return <NoBanner discountPercent={props.discountPercent} price={props.price} />
-    }
+    
 
     switch(props.bannerType) {
         case 'one-year':

@@ -1,21 +1,36 @@
 import Button from "../common/Button"
 import Modal from "../common/Modal"
-import type { ModalSettings } from "../../App";
+import type { ProductModalProps } from "../../utils/Types";
+import axios from "axios";
+import api from "../../services/api";
 
-type Props = {
-    hidden: boolean,
-    setModalSettings: React.Dispatch<React.SetStateAction<ModalSettings>>
+type DeleteProductModalProps = ProductModalProps & {
+    setHideProduct: React.Dispatch<React.SetStateAction<boolean>>
 }
 
-const DeleteProductModal = (props: Props) => {
+const DeleteProductModal = ({hidden, toggleHidden, product, setHideProduct}: DeleteProductModalProps) => {
+
+    const deleteProduct = async () => {
+        await axios.delete(api.getRootUrl() + "/products/" + product.productId)
+        .then((res) => {
+            toggleHidden()
+            setHideProduct(true)
+            console.log(res)
+        })
+        .catch((err) => {
+            console.log(`Error occurred while deleting ${product.productId}: ${product.name}`)
+            console.log(err)
+        })
+    }
+
     return (
         <Modal
-            hidden={props.hidden}
+            hidden={hidden}
         >
-            <div className="text-4xl font-mono font-bold flex justify-center">Delete Product?</div>
+            <div className="text-4xl font-mono font-bold flex justify-center">Delete {product.name}?</div>
             <div className="flex gap-2 justify-center">
-                <Button>Yes</Button>
-                <Button onClick={() => {props.setModalSettings(prev => ({...prev, deleteProductHidden: !prev.deleteProductHidden}))}}>No</Button>
+                <Button onClick={deleteProduct}>Yes</Button>
+                <Button onClick={toggleHidden}>No</Button>
             </div>
         </Modal>
     )

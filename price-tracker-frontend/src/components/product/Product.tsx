@@ -1,12 +1,15 @@
-import { useContext, useState } from "react";
+import { useState } from "react";
 import { Line, LineChart, Tooltip, XAxis } from "recharts";
 import { FaLink } from "react-icons/fa6";
 import { MdExpandMore, MdEdit, MdDelete } from "react-icons/md";
 import Button from "../common/Button";
 import { FiPlus } from "react-icons/fi";
-import { ModalContext } from "../../App";
+import { type ProductType } from "../../App";
 import Price from "../price/Price";
 import PriceBanner from "../price/PriceBanner";
+import DeleteProductModal from "./DeleteProductModal";
+import EditProductModal from "./EditProductModal";
+import AddPriceModal from "../price/AddPriceModal";
 
 type ExpandButtonProps = {
     hidden: boolean,
@@ -21,44 +24,73 @@ const ExpandButton = ({hidden, setHidden}: ExpandButtonProps) => {
     )
 }
 
-type ProductProps = {
-    productName: string,
-    price: number,
-    bannerType?: 'one-year' | 'two-year' | 'all-time',
-    discountPercent: number
+type ProductModalSettings = {
+    showEditProduct: boolean,
+    showDeleteProduct: boolean,
+    showAddPrice: boolean
 }
 
-const Product = (props: ProductProps) => {
-    const {setModalSettings} = useContext(ModalContext) as ModalContext
-    const [hideLowerContent, setHideLowerContent] = useState(true);
+type ProductProps = {
+    productDetails: ProductType,
+    bannerType?: 'one-year' | 'two-year' | 'all-time',
+    discountPercent?: number
+}
 
-    const sampleData = [
+const Product = ({productDetails, discountPercent, bannerType}: ProductProps) => {
+    const [hideProduct, setHideProduct] = useState(false)
+    const [hideLowerContent, setHideLowerContent] = useState(true)
+    const [product, setProduct] = useState<ProductType>(productDetails)
+
+    const [productModalSettings, setProductModalSettings] = useState<ProductModalSettings>(
         {
-            priceStarted: "January 1st, 2026",
-            price: 9.99
-        },
-        {
-            priceStarted: "February 1st, 2026",
-            price: 4.99
-        },
-        {
-            priceStarted: "March 1st, 2026",
-            price: 4.99
-        },
-        {
-            priceStarted: "April 1st, 2026",
-            price: props.price
-        },
-        {
-            priceStarted: "Today",
-            price: props.price
+            showEditProduct: false,
+            showDeleteProduct: false,
+            showAddPrice: false,
         }
-    ]
+    )
+
+    const getSortedPrices = () => {
+        return product.prices.toSorted((a, b) => {
+            return Date.parse(a.priceStarted) - Date.parse(b.priceStarted)
+        })
+    }
+
+    const createPriceData = () => {
+        const sortedPrices = getSortedPrices()
+        const priceData = sortedPrices
+            .map((price) => {
+                const priceStartedDate = new Date(price.priceStarted)
+
+                return {priceId: price.priceId, priceStarted: `${priceStartedDate.getMonth() + 1}/${priceStartedDate.getDate()}/${priceStartedDate.getFullYear()}`, price: price.amount}
+            }
+        )
+        if (product.prices.length > 0) {
+            priceData.push({priceId: -1, priceStarted: 'Today', price: sortedPrices[sortedPrices.length - 1].amount})
+        }
+        
+        return priceData
+    }
+
+    const priceData = createPriceData()
 
     const priceBanner =
-        props.bannerType ?
-        <PriceBanner discountPercent={props.discountPercent} bannerType={props.bannerType} price={props.price} />
-        : <PriceBanner discountPercent={props.discountPercent} price={props.price} />
+        bannerType ?
+        <PriceBanner discountPercent={discountPercent} bannerType={bannerType} price={getSortedPrices()[product.prices.length - 1]?.amount} />
+        : <PriceBanner discountPercent={discountPercent} price={getSortedPrices()[product.prices.length - 1]?.amount} />
+
+    const toggleShowEdit = () => {
+        setProductModalSettings(prev => ({...prev, showEditProduct: !prev.showEditProduct}))
+    }
+
+    const toggleShowDelete = () => {
+        setProductModalSettings(prev => ({...prev, showDeleteProduct: !prev.showDeleteProduct}))
+    }
+
+    const toggleShowAddPrice = () => {
+        setProductModalSettings(prev => ({...prev, showAddPrice: !prev.showAddPrice}))
+    }
+
+    if (hideProduct) return (<></>)
 
     return (
         <>
@@ -67,18 +99,18 @@ const Product = (props: ProductProps) => {
                 <div className='h-full w-full flex justify-between items-center'>
                     <div className='flex gap-3 items-baseline-last'>
                         <div className="font-bold text-3xl font-mono">
-                            {props.productName}
+                            {product.name}
                         </div>
                         <div className="font-mono">
-                            Store
+                            {product.store}
                         </div>
-                        <a className="cursor-pointer" href="http://localhost:5173/" target="_blank">
+                        <a className="cursor-pointer" href={product.link} target="_blank">
                             <FaLink />
                         </a>
-                        <div className="hidden group-hover:block cursor-pointer" onClick={() => setModalSettings(prev => ({...prev, editProductHidden: false}))}>
+                        <div className="hidden group-hover:block cursor-pointer" onClick={toggleShowEdit}>
                             <MdEdit />
                         </div>
-                        <div className="hidden group-hover:block cursor-pointer" onClick={() => setModalSettings(prev => ({...prev, deleteProductHidden: false}))}>
+                        <div className="hidden group-hover:block cursor-pointer" onClick={toggleShowDelete}>
                             <MdDelete />
                         </div>
                     </div>
@@ -91,9 +123,9 @@ const Product = (props: ProductProps) => {
                 </div>
 
                 {/* Lower content */}
-                {!hideLowerContent && <div className='w-full h-full flex justify-between gap-2'>
+                {!hideLowerContent ? <div className='w-full h-full flex justify-between gap-2'>
                     <div className='w-7/10 border-1 border-[#BCBBBD] rounded-sm p-1'>
-                        <LineChart style={{ width: '100%', aspectRatio: 3}} responsive data={sampleData}>
+                        <LineChart style={{ width: '100%', aspectRatio: 3}} responsive data={priceData}>
                             <XAxis dataKey="priceStarted" />
                             <Line type="stepAfter" dataKey="price" />
                             <Tooltip />
@@ -101,36 +133,47 @@ const Product = (props: ProductProps) => {
                     </div>
                     <div className='flex flex-col w-3/10 border-1 border-[#BCBBBD] rounded-sm overflow-hidden justify-between'>
                         <div className='flex flex-col overflow-hidden bg-[#BCBBBD] font-bold font-mono'>
-                            <Price 
-                                price={9.99}
-                                priceStarted={'04/01/26'}
-                                setModalSettings={setModalSettings}
-                            />
-                            <Price 
-                                price={4.99}
-                                priceStarted={'03/01/26'}
-                                setModalSettings={setModalSettings}
-                            />
-                            <Price 
-                                price={4.99}
-                                priceStarted={'02/01/26'}
-                                setModalSettings={setModalSettings}
-                            />
-                            <Price 
-                                price={9.99}
-                                priceStarted={'01/01/26'}
-                                setModalSettings={setModalSettings}
-                            />
+                            {getSortedPrices()?.map((price) => {
+                                price.productId = product.productId
+                                return (
+                                    <Price
+                                        key={price.priceId}
+                                        price={price}
+                                        product={product}
+                                        setProduct={setProduct}
+                                    />
+                                )
+                            })}
                         </div>
                         <Button
-                            onClick={() => {setModalSettings(prev => ({...prev, addPriceHidden: false}))}}
+                            onClick={toggleShowAddPrice}
                             className="mb-2 ml-2 mr-2"
                         >
                             <FiPlus size={24} />
                         </Button>
                     </div>
-                </div>}
+                </div> : <></>}
             </div>
+
+            <EditProductModal
+                hidden={productModalSettings.showEditProduct}
+                toggleHidden={toggleShowEdit}
+                product={product}
+            />
+
+            <DeleteProductModal
+                hidden={productModalSettings.showDeleteProduct}
+                toggleHidden={toggleShowDelete}
+                product={product}
+                setHideProduct={setHideProduct}
+            />
+
+            <AddPriceModal
+                hidden={productModalSettings.showAddPrice}
+                toggleHidden={toggleShowAddPrice}
+                product={product}
+                setProduct={setProduct}
+            />
         </>
     )
 }
