@@ -1,14 +1,14 @@
 import { useState } from "react"
-import { type PriceDTO, type ProductDTO, type ProductType } from "../../utils/Types"
+import { type PriceDTO, type ProductDTO, type ProductType } from "../../../utils/Types"
 import PriceBanner from "../price/PriceBanner"
-import DeleteProductModal from "./DeleteProductModal"
-import EditProductModal from "./EditProductModal"
-import AddPriceModal from "../price/AddPriceModal"
-import ExpandButton from "../common/ExpandButton"
-import Product from "./Product"
+import DeleteProductModal from "../modals/DeleteProductModal"
+import EditProductModal from "../modals/EditProductModal"
+import AddPriceModal from "../modals/AddPriceModal"
+import ExpandButton from "../../common/ExpandButton"
+import Product from "../product/Product"
 import PriceHistoryChart from "../price/PriceHistoryChart"
 import PriceList from "../price/PriceList"
-import api from "../../services/api"
+import api from "../../../services/api"
 
 type ProductModalSettings = {
     showEditProduct: boolean,

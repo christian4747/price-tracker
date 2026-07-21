@@ -1,7 +1,7 @@
-import Button from "../common/Button"
-import Input from "../common/Input"
-import Modal from "../common/Modal"
-import type { ModalProps, PriceDTO } from "../../utils/Types";
+import Button from "../../common/Button"
+import Input from "../../common/Input"
+import Modal from "../../common/Modal"
+import type { ModalProps, PriceDTO } from "../../../utils/Types";
 
 type EditPriceModalProps = ModalProps & {
     editPrice: () => Promise<void>,

@@ -1,5 +1,5 @@
 import { MdEdit, MdDelete } from 'react-icons/md'
-import type { PriceType } from '../../utils/Types'
+import type { PriceType } from '../../../utils/Types'
 
 type Props = {
     price: PriceType,

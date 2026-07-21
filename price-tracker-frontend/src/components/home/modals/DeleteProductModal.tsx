@@ -1,6 +1,6 @@
-import Button from "../common/Button"
-import Modal from "../common/Modal"
-import type { ProductModalProps } from "../../utils/Types";
+import Button from "../../common/Button"
+import Modal from "../../common/Modal"
+import type { ProductModalProps } from "../../../utils/Types";
 
 type DeleteProductModalProps = ProductModalProps & {
     deleteProduct: () => Promise<void>

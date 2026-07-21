@@ -1,7 +1,7 @@
 import { FiPlus } from 'react-icons/fi'
-import type { ProductType } from "../../utils/Types"
-import Button from '../common/Button'
-import ProductContainer from './ProductContainer'
+import type { ProductType } from "../../../utils/Types"
+import Button from '../../common/Button'
+import ProductContainer from '../containers/ProductPriceListContainer'
 
 type ProductListProps = {
     products: ProductType[],

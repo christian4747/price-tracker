@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
-import type { ProductDTO, ProductType } from "../../utils/Types"
-import api from '../../services/api'
-import ProductList from './ProductList'
-import AddProductModal from './AddProductModal'
+import type { ProductDTO, ProductType } from "../../../utils/Types"
+import api from '../../../services/api'
+import ProductList from '../product/ProductList'
+import AddProductModal from '../modals/AddProductModal'
 
 const ProductListContainer = () => {
     // State for showing AddProductModal

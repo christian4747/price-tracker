@@ -1,6 +1,6 @@
 import { FaLink } from "react-icons/fa6"
 import { MdDelete, MdEdit } from "react-icons/md"
-import type { ProductType } from "../../utils/Types"
+import type { ProductType } from "../../../utils/Types"
 
 type ProductProps = {
     product: ProductType,

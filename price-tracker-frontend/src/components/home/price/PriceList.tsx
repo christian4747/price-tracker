@@ -1,6 +1,6 @@
-import type { PriceType, ProductType } from "../../utils/Types"
-import Price from './PriceContainer'
-import Button from '../common/Button'
+import type { PriceType, ProductType } from "../../../utils/Types"
+import PriceContainer from '../containers/PriceContainer'
+import Button from '../../common/Button'
 import { FiPlus } from 'react-icons/fi'
 
 type Props = {
@@ -18,7 +18,7 @@ const PriceList = ({product, sortedPrices, setProduct, toggleShowAddPrice}: Prop
                     {sortedPrices?.map((price) => {
                         price.productId = product.productId
                         return (
-                            <Price
+                            <PriceContainer
                                 key={price.priceId}
                                 price={price}
                                 product={product}

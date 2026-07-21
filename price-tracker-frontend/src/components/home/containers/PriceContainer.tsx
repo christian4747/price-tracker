@@ -1,9 +1,9 @@
 import { useState } from 'react'
-import EditPriceModal from './EditPriceModal'
-import DeletePriceModal from './DeletePriceModal'
-import type { PriceDTO, PriceType, ProductType } from "../../utils/Types"
-import Price from './Price'
-import api from '../../services/api'
+import EditPriceModal from '../modals/EditPriceModal'
+import DeletePriceModal from '../modals/DeletePriceModal'
+import type { PriceDTO, PriceType, ProductType } from "../../../utils/Types"
+import Price from '../price/Price'
+import api from '../../../services/api'
 
 type PriceModalSettings = {
     showEditPrice: boolean,
