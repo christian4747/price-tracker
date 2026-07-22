@@ -98,7 +98,7 @@ const NoBanner = ({discountPercent, price}: BannerProps) => {
 }
 
 type PriceBannerProps = {
-    bannerType?: 'one-year' | 'two-year' | 'all-time',
+    bannerType?: 'one-year' | 'two-year' | 'all-time' | '',
     discountPercent?: number,
     price?: string
 }
