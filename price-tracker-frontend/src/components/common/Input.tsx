@@ -4,10 +4,11 @@ type Props = {
     placeholder?: string,
     onChange?: React.ChangeEventHandler<HTMLInputElement, HTMLInputElement> | undefined,
     value?: any,
-    type?: string
+    type?: string,
+    step?: any
 }
 
-const Input = ({children, className, placeholder, onChange, value, type}: Props) => {
+const Input = ({children, className, placeholder, onChange, value, type, step}: Props) => {
     return (
         <input
             type={type}
@@ -15,6 +16,7 @@ const Input = ({children, className, placeholder, onChange, value, type}: Props)
             placeholder={placeholder}
             onChange={onChange}
             value={value}
+            step={step}
         >
             {children}
         </input>

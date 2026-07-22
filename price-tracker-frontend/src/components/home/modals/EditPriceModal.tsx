@@ -19,6 +19,8 @@ const EditPriceModal = ({hidden, toggleHidden, editPrice, priceDTO, setPriceDTO 
                 placeholder="Price"
                 value={priceDTO.amount}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {setPriceDTO(prev => ({...prev, amount: parseFloat(e.target.value)}))}}
+                type="number"
+                step=".01"
             />
             <Input placeholder="Currency"
                 value={priceDTO.currency}
