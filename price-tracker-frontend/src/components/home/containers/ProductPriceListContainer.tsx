@@ -71,6 +71,13 @@ const ProductContainer = ({productDetails}: ProductProps) => {
         })
     }
 
+    // Get the Product's Price(s) sorted by amount (descending)
+    const getSortedPricesByAmount = () => {
+        return product.prices.toSorted((a, b) => {
+            return parseFloat(a.amount) - parseFloat(b.amount)
+        })
+    }
+
     // Create Price data for PriceHistoryChart
     const createPriceData = () => {
         const sortedPrices = getSortedPrices()
@@ -153,6 +160,49 @@ const ProductContainer = ({productDetails}: ProductProps) => {
         }
     }
 
+    // Generates the discount percentage for the most recent Price
+    const generateDiscount = () => {
+        const sortedByPrice = getSortedPricesByAmount()
+        const sortedByDate = getSortedPrices()
+
+        if (sortedByPrice.length <= 1 || sortedByDate.length <= 1) return 0
+
+        const highest = sortedByPrice[sortedByPrice.length - 1]
+        const recent = sortedByDate[sortedByDate.length - 1]
+
+        // console.log(highest.amount, recent.amount)
+        const ratio = Math.round((1 - (parseFloat(recent.amount) / parseFloat(highest.amount))) * 100)
+        return ratio
+    }
+
+    // Returns the banner type by comparing the best discount and most recent discount
+    const getBannerType = () => {
+        const sortedByDate = getSortedPrices()
+        console.log(sortedByDate)
+        if (sortedByDate.length <= 1) return ''
+
+        let lowest = parseFloat(sortedByDate[0].amount)
+        let highest = parseFloat(sortedByDate[0].amount)
+        let profit = highest - lowest
+
+        for (const price of sortedByDate) {
+            const priceVal = parseFloat(price.amount)
+            if (priceVal < lowest) {
+                lowest = priceVal
+                profit = highest - lowest
+            } else if (priceVal > highest) {
+                highest = priceVal
+                profit = highest - lowest
+            }
+        }
+        // console.log(profit / highest, profit, highest, lowest)
+        // console.log((profit / highest) * 100.0, generateDiscount())
+        if (Math.round((profit / highest) * 100) === generateDiscount()) {
+            return 'all-time'
+        }
+        return ''
+    }
+
     if (hideProduct) return (<></>)
 
     return (
@@ -168,8 +218,8 @@ const ProductContainer = ({productDetails}: ProductProps) => {
 
                     <div className='flex gap-3 items-center font-mono font-bold'>
                         <PriceBanner
-                            discountPercent={50}
-                            bannerType={"all-time"}
+                            discountPercent={generateDiscount()}
+                            bannerType={getBannerType()}
                             price={getSortedPrices()[product.prices.length - 1]?.amount}
                         />
                         <ExpandButton hidden={hideLowerContent} setHidden={setHideLowerContent}/>
