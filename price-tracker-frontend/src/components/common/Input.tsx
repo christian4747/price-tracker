@@ -1,16 +1,24 @@
 type Props = {
-    children?: any,
-    className?: any,
-    placeholder?: any
+    children?: React.ReactNode,
+    className?: string,
+    placeholder?: string,
+    onChange?: React.ChangeEventHandler<HTMLInputElement, HTMLInputElement> | undefined,
+    value?: any,
+    type?: string,
+    step?: any
 }
 
-const Input = (props: Props) => {
+const Input = ({children, className, placeholder, onChange, value, type, step}: Props) => {
     return (
         <input
-            className="border-1 border-[#BCBBBD] rounded-sm p-1"
-            placeholder={props.placeholder}
+            type={type}
+            className={"border-1 border-[#BCBBBD] rounded-sm p-1 " + className}
+            placeholder={placeholder}
+            onChange={onChange}
+            value={value}
+            step={step}
         >
-            {props.children}
+            {children}
         </input>
     )
 }
