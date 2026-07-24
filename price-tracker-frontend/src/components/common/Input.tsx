@@ -1,16 +1,15 @@
-type Props = {
-    children?: any,
-    className?: any,
-    placeholder?: any
+type Props = React.ComponentPropsWithoutRef<"input"> & {
+    children?: React.ReactNode,
+    className?: string
 }
 
-const Input = (props: Props) => {
+const Input = ({children, className, ...props}: Props) => {
     return (
         <input
-            className="border-1 border-[#BCBBBD] rounded-sm p-1"
-            placeholder={props.placeholder}
+            className={"border border-smoke rounded-sm p-1 " + className}
+            {...props}
         >
-            {props.children}
+            {children}
         </input>
     )
 }
