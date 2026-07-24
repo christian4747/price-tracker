@@ -39,7 +39,7 @@ type ProductDTO = {
 }
 
 type PriceDTO = {
-    amount: number,
+    amount: string,
     currency: string,
     priceStarted: string,
     priceEnded: string,

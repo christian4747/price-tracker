@@ -29,10 +29,10 @@ const PriceContainer = ({price, setProduct}: PriceProps) => {
     // State for PriceDTO for editing Prices
     const [priceDTO, setPriceDTO] = useState<PriceDTO>(
         {
-            amount: parseFloat(price.amount),
+            amount: parseFloat(price.amount).toFixed(2),
             currency: price.currency || '',
-            priceStarted: price.priceStarted || '',
-            priceEnded: price.priceEnded || '',
+            priceStarted: price.priceStarted?.slice(0, -8) || '',
+            priceEnded: price.priceEnded?.slice(0, -8) || '',
             productId: price.productId
         }
     )

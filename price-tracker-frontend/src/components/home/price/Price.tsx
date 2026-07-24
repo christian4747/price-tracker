@@ -15,7 +15,7 @@ const Price = ({price, priceStartedDateString, toggleShowEditPrice, toggleShowDe
                 {priceStartedDateString}
             </div>
             <div className="pr-2 flex items-center gap-1">
-                <div>${price.amount}</div>
+                <div>${parseFloat(price.amount).toFixed(2)}</div>
                 <div
                     className="hidden group-hover/product:block cursor-pointer"
                     onClick={toggleShowEditPrice}

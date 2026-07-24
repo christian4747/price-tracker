@@ -51,7 +51,7 @@ const ProductContainer = ({productDetails}: ProductProps) => {
     // State for PriceDTO when adding Prices
     const [priceDTO, setPriceDTO] = useState<PriceDTO>(
         {
-            amount: 0,
+            amount: '',
             currency: '',
             priceStarted: '',
             priceEnded: '',
@@ -61,7 +61,7 @@ const ProductContainer = ({productDetails}: ProductProps) => {
 
     // Reset PriceDTO after adding a Price
     const resetPriceDTO = () => {
-        setPriceDTO({amount: 0, currency: '', priceStarted: '', priceEnded: '', productId: product.productId})
+        setPriceDTO({amount: '', currency: '', priceStarted: '', priceEnded: '', productId: product.productId})
     }
 
     // Sorts the given PriceType array ascending by date
@@ -140,6 +140,7 @@ const ProductContainer = ({productDetails}: ProductProps) => {
 
     // Toggle visibility of AddPriceModal
     const toggleShowAddPrice = () => {
+        setPriceDTO(prev => ({...prev, priceStarted: new Date(Date.now()).toISOString().slice(0, -8)}))
         setProductModalSettings(prev => ({...prev, showAddPrice: !prev.showAddPrice}))
     }
 
@@ -204,8 +205,8 @@ const ProductContainer = ({productDetails}: ProductProps) => {
         const recent = sortedByDate[sortedByDate.length - 1]
 
         // console.log(highest.amount, recent.amount)
-        const ratio = ((1 - (parseFloat(recent.amount) / parseFloat(highest.amount))) * 100).toFixed(2)
-        return parseFloat(ratio)
+        const ratio = parseFloat(((1 - (parseFloat(recent.amount) / parseFloat(highest.amount))) * 100).toFixed(2))
+        return ratio > 1 ? Math.round(ratio) : ratio
     }
 
     // Gets the best discount found in the array of Prices
@@ -239,6 +240,8 @@ const ProductContainer = ({productDetails}: ProductProps) => {
         const allTimeDiscount = getBestDiscount(getSortedPrices())
         const twoYearDiscount = getBestDiscount(getTwoYearsAgoPrices())
         const oneYearDiscount = getBestDiscount(getOneYearAgoPrices())
+
+        // console.log(allTimeDiscount, twoYearDiscount, oneYearDiscount, mostRecentDiscount)
 
         if (allTimeDiscount === mostRecentDiscount) {
             return 'all-time'
