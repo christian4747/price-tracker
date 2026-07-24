@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { type PriceDTO, type ProductDTO, type ProductType } from "../../../utils/Types"
+import { type PriceDTO, type PriceType, type ProductDTO, type ProductType } from "../../../utils/Types"
 import PriceBanner from "../price/PriceBanner"
 import DeleteProductModal from "../modals/DeleteProductModal"
 import EditProductModal from "../modals/EditProductModal"
@@ -67,6 +67,23 @@ const ProductContainer = ({productDetails}: ProductProps) => {
     // Get the Product's Price(s) sorted
     const getSortedPrices = () => {
         return product.prices.toSorted((a, b) => {
+            return Date.parse(a.priceStarted) - Date.parse(b.priceStarted)
+        })
+    }
+
+    const getLastYearPrices = () => {
+        const today = new Date(Date.now())
+        today.setFullYear(today.getFullYear() - 1)
+
+        return product.prices.filter((price) => {
+            if (Date.parse(price.priceStarted) > Date.parse(today.toUTCString())) {
+                return price
+            }
+        })
+    }
+
+    const getSortedLastYear = () => {
+        return getLastYearPrices().toSorted((a, b) => {
             return Date.parse(a.priceStarted) - Date.parse(b.priceStarted)
         })
     }
@@ -160,8 +177,8 @@ const ProductContainer = ({productDetails}: ProductProps) => {
         }
     }
 
-    // Generates the discount percentage for the most recent Price
-    const generateDiscount = () => {
+    // Gets the discount percentage for the most recent Price
+    const getMostRecentDiscount = () => {
         const sortedByPrice = getSortedPricesByAmount()
         const sortedByDate = getSortedPrices()
 
@@ -175,17 +192,14 @@ const ProductContainer = ({productDetails}: ProductProps) => {
         return ratio
     }
 
-    // Returns the banner type by comparing the best discount and most recent discount
-    const getBannerType = () => {
-        const sortedByDate = getSortedPrices()
-        console.log(sortedByDate)
-        if (sortedByDate.length <= 1) return ''
+    const getBestDiscount = (prices: PriceType[]) => {
+        if (prices.length <= 1) return '' 
 
-        let lowest = parseFloat(sortedByDate[0].amount)
-        let highest = parseFloat(sortedByDate[0].amount)
+        let lowest = parseFloat(prices[0].amount)
+        let highest = parseFloat(prices[0].amount)
         let profit = highest - lowest
 
-        for (const price of sortedByDate) {
+        for (const price of prices) {
             const priceVal = parseFloat(price.amount)
             if (priceVal < lowest) {
                 lowest = priceVal
@@ -195,10 +209,21 @@ const ProductContainer = ({productDetails}: ProductProps) => {
                 profit = highest - lowest
             }
         }
-        // console.log(profit / highest, profit, highest, lowest)
-        // console.log((profit / highest) * 100.0, generateDiscount())
-        if (Math.round((profit / highest) * 100) === generateDiscount()) {
+
+        return Math.round((profit / highest) * 100)
+    }
+
+    // Returns the banner type by comparing the best discount and most recent discount
+    const getBannerType = () => {
+        const mostRecentDiscount = getMostRecentDiscount()
+        const allTimeDiscount = getBestDiscount(getSortedPrices())
+        const oneYearDiscount = getBestDiscount(getSortedLastYear())
+        console.log(oneYearDiscount)
+
+        if (allTimeDiscount === mostRecentDiscount) {
             return 'all-time'
+        } else if (oneYearDiscount === mostRecentDiscount) {
+            return 'one-year'
         }
         return ''
     }
@@ -218,7 +243,7 @@ const ProductContainer = ({productDetails}: ProductProps) => {
 
                     <div className='flex gap-3 items-center font-mono font-bold'>
                         <PriceBanner
-                            discountPercent={generateDiscount()}
+                            discountPercent={getMostRecentDiscount()}
                             bannerType={getBannerType()}
                             price={getSortedPrices()[product.prices.length - 1]?.amount}
                         />
