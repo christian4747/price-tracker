@@ -64,29 +64,45 @@ const ProductContainer = ({productDetails}: ProductProps) => {
         setPriceDTO({amount: 0, currency: '', priceStarted: '', priceEnded: '', productId: product.productId})
     }
 
-    // Get the Product's Price(s) sorted
-    const getSortedPrices = () => {
-        return product.prices.toSorted((a, b) => {
+    // Sorts the given PriceType array ascending by date
+    const sortPricesByDateAscending = (prices: PriceType[]) => {
+        return prices.toSorted((a, b) => {
             return Date.parse(a.priceStarted) - Date.parse(b.priceStarted)
         })
     }
 
-    const getLastYearPrices = () => {
-        const today = new Date(Date.now())
-        today.setFullYear(today.getFullYear() - 1)
+    // Filter Price(s) that occurred before the given date
+    const filterPricesBeforeDate = (prices: PriceType[], date: Date) => {
+        const filter = Date.parse(date.toUTCString())
 
-        return product.prices.filter((price) => {
-            if (Date.parse(price.priceStarted) > Date.parse(today.toUTCString())) {
+        return prices.filter((price) => {
+            if (Date.parse(price.priceStarted) > filter) {
                 return price
             }
         })
     }
 
-    const getSortedLastYear = () => {
-        return getLastYearPrices().toSorted((a, b) => {
-            return Date.parse(a.priceStarted) - Date.parse(b.priceStarted)
-        })
+    // Get the Product's Price(s) sorted
+    const getSortedPrices = () => {
+        return sortPricesByDateAscending(product.prices)
     }
+
+    // Get an array of Price(s) up to one year ago in ascending order
+    const getOneYearAgoPrices = () => {
+        const oneYearAgo = new Date(Date.now())
+        oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1)
+
+        return sortPricesByDateAscending(filterPricesBeforeDate(product.prices, oneYearAgo))
+    }
+
+    // Get an array of Price(s) up to two years ago in ascending order
+    const getTwoYearsAgoPrices = () => {
+        const twoYearsAgo = new Date(Date.now())
+        twoYearsAgo.setFullYear(twoYearsAgo.getFullYear() - 2)
+
+        return sortPricesByDateAscending(filterPricesBeforeDate(product.prices, twoYearsAgo))
+    }
+
 
     // Get the Product's Price(s) sorted by amount (descending)
     const getSortedPricesByAmount = () => {
@@ -192,8 +208,9 @@ const ProductContainer = ({productDetails}: ProductProps) => {
         return ratio
     }
 
+    // Gets the best discount found in the array of Prices
     const getBestDiscount = (prices: PriceType[]) => {
-        if (prices.length <= 1) return '' 
+        if (prices.length <= 1) return 0
 
         let lowest = parseFloat(prices[0].amount)
         let highest = parseFloat(prices[0].amount)
@@ -216,12 +233,15 @@ const ProductContainer = ({productDetails}: ProductProps) => {
     // Returns the banner type by comparing the best discount and most recent discount
     const getBannerType = () => {
         const mostRecentDiscount = getMostRecentDiscount()
+
         const allTimeDiscount = getBestDiscount(getSortedPrices())
-        const oneYearDiscount = getBestDiscount(getSortedLastYear())
-        console.log(oneYearDiscount)
+        const twoYearDiscount = getBestDiscount(getTwoYearsAgoPrices())
+        const oneYearDiscount = getBestDiscount(getOneYearAgoPrices())
 
         if (allTimeDiscount === mostRecentDiscount) {
             return 'all-time'
+        } else if (twoYearDiscount === mostRecentDiscount) {
+            return 'two-year'
         } else if (oneYearDiscount === mostRecentDiscount) {
             return 'one-year'
         }
