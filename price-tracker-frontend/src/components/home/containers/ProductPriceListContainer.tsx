@@ -51,7 +51,7 @@ const ProductContainer = ({productDetails}: ProductProps) => {
     // State for PriceDTO when adding Prices
     const [priceDTO, setPriceDTO] = useState<PriceDTO>(
         {
-            amount: '',
+            amount: '0.00',
             currency: '',
             priceStarted: '',
             priceEnded: '',
