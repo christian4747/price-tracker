@@ -11,7 +11,7 @@ const DeleteProductModal = ({hidden, toggleHidden, product, deleteProduct}: Dele
         <Modal
             hidden={hidden}
         >
-            <div className="text-4xl font-mono font-bold flex justify-center">Delete {product.name}?</div>
+            <div className="text-4xl font-mono font-bold flex justify-center">Delete Product {product.name}?</div>
             <div className="flex gap-2 justify-center">
                 <Button onClick={deleteProduct}>Yes</Button>
                 <Button onClick={toggleHidden}>No</Button>
