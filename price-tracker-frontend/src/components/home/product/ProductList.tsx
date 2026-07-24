@@ -5,7 +5,7 @@ import ProductContainer from '../containers/ProductPriceListContainer'
 
 type ProductListProps = {
     products: ProductType[],
-    toggleAddProduct: React.Dispatch<React.SetStateAction<boolean>>
+    toggleAddProduct: () => void
 }
 
 const ProductList = ({products, toggleAddProduct}: ProductListProps) => {

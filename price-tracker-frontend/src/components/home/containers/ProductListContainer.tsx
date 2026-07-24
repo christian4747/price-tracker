@@ -9,15 +9,21 @@ const ProductListContainer = () => {
     const [showAddProduct, setShowAddProduct] = useState<boolean>(false)
 
     // State for ProductDTO used in adding products
-    const [productDTO, setProductDTO] = useState<ProductDTO>({name: '', link: '', store: ''})
+    const [productDTO, setProductDTO] = useState<ProductDTO>(
+        {
+            name: '',
+            link: '',
+            store: ''
+        }
+    )
+
+    // List of Products
+    const [products, setProducts] = useState<ProductType[]>([])
 
     // Toggle visibility of AddProductModal
     const toggleAddProduct = () => {
         setShowAddProduct(prev => !prev)
     }
-
-    // List of Products
-    const [products, setProducts] = useState<ProductType[]>([])
 
     // API function for getting all Products
     const getAllProducts = async () => {

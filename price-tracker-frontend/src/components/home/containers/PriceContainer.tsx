@@ -4,6 +4,7 @@ import DeletePriceModal from '../modals/DeletePriceModal'
 import type { PriceDTO, PriceType, ProductType } from "../../../utils/Types"
 import Price from '../price/Price'
 import api from '../../../services/api'
+import { getUSDateStringFromTimestamp, javaTimestampToJS } from '../../../utils/DateUtilities'
 
 type PriceModalSettings = {
     showEditPrice: boolean,
@@ -31,11 +32,14 @@ const PriceContainer = ({price, setProduct}: PriceProps) => {
         {
             amount: parseFloat(price.amount).toFixed(2),
             currency: price.currency || '',
-            priceStarted: price.priceStarted?.slice(0, -8) || '',
-            priceEnded: price.priceEnded?.slice(0, -8) || '',
+            priceStarted: price.priceStarted ? javaTimestampToJS(price.priceStarted) : '',
+            priceEnded: price.priceEnded? javaTimestampToJS(price.priceEnded) : '',
             productId: price.productId
         }
     )
+
+    // Constructing the string to show the date on the PriceList
+    const priceStartedDateString = getUSDateStringFromTimestamp(price.priceStarted)
 
     // Toggle EditPriceModal visibility
     const toggleShowEdit = () => {
@@ -46,10 +50,6 @@ const PriceContainer = ({price, setProduct}: PriceProps) => {
     const toggleShowDelete = () => {
         setPriceModalSettings(prev => ({...prev, showDeletePrice: !prev.showDeletePrice}))
     }
-
-    // Constructing the string to show the date on the PriceList
-    const priceStartedDate = new Date(price.priceStarted)
-    const priceStartedDateString = `${priceStartedDate.getMonth() + 1}/${priceStartedDate.getDate()}/${priceStartedDate.getFullYear()}`
 
     // API function for editing a Price
     const editPrice = async () => {

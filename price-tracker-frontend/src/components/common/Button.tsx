@@ -1,14 +1,11 @@
-type Props = {
+type Props = React.ComponentPropsWithoutRef<"button"> & {
     children?: React.ReactNode,
-    onClick?: any,
     className?: string
 }
 
-const Button = ({children, onClick, className}: Props) => {
-    const buttonClass = `min-w-25 min-h-10 rounded-md bg-[#332933] text-[#F4F4F4] flex justify-center items-center font-bold ${className}`
-
+const Button = ({children, className, ...props}: Props) => {
     return (
-        <button onClick={onClick} className={buttonClass + " cursor-pointer"}>
+        <button className={'min-w-25 min-h-10 rounded-md bg-raisin text-cloud flex justify-center items-center font-bold cursor-pointer ' + className} {...props}>
             {children}
         </button>
     )

@@ -15,7 +15,7 @@ const PriceHistoryTooltip = ({active, payload, label}: TooltipContentProps) => {
             }}
         >
         {isVisible && (
-            <div className='m-0 p-3 bg-[#F4F4F4] border-1 border-[#BCBBBD] rounded-sm whitespace-nowrap flex flex-col'>
+            <div className='m-0 p-3 bg-cloud border border-smoke rounded-sm whitespace-nowrap flex flex-col'>
                 <p className="label">{`${label}`}</p>
                 <p>{`Price: $${firstPayload.value}`}</p>
             </div>
@@ -26,7 +26,7 @@ const PriceHistoryTooltip = ({active, payload, label}: TooltipContentProps) => {
 
 const PriceHistoryChart = ({priceData}: Props) => {
     return (
-        <div className='w-7/10 border-1 border-[#BCBBBD] rounded-sm p-1'>
+        <div className='w-7/10 border border-smoke rounded-sm p-1'>
             <LineChart style={{ width: '100%', aspectRatio: 3}} responsive data={priceData}>
                 <XAxis dataKey="priceStarted" />
                 <Line type="stepAfter" dataKey="price" />

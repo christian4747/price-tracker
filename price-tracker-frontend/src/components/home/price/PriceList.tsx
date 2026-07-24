@@ -6,15 +6,15 @@ import { FiPlus } from 'react-icons/fi'
 type Props = {
     product: ProductType,
     sortedPrices: PriceType[],
-    toggleShowAddPrice: any,
-    setProduct: any
+    toggleShowAddPrice: () => void,
+    setProduct: React.Dispatch<React.SetStateAction<ProductType>>
 }
 
 const PriceList = ({product, sortedPrices, setProduct, toggleShowAddPrice}: Props) => {
     return (
         <>
-            <div className='flex flex-col w-3/10 border-1 border-[#BCBBBD] rounded-sm overflow-hidden justify-between'>
-                <div className='flex flex-col overflow-hidden bg-[#BCBBBD] font-bold font-mono'>
+            <div className='flex flex-col w-3/10 border border-smoke rounded-sm overflow-hidden justify-between'>
+                <div className='flex flex-col overflow-hidden bg-smoke font-bold font-mono'>
                     {sortedPrices?.map((price) => {
                         price.productId = product.productId
                         return (

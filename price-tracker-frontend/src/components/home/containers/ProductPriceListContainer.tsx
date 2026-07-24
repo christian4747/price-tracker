@@ -9,6 +9,7 @@ import Product from "../product/Product"
 import PriceHistoryChart from "../price/PriceHistoryChart"
 import PriceList from "../price/PriceList"
 import api from "../../../services/api"
+import { filterPricesBeforeDate, getUSDateStringFromTimestamp, javaTimestampToJS, sortPricesByDateAscending } from "../../../utils/DateUtilities"
 
 type ProductModalSettings = {
     showEditProduct: boolean,
@@ -61,30 +62,26 @@ const ProductContainer = ({productDetails}: ProductProps) => {
 
     // Reset PriceDTO after adding a Price
     const resetPriceDTO = () => {
-        setPriceDTO({amount: '', currency: '', priceStarted: '', priceEnded: '', productId: product.productId})
-    }
-
-    // Sorts the given PriceType array ascending by date
-    const sortPricesByDateAscending = (prices: PriceType[]) => {
-        return prices.toSorted((a, b) => {
-            return Date.parse(a.priceStarted) - Date.parse(b.priceStarted)
-        })
-    }
-
-    // Filter Price(s) that occurred before the given date
-    const filterPricesBeforeDate = (prices: PriceType[], date: Date) => {
-        const filter = Date.parse(date.toUTCString())
-
-        return prices.filter((price) => {
-            if (Date.parse(price.priceStarted) > filter) {
-                return price
-            }
-        })
+        setPriceDTO(
+            {
+                amount: '0.00',
+                currency: '',
+                priceStarted: '',
+                priceEnded: '',
+                productId: product.productId
+            })
     }
 
     // Get the Product's Price(s) sorted
     const getSortedPrices = () => {
         return sortPricesByDateAscending(product.prices)
+    }
+
+    // Get the Product's Price(s) sorted by amount in ascending order
+    const getSortedPricesByAmount = () => {
+        return product.prices.toSorted((a, b) => {
+            return parseFloat(a.amount) - parseFloat(b.amount)
+        })
     }
 
     // Get an array of Price(s) up to one year ago in ascending order
@@ -103,26 +100,28 @@ const ProductContainer = ({productDetails}: ProductProps) => {
         return sortPricesByDateAscending(filterPricesBeforeDate(product.prices, twoYearsAgo))
     }
 
-
-    // Get the Product's Price(s) sorted by amount (descending)
-    const getSortedPricesByAmount = () => {
-        return product.prices.toSorted((a, b) => {
-            return parseFloat(a.amount) - parseFloat(b.amount)
-        })
-    }
-
     // Create Price data for PriceHistoryChart
     const createPriceData = () => {
         const sortedPrices = getSortedPrices()
+
         const priceData = sortedPrices
             .map((price) => {
-                const priceStartedDate = new Date(price.priceStarted)
-
-                return {priceId: price.priceId, priceStarted: `${priceStartedDate.getMonth() + 1}/${priceStartedDate.getDate()}/${priceStartedDate.getFullYear()}`, price: price.amount}
+                return {
+                    priceId: price.priceId,
+                    priceStarted: getUSDateStringFromTimestamp(price.priceStarted),
+                    price: price.amount
+                }
             }
         )
+
         if (product.prices.length > 0) {
-            priceData.push({priceId: -1, priceStarted: 'Today', price: sortedPrices[sortedPrices.length - 1].amount})
+            priceData.push(
+                {
+                    priceId: -1,
+                    priceStarted: 'Today',
+                    price: sortedPrices[sortedPrices.length - 1].amount
+                }
+            )
         }
         
         return priceData
@@ -140,7 +139,7 @@ const ProductContainer = ({productDetails}: ProductProps) => {
 
     // Toggle visibility of AddPriceModal
     const toggleShowAddPrice = () => {
-        setPriceDTO(prev => ({...prev, priceStarted: new Date(Date.now()).toISOString().slice(0, -8)}))
+        setPriceDTO(prev => ({...prev, priceStarted: javaTimestampToJS(new Date(Date.now()).toISOString())}))
         setProductModalSettings(prev => ({...prev, showAddPrice: !prev.showAddPrice}))
     }
 
@@ -194,6 +193,13 @@ const ProductContainer = ({productDetails}: ProductProps) => {
         }
     }
 
+    // Calculates the percentage from the given float
+    // Percentages below 1 percent include 2 decimal points
+    const getPercentage = (float: number) => {
+        const percentage = parseFloat((float * 100).toFixed(2))
+        return percentage > 1 ? Math.round(percentage) : percentage
+    }
+
     // Gets the discount percentage for the most recent Price
     const getMostRecentDiscount = () => {
         const sortedByPrice = getSortedPricesByAmount()
@@ -205,8 +211,7 @@ const ProductContainer = ({productDetails}: ProductProps) => {
         const recent = sortedByDate[sortedByDate.length - 1]
 
         // console.log(highest.amount, recent.amount)
-        const ratio = parseFloat(((1 - (parseFloat(recent.amount) / parseFloat(highest.amount))) * 100).toFixed(2))
-        return ratio > 1 ? Math.round(ratio) : ratio
+        return getPercentage(1 - (parseFloat(recent.amount) / parseFloat(highest.amount)))
     }
 
     // Gets the best discount found in the array of Prices
@@ -228,9 +233,7 @@ const ProductContainer = ({productDetails}: ProductProps) => {
             }
         }
 
-        const percentage = parseFloat(((profit / highest) * 100).toFixed(2))
-
-        return percentage > 1 ? Math.round(percentage) : percentage
+        return getPercentage(profit / highest)
     }
 
     // Returns the banner type by comparing the best discount and most recent discount
@@ -257,7 +260,7 @@ const ProductContainer = ({productDetails}: ProductProps) => {
 
     return (
         <>
-            <div className='h-full w-full border-1 border-[#BCBBBD] rounded-sm flex flex-col p-2 gap-2 group'>
+            <div className='h-full w-full border border-smoke rounded-sm flex flex-col p-2 gap-2 group'>
                 {/* Top content */}
                 <div className='h-full w-full flex justify-between items-center'>
                     <Product

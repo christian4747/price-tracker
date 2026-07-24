@@ -1,98 +1,41 @@
-type PriceBannerTextProps = {
-    children: React.ReactNode,
-    className: string
-}
-
-const PriceBannerText = ({children, className}: PriceBannerTextProps) => {
-    return (
-        <div className={'text-[#F4F4F4] rounded-sm p-2 font-mono font-bold min-w-[130px] flex justify-center ' + className}>
-            {children}
-        </div>
-    )
-}
-
-type DiscountDisplayProps = {
+type BannerPriceProps = {
     discountPercent: number,
-    className?: string
+    price: string,
+    color?: string,
 }
 
-const DiscountDisplay = ({discountPercent, className}: DiscountDisplayProps) => {
+const BannerPrice = ({discountPercent, price, color}: BannerPriceProps) => {
+    const textStyle: string = color ? color : discountPercent >= 50 ? 'green-500' : 'raisin'
+
     return (
         <>
             {discountPercent > 0 ? 
-                <div className={'min-w-[65px] text-center ' +className}>
+                <div className={'min-w-16.25 text-center text-' + color}>
                     -{discountPercent}%
                 </div>
                 : <></>
             }
-        </>
-    )
-}
 
-type BannerProps = {
-    discountPercent: number,
-    price: string
-}
-
-const OneYearBanner = ({discountPercent, price}: BannerProps) => {
-    return (
-        <>
-            <PriceBannerText className="bg-[#2EBE65]">
-                1 YEAR LOW
-            </PriceBannerText>
-
-            <DiscountDisplay discountPercent={discountPercent} className="text-[#2EBE65]"/>
-
-            <div className="text-[#2EBE65] min-w-[70px] text-right">
-                ${price}
-            </div>
-        </>
-    )
-    
-}
-
-const TwoYearBanner = ({discountPercent, price}: BannerProps) => {
-    return (
-        <>
-            <PriceBannerText className="bg-[#59BCE6]">
-                2 YEAR LOW
-            </PriceBannerText>
-
-            <DiscountDisplay discountPercent={discountPercent} className="text-[#59BCE6]"/>
-
-            <div className="text-[#59BCE6] min-w-[70px] text-right">
+            <div className={'min-w-17.5 text-right text-' + textStyle}>
                 ${price}
             </div>
         </>
     )
 }
 
-const AllTimeBanner = ({discountPercent, price}: BannerProps) => {
-    return (
-        <>
-            <PriceBannerText className="bg-[#F0585A]">
-                LOWEST EVER
-            </PriceBannerText>
-
-            <DiscountDisplay discountPercent={discountPercent} className="text-[#F0585A]"/>
-
-            <div className="text-[#F0585A] min-w-[70px] text-right">
-                ${price}
-            </div>
-        </>
-    )
+type BannerProps = BannerPriceProps & {
+    text: string,
+    color: string
 }
 
-const NoBanner = ({discountPercent, price}: BannerProps) => {
-
-    const textStyle: string = discountPercent >= 50 ? 'text-[#2EBE65]' : ''
-
+const Banner = ({discountPercent, price, color, text}: BannerProps) => {
     return (
         <>
-            <DiscountDisplay discountPercent={discountPercent} className={textStyle}/>
-            <div className={'min-w-[70px] text-right ' + textStyle}>
-                ${price}
+            <div className={'text-cloud rounded-sm p-2 font-mono font-bold min-w-32.5 flex justify-center bg-' + color}>
+                {text}
             </div>
+
+            <BannerPrice discountPercent={discountPercent} price={price} color={color}/>
         </>
     )
 }
@@ -107,29 +50,52 @@ const PriceBanner = (props: PriceBannerProps) => {
     if (!props.price && !props.discountPercent) 
         return <></>
     
-
     if (!props.price)
         return <></>
     
     const priceText = parseFloat(props.price).toFixed(2)
 
     if (!props.discountPercent) 
-        return <NoBanner discountPercent={0} price={priceText} />
-    
+        return <BannerPrice discountPercent={0} price={priceText} />
 
     if (!props.bannerType && props.discountPercent > 0) 
-        return <NoBanner discountPercent={props.discountPercent} price={priceText} />
+        return <BannerPrice discountPercent={props.discountPercent} price={priceText} />
     
-
     switch(props.bannerType) {
         case 'one-year':
-            return <OneYearBanner discountPercent={props.discountPercent} price={priceText} />
+            return (
+                <Banner
+                    discountPercent={props.discountPercent}
+                    price={priceText}
+                    color="emerald-400"
+                    text="ONE YEAR LOW"
+                />
+            )
         case 'two-year':
-            return <TwoYearBanner discountPercent={props.discountPercent} price={priceText} />
+            return (
+                <Banner
+                    discountPercent={props.discountPercent}
+                    price={priceText}
+                    color="blue-400"
+                    text="TWO YEAR LOW"
+                />
+            )
         case 'all-time':
-            return <AllTimeBanner discountPercent={props.discountPercent} price={priceText} />
+            return (
+                <Banner
+                    discountPercent={props.discountPercent}
+                    price={priceText}
+                    color="red-400"
+                    text="LOWEST EVER"
+                />
+            )
         default:
-            return <NoBanner discountPercent={props.discountPercent} price={priceText} />
+            return (
+                <BannerPrice
+                    discountPercent={props.discountPercent}
+                    price={priceText}
+                />
+            )
     }
 }
 

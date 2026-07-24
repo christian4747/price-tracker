@@ -10,7 +10,7 @@ type Props = {
 
 const Price = ({price, priceStartedDateString, toggleShowEditPrice, toggleShowDeletePrice}: Props) => {
     return (
-        <div className="flex justify-between even:bg-[#F4F4F4] group/product">
+        <div className="flex justify-between even:bg-cloud group/product">
             <div className="pl-2">
                 {priceStartedDateString}
             </div>
