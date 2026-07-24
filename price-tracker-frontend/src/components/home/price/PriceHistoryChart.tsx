@@ -29,7 +29,7 @@ const PriceHistoryChart = ({priceData}: Props) => {
         <div className='w-7/10 border-1 border-[#BCBBBD] rounded-sm p-1'>
             <LineChart style={{ width: '100%', aspectRatio: 3}} responsive data={priceData}>
                 <XAxis dataKey="priceStarted" />
-                <Line  dataKey="price" />
+                <Line type="stepAfter" dataKey="price" />
                 <Tooltip content={PriceHistoryTooltip} />
             </LineChart>
         </div>
