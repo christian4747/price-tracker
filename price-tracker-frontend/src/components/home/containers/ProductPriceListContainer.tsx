@@ -204,8 +204,8 @@ const ProductContainer = ({productDetails}: ProductProps) => {
         const recent = sortedByDate[sortedByDate.length - 1]
 
         // console.log(highest.amount, recent.amount)
-        const ratio = Math.round((1 - (parseFloat(recent.amount) / parseFloat(highest.amount))) * 100)
-        return ratio
+        const ratio = ((1 - (parseFloat(recent.amount) / parseFloat(highest.amount))) * 100).toFixed(2)
+        return parseFloat(ratio)
     }
 
     // Gets the best discount found in the array of Prices
@@ -227,7 +227,9 @@ const ProductContainer = ({productDetails}: ProductProps) => {
             }
         }
 
-        return Math.round((profit / highest) * 100)
+        const percentage = parseFloat(((profit / highest) * 100).toFixed(2))
+
+        return percentage > 1 ? Math.round(percentage) : percentage
     }
 
     // Returns the banner type by comparing the best discount and most recent discount
