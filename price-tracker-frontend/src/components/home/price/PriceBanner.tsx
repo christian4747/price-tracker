@@ -10,7 +10,7 @@ const BannerPrice = ({discountPercent, price, color}: BannerPriceProps) => {
     return (
         <>
             {discountPercent > 0 ? 
-                <div className={'min-w-16.25 text-center text-' + color}>
+                <div className={'min-w-16.25 text-center text-' + textStyle}>
                     -{discountPercent}%
                 </div>
                 : <></>
