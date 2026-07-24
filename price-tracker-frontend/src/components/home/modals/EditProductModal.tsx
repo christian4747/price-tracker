@@ -28,7 +28,7 @@ const EditProductModal = ({hidden, toggleHidden, editProduct, productDTO, setPro
             <Input
                 placeholder="Link"
                 value={productDTO.link}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {setProductDTO(prev => ({...prev, store: e.target.value}))}}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {setProductDTO(prev => ({...prev, link: e.target.value}))}}
             />
             <Input className="hidden" placeholder="Initial Price"></Input>
             <div className="flex gap-2 justify-center">
