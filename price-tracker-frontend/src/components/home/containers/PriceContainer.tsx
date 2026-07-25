@@ -1,11 +1,11 @@
-import { useState } from 'react'
 import EditPriceModal from '../modals/EditPriceModal'
 import DeletePriceModal from '../modals/DeletePriceModal'
-import type { PriceDTO, PriceType, ProductType } from "../../../utils/Types"
+import type { PriceType, ProductType } from "../../../utils/Types"
 import Price from '../price/Price'
 import api from '../../../services/api'
 import { getUSDateStringFromTimestamp, javaTimestampToJS } from '../../../utils/DateUtilities'
 import { useToggleVisibility } from '../../../hooks/useToggleVisibility'
+import { usePriceDTO } from '../../../hooks/usePriceDTO'
 
 type PriceProps = {
     price: PriceType,
@@ -20,7 +20,7 @@ const PriceContainer = ({price, setProduct}: PriceProps) => {
     const showDeletePrice = useToggleVisibility(false)
 
     // State for PriceDTO for editing Prices
-    const [priceDTO, setPriceDTO] = useState<PriceDTO>(
+    const priceDTO = usePriceDTO(
         {
             amount: parseFloat(price.amount).toFixed(2),
             currency: price.currency || '',
@@ -37,15 +37,15 @@ const PriceContainer = ({price, setProduct}: PriceProps) => {
     const editPrice = async () => {
         showEditPrice.toggle()
         try {
-            const res = api.editPrice(price.priceId, priceDTO)
+            const res = api.editPrice(price.priceId, priceDTO.value)
                 .then(() => {
                     setProduct((prev) => {
                         const idx = prev.prices.indexOf(price)
                         const prices = prev.prices.map((p, i) => {
                             if (i === idx) {
-                                p.amount = priceDTO.amount.toString()
-                                p.priceStarted = priceDTO.priceStarted.toString()
-                                p.priceEnded = priceDTO.priceEnded.toString()
+                                p.amount = priceDTO.value.amount.toString()
+                                p.priceStarted = priceDTO.value.priceStarted.toString()
+                                p.priceEnded = priceDTO.value.priceEnded.toString()
                             }
                             return p
                         })
@@ -88,8 +88,8 @@ const PriceContainer = ({price, setProduct}: PriceProps) => {
                 hidden={showEditPrice.value}
                 toggleHidden={showEditPrice.toggle}
                 editPrice={editPrice}
-                priceDTO={priceDTO}
-                setPriceDTO={setPriceDTO}
+                priceDTO={priceDTO.value}
+                setPriceDTO={priceDTO.setPriceDTO}
             />
 
             <DeletePriceModal

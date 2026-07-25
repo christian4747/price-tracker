@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { type PriceDTO, type PriceType, type ProductDTO, type ProductType } from "../../../utils/Types"
+import { type PriceType, type ProductDTO, type ProductType } from "../../../utils/Types"
 import PriceBanner from "../price/PriceBanner"
 import DeleteProductModal from "../modals/DeleteProductModal"
 import EditProductModal from "../modals/EditProductModal"
@@ -11,6 +11,7 @@ import PriceList from "../price/PriceList"
 import api from "../../../services/api"
 import { filterPricesBeforeDate, getUSDateStringFromTimestamp, javaTimestampToJS, sortPricesByDateAscending } from "../../../utils/DateUtilities"
 import { useToggleVisibility } from "../../../hooks/useToggleVisibility"
+import { usePriceDTO } from "../../../hooks/usePriceDTO"
 
 type ProductProps = {
     productDetails: ProductType
@@ -41,7 +42,7 @@ const ProductContainer = ({productDetails}: ProductProps) => {
     )
 
     // State for PriceDTO when adding Prices
-    const [priceDTO, setPriceDTO] = useState<PriceDTO>(
+    const priceDTO = usePriceDTO(
         {
             amount: '0.00',
             currency: '',
@@ -50,18 +51,6 @@ const ProductContainer = ({productDetails}: ProductProps) => {
             productId: product.productId
         }
     )
-
-    // Reset PriceDTO after adding a Price
-    const resetPriceDTO = () => {
-        setPriceDTO(
-            {
-                amount: '0.00',
-                currency: '',
-                priceStarted: '',
-                priceEnded: '',
-                productId: product.productId
-            })
-    }
 
     // Get the Product's Price(s) sorted
     const getSortedPrices = () => {
@@ -120,7 +109,7 @@ const ProductContainer = ({productDetails}: ProductProps) => {
 
     // Toggle visibility of AddPriceModal
     const toggleShowAddPrice = () => {
-        setPriceDTO(prev => ({...prev, priceStarted: javaTimestampToJS(new Date(Date.now()).toISOString())}))
+        priceDTO.setPriceDTO(prev => ({...prev, priceStarted: javaTimestampToJS(new Date(Date.now()).toISOString())}))
         showAddPrice.toggle()
     }
 
@@ -161,10 +150,10 @@ const ProductContainer = ({productDetails}: ProductProps) => {
     const addPrice = async () => {
         toggleShowAddPrice()
         try {
-            const res = api.addPrice(priceDTO)
+            const res = api.addPrice(priceDTO.value)
             .then((res) => {
                 setProduct(prev => ({...prev, prices: [...prev.prices, res.data]}))
-                resetPriceDTO()
+                priceDTO.resetPriceDTO()
             })
             
             console.log(res)
@@ -295,8 +284,8 @@ const ProductContainer = ({productDetails}: ProductProps) => {
                 hidden={showAddPrice.value}
                 toggleHidden={toggleShowAddPrice}
                 product={product}
-                priceDTO={priceDTO}
-                setPriceDTO={setPriceDTO}
+                priceDTO={priceDTO.value}
+                setPriceDTO={priceDTO.setPriceDTO}
                 addPrice={addPrice}
             />
         </>
