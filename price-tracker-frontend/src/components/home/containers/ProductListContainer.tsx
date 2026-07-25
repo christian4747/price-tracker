@@ -1,16 +1,17 @@
 import { useEffect, useState } from 'react'
-import type { ProductDTO, ProductType } from "../../../utils/Types"
+import type { ProductType } from "../../../utils/Types"
 import api from '../../../services/api'
 import ProductList from '../product/ProductList'
 import AddProductModal from '../modals/AddProductModal'
 import { useToggleVisibility } from '../../../hooks/useToggleVisibility'
+import { useProductDTO } from '../../../hooks/useProductDTO'
 
 const ProductListContainer = () => {
     // State for AddProductModal visibility
     const showAddProduct = useToggleVisibility(false)
 
     // State for ProductDTO used in adding products
-    const [productDTO, setProductDTO] = useState<ProductDTO>(
+    const productDTO = useProductDTO(
         {
             name: '',
             link: '',
@@ -37,17 +38,21 @@ const ProductListContainer = () => {
     // API function for adding a Product
     const addProduct = async () => {
         try {
-            const res = api.addProduct(productDTO)
+            const res = api.addProduct(productDTO.value)
                 .then(() => {
                     showAddProduct.toggle()
                     getAllProducts()
                 })
-
             console.log(res)
         } catch (err) {
-            console.log(`Error occurred while adding ${productDTO.name}`)
+            console.log(`Error occurred while adding ${productDTO.value.name}`)
             console.log(err)
         }
+    }
+
+    const toggleAddProduct = () => {
+        productDTO.resetProductDTO()
+        showAddProduct.toggle()
     }
 
     useEffect(() => {
@@ -58,7 +63,7 @@ const ProductListContainer = () => {
         <>
             <ProductList
                 products={products}
-                toggleAddProduct={showAddProduct.toggle}
+                toggleAddProduct={toggleAddProduct}
                 getAllProducts={getAllProducts}
             />
             
@@ -66,7 +71,7 @@ const ProductListContainer = () => {
                 hidden={showAddProduct.value}
                 toggleHidden={showAddProduct.toggle}
                 addProduct={addProduct}
-                setProductDTO={setProductDTO}
+                setProductDTO={productDTO.setProductDTO}
             />
         </>
     )

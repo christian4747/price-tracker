@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { type PriceType, type ProductDTO, type ProductType } from "../../../utils/Types"
+import { type PriceType, type ProductType } from "../../../utils/Types"
 import PriceBanner from "../price/PriceBanner"
 import DeleteProductModal from "../modals/DeleteProductModal"
 import EditProductModal from "../modals/EditProductModal"
@@ -12,6 +12,7 @@ import api from "../../../services/api"
 import { filterPricesBeforeDate, getUSDateStringFromTimestamp, javaTimestampToJS, sortPricesByDateAscending } from "../../../utils/DateUtilities"
 import { useToggleVisibility } from "../../../hooks/useToggleVisibility"
 import { usePriceDTO } from "../../../hooks/usePriceDTO"
+import { useProductDTO } from "../../../hooks/useProductDTO"
 
 type ProductProps = {
     productDetails: ProductType
@@ -33,7 +34,7 @@ const ProductContainer = ({productDetails}: ProductProps) => {
     const [product, setProduct] = useState<ProductType>(productDetails)
 
     // State for ProductDTO when editing Products
-    const [productDTO, setProductDTO] = useState<ProductDTO>(
+    const productDTO = useProductDTO(
         {
             name: product.name,
             store: product.store,
@@ -117,11 +118,11 @@ const ProductContainer = ({productDetails}: ProductProps) => {
     const editProduct = async () => {
         showEditProduct.toggle()
         try {
-            const res = api.editProduct(product.productId, productDTO)
+            const res = api.editProduct(product.productId, productDTO.value)
                 .then(() => {
-                    setProduct(prev => ({...prev, name: productDTO.name}))
-                    setProduct(prev => ({...prev, store: productDTO.store}))
-                    setProduct(prev => ({...prev, link: productDTO.link}))
+                    setProduct(prev => ({...prev, name: productDTO.value.name}))
+                    setProduct(prev => ({...prev, store: productDTO.value.store}))
+                    setProduct(prev => ({...prev, link: productDTO.value.link}))
                 })
 
             console.log(res)
@@ -269,8 +270,8 @@ const ProductContainer = ({productDetails}: ProductProps) => {
                 hidden={showEditProduct.value}
                 toggleHidden={showEditProduct.toggle}
                 editProduct={editProduct}
-                productDTO={productDTO}
-                setProductDTO={setProductDTO}
+                productDTO={productDTO.value}
+                setProductDTO={productDTO.setProductDTO}
             />
 
             <DeleteProductModal
