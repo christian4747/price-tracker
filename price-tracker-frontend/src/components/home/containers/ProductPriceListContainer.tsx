@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { type PriceDTO, type PriceType, type ProductDTO, type ProductType } from "../../../utils/Types"
+import { type PriceType, type ProductType } from "../../../utils/Types"
 import PriceBanner from "../price/PriceBanner"
 import DeleteProductModal from "../modals/DeleteProductModal"
 import EditProductModal from "../modals/EditProductModal"
@@ -10,12 +10,9 @@ import PriceHistoryChart from "../price/PriceHistoryChart"
 import PriceList from "../price/PriceList"
 import api from "../../../services/api"
 import { filterPricesBeforeDate, getUSDateStringFromTimestamp, javaTimestampToJS, sortPricesByDateAscending } from "../../../utils/DateUtilities"
-
-type ProductModalSettings = {
-    showEditProduct: boolean,
-    showDeleteProduct: boolean,
-    showAddPrice: boolean
-}
+import { useToggleVisibility } from "../../../hooks/useToggleVisibility"
+import { usePriceDTO } from "../../../hooks/usePriceDTO"
+import { useProductDTO } from "../../../hooks/useProductDTO"
 
 type ProductProps = {
     productDetails: ProductType
@@ -23,25 +20,21 @@ type ProductProps = {
 
 const ProductContainer = ({productDetails}: ProductProps) => {
     // State for Product visibility
-    const [hideProduct, setHideProduct] = useState(false)
-
+    const hideProduct = useToggleVisibility(false)
     // State for Product's lower content visibility
-    const [hideLowerContent, setHideLowerContent] = useState(true)
+    const hideLowerContent = useToggleVisibility(true)
+    // State for EditProductModal visibility
+    const showEditProduct = useToggleVisibility(false)
+    // State for DeleteProductModal visibility
+    const showDeleteProduct = useToggleVisibility(false)
+    // State for AddPriceModal visibility
+    const showAddPrice = useToggleVisibility(false)
 
     // State for current Product's details
     const [product, setProduct] = useState<ProductType>(productDetails)
 
-    // State for EditProductModal, DeleteProductModal, and AddPriceModal visibility
-    const [productModalSettings, setProductModalSettings] = useState<ProductModalSettings>(
-        {
-            showEditProduct: false,
-            showDeleteProduct: false,
-            showAddPrice: false,
-        }
-    )
-
     // State for ProductDTO when editing Products
-    const [productDTO, setProductDTO] = useState<ProductDTO>(
+    const productDTO = useProductDTO(
         {
             name: product.name,
             store: product.store,
@@ -50,7 +43,7 @@ const ProductContainer = ({productDetails}: ProductProps) => {
     )
 
     // State for PriceDTO when adding Prices
-    const [priceDTO, setPriceDTO] = useState<PriceDTO>(
+    const priceDTO = usePriceDTO(
         {
             amount: '0.00',
             currency: '',
@@ -59,18 +52,6 @@ const ProductContainer = ({productDetails}: ProductProps) => {
             productId: product.productId
         }
     )
-
-    // Reset PriceDTO after adding a Price
-    const resetPriceDTO = () => {
-        setPriceDTO(
-            {
-                amount: '0.00',
-                currency: '',
-                priceStarted: '',
-                priceEnded: '',
-                productId: product.productId
-            })
-    }
 
     // Get the Product's Price(s) sorted
     const getSortedPrices = () => {
@@ -127,31 +108,21 @@ const ProductContainer = ({productDetails}: ProductProps) => {
         return priceData
     }
 
-    // Toggle visiblity of EditProductModal
-    const toggleShowEdit = () => {
-        setProductModalSettings(prev => ({...prev, showEditProduct: !prev.showEditProduct}))
-    }
-
-    // Toggle visiblity of DeleteProductModal
-    const toggleShowDelete = () => {
-        setProductModalSettings(prev => ({...prev, showDeleteProduct: !prev.showDeleteProduct}))
-    }
-
     // Toggle visibility of AddPriceModal
     const toggleShowAddPrice = () => {
-        setPriceDTO(prev => ({...prev, priceStarted: javaTimestampToJS(new Date(Date.now()).toISOString())}))
-        setProductModalSettings(prev => ({...prev, showAddPrice: !prev.showAddPrice}))
+        priceDTO.setPriceDTO(prev => ({...prev, priceStarted: javaTimestampToJS(new Date(Date.now()).toISOString())}))
+        showAddPrice.toggle()
     }
 
     // API function for editing Products
     const editProduct = async () => {
-        toggleShowEdit()
+        showEditProduct.toggle()
         try {
-            const res = api.editProduct(product.productId, productDTO)
+            const res = api.editProduct(product.productId, productDTO.value)
                 .then(() => {
-                    setProduct(prev => ({...prev, name: productDTO.name}))
-                    setProduct(prev => ({...prev, store: productDTO.store}))
-                    setProduct(prev => ({...prev, link: productDTO.link}))
+                    setProduct(prev => ({...prev, name: productDTO.value.name}))
+                    setProduct(prev => ({...prev, store: productDTO.value.store}))
+                    setProduct(prev => ({...prev, link: productDTO.value.link}))
                 })
 
             console.log(res)
@@ -163,11 +134,11 @@ const ProductContainer = ({productDetails}: ProductProps) => {
 
     // API function for deleting Products
     const deleteProduct = async () => {
-        toggleShowDelete()
+        showDeleteProduct.toggle()
         try {
             const res = api.deleteProduct(product.productId)
 
-            setHideProduct(true)
+            hideProduct.toggle()
 
             console.log(res)
         } catch (err) {
@@ -180,10 +151,10 @@ const ProductContainer = ({productDetails}: ProductProps) => {
     const addPrice = async () => {
         toggleShowAddPrice()
         try {
-            const res = api.addPrice(priceDTO)
+            const res = api.addPrice(priceDTO.value)
             .then((res) => {
                 setProduct(prev => ({...prev, prices: [...prev.prices, res.data]}))
-                resetPriceDTO()
+                priceDTO.resetPriceDTO()
             })
             
             console.log(res)
@@ -256,7 +227,7 @@ const ProductContainer = ({productDetails}: ProductProps) => {
         return ''
     }
 
-    if (hideProduct) return (<></>)
+    if (hideProduct.value === true) return (<></>)
 
     return (
         <>
@@ -265,8 +236,8 @@ const ProductContainer = ({productDetails}: ProductProps) => {
                 <div className='h-full w-full flex justify-between items-center'>
                     <Product
                         product={product}
-                        toggleShowDelete={toggleShowDelete}
-                        toggleShowEdit={toggleShowEdit}
+                        toggleShowDelete={showDeleteProduct.toggle}
+                        toggleShowEdit={showEditProduct.toggle}
                     />
 
                     <div className='flex gap-3 items-center font-mono font-bold'>
@@ -275,13 +246,13 @@ const ProductContainer = ({productDetails}: ProductProps) => {
                             bannerType={getBannerType()}
                             price={getSortedPrices()[product.prices.length - 1]?.amount}
                         />
-                        <ExpandButton hidden={hideLowerContent} setHidden={setHideLowerContent}/>
+                        <ExpandButton hidden={hideLowerContent.value} setHidden={hideLowerContent.toggle}/>
                     </div>
                     
                 </div>
 
                 {/* Lower content */}
-                {!hideLowerContent ?
+                {hideLowerContent.value === false ?
                     <div className='w-full h-full flex justify-between gap-2'>
                         <PriceHistoryChart priceData={createPriceData()} />
                         <PriceList
@@ -296,26 +267,26 @@ const ProductContainer = ({productDetails}: ProductProps) => {
             </div>
 
             <EditProductModal
-                hidden={productModalSettings.showEditProduct}
-                toggleHidden={toggleShowEdit}
+                hidden={showEditProduct.value}
+                toggleHidden={showEditProduct.toggle}
                 editProduct={editProduct}
-                productDTO={productDTO}
-                setProductDTO={setProductDTO}
+                productDTO={productDTO.value}
+                setProductDTO={productDTO.setProductDTO}
             />
 
             <DeleteProductModal
-                hidden={productModalSettings.showDeleteProduct}
-                toggleHidden={toggleShowDelete}
+                hidden={showDeleteProduct.value}
+                toggleHidden={showDeleteProduct.toggle}
                 product={product}
                 deleteProduct={deleteProduct}
             />
 
             <AddPriceModal
-                hidden={productModalSettings.showAddPrice}
+                hidden={showAddPrice.value}
                 toggleHidden={toggleShowAddPrice}
                 product={product}
-                priceDTO={priceDTO}
-                setPriceDTO={setPriceDTO}
+                priceDTO={priceDTO.value}
+                setPriceDTO={priceDTO.setPriceDTO}
                 addPrice={addPrice}
             />
         </>

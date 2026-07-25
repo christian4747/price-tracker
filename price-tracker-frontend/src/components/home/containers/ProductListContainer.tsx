@@ -1,15 +1,17 @@
 import { useEffect, useState } from 'react'
-import type { ProductDTO, ProductType } from "../../../utils/Types"
+import type { ProductType } from "../../../utils/Types"
 import api from '../../../services/api'
 import ProductList from '../product/ProductList'
 import AddProductModal from '../modals/AddProductModal'
+import { useToggleVisibility } from '../../../hooks/useToggleVisibility'
+import { useProductDTO } from '../../../hooks/useProductDTO'
 
 const ProductListContainer = () => {
-    // State for showing AddProductModal
-    const [showAddProduct, setShowAddProduct] = useState<boolean>(false)
+    // State for AddProductModal visibility
+    const showAddProduct = useToggleVisibility(false)
 
     // State for ProductDTO used in adding products
-    const [productDTO, setProductDTO] = useState<ProductDTO>(
+    const productDTO = useProductDTO(
         {
             name: '',
             link: '',
@@ -19,11 +21,6 @@ const ProductListContainer = () => {
 
     // List of Products
     const [products, setProducts] = useState<ProductType[]>([])
-
-    // Toggle visibility of AddProductModal
-    const toggleAddProduct = () => {
-        setShowAddProduct(prev => !prev)
-    }
 
     // API function for getting all Products
     const getAllProducts = async () => {
@@ -40,36 +37,38 @@ const ProductListContainer = () => {
 
     // API function for adding a Product
     const addProduct = async () => {
-        try {
-            const res = api.addProduct(productDTO)
-                .then(() => {
-                    toggleAddProduct()
-                    getAllProducts()
-                })
+        const res = api.addProduct(productDTO.value)
+            .then(() => {
+                showAddProduct.toggle()
+                getAllProducts()
 
-            console.log(res)
-        } catch (err) {
-            console.log(`Error occurred while adding ${productDTO.name}`)
-            console.log(err)
-        }
+                productDTO.resetProductDTO()
+                console.log(res)
+            })
+            .catch((err) => {
+                console.log(`Error occurred while adding ${productDTO.value.name}`)
+                console.log(err)
+            })
     }
 
     useEffect(() => {
-        getAllProducts()
+        // getAllProducts()
     }, [])
 
     return (
         <>
             <ProductList
                 products={products}
-                toggleAddProduct={toggleAddProduct}
+                toggleAddProduct={showAddProduct.toggle}
+                getAllProducts={getAllProducts}
             />
             
             <AddProductModal
-                hidden={showAddProduct}
-                toggleHidden={toggleAddProduct}
+                hidden={showAddProduct.value}
+                toggleHidden={showAddProduct.toggle}
+                product={productDTO.value}
                 addProduct={addProduct}
-                setProductDTO={setProductDTO}
+                setProductDTO={productDTO.setProductDTO}
             />
         </>
     )

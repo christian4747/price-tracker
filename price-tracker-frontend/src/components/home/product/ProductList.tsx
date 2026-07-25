@@ -2,13 +2,15 @@ import { FiPlus } from 'react-icons/fi'
 import type { ProductType } from "../../../utils/Types"
 import Button from '../../common/Button'
 import ProductContainer from '../containers/ProductPriceListContainer'
+import { MdRefresh } from 'react-icons/md'
 
 type ProductListProps = {
     products: ProductType[],
-    toggleAddProduct: () => void
+    toggleAddProduct: () => void,
+    getAllProducts: () => Promise<void>
 }
 
-const ProductList = ({products, toggleAddProduct}: ProductListProps) => {
+const ProductList = ({products, toggleAddProduct, getAllProducts}: ProductListProps) => {
     return (
         <>
             <div className="flex items-baseline gap-2 justify-between">
@@ -21,6 +23,9 @@ const ProductList = ({products, toggleAddProduct}: ProductListProps) => {
                     >
                         <FiPlus size={24} />
                     </Button>
+                </div>
+                <div className="pr-2 cursor-pointer" onClick={getAllProducts}>
+                    <MdRefresh size={36} />
                 </div>
                 {/* <div className="pr-2">
                     <FaFilter size={24} />
