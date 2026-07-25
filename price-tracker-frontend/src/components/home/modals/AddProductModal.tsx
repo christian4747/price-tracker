@@ -4,11 +4,12 @@ import Modal from "../../common/Modal"
 import type { ModalProps, ProductDTO } from "../../../utils/Types";
 
 type AddProductModalProps = ModalProps & {
+    product: ProductDTO,
     addProduct: () => void,
     setProductDTO: React.Dispatch<React.SetStateAction<ProductDTO>>
 }
 
-const AddProductModal = ({hidden, toggleHidden, addProduct, setProductDTO}: AddProductModalProps) => {
+const AddProductModal = ({hidden, toggleHidden, product, addProduct, setProductDTO}: AddProductModalProps) => {
     return (
         <Modal
             hidden={hidden}
@@ -17,14 +18,17 @@ const AddProductModal = ({hidden, toggleHidden, addProduct, setProductDTO}: AddP
             <Input
                 placeholder="Name"
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {setProductDTO(prev => ({...prev, name: e.target.value}))}}
+                value={product.name}
             />
             <Input 
                 placeholder="Link"
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {setProductDTO(prev => ({...prev, link: e.target.value}))}}
+                value={product.link}
             />
             <Input
                 placeholder="Store"
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {setProductDTO(prev => ({...prev, store: e.target.value}))}}
+                value={product.store}
             />
             <Input
                 className="hidden"

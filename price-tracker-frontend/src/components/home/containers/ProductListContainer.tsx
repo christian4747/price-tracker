@@ -37,22 +37,18 @@ const ProductListContainer = () => {
 
     // API function for adding a Product
     const addProduct = async () => {
-        try {
-            const res = api.addProduct(productDTO.value)
-                .then(() => {
-                    showAddProduct.toggle()
-                    getAllProducts()
-                })
-            console.log(res)
-        } catch (err) {
-            console.log(`Error occurred while adding ${productDTO.value.name}`)
-            console.log(err)
-        }
-    }
+        const res = api.addProduct(productDTO.value)
+            .then(() => {
+                showAddProduct.toggle()
+                getAllProducts()
 
-    const toggleAddProduct = () => {
-        productDTO.resetProductDTO()
-        showAddProduct.toggle()
+                productDTO.resetProductDTO()
+                console.log(res)
+            })
+            .catch((err) => {
+                console.log(`Error occurred while adding ${productDTO.value.name}`)
+                console.log(err)
+            })
     }
 
     useEffect(() => {
@@ -63,13 +59,14 @@ const ProductListContainer = () => {
         <>
             <ProductList
                 products={products}
-                toggleAddProduct={toggleAddProduct}
+                toggleAddProduct={showAddProduct.toggle}
                 getAllProducts={getAllProducts}
             />
             
             <AddProductModal
                 hidden={showAddProduct.value}
                 toggleHidden={showAddProduct.toggle}
+                product={productDTO.value}
                 addProduct={addProduct}
                 setProductDTO={productDTO.setProductDTO}
             />
