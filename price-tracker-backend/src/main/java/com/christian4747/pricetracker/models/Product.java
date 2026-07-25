@@ -31,6 +31,7 @@ public class Product {
     private Timestamp updatedAt;
 
     @OneToMany(mappedBy = "product", fetch = FetchType.EAGER, cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @OrderBy("priceStarted ASC")
     private List<Price> prices;
 
     public Product() {
