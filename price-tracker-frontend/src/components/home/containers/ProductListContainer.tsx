@@ -3,10 +3,11 @@ import type { ProductDTO, ProductType } from "../../../utils/Types"
 import api from '../../../services/api'
 import ProductList from '../product/ProductList'
 import AddProductModal from '../modals/AddProductModal'
+import { useToggleVisibility } from '../../../hooks/useToggleVisibility'
 
 const ProductListContainer = () => {
-    // State for showing AddProductModal
-    const [showAddProduct, setShowAddProduct] = useState<boolean>(false)
+    // State for AddProductModal visibility
+    const showAddProduct = useToggleVisibility(false)
 
     // State for ProductDTO used in adding products
     const [productDTO, setProductDTO] = useState<ProductDTO>(
@@ -19,11 +20,6 @@ const ProductListContainer = () => {
 
     // List of Products
     const [products, setProducts] = useState<ProductType[]>([])
-
-    // Toggle visibility of AddProductModal
-    const toggleAddProduct = () => {
-        setShowAddProduct(prev => !prev)
-    }
 
     // API function for getting all Products
     const getAllProducts = async () => {
@@ -43,7 +39,7 @@ const ProductListContainer = () => {
         try {
             const res = api.addProduct(productDTO)
                 .then(() => {
-                    toggleAddProduct()
+                    showAddProduct.toggle()
                     getAllProducts()
                 })
 
@@ -62,13 +58,13 @@ const ProductListContainer = () => {
         <>
             <ProductList
                 products={products}
-                toggleAddProduct={toggleAddProduct}
+                toggleAddProduct={showAddProduct.toggle}
                 getAllProducts={getAllProducts}
             />
             
             <AddProductModal
-                hidden={showAddProduct}
-                toggleHidden={toggleAddProduct}
+                hidden={showAddProduct.value}
+                toggleHidden={showAddProduct.toggle}
                 addProduct={addProduct}
                 setProductDTO={setProductDTO}
             />

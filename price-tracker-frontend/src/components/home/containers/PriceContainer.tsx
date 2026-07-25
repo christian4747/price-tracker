@@ -5,11 +5,7 @@ import type { PriceDTO, PriceType, ProductType } from "../../../utils/Types"
 import Price from '../price/Price'
 import api from '../../../services/api'
 import { getUSDateStringFromTimestamp, javaTimestampToJS } from '../../../utils/DateUtilities'
-
-type PriceModalSettings = {
-    showEditPrice: boolean,
-    showDeletePrice: boolean
-}
+import { useToggleVisibility } from '../../../hooks/useToggleVisibility'
 
 type PriceProps = {
     price: PriceType,
@@ -18,14 +14,10 @@ type PriceProps = {
 }
 
 const PriceContainer = ({price, setProduct}: PriceProps) => {
-    // State for EditPriceModal and DeletePriceModal visibility
-    const [priceModalSettings, setPriceModalSettings] = useState<PriceModalSettings>
-    (
-        {
-            showEditPrice: false,
-            showDeletePrice: false
-        }
-    )
+    // State for EditPriceModal visibility
+    const showEditPrice = useToggleVisibility(false)
+    // State for DeletePriceModal visibility
+    const showDeletePrice = useToggleVisibility(false)
 
     // State for PriceDTO for editing Prices
     const [priceDTO, setPriceDTO] = useState<PriceDTO>(
@@ -41,19 +33,9 @@ const PriceContainer = ({price, setProduct}: PriceProps) => {
     // Constructing the string to show the date on the PriceList
     const priceStartedDateString = getUSDateStringFromTimestamp(price.priceStarted)
 
-    // Toggle EditPriceModal visibility
-    const toggleShowEdit = () => {
-        setPriceModalSettings(prev => ({...prev, showEditPrice: !prev.showEditPrice}))
-    }
-
-    // Toggle DeletePriceModal visibility
-    const toggleShowDelete = () => {
-        setPriceModalSettings(prev => ({...prev, showDeletePrice: !prev.showDeletePrice}))
-    }
-
     // API function for editing a Price
     const editPrice = async () => {
-        toggleShowEdit()
+        showEditPrice.toggle()
         try {
             const res = api.editPrice(price.priceId, priceDTO)
                 .then(() => {
@@ -81,7 +63,7 @@ const PriceContainer = ({price, setProduct}: PriceProps) => {
 
     // API function for deleting a Price
     const deletePrice = async () => {
-        toggleShowDelete()
+        showDeletePrice.toggle()
 
         try {
             const res = api.deletePrice(price.priceId)
@@ -98,21 +80,21 @@ const PriceContainer = ({price, setProduct}: PriceProps) => {
             <Price
                 price={price}
                 priceStartedDateString={priceStartedDateString}
-                toggleShowEditPrice={toggleShowEdit}
-                toggleShowDeletePrice={toggleShowDelete}
+                toggleShowEditPrice={showEditPrice.toggle}
+                toggleShowDeletePrice={showDeletePrice.toggle}
             />
 
             <EditPriceModal
-                hidden={priceModalSettings.showEditPrice}
-                toggleHidden={toggleShowEdit}
+                hidden={showEditPrice.value}
+                toggleHidden={showEditPrice.toggle}
                 editPrice={editPrice}
                 priceDTO={priceDTO}
                 setPriceDTO={setPriceDTO}
             />
 
             <DeletePriceModal
-                hidden={priceModalSettings.showDeletePrice}
-                toggleHidden={toggleShowDelete}
+                hidden={showDeletePrice.value}
+                toggleHidden={showDeletePrice.toggle}
                 price={price}
                 setProduct={setProduct}
                 deletePrice={deletePrice}
