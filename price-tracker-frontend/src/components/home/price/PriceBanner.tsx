@@ -1,3 +1,5 @@
+import '../../../styles/PriceBanner.css'
+
 type BannerPriceProps = {
     discountPercent: number,
     price: string,
@@ -5,18 +7,18 @@ type BannerPriceProps = {
 }
 
 const BannerPrice = ({discountPercent, price, color}: BannerPriceProps) => {
-    const textStyle: string = color ? color : discountPercent >= 50 ? 'green-500' : 'raisin'
+    const textStyle: string = color ? color : discountPercent >= 50 ? 'good-deal' : ''
 
     return (
         <>
             {discountPercent > 0 ? 
-                <div className={'min-w-16.25 text-center text-' + textStyle}>
+                <div className={'min-w-16.25 text-center ' + textStyle}>
                     -{discountPercent}%
                 </div>
                 : <></>
             }
 
-            <div className={'min-w-17.5 text-right text-' + textStyle}>
+            <div className={'min-w-17.5 text-right ' + textStyle}>
                 ${price}
             </div>
         </>
@@ -25,13 +27,14 @@ const BannerPrice = ({discountPercent, price, color}: BannerPriceProps) => {
 
 type BannerProps = BannerPriceProps & {
     text: string,
-    color: string
+    color: string,
+    bg: string
 }
 
-const Banner = ({discountPercent, price, color, text}: BannerProps) => {
+const Banner = ({discountPercent, price, color, text, bg}: BannerProps) => {
     return (
         <>
-            <div className={'text-cloud rounded-sm p-2 font-mono font-bold min-w-32.5 flex justify-center bg-' + color}>
+            <div className={'text-cloud rounded-sm p-2 font-mono font-bold min-w-32.5 flex justify-center ' + bg}>
                 {text}
             </div>
 
@@ -67,7 +70,8 @@ const PriceBanner = (props: PriceBannerProps) => {
                 <Banner
                     discountPercent={props.discountPercent}
                     price={priceText}
-                    color="emerald-400"
+                    color="one-year"
+                    bg="one-year-bg"
                     text="ONE YEAR LOW"
                 />
             )
@@ -76,7 +80,8 @@ const PriceBanner = (props: PriceBannerProps) => {
                 <Banner
                     discountPercent={props.discountPercent}
                     price={priceText}
-                    color="blue-400"
+                    color="two-year"
+                    bg="two-year-bg"
                     text="TWO YEAR LOW"
                 />
             )
@@ -85,7 +90,8 @@ const PriceBanner = (props: PriceBannerProps) => {
                 <Banner
                     discountPercent={props.discountPercent}
                     price={priceText}
-                    color="red-400"
+                    color="all-time"
+                    bg="all-time-bg"
                     text="LOWEST EVER"
                 />
             )
