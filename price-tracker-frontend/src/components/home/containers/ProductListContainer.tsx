@@ -55,7 +55,7 @@ const ProductListContainer = () => {
     }
 
     useEffect(() => {
-        getAllProducts()
+        // getAllProducts()
     }, [])
 
     return (
@@ -63,6 +63,7 @@ const ProductListContainer = () => {
             <ProductList
                 products={products}
                 toggleAddProduct={toggleAddProduct}
+                getAllProducts={getAllProducts}
             />
             
             <AddProductModal
