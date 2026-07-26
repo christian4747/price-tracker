@@ -5,7 +5,6 @@ import { useToggleVisibility } from './useToggleVisibility'
 import { usePriceDTO } from './usePriceDTO'
 import { javaTimestampToJS } from '../utils/DateUtilities'
 
-
 export function useEditPrice(price: PriceType) {
     // EditPriceModal visibility
     const showEditPrice = useToggleVisibility(false)
