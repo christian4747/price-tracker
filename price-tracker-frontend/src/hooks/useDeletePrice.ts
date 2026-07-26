@@ -42,10 +42,10 @@ export function useDeletePrice(price: PriceType) {
         }
     })
 
-    const useEditPriceProps = {
+    const useDeletePriceProps = {
         visibility: showDeletePrice,
         mutation: deletePriceMutation
     }
 
-    return useEditPriceProps
+    return useDeletePriceProps
 }
