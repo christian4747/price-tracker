@@ -54,12 +54,12 @@ const ProductContainer = ({productDetails}: ProductProps) => {
     )
 
     // Get the Product's Price(s) sorted
-    const getSortedPrices = () => {
-        return sortPricesByDateAscending(product.prices)
-    }
+    const sortedPricesByDate = sortPricesByDateAscending(product.prices)
 
     // Get the Product's Price(s) sorted by amount in ascending order
     const getSortedPricesByAmount = () => {
+        if (!product.prices) return []
+
         return product.prices.toSorted((a, b) => {
             return parseFloat(a.amount) - parseFloat(b.amount)
         })
@@ -83,9 +83,9 @@ const ProductContainer = ({productDetails}: ProductProps) => {
 
     // Create Price data for PriceHistoryChart
     const createPriceData = () => {
-        const sortedPrices = getSortedPrices()
+        if (!product.prices || product.prices.length <= 0) return []
 
-        const priceData = sortedPrices
+        const priceData = sortedPricesByDate
             .map((price) => {
                 return {
                     priceId: price.priceId,
@@ -95,16 +95,14 @@ const ProductContainer = ({productDetails}: ProductProps) => {
             }
         )
 
-        if (product.prices.length > 0) {
-            priceData.push(
-                {
-                    priceId: -1,
-                    priceStarted: 'Today',
-                    price: sortedPrices[sortedPrices.length - 1].amount
-                }
-            )
-        }
-        
+        priceData.push(
+            {
+                priceId: -1,
+                priceStarted: 'Today',
+                price: sortedPricesByDate[sortedPricesByDate.length - 1].amount
+            }
+        )
+
         return priceData
     }
 
@@ -174,12 +172,11 @@ const ProductContainer = ({productDetails}: ProductProps) => {
     // Gets the discount percentage for the most recent Price
     const getMostRecentDiscount = () => {
         const sortedByPrice = getSortedPricesByAmount()
-        const sortedByDate = getSortedPrices()
 
-        if (sortedByPrice.length <= 1 || sortedByDate.length <= 1) return 0
+        if (sortedByPrice.length <= 1 || sortedPricesByDate.length <= 1) return 0
 
         const highest = sortedByPrice[sortedByPrice.length - 1]
-        const recent = sortedByDate[sortedByDate.length - 1]
+        const recent = sortedPricesByDate[sortedPricesByDate.length - 1]
 
         // console.log(highest.amount, recent.amount)
         return getPercentage(1 - (parseFloat(recent.amount) / parseFloat(highest.amount)))
@@ -211,7 +208,7 @@ const ProductContainer = ({productDetails}: ProductProps) => {
     const getBannerType = () => {
         const mostRecentDiscount = getMostRecentDiscount()
 
-        const allTimeDiscount = getBestDiscount(getSortedPrices())
+        const allTimeDiscount = getBestDiscount(sortedPricesByDate)
         const twoYearDiscount = getBestDiscount(getTwoYearsAgoPrices())
         const oneYearDiscount = getBestDiscount(getOneYearAgoPrices())
 
@@ -244,7 +241,7 @@ const ProductContainer = ({productDetails}: ProductProps) => {
                         <PriceBanner
                             discountPercent={getMostRecentDiscount()}
                             bannerType={getBannerType()}
-                            price={getSortedPrices()[product.prices.length - 1]?.amount}
+                            price={sortedPricesByDate ? sortedPricesByDate[0]?.amount : ''}
                         />
                         <ExpandButton hidden={hideLowerContent.value} setHidden={hideLowerContent.toggle}/>
                     </div>
@@ -257,7 +254,7 @@ const ProductContainer = ({productDetails}: ProductProps) => {
                         <PriceHistoryChart priceData={createPriceData()} />
                         <PriceList
                             product={product}
-                            sortedPrices={getSortedPrices()}
+                            sortedPrices={sortedPricesByDate}
                             toggleShowAddPrice={toggleShowAddPrice}
                             setProduct={setProduct}
                         />

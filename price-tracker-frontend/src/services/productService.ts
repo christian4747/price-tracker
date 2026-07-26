@@ -6,11 +6,13 @@ const apiPath = "/products"
 export default {
 
     getAllProducts: async (rootUrl: string) => {
-        return await axios.get(rootUrl + apiPath)
+        const res = await axios.get(rootUrl + apiPath)
+        return res.data
     },
 
     addProduct: async (rootUrl: string, productToAdd: ProductDTO) => {
-        return await axios.post(rootUrl + apiPath, productToAdd)
+        const res = await axios.post(rootUrl + apiPath, productToAdd)
+        return res.data
     },
 
     editProduct: async (rootUrl: string, productId: number, productToAdd: ProductDTO) => {

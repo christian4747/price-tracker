@@ -7,7 +7,7 @@ import { MdRefresh } from 'react-icons/md'
 type ProductListProps = {
     products: ProductType[],
     toggleAddProduct: () => void,
-    getAllProducts: () => Promise<void>
+    getAllProducts: () => void
 }
 
 const ProductList = ({products, toggleAddProduct, getAllProducts}: ProductListProps) => {
@@ -36,7 +36,7 @@ const ProductList = ({products, toggleAddProduct, getAllProducts}: ProductListPr
                 {products?.map((product) => {
                     return (
                         <ProductContainer
-                            key={product.productId}
+                            key={product.name + product.store}
                             productDetails={product}
                         />
                     )
