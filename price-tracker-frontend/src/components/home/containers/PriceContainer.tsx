@@ -66,19 +66,37 @@ const PriceContainer = ({price}: PriceProps) => {
         }
     })
 
-    // API function for deleting a Price
-    const deletePrice = async () => {
-        showDeletePrice.toggle()
+    // Mutation for deleting prices
+    const deletePriceMutation = useMutation({
+        mutationFn: () => {
+            showDeletePrice.toggle()
+            return api.deletePrice(price.priceId)
+        },
+        onSuccess: () => {
+            queryClient.setQueryData(['products'], (old: any) => {
+                return old.map((p: ProductType) => {
+                    if (p.productId === price.productId) {
+                        const priceIdx = p.prices.indexOf(price)
 
-        try {
-            const res = api.deletePrice(price.priceId)
-            // TODO: Replace with mutation
-            console.log(res)
-        } catch(err) {
-            console.log(`Error occurred while deleting ${price.priceId}: ${price.amount} ${price.priceStarted}`)
-            console.log(err)
+                        const updatedPrices = p.prices.filter((price, i) => {
+                            if (i === priceIdx) {
+                                return
+                            }
+                            return price
+                        })
+
+                        let productCopy = {...p}
+                        productCopy = {...productCopy, prices: updatedPrices}
+                        return productCopy
+                    }
+                    return p
+                })
+            })
+        },
+        onError: (error) => {
+            console.log(`Error occurred while deleting ${price.priceId}: ${price.amount} ${price.priceStarted} (${error.message})`)
         }
-    }
+    })
 
     return (
         <>
@@ -101,7 +119,7 @@ const PriceContainer = ({price}: PriceProps) => {
                 hidden={showDeletePrice.value}
                 toggleHidden={showDeletePrice.toggle}
                 price={price}
-                deletePrice={deletePrice}
+                deletePrice={deletePriceMutation.mutate}
             />
         </>
     )
