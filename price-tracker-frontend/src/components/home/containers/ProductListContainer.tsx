@@ -20,13 +20,16 @@ const ProductListContainer = () => {
         }
     )
 
+    // Get the query client
     const queryClient = useQueryClient()
 
+    // Query for getting all the products
     const {isPending, isSuccess, isError, data: products, error} = useQuery({
         queryKey: ['products'],
         queryFn: api.getAllProducts
     })
 
+    // Mutation for adding new products
     const addProductMutation = useMutation({
         mutationFn: (newProduct: ProductDTO) => {
             showAddProduct.toggle()
