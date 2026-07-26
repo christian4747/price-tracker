@@ -41,13 +41,25 @@ const ProductListContainer = () => {
 
     if (isPending) {
         return (
-            <>Loading...</>
+            <>
+                <ProductListHeader
+                    toggleAddProduct={showAddProduct.toggle}
+                    getAllProducts={() => {queryClient.invalidateQueries({queryKey: ['products']})}}
+                />
+                Loading...
+            </>
         )
     }
 
     if (isError) {
         return (
-            <>An error occurred: {error}</>
+            <>
+                <ProductListHeader
+                    toggleAddProduct={showAddProduct.toggle}
+                    getAllProducts={() => {queryClient.invalidateQueries({queryKey: ['products']})}}
+                />
+                An error occurred: {error.message}
+            </>
         )
     }
 
