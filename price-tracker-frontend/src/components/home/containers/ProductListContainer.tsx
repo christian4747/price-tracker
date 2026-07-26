@@ -1,70 +1,36 @@
-import api from '../../../services/api'
 import ProductList from '../product/ProductList'
 import AddProductModal from '../modals/AddProductModal'
-import { useToggleVisibility } from '../../../hooks/useToggleVisibility'
-import { useProductDTO } from '../../../hooks/useProductDTO'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import type { ProductDTO } from '../../../utils/Types'
 import ProductListHeader from '../product/ProductListHeader'
+import { useAddProduct } from '../../../hooks/useAddProduct'
+import { useGetAllProducts } from '../../../hooks/useGetAllProducts'
 
 const ProductListContainer = () => {
-    // State for AddProductModal visibility
-    const showAddProduct = useToggleVisibility(false)
 
-    // State for ProductDTO used in adding products
-    const productDTO = useProductDTO(
-        {
-            name: '',
-            link: '',
-            store: ''
-        }
-    )
+    // Hook for adding products
+    const addProduct = useAddProduct()
+    // Hook for getting all products
+    const getAllProducts = useGetAllProducts()
 
-    // Get the query client
-    const queryClient = useQueryClient()
-
-    // Query for getting all the products
-    const {isPending, isSuccess, isError, data: products, error} = useQuery({
-        queryKey: ['products'],
-        queryFn: api.getAllProducts
-    })
-
-    // Mutation for adding new products
-    const addProductMutation = useMutation({
-        mutationFn: (newProduct: ProductDTO) => {
-            showAddProduct.toggle()
-            return api.addProduct(newProduct)
-        },
-        onSuccess: (newData: any) => {
-            queryClient.setQueryData(['products'], (oldData: any) => {
-                return oldData ? [...oldData, newData] : []
-            })
-        },
-        onError: (error) => {
-            console.log(`Error occurred while adding ${productDTO.value.name} (${error.message})`)
-        }
-    })
-
-    if (isPending) {
+    if (getAllProducts.query.isPending) {
         return (
             <>
                 <ProductListHeader
-                    toggleAddProduct={showAddProduct.toggle}
-                    getAllProducts={() => {queryClient.invalidateQueries({queryKey: ['products']})}}
+                    toggleAddProduct={addProduct.visibility.toggle}
+                    getAllProducts={getAllProducts.refresh}
                 />
                 Loading...
             </>
         )
     }
 
-    if (isError) {
+    if (getAllProducts.query.isError) {
         return (
             <>
                 <ProductListHeader
-                    toggleAddProduct={showAddProduct.toggle}
-                    getAllProducts={() => {queryClient.invalidateQueries({queryKey: ['products']})}}
+                    toggleAddProduct={addProduct.visibility.toggle}
+                    getAllProducts={getAllProducts.refresh}
                 />
-                An error occurred: {error.message}
+                An error occurred: {getAllProducts.query.error.message}
             </>
         )
     }
@@ -72,20 +38,20 @@ const ProductListContainer = () => {
     return (
         <>
             <ProductListHeader
-                toggleAddProduct={showAddProduct.toggle}
-                getAllProducts={() => {queryClient.invalidateQueries({queryKey: ['products']})}}
+                toggleAddProduct={addProduct.visibility.toggle}
+                getAllProducts={getAllProducts.refresh}
             />
-            {isSuccess && (
+            {getAllProducts.query.isSuccess && (
                 <ProductList
-                    products={products}
+                    products={getAllProducts.query.data}
                 />
             )}
             <AddProductModal
-                hidden={showAddProduct.value}
-                toggleHidden={showAddProduct.toggle}
-                product={productDTO.value}
-                addProduct={() => {addProductMutation.mutate(productDTO.value)}}
-                setProductDTO={productDTO.setProductDTO}
+                hidden={addProduct.visibility.value}
+                toggleHidden={addProduct.visibility.toggle}
+                product={addProduct.productDTO.value}
+                addProduct={addProduct.mutation.mutate}
+                setProductDTO={addProduct.productDTO.setProductDTO}
             />
         </>
     )
