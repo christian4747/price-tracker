@@ -5,6 +5,7 @@ import { useToggleVisibility } from '../../../hooks/useToggleVisibility'
 import { useProductDTO } from '../../../hooks/useProductDTO'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { ProductDTO } from '../../../utils/Types'
+import ProductListHeader from '../product/ProductListHeader'
 
 const ProductListContainer = () => {
     // State for AddProductModal visibility
@@ -52,11 +53,13 @@ const ProductListContainer = () => {
 
     return (
         <>
+            <ProductListHeader
+                toggleAddProduct={showAddProduct.toggle}
+                getAllProducts={() => {queryClient.invalidateQueries({queryKey: ['products']})}}
+            />
             {isSuccess && (
                 <ProductList
                     products={products}
-                    toggleAddProduct={showAddProduct.toggle}
-                    getAllProducts={() => {queryClient.invalidateQueries({queryKey: ['products']})}}
                 />
             )}
             <AddProductModal
