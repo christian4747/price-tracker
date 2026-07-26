@@ -1,11 +1,12 @@
 import EditPriceModal from '../modals/EditPriceModal'
 import DeletePriceModal from '../modals/DeletePriceModal'
-import type { PriceType } from "../../../utils/Types"
+import type { PriceType, ProductType } from "../../../utils/Types"
 import Price from '../price/Price'
 import api from '../../../services/api'
 import { getUSDateStringFromTimestamp, javaTimestampToJS } from '../../../utils/DateUtilities'
 import { useToggleVisibility } from '../../../hooks/useToggleVisibility'
 import { usePriceDTO } from '../../../hooks/usePriceDTO'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 type PriceProps = {
     price: PriceType
@@ -27,25 +28,43 @@ const PriceContainer = ({price}: PriceProps) => {
             productId: price.productId
         }
     )
-
     // Constructing the string to show the date on the PriceList
     const priceStartedDateString = getUSDateStringFromTimestamp(price.priceStarted)
 
-    // API function for editing a Price
-    const editPrice = async () => {
-        showEditPrice.toggle()
-        try {
-            const res = api.editPrice(price.priceId, priceDTO.value)
-                .then(() => {
-                    // TODO: Replace with mutation
-                })
+    // Get the query client
+    const queryClient = useQueryClient()
 
-            console.log(res)
-        } catch (err) {
-            console.log('Error occurred while updating price')
-            console.log(err)
+    // Mutation for editing products
+    const editPriceMutation = useMutation({
+        mutationFn: () => {
+            showEditPrice.toggle()
+            return api.editPrice(price.priceId, priceDTO.value)
+        },
+        onSuccess: (newData) => {
+            queryClient.setQueryData(['products'], (old: any) => {
+                return old.map((p: ProductType) => {
+                    if (p.productId === price.productId) {
+                        const priceIdx = p.prices.indexOf(price)
+
+                        const updatedPrices = p.prices.map((price, i) => {
+                            if (i === priceIdx) {
+                                return newData
+                            }
+                            return price
+                        })
+
+                        let productCopy = {...p}
+                        productCopy = {...productCopy, prices: updatedPrices}
+                        return productCopy
+                    }
+                    return p
+                })
+            })
+        },
+        onError: (error) => {
+            console.log(`Error occurred while updating ${price.productId}: ${price.amount} (${error.message})`)
         }
-    }
+    })
 
     // API function for deleting a Price
     const deletePrice = async () => {
@@ -73,7 +92,7 @@ const PriceContainer = ({price}: PriceProps) => {
             <EditPriceModal
                 hidden={showEditPrice.value}
                 toggleHidden={showEditPrice.toggle}
-                editPrice={editPrice}
+                editPrice={editPriceMutation.mutate}
                 priceDTO={priceDTO.value}
                 setPriceDTO={priceDTO.setPriceDTO}
             />

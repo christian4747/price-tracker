@@ -272,6 +272,7 @@ const ProductContainer = ({product}: ProductProps) => {
                         <PriceList
                             sortedPrices={sortedPricesByDate}
                             toggleShowAddPrice={toggleShowAddPrice}
+                            productId={product.productId}
                         />
                     </div>
                     : <></>
