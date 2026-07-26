@@ -1,6 +1,6 @@
 import EditPriceModal from '../modals/EditPriceModal'
 import DeletePriceModal from '../modals/DeletePriceModal'
-import type { PriceType, ProductType } from "../../../utils/Types"
+import type { PriceType } from "../../../utils/Types"
 import Price from '../price/Price'
 import api from '../../../services/api'
 import { getUSDateStringFromTimestamp, javaTimestampToJS } from '../../../utils/DateUtilities'
@@ -8,12 +8,10 @@ import { useToggleVisibility } from '../../../hooks/useToggleVisibility'
 import { usePriceDTO } from '../../../hooks/usePriceDTO'
 
 type PriceProps = {
-    price: PriceType,
-    product: ProductType,
-    setProduct: React.Dispatch<React.SetStateAction<ProductType>>
+    price: PriceType
 }
 
-const PriceContainer = ({price, setProduct}: PriceProps) => {
+const PriceContainer = ({price}: PriceProps) => {
     // State for EditPriceModal visibility
     const showEditPrice = useToggleVisibility(false)
     // State for DeletePriceModal visibility
@@ -39,19 +37,7 @@ const PriceContainer = ({price, setProduct}: PriceProps) => {
         try {
             const res = api.editPrice(price.priceId, priceDTO.value)
                 .then(() => {
-                    setProduct((prev) => {
-                        const idx = prev.prices.indexOf(price)
-                        const prices = prev.prices.map((p, i) => {
-                            if (i === idx) {
-                                p.amount = priceDTO.value.amount.toString()
-                                p.priceStarted = priceDTO.value.priceStarted.toString()
-                                p.priceEnded = priceDTO.value.priceEnded.toString()
-                            }
-                            return p
-                        })
-
-                        return ({...prev, prices: prices})
-                    })
+                    // TODO: Replace with mutation
                 })
 
             console.log(res)
@@ -67,7 +53,7 @@ const PriceContainer = ({price, setProduct}: PriceProps) => {
 
         try {
             const res = api.deletePrice(price.priceId)
-            setProduct((prev) => ({...prev, prices: prev.prices.filter((p) => p != price)}))
+            // TODO: Replace with mutation
             console.log(res)
         } catch(err) {
             console.log(`Error occurred while deleting ${price.priceId}: ${price.amount} ${price.priceStarted}`)
@@ -96,7 +82,6 @@ const PriceContainer = ({price, setProduct}: PriceProps) => {
                 hidden={showDeletePrice.value}
                 toggleHidden={showDeletePrice.toggle}
                 price={price}
-                setProduct={setProduct}
                 deletePrice={deletePrice}
             />
         </>

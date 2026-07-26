@@ -1,4 +1,3 @@
-import { useState } from "react"
 import { type PriceType, type ProductType } from "../../../utils/Types"
 import PriceBanner from "../price/PriceBanner"
 import DeleteProductModal from "../modals/DeleteProductModal"
@@ -13,12 +12,13 @@ import { filterPricesBeforeDate, getUSDateStringFromTimestamp, javaTimestampToJS
 import { useToggleVisibility } from "../../../hooks/useToggleVisibility"
 import { usePriceDTO } from "../../../hooks/usePriceDTO"
 import { useProductDTO } from "../../../hooks/useProductDTO"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 
 type ProductProps = {
-    productDetails: ProductType
+    product: ProductType
 }
 
-const ProductContainer = ({productDetails}: ProductProps) => {
+const ProductContainer = ({product}: ProductProps) => {
     // State for Product visibility
     const hideProduct = useToggleVisibility(false)
     // State for Product's lower content visibility
@@ -29,9 +29,6 @@ const ProductContainer = ({productDetails}: ProductProps) => {
     const showDeleteProduct = useToggleVisibility(false)
     // State for AddPriceModal visibility
     const showAddPrice = useToggleVisibility(false)
-
-    // State for current Product's details
-    const [product, setProduct] = useState<ProductType>(productDetails)
 
     // State for ProductDTO when editing Products
     const productDTO = useProductDTO(
@@ -112,55 +109,75 @@ const ProductContainer = ({productDetails}: ProductProps) => {
         showAddPrice.toggle()
     }
 
-    // API function for editing Products
-    const editProduct = async () => {
-        showEditProduct.toggle()
-        try {
-            const res = api.editProduct(product.productId, productDTO.value)
-                .then(() => {
-                    setProduct(prev => ({...prev, name: productDTO.value.name}))
-                    setProduct(prev => ({...prev, store: productDTO.value.store}))
-                    setProduct(prev => ({...prev, link: productDTO.value.link}))
+    // Get the query client
+    const queryClient = useQueryClient()
+
+    // Mutation for editing products
+    const editProductMutation = useMutation({
+        mutationFn: () => {
+            showEditProduct.toggle()
+            return api.editProduct(product.productId, productDTO.value)
+        },
+        onSuccess: (newData) => {
+            queryClient.setQueryData(['products'], (old: any) => {
+                const idx = old.indexOf(product)
+                return old.map((p: ProductType, i: number) => {
+                    if (i === idx) {
+                        return newData
+                    }
+                    return p
                 })
-
-            console.log(res)
-        } catch (err) {
-            console.log(`Error occurred while updating ${product.productId}: ${product.name}`)
-            console.log(err)
-        }
-    }
-
-    // API function for deleting Products
-    const deleteProduct = async () => {
-        showDeleteProduct.toggle()
-        try {
-            const res = api.deleteProduct(product.productId)
-
-            hideProduct.toggle()
-
-            console.log(res)
-        } catch (err) {
-            console.log(`Error occurred while deleting ${product.productId}: ${product.name}`)
-            console.log(err)
-        }
-    }
-
-    // API function for adding Prices
-    const addPrice = async () => {
-        toggleShowAddPrice()
-        try {
-            const res = api.addPrice(priceDTO.value)
-            .then((res) => {
-                setProduct(prev => ({...prev, prices: [...prev.prices, res.data]}))
-                priceDTO.resetPriceDTO()
             })
-            
-            console.log(res)
-        } catch (err) {
-            console.log(`Error occurred while adding ${priceDTO}`)
-            console.log(err)
+        },
+        onError: (error) => {
+            console.log(`Error occurred while updating ${product.productId}: ${product.name} (${error.message})`)
         }
-    }
+    })
+
+    // Mutation for deleting products
+    const deleteProductMutation = useMutation({
+        mutationFn: () => {
+            showDeleteProduct.toggle()
+            return api.deleteProduct(product.productId)
+        },
+        onSuccess: () => {
+            queryClient.setQueryData(['products'], (old: any) => {
+                const idx = old.indexOf(product)
+                return old.filter((p: ProductType, i: number) => {
+                    if (i === idx) {
+                        return
+                    }
+                    return p
+                })
+            })
+        },
+        onError: (error) => {
+            console.log(`Error occurred while deleting ${product.productId}: ${product.name} (${error.message})`)
+        }
+    })
+
+    // Mutation for adding prices
+    const addPriceMutation = useMutation({
+        mutationFn: () => {
+            toggleShowAddPrice()
+            return api.addPrice(priceDTO.value)
+        },
+        onSuccess: (newData) => {
+            priceDTO.resetPriceDTO()
+            queryClient.setQueryData(['products'], (old: any) => {
+                const idx = old.indexOf(product)
+                return old.map((p: ProductType, i: number) => {
+                    if (i === idx) {
+                        return p.prices ? {...p, prices: [...p.prices, newData]} : {...p, prices: [newData]}
+                    }
+                    return p
+                })
+            })
+        },
+        onError: (error) => {
+            console.log(`Error occurred while adding ${priceDTO} (${error.message})`)
+        }
+    })
 
     // Calculates the percentage from the given float
     // Percentages below 1 percent include 2 decimal points
@@ -253,10 +270,8 @@ const ProductContainer = ({productDetails}: ProductProps) => {
                     <div className='w-full h-full flex justify-between gap-2'>
                         <PriceHistoryChart priceData={createPriceData()} />
                         <PriceList
-                            product={product}
                             sortedPrices={sortedPricesByDate}
                             toggleShowAddPrice={toggleShowAddPrice}
-                            setProduct={setProduct}
                         />
                     </div>
                     : <></>
@@ -266,7 +281,7 @@ const ProductContainer = ({productDetails}: ProductProps) => {
             <EditProductModal
                 hidden={showEditProduct.value}
                 toggleHidden={showEditProduct.toggle}
-                editProduct={editProduct}
+                editProduct={editProductMutation.mutate}
                 productDTO={productDTO.value}
                 setProductDTO={productDTO.setProductDTO}
             />
@@ -275,7 +290,7 @@ const ProductContainer = ({productDetails}: ProductProps) => {
                 hidden={showDeleteProduct.value}
                 toggleHidden={showDeleteProduct.toggle}
                 product={product}
-                deleteProduct={deleteProduct}
+                deleteProduct={deleteProductMutation.mutate}
             />
 
             <AddPriceModal
@@ -284,7 +299,7 @@ const ProductContainer = ({productDetails}: ProductProps) => {
                 product={product}
                 priceDTO={priceDTO.value}
                 setPriceDTO={priceDTO.setPriceDTO}
-                addPrice={addPrice}
+                addPrice={addPriceMutation.mutate}
             />
         </>
     )

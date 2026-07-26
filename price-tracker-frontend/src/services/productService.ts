@@ -16,11 +16,13 @@ export default {
     },
 
     editProduct: async (rootUrl: string, productId: number, productToAdd: ProductDTO) => {
-        return await axios.put(rootUrl + apiPath + '/' + productId.toString(), productToAdd)
+        const res = await axios.put(rootUrl + apiPath + '/' + productId.toString(), productToAdd)
+        return res.data
     },
 
     deleteProduct: async (rootUrl: string, productId: number) => {
-        return await axios.delete(rootUrl + apiPath + '/' + productId.toString())
+        const res = await axios.delete(rootUrl + apiPath + '/' + productId.toString())
+        return res.data
     }
 
 }

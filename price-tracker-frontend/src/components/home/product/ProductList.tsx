@@ -13,7 +13,7 @@ const ProductList = ({products}: ProductListProps) => {
                     return (
                         <ProductContainer
                             key={product.name + product.store}
-                            productDetails={product}
+                            product={product}
                         />
                     )
                 })}

@@ -39,7 +39,7 @@ const ProductListContainer = () => {
             queryClient.setQueryData(['products'], (oldData: any) => {
                 return oldData ? [...oldData, newData] : []
             })
-        }
+        } // TODO: Add error handling/logging
     })
 
     if (isPending) {
