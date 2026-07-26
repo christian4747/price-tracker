@@ -34,7 +34,7 @@ const PriceContainer = ({price}: PriceProps) => {
     // Get the query client
     const queryClient = useQueryClient()
 
-    // Mutation for editing products
+    // Mutation for editing prices
     const editPriceMutation = useMutation({
         mutationFn: () => {
             showEditPrice.toggle()
