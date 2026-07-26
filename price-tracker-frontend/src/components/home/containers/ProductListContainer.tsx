@@ -39,7 +39,10 @@ const ProductListContainer = () => {
             queryClient.setQueryData(['products'], (oldData: any) => {
                 return oldData ? [...oldData, newData] : []
             })
-        } // TODO: Add error handling/logging
+        },
+        onError: (error) => {
+            console.log(`Error occurred while adding ${productDTO.value.name} (${error.message})`)
+        }
     })
 
     if (isPending) {
