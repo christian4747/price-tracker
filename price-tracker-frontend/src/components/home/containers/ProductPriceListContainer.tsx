@@ -169,7 +169,7 @@ const ProductContainer = ({product}: ProductProps) => {
                         <PriceBanner
                             discountPercent={getMostRecentDiscount()}
                             bannerType={getBannerType()}
-                            price={sortedPricesByDate ? sortedPricesByDate[0]?.amount : ''}
+                            price={sortedPricesByDate ? sortedPricesByDate[sortedPricesByDate.length - 1]?.amount : ''}
                         />
                         <ExpandButton hidden={hideLowerContent.value} setHidden={hideLowerContent.toggle}/>
                     </div>
