@@ -8,10 +8,10 @@ import Product from "../product/Product"
 import PriceHistoryChart from "../price/PriceHistoryChart"
 import PriceList from "../price/PriceList"
 import { filterPricesBeforeDate, getUSDateStringFromTimestamp, javaTimestampToJS, sortPricesByDateAscending } from "../../../utils/DateUtilities"
-import { useToggleVisibility } from "../../../hooks/useToggleVisibility"
-import { useEditProduct } from "../../../hooks/useEditProduct"
-import { useDeleteProduct } from "../../../hooks/useDeleteProduct"
-import { useAddPrice } from "../../../hooks/useAddPrice"
+import { useToggleVisibility } from "../../../hooks/common/useToggleVisibility"
+import { useEditProduct } from "../../../hooks/product/useEditProduct"
+import { useDeleteProduct } from "../../../hooks/product/useDeleteProduct"
+import { useAddPrice } from "../../../hooks/price/useAddPrice"
 
 type ProductProps = {
     product: ProductType

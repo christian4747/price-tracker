@@ -1,8 +1,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import api from '../services/api'
-import { useToggleVisibility } from './useToggleVisibility'
+import api from '../../services/api'
+import { useToggleVisibility } from '../common/useToggleVisibility'
 import { usePriceDTO } from './usePriceDTO'
-import type { ProductType } from '../utils/Types'
+import type { ProductType } from '../../utils/Types'
 
 export function useAddPrice(product: ProductType) {
     // State for AddPriceModal visibility

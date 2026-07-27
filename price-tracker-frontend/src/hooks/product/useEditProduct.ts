@@ -1,7 +1,7 @@
-import type { ProductType } from '../utils/Types'
+import type { ProductType } from '../../utils/Types'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import api from '../services/api'
-import { useToggleVisibility } from './useToggleVisibility'
+import api from '../../services/api'
+import { useToggleVisibility } from '../common/useToggleVisibility'
 import { useProductDTO } from './useProductDTO'
 
 export function useEditProduct(product: ProductType) {

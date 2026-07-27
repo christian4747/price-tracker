@@ -1,8 +1,8 @@
 import ProductList from '../product/ProductList'
 import AddProductModal from '../modals/AddProductModal'
 import ProductListHeader from '../product/ProductListHeader'
-import { useAddProduct } from '../../../hooks/useAddProduct'
-import { useGetAllProducts } from '../../../hooks/useGetAllProducts'
+import { useAddProduct } from '../../../hooks/product/useAddProduct'
+import { useGetAllProducts } from '../../../hooks/product/useGetAllProducts'
 
 const ProductListContainer = () => {
 

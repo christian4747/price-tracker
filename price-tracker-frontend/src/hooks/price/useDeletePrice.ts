@@ -1,7 +1,7 @@
-import type { PriceType, ProductType } from '../utils/Types'
+import type { PriceType, ProductType } from '../../utils/Types'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import api from '../services/api'
-import { useToggleVisibility } from './useToggleVisibility'
+import api from '../../services/api'
+import { useToggleVisibility } from '../common/useToggleVisibility'
 
 export function useDeletePrice(price: PriceType) {
     // DeletePriceModal visibility

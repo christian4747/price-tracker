@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { ProductDTO } from '../utils/Types'
+import type { ProductDTO } from '../../utils/Types'
 
 export function useProductDTO(initialState: ProductDTO) {
     const [value, setProductDTO] = useState<ProductDTO>(initialState)
