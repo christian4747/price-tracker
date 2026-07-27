@@ -3,7 +3,7 @@ import Modal from "../../common/Modal"
 import type { ProductModalProps } from "../../../utils/Types";
 
 type DeleteProductModalProps = ProductModalProps & {
-    deleteProduct: () => Promise<void>
+    deleteProduct: () => void
 }
 
 const DeleteProductModal = ({hidden, toggleHidden, product, deleteProduct}: DeleteProductModalProps) => {

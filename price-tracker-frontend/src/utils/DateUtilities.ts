@@ -13,6 +13,8 @@ const getUSDateStringFromTimestamp = (timestamp: string) => {
 
 // Sorts the given PriceType array ascending by date
 const sortPricesByDateAscending = (prices: PriceType[]) => {
+    if (!prices) return []
+
     return prices.toSorted((a, b) => {
         return Date.parse(a.priceStarted) - Date.parse(b.priceStarted)
     })
@@ -20,6 +22,8 @@ const sortPricesByDateAscending = (prices: PriceType[]) => {
 
 // Filter Price(s) that occurred before the given date
 const filterPricesBeforeDate = (prices: PriceType[], date: Date) => {
+    if (!prices) return []
+
     const filter = Date.parse(date.toUTCString())
 
     return prices.filter((price) => {

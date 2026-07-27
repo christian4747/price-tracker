@@ -4,7 +4,7 @@ import Modal from "../../common/Modal"
 import type { ModalProps, ProductDTO } from "../../../utils/Types";
 
 type EditPriceModalProps = ModalProps & {
-    editProduct: () => Promise<void>,
+    editProduct: () => void,
     productDTO: ProductDTO,
     setProductDTO: React.Dispatch<React.SetStateAction<ProductDTO>>
 }

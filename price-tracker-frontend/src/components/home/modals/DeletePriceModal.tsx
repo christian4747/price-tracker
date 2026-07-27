@@ -1,10 +1,9 @@
 import Button from "../../common/Button"
 import Modal from "../../common/Modal"
-import type { PriceModalProps, ProductType } from "../../../utils/Types";
+import type { PriceModalProps } from "../../../utils/Types";
 import { getUSDateStringFromTimestamp } from "../../../utils/DateUtilities";
 
 type DeletePriceModalProps = PriceModalProps & {
-    setProduct: React.Dispatch<React.SetStateAction<ProductType>>,
     deletePrice: () => any
 }
 

@@ -1,74 +1,57 @@
-import { useEffect, useState } from 'react'
-import type { ProductType } from "../../../utils/Types"
-import api from '../../../services/api'
 import ProductList from '../product/ProductList'
 import AddProductModal from '../modals/AddProductModal'
-import { useToggleVisibility } from '../../../hooks/useToggleVisibility'
-import { useProductDTO } from '../../../hooks/useProductDTO'
+import ProductListHeader from '../product/ProductListHeader'
+import { useAddProduct } from '../../../hooks/product/useAddProduct'
+import { useGetAllProducts } from '../../../hooks/product/useGetAllProducts'
 
 const ProductListContainer = () => {
-    // State for AddProductModal visibility
-    const showAddProduct = useToggleVisibility(false)
 
-    // State for ProductDTO used in adding products
-    const productDTO = useProductDTO(
-        {
-            name: '',
-            link: '',
-            store: ''
-        }
-    )
+    // Hook for adding products
+    const addProduct = useAddProduct()
+    // Hook for getting all products
+    const getAllProducts = useGetAllProducts()
 
-    // List of Products
-    const [products, setProducts] = useState<ProductType[]>([])
-
-    // API function for getting all Products
-    const getAllProducts = async () => {
-        api.getAllProducts()
-        .then((res) => {
-            setProducts(res.data)
-            console.log(res)
-        })
-        .catch((err) => {
-            console.log('Error occurred while getting all products')
-            console.log(err)
-        })
+    if (getAllProducts.query.isPending) {
+        return (
+            <>
+                <ProductListHeader
+                    toggleAddProduct={addProduct.visibility.toggle}
+                    getAllProducts={getAllProducts.refresh}
+                />
+                Loading...
+            </>
+        )
     }
 
-    // API function for adding a Product
-    const addProduct = async () => {
-        const res = api.addProduct(productDTO.value)
-            .then(() => {
-                showAddProduct.toggle()
-                getAllProducts()
-
-                productDTO.resetProductDTO()
-                console.log(res)
-            })
-            .catch((err) => {
-                console.log(`Error occurred while adding ${productDTO.value.name}`)
-                console.log(err)
-            })
+    if (getAllProducts.query.isError) {
+        return (
+            <>
+                <ProductListHeader
+                    toggleAddProduct={addProduct.visibility.toggle}
+                    getAllProducts={getAllProducts.refresh}
+                />
+                An error occurred: {getAllProducts.query.error.message}
+            </>
+        )
     }
-
-    useEffect(() => {
-        // getAllProducts()
-    }, [])
 
     return (
         <>
-            <ProductList
-                products={products}
-                toggleAddProduct={showAddProduct.toggle}
-                getAllProducts={getAllProducts}
+            <ProductListHeader
+                toggleAddProduct={addProduct.visibility.toggle}
+                getAllProducts={getAllProducts.refresh}
             />
-            
+            {getAllProducts.query.isSuccess && (
+                <ProductList
+                    products={getAllProducts.query.data}
+                />
+            )}
             <AddProductModal
-                hidden={showAddProduct.value}
-                toggleHidden={showAddProduct.toggle}
-                product={productDTO.value}
-                addProduct={addProduct}
-                setProductDTO={productDTO.setProductDTO}
+                hidden={addProduct.visibility.value}
+                toggleHidden={addProduct.visibility.toggle}
+                product={addProduct.productDTO.value}
+                addProduct={addProduct.mutation.mutate}
+                setProductDTO={addProduct.productDTO.setProductDTO}
             />
         </>
     )

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { PriceDTO } from '../utils/Types'
+import type { PriceDTO } from '../../utils/Types'
 
 export function usePriceDTO(initialState: PriceDTO) {
     const [value, setPriceDTO] = useState<PriceDTO>(initialState)

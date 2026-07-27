@@ -6,15 +6,18 @@ const apiPath = "/prices"
 export default {
 
     addPrice: async (rootUrl: string, priceToAdd: PriceDTO) => {
-        return await axios.post(rootUrl + apiPath, priceToAdd)
+        const res = await axios.post(rootUrl + apiPath, priceToAdd)
+        return res.data
     },
 
     editPrice: async (rootUrl: string, priceId: number, priceToAdd: PriceDTO) => {
-        return await axios.put(rootUrl + apiPath + '/' + priceId.toString(), priceToAdd)
+        const res = await axios.put(rootUrl + apiPath + '/' + priceId.toString(), priceToAdd)
+        return res.data
     },
 
     deletePrice: async (rootUrl: string, priceId: number) => {
-        return await axios.delete(rootUrl + apiPath + '/' + priceId.toString())
+        const res = await axios.delete(rootUrl + apiPath + '/' + priceId.toString())
+        return res.data
     }
 
 }

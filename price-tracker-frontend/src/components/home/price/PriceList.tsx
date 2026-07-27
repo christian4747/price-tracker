@@ -1,28 +1,25 @@
-import type { PriceType, ProductType } from "../../../utils/Types"
+import type { PriceType } from "../../../utils/Types"
 import PriceContainer from '../containers/PriceContainer'
 import Button from '../../common/Button'
 import { FiPlus } from 'react-icons/fi'
 
 type Props = {
-    product: ProductType,
     sortedPrices: PriceType[],
     toggleShowAddPrice: () => void,
-    setProduct: React.Dispatch<React.SetStateAction<ProductType>>
+    productId: number
 }
 
-const PriceList = ({product, sortedPrices, setProduct, toggleShowAddPrice}: Props) => {
+const PriceList = ({sortedPrices, toggleShowAddPrice, productId}: Props) => {
     return (
         <>
             <div className='flex flex-col max-h-full w-3/10 border border-smoke rounded-sm overflow-hidden justify-between'>
                 <div className='flex flex-col bg-smoke font-bold font-mono max-h-45 overflow-auto'>
                     {sortedPrices?.map((price) => {
-                        price.productId = product.productId
+                        price.productId = productId
                         return (
                             <PriceContainer
                                 key={price.priceId}
                                 price={price}
-                                product={product}
-                                setProduct={setProduct}
                             />
                         )
                     })}
