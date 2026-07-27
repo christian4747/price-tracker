@@ -13,6 +13,7 @@ import { useToggleVisibility } from "../../../hooks/useToggleVisibility"
 import { usePriceDTO } from "../../../hooks/usePriceDTO"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { useEditProduct } from "../../../hooks/useEditProduct"
+import { useDeleteProduct } from "../../../hooks/useDeleteProduct"
 
 type ProductProps = {
     product: ProductType
@@ -23,8 +24,6 @@ const ProductContainer = ({product}: ProductProps) => {
     const hideProduct = useToggleVisibility(false)
     // State for Product's lower content visibility
     const hideLowerContent = useToggleVisibility(true)
-    // State for DeleteProductModal visibility
-    const showDeleteProduct = useToggleVisibility(false)
     // State for AddPriceModal visibility
     const showAddPrice = useToggleVisibility(false)
 
@@ -40,6 +39,7 @@ const ProductContainer = ({product}: ProductProps) => {
     )
 
     const editProduct = useEditProduct(product)
+    const deleteProduct = useDeleteProduct(product)
 
     // Get the Product's Price(s) sorted
     const sortedPricesByDate = sortPricesByDateAscending(product.prices)
@@ -102,28 +102,6 @@ const ProductContainer = ({product}: ProductProps) => {
 
     // Get the query client
     const queryClient = useQueryClient()
-
-    // Mutation for deleting products
-    const deleteProductMutation = useMutation({
-        mutationFn: () => {
-            showDeleteProduct.toggle()
-            return api.deleteProduct(product.productId)
-        },
-        onSuccess: () => {
-            queryClient.setQueryData(['products'], (old: any) => {
-                const idx = old.indexOf(product)
-                return old.filter((p: ProductType, i: number) => {
-                    if (i === idx) {
-                        return
-                    }
-                    return p
-                })
-            })
-        },
-        onError: (error) => {
-            console.log(`Error occurred while deleting ${product.productId}: ${product.name} (${error.message})`)
-        }
-    })
 
     // Mutation for adding prices
     const addPriceMutation = useMutation({
@@ -219,7 +197,7 @@ const ProductContainer = ({product}: ProductProps) => {
                 <div className='h-full w-full flex justify-between items-center'>
                     <Product
                         product={product}
-                        toggleShowDelete={showDeleteProduct.toggle}
+                        toggleShowDelete={deleteProduct.visibility.toggle}
                         toggleShowEdit={editProduct.visibility.toggle}
                     />
 
@@ -257,10 +235,10 @@ const ProductContainer = ({product}: ProductProps) => {
             />
 
             <DeleteProductModal
-                hidden={showDeleteProduct.value}
-                toggleHidden={showDeleteProduct.toggle}
+                hidden={deleteProduct.visibility.value}
+                toggleHidden={deleteProduct.visibility.toggle}
                 product={product}
-                deleteProduct={deleteProductMutation.mutate}
+                deleteProduct={deleteProduct.mutation.mutate}
             />
 
             <AddPriceModal
