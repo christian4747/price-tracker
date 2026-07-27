@@ -7,39 +7,35 @@ import ExpandButton from "../../common/ExpandButton"
 import Product from "../product/Product"
 import PriceHistoryChart from "../price/PriceHistoryChart"
 import PriceList from "../price/PriceList"
-import api from "../../../services/api"
 import { filterPricesBeforeDate, getUSDateStringFromTimestamp, javaTimestampToJS, sortPricesByDateAscending } from "../../../utils/DateUtilities"
 import { useToggleVisibility } from "../../../hooks/useToggleVisibility"
-import { usePriceDTO } from "../../../hooks/usePriceDTO"
-import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { useEditProduct } from "../../../hooks/useEditProduct"
 import { useDeleteProduct } from "../../../hooks/useDeleteProduct"
+import { useAddPrice } from "../../../hooks/useAddPrice"
 
 type ProductProps = {
     product: ProductType
 }
 
 const ProductContainer = ({product}: ProductProps) => {
+
     // State for Product visibility
     const hideProduct = useToggleVisibility(false)
     // State for Product's lower content visibility
     const hideLowerContent = useToggleVisibility(true)
-    // State for AddPriceModal visibility
-    const showAddPrice = useToggleVisibility(false)
 
-    // State for PriceDTO when adding Prices
-    const priceDTO = usePriceDTO(
-        {
-            amount: '0.00',
-            currency: '',
-            priceStarted: '',
-            priceEnded: '',
-            productId: product.productId
-        }
-    )
-
-    const editProduct = useEditProduct(product)
+    // Hook for adding prices
+    const addPrice = useAddPrice(product)
+    // Hook for deleting products
     const deleteProduct = useDeleteProduct(product)
+    // Hook for editing products
+    const editProduct = useEditProduct(product)
+
+    // Toggle visibility of AddPriceModal
+    const toggleShowAddPrice = () => {
+        addPrice.priceDTO.setPriceDTO(prev => ({...prev, priceStarted: javaTimestampToJS(new Date(Date.now()).toISOString())}))
+        addPrice.visibility.toggle()
+    }
 
     // Get the Product's Price(s) sorted
     const sortedPricesByDate = sortPricesByDateAscending(product.prices)
@@ -93,38 +89,6 @@ const ProductContainer = ({product}: ProductProps) => {
 
         return priceData
     }
-
-    // Toggle visibility of AddPriceModal
-    const toggleShowAddPrice = () => {
-        priceDTO.setPriceDTO(prev => ({...prev, priceStarted: javaTimestampToJS(new Date(Date.now()).toISOString())}))
-        showAddPrice.toggle()
-    }
-
-    // Get the query client
-    const queryClient = useQueryClient()
-
-    // Mutation for adding prices
-    const addPriceMutation = useMutation({
-        mutationFn: () => {
-            toggleShowAddPrice()
-            return api.addPrice(priceDTO.value)
-        },
-        onSuccess: (newData) => {
-            priceDTO.resetPriceDTO()
-            queryClient.setQueryData(['products'], (old: any) => {
-                const idx = old.indexOf(product)
-                return old.map((p: ProductType, i: number) => {
-                    if (i === idx) {
-                        return p.prices ? {...p, prices: [...p.prices, newData]} : {...p, prices: [newData]}
-                    }
-                    return p
-                })
-            })
-        },
-        onError: (error) => {
-            console.log(`Error occurred while adding ${priceDTO} (${error.message})`)
-        }
-    })
 
     // Calculates the percentage from the given float
     // Percentages below 1 percent include 2 decimal points
@@ -242,12 +206,12 @@ const ProductContainer = ({product}: ProductProps) => {
             />
 
             <AddPriceModal
-                hidden={showAddPrice.value}
-                toggleHidden={toggleShowAddPrice}
+                hidden={addPrice.visibility.value}
+                toggleHidden={addPrice.visibility.toggle}
                 product={product}
-                priceDTO={priceDTO.value}
-                setPriceDTO={priceDTO.setPriceDTO}
-                addPrice={addPriceMutation.mutate}
+                priceDTO={addPrice.priceDTO.value}
+                setPriceDTO={addPrice.priceDTO.setPriceDTO}
+                addPrice={addPrice.mutation.mutate}
             />
         </>
     )
