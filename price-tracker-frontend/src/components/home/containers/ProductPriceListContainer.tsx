@@ -11,8 +11,8 @@ import api from "../../../services/api"
 import { filterPricesBeforeDate, getUSDateStringFromTimestamp, javaTimestampToJS, sortPricesByDateAscending } from "../../../utils/DateUtilities"
 import { useToggleVisibility } from "../../../hooks/useToggleVisibility"
 import { usePriceDTO } from "../../../hooks/usePriceDTO"
-import { useProductDTO } from "../../../hooks/useProductDTO"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { useEditProduct } from "../../../hooks/useEditProduct"
 
 type ProductProps = {
     product: ProductType
@@ -23,21 +23,10 @@ const ProductContainer = ({product}: ProductProps) => {
     const hideProduct = useToggleVisibility(false)
     // State for Product's lower content visibility
     const hideLowerContent = useToggleVisibility(true)
-    // State for EditProductModal visibility
-    const showEditProduct = useToggleVisibility(false)
     // State for DeleteProductModal visibility
     const showDeleteProduct = useToggleVisibility(false)
     // State for AddPriceModal visibility
     const showAddPrice = useToggleVisibility(false)
-
-    // State for ProductDTO when editing Products
-    const productDTO = useProductDTO(
-        {
-            name: product.name,
-            store: product.store,
-            link: product.link
-        }
-    )
 
     // State for PriceDTO when adding Prices
     const priceDTO = usePriceDTO(
@@ -49,6 +38,8 @@ const ProductContainer = ({product}: ProductProps) => {
             productId: product.productId
         }
     )
+
+    const editProduct = useEditProduct(product)
 
     // Get the Product's Price(s) sorted
     const sortedPricesByDate = sortPricesByDateAscending(product.prices)
@@ -111,28 +102,6 @@ const ProductContainer = ({product}: ProductProps) => {
 
     // Get the query client
     const queryClient = useQueryClient()
-
-    // Mutation for editing products
-    const editProductMutation = useMutation({
-        mutationFn: () => {
-            showEditProduct.toggle()
-            return api.editProduct(product.productId, productDTO.value)
-        },
-        onSuccess: (newData) => {
-            queryClient.setQueryData(['products'], (old: any) => {
-                const idx = old.indexOf(product)
-                return old.map((p: ProductType, i: number) => {
-                    if (i === idx) {
-                        return newData
-                    }
-                    return p
-                })
-            })
-        },
-        onError: (error) => {
-            console.log(`Error occurred while updating ${product.productId}: ${product.name} (${error.message})`)
-        }
-    })
 
     // Mutation for deleting products
     const deleteProductMutation = useMutation({
@@ -251,7 +220,7 @@ const ProductContainer = ({product}: ProductProps) => {
                     <Product
                         product={product}
                         toggleShowDelete={showDeleteProduct.toggle}
-                        toggleShowEdit={showEditProduct.toggle}
+                        toggleShowEdit={editProduct.visibility.toggle}
                     />
 
                     <div className='flex gap-3 items-center font-mono font-bold'>
@@ -280,11 +249,11 @@ const ProductContainer = ({product}: ProductProps) => {
             </div>
 
             <EditProductModal
-                hidden={showEditProduct.value}
-                toggleHidden={showEditProduct.toggle}
-                editProduct={editProductMutation.mutate}
-                productDTO={productDTO.value}
-                setProductDTO={productDTO.setProductDTO}
+                hidden={editProduct.visibility.value}
+                toggleHidden={editProduct.visibility.toggle}
+                editProduct={editProduct.mutation.mutate}
+                productDTO={editProduct.productDTO.value}
+                setProductDTO={editProduct.productDTO.setProductDTO}
             />
 
             <DeleteProductModal
