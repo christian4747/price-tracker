@@ -19,10 +19,10 @@ type ProductProps = {
 
 const ProductContainer = ({product}: ProductProps) => {
 
-    // State for Product visibility
-    const hideProduct = useToggleVisibility(false)
     // State for Product's lower content visibility
     const hideLowerContent = useToggleVisibility(true)
+    // State for Product visibility
+    const hideProduct = useToggleVisibility(false)
 
     // Hook for adding prices
     const addPrice = useAddPrice(product)
@@ -31,39 +31,8 @@ const ProductContainer = ({product}: ProductProps) => {
     // Hook for editing products
     const editProduct = useEditProduct(product)
 
-    // Toggle visibility of AddPriceModal
-    const toggleShowAddPrice = () => {
-        addPrice.priceDTO.setPriceDTO(prev => ({...prev, priceStarted: javaTimestampToJS(new Date(Date.now()).toISOString())}))
-        addPrice.visibility.toggle()
-    }
-
     // Get the Product's Price(s) sorted
     const sortedPricesByDate = sortPricesByDateAscending(product.prices)
-
-    // Get the Product's Price(s) sorted by amount in ascending order
-    const getSortedPricesByAmount = () => {
-        if (!product.prices) return []
-
-        return product.prices.toSorted((a, b) => {
-            return parseFloat(a.amount) - parseFloat(b.amount)
-        })
-    }
-
-    // Get an array of Price(s) up to one year ago in ascending order
-    const getOneYearAgoPrices = () => {
-        const oneYearAgo = new Date(Date.now())
-        oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1)
-
-        return sortPricesByDateAscending(filterPricesBeforeDate(product.prices, oneYearAgo))
-    }
-
-    // Get an array of Price(s) up to two years ago in ascending order
-    const getTwoYearsAgoPrices = () => {
-        const twoYearsAgo = new Date(Date.now())
-        twoYearsAgo.setFullYear(twoYearsAgo.getFullYear() - 2)
-
-        return sortPricesByDateAscending(filterPricesBeforeDate(product.prices, twoYearsAgo))
-    }
 
     // Create Price data for PriceHistoryChart
     const createPriceData = () => {
@@ -90,24 +59,24 @@ const ProductContainer = ({product}: ProductProps) => {
         return priceData
     }
 
-    // Calculates the percentage from the given float
-    // Percentages below 1 percent include 2 decimal points
-    const getPercentage = (float: number) => {
-        const percentage = parseFloat((float * 100).toFixed(2))
-        return percentage > 1 ? Math.round(percentage) : percentage
-    }
+    // Returns the banner type by comparing the best discount and most recent discount
+    const getBannerType = () => {
+        const mostRecentDiscount = getMostRecentDiscount()
 
-    // Gets the discount percentage for the most recent Price
-    const getMostRecentDiscount = () => {
-        const sortedByPrice = getSortedPricesByAmount()
+        const allTimeDiscount = getBestDiscount(sortedPricesByDate)
+        const twoYearDiscount = getBestDiscount(getXYearAgoPrices(2))
+        const oneYearDiscount = getBestDiscount(getXYearAgoPrices(1))
 
-        if (sortedByPrice.length <= 1 || sortedPricesByDate.length <= 1) return 0
+        // console.log(allTimeDiscount, twoYearDiscount, oneYearDiscount, mostRecentDiscount)
 
-        const highest = sortedByPrice[sortedByPrice.length - 1]
-        const recent = sortedPricesByDate[sortedPricesByDate.length - 1]
-
-        // console.log(highest.amount, recent.amount)
-        return getPercentage(1 - (parseFloat(recent.amount) / parseFloat(highest.amount)))
+        if (allTimeDiscount === mostRecentDiscount) {
+            return 'all-time'
+        } else if (twoYearDiscount === mostRecentDiscount) {
+            return 'two-year'
+        } else if (oneYearDiscount === mostRecentDiscount) {
+            return 'one-year'
+        }
+        return ''
     }
 
     // Gets the best discount found in the array of Prices
@@ -132,24 +101,49 @@ const ProductContainer = ({product}: ProductProps) => {
         return getPercentage(profit / highest)
     }
 
-    // Returns the banner type by comparing the best discount and most recent discount
-    const getBannerType = () => {
-        const mostRecentDiscount = getMostRecentDiscount()
+    // Gets the discount percentage for the most recent Price
+    const getMostRecentDiscount = () => {
+        // Get the Product's Price(s) sorted by amount in ascending order
+        const sortedByPrice = sortPricesByAmountAsc()
 
-        const allTimeDiscount = getBestDiscount(sortedPricesByDate)
-        const twoYearDiscount = getBestDiscount(getTwoYearsAgoPrices())
-        const oneYearDiscount = getBestDiscount(getOneYearAgoPrices())
+        if (sortedByPrice.length <= 1 || sortedPricesByDate.length <= 1) return 0
 
-        // console.log(allTimeDiscount, twoYearDiscount, oneYearDiscount, mostRecentDiscount)
+        const highest = sortedByPrice[sortedByPrice.length - 1]
+        const recent = sortedPricesByDate[sortedPricesByDate.length - 1]
 
-        if (allTimeDiscount === mostRecentDiscount) {
-            return 'all-time'
-        } else if (twoYearDiscount === mostRecentDiscount) {
-            return 'two-year'
-        } else if (oneYearDiscount === mostRecentDiscount) {
-            return 'one-year'
-        }
-        return ''
+        // console.log(highest.amount, recent.amount)
+        return getPercentage(1 - (parseFloat(recent.amount) / parseFloat(highest.amount)))
+    }
+
+    // Calculates the percentage from the given float
+    // Percentages below 1 percent include 2 decimal points
+    const getPercentage = (float: number) => {
+        const percentage = parseFloat((float * 100).toFixed(2))
+        return percentage > 1 ? Math.round(percentage) : percentage
+    }
+
+    // Get an array of Price(s) up to one year ago in ascending order
+    const getXYearAgoPrices = (yearsAgo: number) => {
+        const xYearAgo = new Date(Date.now())
+        xYearAgo.setFullYear(xYearAgo.getFullYear() - yearsAgo)
+
+        return sortPricesByDateAscending(filterPricesBeforeDate(product.prices, xYearAgo))
+    }
+
+    // Sort the given array by the given field (ascending)
+    const sortPricesByAmountAsc = () => {
+        if (!product.prices || product.prices.length === 0) return []
+        if (product.prices.length <= 1) return product.prices
+
+        return product.prices.toSorted((a, b) => {
+            return parseFloat(a.amount) - parseFloat(b.amount)
+        })
+    }
+
+    // Toggle visibility of AddPriceModal (wrapper)
+    const toggleShowAddPrice = () => {
+        addPrice.priceDTO.setPriceDTO(prev => ({...prev, priceStarted: javaTimestampToJS(new Date(Date.now()).toISOString())}))
+        addPrice.visibility.toggle()
     }
 
     if (hideProduct.value === true) return (<></>)
@@ -190,12 +184,13 @@ const ProductContainer = ({product}: ProductProps) => {
                 }
             </div>
 
-            <EditProductModal
-                hidden={editProduct.visibility.value}
-                toggleHidden={editProduct.visibility.toggle}
-                editProduct={editProduct.mutation.mutate}
-                productDTO={editProduct.productDTO.value}
-                setProductDTO={editProduct.productDTO.setProductDTO}
+            <AddPriceModal
+                hidden={addPrice.visibility.value}
+                toggleHidden={addPrice.visibility.toggle}
+                product={product}
+                priceDTO={addPrice.priceDTO.value}
+                setPriceDTO={addPrice.priceDTO.setPriceDTO}
+                addPrice={addPrice.mutation.mutate}
             />
 
             <DeleteProductModal
@@ -205,13 +200,12 @@ const ProductContainer = ({product}: ProductProps) => {
                 deleteProduct={deleteProduct.mutation.mutate}
             />
 
-            <AddPriceModal
-                hidden={addPrice.visibility.value}
-                toggleHidden={addPrice.visibility.toggle}
-                product={product}
-                priceDTO={addPrice.priceDTO.value}
-                setPriceDTO={addPrice.priceDTO.setPriceDTO}
-                addPrice={addPrice.mutation.mutate}
+            <EditProductModal
+                hidden={editProduct.visibility.value}
+                toggleHidden={editProduct.visibility.toggle}
+                editProduct={editProduct.mutation.mutate}
+                productDTO={editProduct.productDTO.value}
+                setProductDTO={editProduct.productDTO.setProductDTO}
             />
         </>
     )
