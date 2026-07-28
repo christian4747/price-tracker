@@ -6,6 +6,7 @@ public class IncomingPriceDTO {
 
     private double amount;
     private String currency;
+    private String description;
     private Timestamp priceStarted;
     private Timestamp priceEnded;
     private Integer productId;
@@ -13,9 +14,10 @@ public class IncomingPriceDTO {
     public IncomingPriceDTO() {
     }
 
-    public IncomingPriceDTO(double amount, String currency, Timestamp priceStarted, Timestamp priceEnded, Integer productId) {
+    public IncomingPriceDTO(double amount, String currency, String description, Timestamp priceStarted, Timestamp priceEnded, Integer productId) {
         this.amount = amount;
         this.currency = currency;
+        this.description = description;
         this.priceStarted = priceStarted;
         this.priceEnded = priceEnded;
         this.productId = productId;
@@ -35,6 +37,14 @@ public class IncomingPriceDTO {
 
     public void setCurrency(String currency) {
         this.currency = currency;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public Timestamp getPriceStarted() {
@@ -66,6 +76,7 @@ public class IncomingPriceDTO {
         return "IncomingPriceDTO{" +
                 "amount=" + amount +
                 ", currency='" + currency + '\'' +
+                ", description='" + description + '\'' +
                 ", priceStarted=" + priceStarted +
                 ", priceEnded=" + priceEnded +
                 ", productId=" + productId +

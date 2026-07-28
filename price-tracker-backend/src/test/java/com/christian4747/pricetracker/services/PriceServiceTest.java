@@ -48,16 +48,16 @@ public class PriceServiceTest {
 
     @BeforeEach
     public void setUp() {
-        priceDTO = new IncomingPriceDTO(1, null, null, null, 1);
+        priceDTO = new IncomingPriceDTO(1, null, null, null, null, 1);
 
         product = new Product();
         product.setProductId(1);
 
-        price = new Price(1, 1, null, null, null, null, null, product);
+        price = new Price(1, 1, null, null, null, null, null, null, product);
 
-        Price price1 = new Price(1, 1, null, null, null, null, null, null);
-        Price price2 = new Price(2, 2, null, null, null, null, null, null);
-        Price price3 = new Price(3, 3, null, null, null, null, null, null);
+        Price price1 = new Price(1, 1, null, null, null, null, null, null, null);
+        Price price2 = new Price(2, 2, null, null, null, null, null, null, null);
+        Price price3 = new Price(3, 3, null, null, null, null, null, null, null);
 
         priceList = List.of(price1, price2, price3);
     }
@@ -122,7 +122,7 @@ public class PriceServiceTest {
 
     @Test
     public void updatePrice_nonExistentProduct_throwException() {
-        priceDTO = new IncomingPriceDTO(1, null, null, null, 2);
+        priceDTO = new IncomingPriceDTO(1, null, null, null, null, 2);
 
         when(priceDAO.findById(anyInt())).thenReturn(Optional.of(price));
         when(productDAO.findById(anyInt())).thenReturn(Optional.empty());
@@ -140,7 +140,7 @@ public class PriceServiceTest {
 
     @Test
     public void updatePrice_validPriceDiffProduct_returnNewPrice() {
-        IncomingPriceDTO priceDTO = new IncomingPriceDTO(1, null, null, null, 2);
+        IncomingPriceDTO priceDTO = new IncomingPriceDTO(1, null, null, null, null, 2);
 
         Product product2 = new Product();
         product2.setProductId(2);
