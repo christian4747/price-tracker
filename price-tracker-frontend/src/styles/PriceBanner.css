@@ -1,0 +1,29 @@
+@import "tailwindcss";
+
+.all-time {
+    color: var(--color-red-400);
+}
+
+.all-time-bg {
+    background-color: var(--color-red-400);
+}
+
+.two-year {
+    color: var(--color-blue-400);
+}
+
+.two-year-bg {
+    background-color: var(--color-blue-400);
+}
+
+.one-year {
+    color: var(--color-emerald-400);
+}
+
+.one-year-bg {
+    background-color: var(--color-emerald-400);
+}
+
+.good-deal {
+    color: var(--color-green-500);
+}
