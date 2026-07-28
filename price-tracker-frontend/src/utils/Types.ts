@@ -16,7 +16,8 @@ type PriceType = {
     priceEnded: string,
     createdAt: string,
     updatedAt: string,
-    productId: number
+    productId: number,
+    description: string
 }
 
 type ModalProps = {
@@ -43,7 +44,8 @@ type PriceDTO = {
     currency: string,
     priceStarted: string,
     priceEnded: string,
-    productId: number
+    productId: number,
+    description: string
 }
 
 export type {ModalProps, ProductModalProps, PriceModalProps, ProductDTO, PriceDTO, PriceType, ProductType}

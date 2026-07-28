@@ -16,7 +16,8 @@ export function useEditPrice(price: PriceType) {
             currency: price.currency || '',
             priceStarted: price.priceStarted ? javaTimestampToJS(price.priceStarted) : '',
             priceEnded: price.priceEnded? javaTimestampToJS(price.priceEnded) : '',
-            productId: price.productId
+            productId: price.productId,
+            description: price.description
         }
     )
 

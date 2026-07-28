@@ -43,7 +43,8 @@ const ProductContainer = ({product}: ProductProps) => {
                 return {
                     priceId: price.priceId,
                     priceStarted: getUSDateStringFromTimestamp(price.priceStarted),
-                    price: price.amount
+                    price: price.amount,
+                    description: price.description
                 }
             }
         )
@@ -52,7 +53,8 @@ const ProductContainer = ({product}: ProductProps) => {
             {
                 priceId: -1,
                 priceStarted: 'Today',
-                price: sortedPricesByDate[sortedPricesByDate.length - 1].amount
+                price: sortedPricesByDate[sortedPricesByDate.length - 1].amount,
+                description: ''
             }
         )
 
