@@ -2,6 +2,8 @@ import Button from "../../common/Button"
 import Input from "../../common/Input"
 import Modal from "../../common/Modal"
 import type { ModalProps, ProductDTO } from "../../../utils/Types";
+import ModalHeader from "../../common/ModalHeader";
+import LabeledInput from "../../common/LabeledInput";
 
 type EditPriceModalProps = ModalProps & {
     editProduct: () => void,
@@ -14,27 +16,28 @@ const EditProductModal = ({hidden, toggleHidden, editProduct, productDTO, setPro
         <Modal
             hidden={hidden}
         >
-            <div className="text-4xl font-mono font-bold flex justify-center">Edit Product</div>
-            <Input
+            <ModalHeader toggleHidden={toggleHidden}>Edit Product</ModalHeader>
+            <LabeledInput
+                label="Name"
                 placeholder="Name"
                 value={productDTO.name}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {setProductDTO(prev => ({...prev, name: e.target.value}))}}
+                required
             />
-            <Input
+            <LabeledInput
+                label="Store"
                 placeholder="Store"
                 value={productDTO.store}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {setProductDTO(prev => ({...prev, store: e.target.value}))}}
             />
-            <Input
+            <LabeledInput
+                label="Link"
                 placeholder="Link"
                 value={productDTO.link}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {setProductDTO(prev => ({...prev, link: e.target.value}))}}
             />
             <Input className="hidden" placeholder="Initial Price"></Input>
-            <div className="flex gap-2 justify-center">
-                <Button onClick={editProduct}>Save</Button>
-                <Button onClick={toggleHidden}>Cancel</Button>
-            </div>
+            <Button className="w-full" onClick={editProduct}>Save Product</Button>
         </Modal>
     )
 }
