@@ -23,10 +23,15 @@ const AddPriceModal = ({hidden, toggleHidden, addPrice, priceDTO, setPriceDTO}: 
                 step=".01"
             />
             <Input
+                placeholder="Description"
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {setPriceDTO(prev => ({...prev, description: e.target.value}))}}
+                value={priceDTO.description}
+            />
+            {/* <Input
                 placeholder="Currency"
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {setPriceDTO(prev => ({...prev, currency: e.target.value}))}}
                 value={priceDTO.currency}
-            />
+            /> */}
             <Input
                 placeholder="Start Date"
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {setPriceDTO(prev => ({...prev, priceStarted: e.target.value}))}}

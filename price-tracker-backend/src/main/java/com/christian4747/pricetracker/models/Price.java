@@ -22,6 +22,8 @@ public class Price {
 
     private String currency;
 
+    private String description;
+
     private Timestamp priceStarted;
 
     private Timestamp priceEnded;
@@ -40,10 +42,11 @@ public class Price {
     public Price() {
     }
 
-    public Price(int priceId, double amount, String currency, Timestamp priceStarted, Timestamp priceEnded, Timestamp createdAt, Timestamp updatedAt, Product product) {
+    public Price(int priceId, double amount, String currency, String description, Timestamp priceStarted, Timestamp priceEnded, Timestamp createdAt, Timestamp updatedAt, Product product) {
         this.priceId = priceId;
         this.amount = amount;
         this.currency = currency;
+        this.description = description;
         this.priceStarted = priceStarted;
         this.priceEnded = priceEnded;
         this.createdAt = createdAt;
@@ -73,6 +76,14 @@ public class Price {
 
     public void setCurrency(String currency) {
         this.currency = currency;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public Timestamp getPriceStarted() {
@@ -121,6 +132,7 @@ public class Price {
                 "priceId=" + priceId +
                 ", amount=" + amount +
                 ", currency='" + currency + '\'' +
+                ", description='" + description + '\'' +
                 ", priceStarted=" + priceStarted +
                 ", priceEnded=" + priceEnded +
                 ", createdAt=" + createdAt +

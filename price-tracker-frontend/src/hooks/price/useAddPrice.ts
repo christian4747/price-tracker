@@ -15,7 +15,8 @@ export function useAddPrice(product: ProductType) {
             currency: '',
             priceStarted: '',
             priceEnded: '',
-            productId: product.productId
+            productId: product.productId,
+            description: ''
         }
     )
 
