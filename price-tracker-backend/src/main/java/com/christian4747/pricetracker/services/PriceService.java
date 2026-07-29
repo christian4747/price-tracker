@@ -107,6 +107,7 @@ public class PriceService {
         priceToUpdate.setCurrency(priceDTO.getCurrency());
         priceToUpdate.setPriceStarted(priceDTO.getPriceStarted());
         priceToUpdate.setPriceEnded(priceDTO.getPriceEnded());
+        priceToUpdate.setDescription(priceDTO.getDescription());
 
         if (priceToUpdate.getProduct().getProductId() != priceDTO.getProductId()) {
             Optional<Product> existingProduct = productDAO.findById(priceDTO.getProductId());
