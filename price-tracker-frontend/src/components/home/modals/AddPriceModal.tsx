@@ -50,9 +50,7 @@ const AddPriceModal = ({hidden, toggleHidden, addPrice, priceDTO, setPriceDTO}: 
                 value={priceDTO.priceEnded}
                 type="datetime-local"
             />
-            <div className="flex gap-2 justify-center">
-                <Button className="w-full" onClick={addPrice}>Add Price</Button>
-            </div>
+            <Button className="w-full" onClick={addPrice}>Add Price</Button>
         </Modal>
     )
 }

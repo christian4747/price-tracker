@@ -40,9 +40,7 @@ const AddProductModal = ({hidden, toggleHidden, product, addProduct, setProductD
                 className="hidden"
                 placeholder="Initial Price"
             />
-            <div className="flex gap-2 justify-center">
-                <Button className="w-full" onClick={addProduct}>Add Product</Button>
-            </div>
+            <Button className="w-full" onClick={addProduct}>Add Product</Button>
         </Modal>
     )
 }
