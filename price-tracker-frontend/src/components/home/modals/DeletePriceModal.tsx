@@ -2,6 +2,7 @@ import Button from "../../common/Button"
 import Modal from "../../common/Modal"
 import type { PriceModalProps } from "../../../utils/Types";
 import { getUSDateStringFromTimestamp } from "../../../utils/DateUtilities";
+import ModalHeader from "../../common/ModalHeader";
 
 type DeletePriceModalProps = PriceModalProps & {
     deletePrice: () => any
@@ -12,11 +13,11 @@ const DeletePriceModal = ({hidden, toggleHidden, price, deletePrice}: DeletePric
         <Modal
             hidden={hidden}
         >
-            <div className="text-4xl font-mono font-bold flex justify-center">Delete Price {getUSDateStringFromTimestamp(price.priceStarted)} (${price.amount})?</div>
-            <div className="flex gap-2 justify-center">
-                <Button onClick={deletePrice}>Yes</Button>
-                <Button onClick={toggleHidden}>No</Button>
+            <ModalHeader toggleHidden={toggleHidden}>Delete Price</ModalHeader>
+            <div className="text-xl font-mono flex flex-col">
+                Are you sure you want to delete Price {getUSDateStringFromTimestamp(price.priceStarted)} (${price.amount})? <span className="text-red-600">This cannot be undone.</span>
             </div>
+            <Button className="w-full" onClick={deletePrice}>Delete Price</Button>
         </Modal>
     )
 }
