@@ -1,5 +1,4 @@
 import Button from "../../common/Button"
-import Input from "../../common/Input"
 import Modal from "../../common/Modal"
 import type { PriceDTO, ProductModalProps } from "../../../utils/Types";
 import { MdClose } from "react-icons/md";
