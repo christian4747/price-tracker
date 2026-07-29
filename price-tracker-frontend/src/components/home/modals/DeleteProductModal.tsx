@@ -1,6 +1,7 @@
 import Button from "../../common/Button"
 import Modal from "../../common/Modal"
 import type { ProductModalProps } from "../../../utils/Types";
+import ModalHeader from "../../common/ModalHeader";
 
 type DeleteProductModalProps = ProductModalProps & {
     deleteProduct: () => void
@@ -11,11 +12,11 @@ const DeleteProductModal = ({hidden, toggleHidden, product, deleteProduct}: Dele
         <Modal
             hidden={hidden}
         >
-            <div className="text-4xl font-mono font-bold flex justify-center">Delete Product {product.name}?</div>
-            <div className="flex gap-2 justify-center">
-                <Button onClick={deleteProduct}>Yes</Button>
-                <Button onClick={toggleHidden}>No</Button>
+            <ModalHeader toggleHidden={toggleHidden}>Delete Product</ModalHeader>
+            <div className="text-xl font-mono flex flex-col">
+                Are you sure you want to delete Product {product.name}? <span className="text-red-600">This cannot be undone.</span>
             </div>
+            <Button className="w-full" onClick={deleteProduct}>Delete Product</Button>
         </Modal>
     )
 }
