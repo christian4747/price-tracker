@@ -13,8 +13,8 @@ const DeleteProductModal = ({hidden, toggleHidden, product, deleteProduct}: Dele
             hidden={hidden}
         >
             <ModalHeader toggleHidden={toggleHidden}>Delete Product</ModalHeader>
-            <div className="text-xl font-mono flex flex-col">
-                Are you sure you want to delete Product {product.name}? <span className="text-red-600">This cannot be undone.</span>
+            <div className="text-xl font-mono font-normal flex flex-col">
+                Are you sure you want to delete Product {product.name}? <span className="text-red-600 font-bold">This cannot be undone.</span>
             </div>
             <Button className="w-full" onClick={deleteProduct}>Delete Product</Button>
         </Modal>

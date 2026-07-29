@@ -14,8 +14,8 @@ const DeletePriceModal = ({hidden, toggleHidden, price, deletePrice}: DeletePric
             hidden={hidden}
         >
             <ModalHeader toggleHidden={toggleHidden}>Delete Price</ModalHeader>
-            <div className="text-xl font-mono flex flex-col">
-                Are you sure you want to delete Price {getUSDateStringFromTimestamp(price.priceStarted)} (${price.amount})? <span className="text-red-600">This cannot be undone.</span>
+            <div className="text-xl font-mono font-normal flex flex-col">
+                Are you sure you want to delete Price {getUSDateStringFromTimestamp(price.priceStarted)} (${price.amount})? <span className="text-red-600 font-bold">This cannot be undone.</span>
             </div>
             <Button className="w-full" onClick={deletePrice}>Delete Price</Button>
         </Modal>
