@@ -1,8 +1,8 @@
 import Button from "../../common/Button"
 import Modal from "../../common/Modal"
 import type { PriceDTO, ProductModalProps } from "../../../utils/Types";
-import { MdClose } from "react-icons/md";
 import LabeledInput from "../../common/LabeledInput";
+import ModalHeader from "../../common/ModalHeader";
 
 type AddPriceModalProps = ProductModalProps & {
     priceDTO: PriceDTO,
@@ -15,10 +15,7 @@ const AddPriceModal = ({hidden, toggleHidden, addPrice, priceDTO, setPriceDTO}: 
         <Modal
             hidden={hidden}
         >
-            <div className="text-4xl font-mono font-bold flex justify-between items-center">
-                <div>Add Price</div>
-                <div className="cursor-pointer" onClick={toggleHidden}><MdClose/></div>
-            </div>
+            <ModalHeader toggleHidden={toggleHidden}>Add Price</ModalHeader>
             <LabeledInput
                 label="Price"
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {setPriceDTO(prev => ({...prev, amount: e.target.value}))}}
