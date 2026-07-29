@@ -18,6 +18,7 @@ const PriceHistoryTooltip = ({active, payload, label}: TooltipContentProps) => {
             <div className='m-0 p-3 bg-cloud border border-smoke rounded-sm whitespace-nowrap flex flex-col'>
                 <p className="label">{`${label}`}</p>
                 <p>{`Price: $${firstPayload.value}`}</p>
+                {firstPayload.payload.description ? <p className='text-raincloud'>{`${firstPayload.payload.description}`}</p> : <></> }
             </div>
         )}
         </div>

@@ -54,7 +54,7 @@ const ProductContainer = ({product}: ProductProps) => {
                 priceId: -1,
                 priceStarted: 'Today',
                 price: sortedPricesByDate[sortedPricesByDate.length - 1].amount,
-                description: ''
+                description: sortedPricesByDate[sortedPricesByDate.length - 1].description
             }
         )
 
