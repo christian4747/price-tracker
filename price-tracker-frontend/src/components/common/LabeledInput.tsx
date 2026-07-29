@@ -10,7 +10,7 @@ const LabeledInput = ({children, className, required, label, ...props}: Props) =
         return (
             <>
                 <div className="flex flex-col items-start gap-1 w-full">
-                    <div className="font-bold">
+                    <div className="font-bold font-mono">
                         {label} <span className="text-red-500">*</span>
                     </div>
                     <input
@@ -26,7 +26,7 @@ const LabeledInput = ({children, className, required, label, ...props}: Props) =
     return (
         <>
             <div className="flex flex-col items-start gap-1 w-full">
-                <div className="font-bold">
+                <div className="font-bold font-mono">
                     {label}
                 </div>
                 <Input
