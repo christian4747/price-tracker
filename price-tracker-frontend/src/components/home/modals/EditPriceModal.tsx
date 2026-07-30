@@ -1,7 +1,8 @@
 import Button from "../../common/Button"
-import Input from "../../common/Input"
 import Modal from "../../common/Modal"
 import type { ModalProps, PriceDTO } from "../../../utils/Types";
+import ModalHeader from "../../common/ModalHeader";
+import LabeledInput from "../../common/LabeledInput";
 
 type EditPriceModalProps = ModalProps & {
     editPrice: () => void,
@@ -14,15 +15,18 @@ const EditPriceModal = ({hidden, toggleHidden, editPrice, priceDTO, setPriceDTO 
         <Modal
             hidden={hidden}
         >
-            <div className="text-4xl font-mono font-bold flex justify-center">Edit Price</div>
-            <Input
-                placeholder="Price"
+            <ModalHeader toggleHidden={toggleHidden}>Edit Price</ModalHeader>
+            <LabeledInput
+                label="Price"
                 value={priceDTO.amount}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {setPriceDTO(prev => ({...prev, amount: e.target.value}))}}
                 type="number"
                 step=".01"
+                required
             />
-            <Input placeholder="Description"
+            <LabeledInput
+                label="Description"
+                placeholder="Description"
                 value={priceDTO.description}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {setPriceDTO(prev => ({...prev, description: e.target.value}))}}
             />
@@ -30,20 +34,20 @@ const EditPriceModal = ({hidden, toggleHidden, editPrice, priceDTO, setPriceDTO 
                 value={priceDTO.currency}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {setPriceDTO(prev => ({...prev, currency: e.target.value}))}}
             /> */}
-            <Input placeholder="Start Date"
+            <LabeledInput
+                label="Start Date"
                 type="datetime-local"
                 value={priceDTO.priceStarted}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {setPriceDTO(prev => ({...prev, priceStarted: e.target.value}))}}
+                required
             />
-            <Input placeholder="End Date"
+            <LabeledInput
+                label="End Date"
                 type="datetime-local"
                 value={priceDTO.priceEnded}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {setPriceDTO(prev => ({...prev, priceEnded: e.target.value}))}}
             />
-            <div className="flex gap-2 justify-center">
-                <Button onClick={editPrice}>Save</Button>
-                <Button onClick={toggleHidden}>Cancel</Button>
-            </div>
+            <Button className="w-full" onClick={editPrice}>Save Price</Button>
         </Modal>
     )
 }
