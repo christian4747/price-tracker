@@ -10,8 +10,15 @@ export function usePriceData(product: ProductType) {
     const createPriceData = () => {
         if (!product.prices || product.prices.length <= 0) return []
 
+        let todayFound = false
+        let todayIndex = product.prices.length
         const priceData = sortedPricesByDate
-            .map((price) => {
+            .map((price, idx) => {
+                if (Date.parse(price.priceStarted) > Date.now() && todayFound === false) {
+                    todayFound = true
+                    todayIndex = idx
+                }
+
                 return {
                     priceId: price.priceId,
                     priceStarted: getUSDateStringFromTimestamp(price.priceStarted),
@@ -21,10 +28,10 @@ export function usePriceData(product: ProductType) {
             }
         )
 
-        priceData.push(
+        priceData.splice(todayIndex, 0,
             {
                 priceId: -1,
-                priceStarted: 'Today',
+                priceStarted: 'Now',
                 price: sortedPricesByDate[sortedPricesByDate.length - 1].amount,
                 description: sortedPricesByDate[sortedPricesByDate.length - 1].description
             }
