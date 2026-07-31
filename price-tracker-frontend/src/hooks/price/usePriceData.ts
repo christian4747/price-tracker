@@ -40,6 +40,9 @@ export function usePriceData(product: ProductType) {
         return priceData
     }
 
+    // Chart price data
+    const chartPriceData = createPriceData()
+
     // Returns the banner type by comparing the best discount and most recent discount
     const getBannerType = () => {
         const mostRecentDiscount = getMostRecentDiscount()
@@ -138,7 +141,7 @@ export function usePriceData(product: ProductType) {
     }
 
     const usePriceDataProps = {
-        createPriceData: createPriceData,
+        chartPriceData: chartPriceData,
         getBannerType: getBannerType,
         getHighestPrice: getHighestPrice,
         getMostRecentPrice: getMostRecentPrice,

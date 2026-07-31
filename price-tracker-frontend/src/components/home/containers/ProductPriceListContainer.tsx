@@ -67,7 +67,7 @@ const ProductContainer = ({product}: ProductProps) => {
                 {/* Lower content */}
                 {hideLowerContent.value === false ?
                     <div className='w-full h-full flex justify-between gap-2'>
-                        <PriceHistoryChart priceData={priceData.createPriceData()} />
+                        <PriceHistoryChart priceData={priceData.chartPriceData} />
                         <PriceList
                             sortedPrices={priceData.sortedPricesByDate}
                             toggleShowAddPrice={toggleShowAddPrice}
