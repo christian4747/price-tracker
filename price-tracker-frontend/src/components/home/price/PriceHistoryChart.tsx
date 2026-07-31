@@ -1,4 +1,4 @@
-import { Line, LineChart, Tooltip, XAxis, type TooltipContentProps } from 'recharts'
+import { Line, LineChart, ReferenceLine, Tooltip, XAxis, type TooltipContentProps } from 'recharts'
 
 type Props = {
     priceData: any[]
@@ -17,7 +17,7 @@ const PriceHistoryTooltip = ({active, payload, label}: TooltipContentProps) => {
         {isVisible && (
             <div className='m-0 p-3 bg-cloud border border-smoke rounded-sm flex flex-col flex-wrap w-full h-full'>
                 <p className="label">{`${label}`}</p>
-                <p>{`Price: $${firstPayload.value}`}</p>
+                <p>{`Price: $${parseFloat(firstPayload.value as string).toFixed(2)}`}</p>
                 {firstPayload.payload.description ? <p className='text-raincloud max-w-75 wrap-break-word'>{`${firstPayload.payload.description}`}</p> : <></> }
             </div>
         )}
@@ -30,6 +30,7 @@ const PriceHistoryChart = ({priceData}: Props) => {
         <div className='w-7/10 border border-smoke rounded-sm p-1'>
             <LineChart style={{ width: '100%', aspectRatio: 3}} responsive data={priceData}>
                 <XAxis dataKey="priceStarted" />
+                <ReferenceLine x="Now" />
                 <Line type="stepAfter" dataKey="price" />
                 <Tooltip content={PriceHistoryTooltip} />
             </LineChart>

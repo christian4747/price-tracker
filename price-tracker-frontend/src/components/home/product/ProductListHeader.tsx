@@ -10,8 +10,8 @@ type Props = {
 const ProductListHeader = ({toggleAddProduct, getAllProducts}: Props) => {
     return (
         <div className="flex items-baseline gap-2 justify-between">
-            <div className="flex items-center gap-2">
-                <div className="text-5xl font-bold mb-3 font-mono">
+            <div className="flex items-center gap-2 mb-3">
+                <div className="text-5xl font-bold font-mono">
                     Products
                 </div>
                 <Button
