@@ -10,6 +10,7 @@ export function usePriceDTO(initialState: PriceDTO) {
             {
                 amount: '0.00',
                 currency: '',
+                description: '',
                 priceStarted: '',
                 priceEnded: '',
                 productId: initialState.productId
