@@ -4,7 +4,7 @@ import { useToggleVisibility } from '../common/useToggleVisibility'
 import { usePriceDTO } from './usePriceDTO'
 import type { PriceType, ProductType } from '../../utils/Types'
 
-export function useAddPrice(product: ProductType) {
+export function useAddPrice(product: ProductType, highestPrice: number) {
     // State for AddPriceModal visibility
     const showAddPrice = useToggleVisibility(false)
 
@@ -60,6 +60,7 @@ export function useAddPrice(product: ProductType) {
 
     const addEndPriceMutation = useMutation({
         mutationFn: () => {
+            priceDTO.value.amount = highestPrice.toFixed(2)
             return api.addPrice(priceDTO.value)
         },
         onSuccess: (newData) => {

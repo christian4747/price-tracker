@@ -25,14 +25,14 @@ const ProductContainer = ({product}: ProductProps) => {
     // State for Product visibility
     const hideProduct = useToggleVisibility(false)
 
-    // Hook for adding prices
-    const addPrice = useAddPrice(product)
     // Hook for deleting products
     const deleteProduct = useDeleteProduct(product)
     // Hook for editing products
     const editProduct = useEditProduct(product)
     // Hook for price data
     const priceData = usePriceData(product)
+    // Hook for adding prices
+    const addPrice = useAddPrice(product, priceData.getHighestPrice(product.prices))
 
     // Toggle visibility of AddPriceModal (wrapper)
     const toggleShowAddPrice = () => {

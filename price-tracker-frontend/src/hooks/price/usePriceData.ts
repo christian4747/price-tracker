@@ -1,5 +1,5 @@
 import type { PriceType, ProductType } from '../../utils/Types'
-import { filterPricesBeforeDate, getUSDateStringFromTimestamp, sortPricesByDateAscending } from '../../utils/DateUtilities'
+import { filterPricesBeforeDate, sortPricesByDateAscending } from '../../utils/DateUtilities'
 
 export function usePriceData(product: ProductType) {
 
@@ -21,7 +21,7 @@ export function usePriceData(product: ProductType) {
 
                 return {
                     priceId: price.priceId,
-                    priceStarted: getUSDateStringFromTimestamp(price.priceStarted),
+                    priceStarted: new Date(price.priceStarted).toUTCString(),
                     price: price.amount,
                     description: price.description
                 }
@@ -32,8 +32,8 @@ export function usePriceData(product: ProductType) {
             {
                 priceId: -1,
                 priceStarted: 'Now',
-                price: sortedPricesByDate[sortedPricesByDate.length - 1].amount,
-                description: sortedPricesByDate[sortedPricesByDate.length - 1].description
+                price: sortedPricesByDate[todayIndex - 1].amount,
+                description: sortedPricesByDate[todayIndex - 1].description
             }
         )
 
@@ -82,6 +82,18 @@ export function usePriceData(product: ProductType) {
         return getPercentage(profit / highest)
     }
 
+    const getHighestPrice = (prices: PriceType[]) => {
+        let highest = parseFloat(prices[0].amount)
+
+        for (const price of prices) {
+            const priceVal = parseFloat(price.amount)
+            if (priceVal > highest) {
+                highest = priceVal
+            }
+        }
+        return highest
+    }
+
     // Gets the discount percentage for the most recent Price
     const getMostRecentDiscount = () => {
         // Get the Product's Price(s) sorted by amount in ascending order
@@ -128,6 +140,7 @@ export function usePriceData(product: ProductType) {
     const usePriceDataProps = {
         createPriceData: createPriceData,
         getBannerType: getBannerType,
+        getHighestPrice: getHighestPrice,
         getMostRecentPrice: getMostRecentPrice,
         getMostRecentDiscount: getMostRecentDiscount,
         sortedPricesByDate: sortedPricesByDate
