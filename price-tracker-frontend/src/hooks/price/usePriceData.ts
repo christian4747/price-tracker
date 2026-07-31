@@ -85,6 +85,7 @@ export function usePriceData(product: ProductType) {
         return getPercentage(profit / highest)
     }
 
+    // Get the highest price from the price list
     const getHighestPrice = (prices: PriceType[]) => {
         let highest = parseFloat(prices[0].amount)
 
@@ -111,6 +112,7 @@ export function usePriceData(product: ProductType) {
         return getPercentage(1 - (parseFloat(recent.amount) / parseFloat(highest.amount)))
     }
 
+    // Get the most recent price from the price list
     const getMostRecentPrice = () => {
         return sortedPricesByDate ? sortedPricesByDate[sortedPricesByDate.length - 1]?.amount : ''
     }
