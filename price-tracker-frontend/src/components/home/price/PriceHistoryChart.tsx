@@ -1,4 +1,4 @@
-import { Line, LineChart, Tooltip, XAxis, type TooltipContentProps } from 'recharts'
+import { Line, LineChart, ReferenceLine, Tooltip, XAxis, type TooltipContentProps } from 'recharts'
 
 type Props = {
     priceData: any[]
@@ -30,6 +30,7 @@ const PriceHistoryChart = ({priceData}: Props) => {
         <div className='w-7/10 border border-smoke rounded-sm p-1'>
             <LineChart style={{ width: '100%', aspectRatio: 3}} responsive data={priceData}>
                 <XAxis dataKey="priceStarted" />
+                <ReferenceLine x="Now" />
                 <Line type="stepAfter" dataKey="price" />
                 <Tooltip content={PriceHistoryTooltip} />
             </LineChart>
