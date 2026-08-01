@@ -7,12 +7,12 @@ import type { Dispatch, SetStateAction } from 'react'
 type Props = {
     toggleAddProduct: () => void
     getAllProducts: () => void
-    searchTerm: string
-    setSearchTerm: Dispatch<SetStateAction<string>>
+    currentSearchTerm: string
+    setCurrentSearchTerm: Dispatch<SetStateAction<string>>
     searchSearchTerm: (searchTerm: string) => void
 }
 
-const ProductListHeader = ({toggleAddProduct, getAllProducts, searchTerm, setSearchTerm, searchSearchTerm}: Props) => {
+const ProductListHeader = ({toggleAddProduct, getAllProducts, currentSearchTerm, setCurrentSearchTerm, searchSearchTerm}: Props) => {
     return (
         <div className="flex items-center gap-2 justify-between mb-3">
 
@@ -31,15 +31,15 @@ const ProductListHeader = ({toggleAddProduct, getAllProducts, searchTerm, setSea
                 <div className='flex border border-smoke rounded-sm'>
                     <Input
                         className='border-none focus-visible:border-none focus-within:outline-none'
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        value={searchTerm}
+                        onChange={(e) => setCurrentSearchTerm(e.target.value)}
+                        value={currentSearchTerm}
                     />
                     <div className='flex items-center gap-1'>
                         {/* Clear input */}
                         <div
                             className='cursor-pointer'
                             onClick={() => {
-                                setSearchTerm('')
+                                setCurrentSearchTerm('')
                                 searchSearchTerm('')
                             }}
                         >
@@ -47,7 +47,7 @@ const ProductListHeader = ({toggleAddProduct, getAllProducts, searchTerm, setSea
                         </div>
 
                         {/* Search button */}
-                        <div className='cursor-pointer pr-1' onClick={() => searchSearchTerm(searchTerm)}>
+                        <div className='cursor-pointer pr-1' onClick={() => searchSearchTerm(currentSearchTerm)}>
                             <MdSearch size={24} />
                         </div>
                     </div>

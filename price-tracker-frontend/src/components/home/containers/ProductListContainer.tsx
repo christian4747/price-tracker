@@ -8,8 +8,8 @@ import type { ProductType } from '../../../utils/Types'
 
 const ProductListContainer = () => {
 
-    const [searchTerm, setSearchTerm] = useState('')
     const [currentSearchTerm, setCurrentSearchTerm] = useState('')
+    const [searchedTerm, setSearchedTerm] = useState('')
 
     // Hook for adding products
     const addProduct = useAddProduct()
@@ -17,7 +17,7 @@ const ProductListContainer = () => {
     const getAllProducts = useGetAllProducts()
 
     const searchSearchTerm = (searchTerm: string) => {
-        setCurrentSearchTerm(searchTerm)
+        setSearchedTerm(searchTerm)
     }
 
     if (getAllProducts.query.isPending) {
@@ -26,8 +26,8 @@ const ProductListContainer = () => {
                 <ProductListHeader
                     toggleAddProduct={addProduct.visibility.toggle}
                     getAllProducts={getAllProducts.refresh}
-                    searchTerm={searchTerm}
-                    setSearchTerm={setSearchTerm}
+                    currentSearchTerm={currentSearchTerm}
+                    setCurrentSearchTerm={setCurrentSearchTerm}
                     searchSearchTerm={searchSearchTerm}
                 />
                 Loading...
@@ -39,8 +39,8 @@ const ProductListContainer = () => {
                 <ProductListHeader
                     toggleAddProduct={addProduct.visibility.toggle}
                     getAllProducts={getAllProducts.refresh}
-                    searchTerm={searchTerm}
-                    setSearchTerm={setSearchTerm}
+                    currentSearchTerm={currentSearchTerm}
+                    setCurrentSearchTerm={setCurrentSearchTerm}
                     searchSearchTerm={searchSearchTerm}
                 />
                 An error occurred: {getAllProducts.query.error.message}
@@ -49,7 +49,7 @@ const ProductListContainer = () => {
     }
 
     const filteredProducts = getAllProducts.query.data.filter((product: ProductType) => {
-        return product.name.toLowerCase().includes(currentSearchTerm.toLowerCase())
+        return product.name.toLowerCase().includes(searchedTerm.toLowerCase())
     })
 
     return (
@@ -57,8 +57,8 @@ const ProductListContainer = () => {
             <ProductListHeader
                 toggleAddProduct={addProduct.visibility.toggle}
                 getAllProducts={getAllProducts.refresh}
-                searchTerm={searchTerm}
-                setSearchTerm={setSearchTerm}
+                currentSearchTerm={currentSearchTerm}
+                setCurrentSearchTerm={setCurrentSearchTerm}
                 searchSearchTerm={searchSearchTerm}
             />
             {getAllProducts.query.isSuccess && (
