@@ -3,13 +3,22 @@ import AddProductModal from '../modals/AddProductModal'
 import ProductListHeader from '../product/ProductListHeader'
 import { useAddProduct } from '../../../hooks/product/useAddProduct'
 import { useGetAllProducts } from '../../../hooks/product/useGetAllProducts'
+import { useState } from 'react'
+import type { ProductType } from '../../../utils/Types'
 
 const ProductListContainer = () => {
+
+    const [searchTerm, setSearchTerm] = useState('')
+    const [currentSearchTerm, setCurrentSearchTerm] = useState('')
 
     // Hook for adding products
     const addProduct = useAddProduct()
     // Hook for getting all products
     const getAllProducts = useGetAllProducts()
+
+    const searchSearchTerm = (searchTerm: string) => {
+        setCurrentSearchTerm(searchTerm)
+    }
 
     if (getAllProducts.query.isPending) {
         return (
@@ -17,33 +26,44 @@ const ProductListContainer = () => {
                 <ProductListHeader
                     toggleAddProduct={addProduct.visibility.toggle}
                     getAllProducts={getAllProducts.refresh}
+                    searchTerm={searchTerm}
+                    setSearchTerm={setSearchTerm}
+                    searchSearchTerm={searchSearchTerm}
                 />
                 Loading...
             </>
         )
-    }
-
-    if (getAllProducts.query.isError) {
+    } else if (getAllProducts.query.isError) {
         return (
             <>
                 <ProductListHeader
                     toggleAddProduct={addProduct.visibility.toggle}
                     getAllProducts={getAllProducts.refresh}
+                    searchTerm={searchTerm}
+                    setSearchTerm={setSearchTerm}
+                    searchSearchTerm={searchSearchTerm}
                 />
                 An error occurred: {getAllProducts.query.error.message}
             </>
         )
     }
 
+    const filteredProducts = getAllProducts.query.data.filter((product: ProductType) => {
+        return product.name.toLowerCase().includes(currentSearchTerm.toLowerCase())
+    })
+
     return (
         <>
             <ProductListHeader
                 toggleAddProduct={addProduct.visibility.toggle}
                 getAllProducts={getAllProducts.refresh}
+                searchTerm={searchTerm}
+                setSearchTerm={setSearchTerm}
+                searchSearchTerm={searchSearchTerm}
             />
             {getAllProducts.query.isSuccess && (
                 <ProductList
-                    products={getAllProducts.query.data}
+                    products={filteredProducts}
                 />
             )}
             <AddProductModal

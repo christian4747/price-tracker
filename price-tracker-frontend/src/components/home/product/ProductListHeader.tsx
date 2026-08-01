@@ -1,16 +1,22 @@
 import Button from '../../common/Button'
 import { FiPlus } from 'react-icons/fi'
-import { MdRefresh } from 'react-icons/md'
+import { MdClear, MdRefresh, MdSearch } from 'react-icons/md'
+import Input from '../../common/Input'
+import type { Dispatch, SetStateAction } from 'react'
 
 type Props = {
     toggleAddProduct: () => void
     getAllProducts: () => void
+    searchTerm: string
+    setSearchTerm: Dispatch<SetStateAction<string>>
+    searchSearchTerm: (searchTerm: string) => void
 }
 
-const ProductListHeader = ({toggleAddProduct, getAllProducts}: Props) => {
+const ProductListHeader = ({toggleAddProduct, getAllProducts, searchTerm, setSearchTerm, searchSearchTerm}: Props) => {
     return (
-        <div className="flex items-baseline gap-2 justify-between">
-            <div className="flex items-center gap-2 mb-3">
+        <div className="flex items-center gap-2 justify-between mb-3">
+
+            <div className="flex items-center gap-2">
                 <div className="text-5xl font-bold font-mono">
                     Products
                 </div>
@@ -20,8 +26,35 @@ const ProductListHeader = ({toggleAddProduct, getAllProducts}: Props) => {
                     <FiPlus size={24} />
                 </Button>
             </div>
-            <div className="pr-2 cursor-pointer" onClick={getAllProducts}>
-                <MdRefresh size={36} />
+
+            <div className='flex items-center gap-2'>
+                <div className='flex border border-smoke rounded-sm'>
+                    <Input
+                        className='border-none focus-visible:border-none focus-within:outline-none'
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        value={searchTerm}
+                    />
+                    <div className='flex items-center gap-1'>
+                        {/* Clear input */}
+                        <div
+                            className='cursor-pointer'
+                            onClick={() => {
+                                setSearchTerm('')
+                                searchSearchTerm('')
+                            }}
+                        >
+                            <MdClear size={24} />
+                        </div>
+
+                        {/* Search button */}
+                        <div className='cursor-pointer pr-1' onClick={() => searchSearchTerm(searchTerm)}>
+                            <MdSearch size={24} />
+                        </div>
+                    </div>
+                </div>
+                <div className="pr-2 cursor-pointer" onClick={getAllProducts}>
+                    <MdRefresh size={36} />
+                </div>
             </div>
             {/* <div className="pr-2">
                 <FaFilter size={24} />
