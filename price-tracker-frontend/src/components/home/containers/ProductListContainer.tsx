@@ -53,7 +53,8 @@ const ProductListContainer = () => {
 
     // Product list with search term filter applied
     const filteredProducts = getAllProducts.query.data.filter((product: ProductType) => {
-        return product.name.toLowerCase().includes(searchedTerm.toLowerCase())
+        return product.name.toLowerCase().includes(searchedTerm.toLowerCase()) ||
+            product.store.toLowerCase().includes(searchedTerm.toLowerCase())
     })
 
     return (
