@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest'
-import { getUSDateStringFromTimestamp, javaTimestampToJS } from '../src/utils/DateUtilities'
+import { getUSDateStringFromTimestamp, javaTimestampToJS } from '../../src/utils/DateUtilities'
 
 test('empty timestamp returns empty string', () => {
     expect(javaTimestampToJS('')).toBe('')
