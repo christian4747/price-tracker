@@ -1,6 +1,6 @@
 import Button from '../../common/Button'
 import { FiPlus } from 'react-icons/fi'
-import { MdClear, MdRefresh, MdSearch } from 'react-icons/md'
+import { MdClear, MdRefresh, MdSearch, MdSort } from 'react-icons/md'
 import Input from '../../common/Input'
 import type { Dispatch, SetStateAction } from 'react'
 
@@ -27,7 +27,8 @@ const ProductListHeader = ({toggleAddProduct, getAllProducts, currentSearchTerm,
                 </Button>
             </div>
 
-            <div className='flex items-center gap-2 max-w-75'>
+            <div className='flex items-center gap-2'>
+
                 <div className='flex border border-smoke rounded-sm max-w-50'>
                     <Input
                         className='border-none focus-visible:border-none focus-within:outline-none'
@@ -53,6 +54,13 @@ const ProductListHeader = ({toggleAddProduct, getAllProducts, currentSearchTerm,
                         </div>
                     </div>
                 </div>
+
+                <div>
+                    <Button className='flex gap-2'>
+                        <MdSort/>Sort
+                    </Button>
+                </div>
+
                 <div className="pr-2 cursor-pointer" onClick={getAllProducts}>
                     <MdRefresh size={36} />
                 </div>
