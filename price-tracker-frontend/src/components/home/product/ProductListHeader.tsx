@@ -27,8 +27,8 @@ const ProductListHeader = ({toggleAddProduct, getAllProducts, currentSearchTerm,
                 </Button>
             </div>
 
-            <div className='flex items-center gap-2 max-w-[300px]'>
-                <div className='flex border border-smoke rounded-sm group/search'>
+            <div className='flex items-center gap-2 max-w-75'>
+                <div className='flex border border-smoke rounded-sm max-w-50'>
                     <Input
                         className='border-none focus-visible:border-none focus-within:outline-none'
                         onChange={(e) => setCurrentSearchTerm(e.target.value)}
@@ -38,7 +38,7 @@ const ProductListHeader = ({toggleAddProduct, getAllProducts, currentSearchTerm,
                         {/* Clear input */}
                         {currentSearchTerm.length >= 1 &&
                             <div
-                                className='cursor-pointer hidden group-hover/search:block'
+                                className='cursor-pointer'
                                 onClick={() => {
                                     setCurrentSearchTerm('')
                                     searchSearchTerm('')
