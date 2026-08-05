@@ -1,5 +1,5 @@
 import Button from '../../common/Button'
-import { MdClear, MdExpandMore, MdRefresh, MdSearch, MdSort } from 'react-icons/md'
+import { MdClear, MdExpandMore, MdSearch, MdSort } from 'react-icons/md'
 import Input from '../../common/Input'
 import type { Dispatch, SetStateAction } from 'react'
 
@@ -11,7 +11,7 @@ type Props = {
     searchSearchTerm: (searchTerm: string) => void
 }
 
-const ProductListHeader = ({toggleAddProduct, getAllProducts, currentSearchTerm, setCurrentSearchTerm, searchSearchTerm}: Props) => {
+const ProductListHeader = ({toggleAddProduct, currentSearchTerm, setCurrentSearchTerm, searchSearchTerm}: Props) => {
     return (
         <>
             <div className="flex items-center gap-2 justify-between mb-3">

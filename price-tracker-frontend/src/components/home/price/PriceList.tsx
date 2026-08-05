@@ -1,7 +1,6 @@
 import type { PriceType } from "../../../utils/Types"
 import PriceContainer from '../containers/PriceContainer'
 import Button from '../../common/Button'
-import { FiPlus } from 'react-icons/fi'
 
 type Props = {
     sortedPrices: PriceType[],
