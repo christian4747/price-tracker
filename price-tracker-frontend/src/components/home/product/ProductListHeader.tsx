@@ -29,6 +29,7 @@ const ProductListHeader = ({toggleAddProduct, getAllProducts, currentSearchTerm,
                             className='border-none focus-visible:border-none focus-within:outline-none min-h-10'
                             onChange={(e) => setCurrentSearchTerm(e.target.value)}
                             value={currentSearchTerm}
+                            placeholder='Search'
                         />
                         <div className='flex items-center gap-1'>
                             {/* Clear input */}
