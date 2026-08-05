@@ -26,7 +26,7 @@ const ProductListHeader = ({toggleAddProduct, getAllProducts, currentSearchTerm,
 
                     <div className='flex border border-smoke rounded-sm max-w-50'>
                         <Input
-                            className='border-none focus-visible:border-none focus-within:outline-none min-h-10'
+                            className='border-none focus-visible:border-none focus-within:outline-none min-h-8'
                             onChange={(e) => setCurrentSearchTerm(e.target.value)}
                             value={currentSearchTerm}
                             placeholder='Search'
@@ -59,9 +59,9 @@ const ProductListHeader = ({toggleAddProduct, getAllProducts, currentSearchTerm,
                         </Button>
                     </div>
 
-                    <div className="pr-2 cursor-pointer" onClick={getAllProducts}>
-                        <MdRefresh size={36} />
-                    </div>
+                    {/* <div className="pr-2 cursor-pointer" onClick={getAllProducts}>
+                        <MdRefresh size={48} />
+                    </div> */}
                 </div>
                 {/* <div className="pr-2">
                     <FaFilter size={24} />
