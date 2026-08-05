@@ -1,5 +1,5 @@
 import Button from '../../common/Button'
-import { MdClear, MdRefresh, MdSearch, MdSort } from 'react-icons/md'
+import { MdClear, MdExpandMore, MdRefresh, MdSearch, MdSort } from 'react-icons/md'
 import Input from '../../common/Input'
 import type { Dispatch, SetStateAction } from 'react'
 
@@ -16,7 +16,11 @@ const ProductListHeader = ({toggleAddProduct, getAllProducts, currentSearchTerm,
         <>
             <div className="flex items-center gap-2 justify-between mb-3">
 
-                <div>
+                <div className='flex gap-2'>
+                    <Button className='flex gap-2'>
+                        Active<MdExpandMore/>
+                    </Button>
+
                     <Button className='flex gap-2'>
                         <MdSort/>Sort
                     </Button>

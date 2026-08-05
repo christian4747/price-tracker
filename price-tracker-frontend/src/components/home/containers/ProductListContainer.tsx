@@ -61,11 +61,11 @@ const ProductListContainer = () => {
         <>
             <div className="flex items-center gap-2 mb-3">
                 <div className="text-5xl font-bold">
-                    Products
+                    My Products
                 </div>
             </div>
 
-            <div className='p-5 pb-0 mb-5 border border-smoke rounded-sm'>
+            <div className='border-t pb-0 mb-5 pt-3 border-smoke'>
                 <ProductListHeader
                     toggleAddProduct={addProduct.visibility.toggle}
                     getAllProducts={getAllProducts.refresh}
