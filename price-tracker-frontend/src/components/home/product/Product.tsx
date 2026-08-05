@@ -12,10 +12,10 @@ const Product = ({product, toggleShowEdit, toggleShowDelete}: ProductProps) => {
     return (
         <>
             <div className='flex gap-3 items-baseline-last'>
-                <div className="font-bold text-3xl font-mono">
+                <div className="font-bold text-3xl">
                     {product.name}
                 </div>
-                <div className="font-mono">
+                <div>
                     {product.store}
                 </div>
                 <a className="cursor-pointer" href={product.link} target="_blank">

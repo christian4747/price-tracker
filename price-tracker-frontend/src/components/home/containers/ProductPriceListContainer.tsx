@@ -52,7 +52,7 @@ const ProductContainer = ({product}: ProductProps) => {
                     toggleShowEdit={editProduct.visibility.toggle}
                 />
 
-                <div className='flex gap-3 items-center font-mono font-bold'>
+                <div className='flex gap-3 items-center font-bold'>
                     <PriceBanner
                         discountPercent={priceData.getMostRecentDiscount()}
                         bannerType={priceData.getBannerType()}

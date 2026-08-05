@@ -17,7 +17,7 @@ const ProductListHeader = ({toggleAddProduct, getAllProducts, currentSearchTerm,
         <div className="flex items-center gap-2 justify-between mb-3">
 
             <div className="flex items-center gap-2">
-                <div className="text-5xl font-bold font-mono">
+                <div className="text-5xl font-bold">
                     Products
                 </div>
                 <Button
