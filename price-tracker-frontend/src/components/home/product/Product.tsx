@@ -12,7 +12,7 @@ const Product = ({product, toggleShowEdit, toggleShowDelete}: ProductProps) => {
     return (
         <>
             <div className='flex gap-3 items-baseline-last'>
-                <div className="font-bold text-3xl max-w-125 truncate untruncate">
+                <div className="font-bold text-lg max-w-125 truncate untruncate">
                     {product.name}
                 </div>
                 <div>
