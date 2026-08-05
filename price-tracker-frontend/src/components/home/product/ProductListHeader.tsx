@@ -31,7 +31,7 @@ const ProductListHeader = ({toggleAddProduct, getAllProducts, currentSearchTerm,
 
                 <div className='flex border border-smoke rounded-sm max-w-50'>
                     <Input
-                        className='border-none focus-visible:border-none focus-within:outline-none'
+                        className='border-none focus-visible:border-none focus-within:outline-none min-h-10'
                         onChange={(e) => setCurrentSearchTerm(e.target.value)}
                         value={currentSearchTerm}
                     />
