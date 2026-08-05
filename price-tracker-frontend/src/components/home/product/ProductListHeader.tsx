@@ -14,46 +14,8 @@ type Props = {
 
 const ProductListHeader = ({toggleAddProduct, getAllProducts, currentSearchTerm, setCurrentSearchTerm, searchSearchTerm}: Props) => {
     return (
-        <div className="flex items-center gap-2 justify-between mb-3">
-
-            <div className="flex items-center gap-2">
-                <div className="text-5xl font-bold">
-                    Products
-                </div>
-                <Button
-                    onClick={toggleAddProduct}
-                >
-                    <FiPlus size={24} />
-                </Button>
-            </div>
-
-            <div className='flex items-center gap-2'>
-
-                <div className='flex border border-smoke rounded-sm max-w-50'>
-                    <Input
-                        className='border-none focus-visible:border-none focus-within:outline-none min-h-10'
-                        onChange={(e) => setCurrentSearchTerm(e.target.value)}
-                        value={currentSearchTerm}
-                    />
-                    <div className='flex items-center gap-1'>
-                        {/* Clear input */}
-                        {currentSearchTerm.length >= 1 &&
-                            <div
-                                className='cursor-pointer'
-                                onClick={() => {
-                                    setCurrentSearchTerm('')
-                                    searchSearchTerm('')
-                                }}
-                            >
-                                <MdClear size={24} />
-                            </div>
-                        }
-                        {/* Search button */}
-                        <div className='cursor-pointer pr-1' onClick={() => searchSearchTerm(currentSearchTerm)}>
-                            <MdSearch size={24} />
-                        </div>
-                    </div>
-                </div>
+        <>
+            <div className="flex items-center gap-2 justify-between mb-3">
 
                 <div>
                     <Button className='flex gap-2'>
@@ -61,14 +23,51 @@ const ProductListHeader = ({toggleAddProduct, getAllProducts, currentSearchTerm,
                     </Button>
                 </div>
 
-                <div className="pr-2 cursor-pointer" onClick={getAllProducts}>
-                    <MdRefresh size={36} />
+                <div className='flex items-center gap-2'>
+
+                    <div className='flex border border-smoke rounded-sm max-w-50'>
+                        <Input
+                            className='border-none focus-visible:border-none focus-within:outline-none min-h-10'
+                            onChange={(e) => setCurrentSearchTerm(e.target.value)}
+                            value={currentSearchTerm}
+                        />
+                        <div className='flex items-center gap-1'>
+                            {/* Clear input */}
+                            {currentSearchTerm.length >= 1 &&
+                                <div
+                                    className='cursor-pointer'
+                                    onClick={() => {
+                                        setCurrentSearchTerm('')
+                                        searchSearchTerm('')
+                                    }}
+                                >
+                                    <MdClear size={24} />
+                                </div>
+                            }
+                            {/* Search button */}
+                            <div className='cursor-pointer pr-1' onClick={() => searchSearchTerm(currentSearchTerm)}>
+                                <MdSearch size={24} />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <Button
+                        onClick={toggleAddProduct}
+                        >
+                            Add Product
+                        </Button>
+                    </div>
+
+                    <div className="pr-2 cursor-pointer" onClick={getAllProducts}>
+                        <MdRefresh size={36} />
+                    </div>
                 </div>
+                {/* <div className="pr-2">
+                    <FaFilter size={24} />
+                </div> */}
             </div>
-            {/* <div className="pr-2">
-                <FaFilter size={24} />
-            </div> */}
-        </div>
+        </>
     )
 }
 

@@ -59,25 +59,34 @@ const ProductListContainer = () => {
 
     return (
         <>
-            <ProductListHeader
-                toggleAddProduct={addProduct.visibility.toggle}
-                getAllProducts={getAllProducts.refresh}
-                currentSearchTerm={currentSearchTerm}
-                setCurrentSearchTerm={setCurrentSearchTerm}
-                searchSearchTerm={searchSearchTerm}
-            />
-            {getAllProducts.query.isSuccess && (
-                <ProductList
-                    products={filteredProducts}
+            <div className="flex items-center gap-2 mb-3">
+                <div className="text-5xl font-bold">
+                    Products
+                </div>
+            </div>
+
+            <div className='p-5 pb-0 mb-5 border border-smoke rounded-sm'>
+                <ProductListHeader
+                    toggleAddProduct={addProduct.visibility.toggle}
+                    getAllProducts={getAllProducts.refresh}
+                    currentSearchTerm={currentSearchTerm}
+                    setCurrentSearchTerm={setCurrentSearchTerm}
+                    searchSearchTerm={searchSearchTerm}
                 />
-            )}
-            <AddProductModal
-                hidden={addProduct.visibility.value}
-                toggleHidden={addProduct.visibility.toggle}
-                product={addProduct.productDTO.value}
-                addProduct={addProduct.mutation.mutate}
-                setProductDTO={addProduct.productDTO.setProductDTO}
-            />
+                {getAllProducts.query.isSuccess && (
+                    <ProductList
+                        products={filteredProducts}
+                    />
+                )}
+                <AddProductModal
+                    hidden={addProduct.visibility.value}
+                    toggleHidden={addProduct.visibility.toggle}
+                    product={addProduct.productDTO.value}
+                    addProduct={addProduct.mutation.mutate}
+                    setProductDTO={addProduct.productDTO.setProductDTO}
+                />
+            </div>
+            
         </>
     )
 }
