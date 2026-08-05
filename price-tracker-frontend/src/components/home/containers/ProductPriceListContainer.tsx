@@ -43,64 +43,64 @@ const ProductContainer = ({product}: ProductProps) => {
     if (hideProduct.value === true) return (<></>)
 
     return (
-            <div className='h-full w-full border border-smoke rounded-sm flex flex-col p-2 gap-2 group'>
-                {/* Top content */}
-                <div className='h-full w-full flex justify-between items-center'>
-                    <Product
-                        product={product}
-                        toggleShowDelete={deleteProduct.visibility.toggle}
-                        toggleShowEdit={editProduct.visibility.toggle}
+        <div className='h-full w-full border border-smoke rounded-sm flex flex-col p-2 gap-2 group'>
+            {/* Top content */}
+            <div className='h-full w-full flex justify-between items-center'>
+                <Product
+                    product={product}
+                    toggleShowDelete={deleteProduct.visibility.toggle}
+                    toggleShowEdit={editProduct.visibility.toggle}
+                />
+
+                <div className='flex gap-3 items-center font-mono font-bold'>
+                    <PriceBanner
+                        discountPercent={priceData.getMostRecentDiscount()}
+                        bannerType={priceData.getBannerType()}
+                        price={priceData.getMostRecentPrice()}
                     />
-
-                    <div className='flex gap-3 items-center font-mono font-bold'>
-                        <PriceBanner
-                            discountPercent={priceData.getMostRecentDiscount()}
-                            bannerType={priceData.getBannerType()}
-                            price={priceData.getMostRecentPrice()}
-                        />
-                        <ExpandButton hidden={hideLowerContent.value} setHidden={hideLowerContent.toggle}/>
-                    </div>
-                    
+                    <ExpandButton hidden={hideLowerContent.value} setHidden={hideLowerContent.toggle}/>
                 </div>
-
-                {/* Lower content */}
-                {hideLowerContent.value === false ?
-                    <div className='w-full h-full flex justify-between gap-2'>
-                        <PriceHistoryChart priceData={priceData.chartPriceData} />
-                        <PriceList
-                            sortedPrices={priceData.sortedPricesByDate}
-                            toggleShowAddPrice={toggleShowAddPrice}
-                            productId={product.productId}
-                        />
-                    </div>
-                    : <></>
-                }
-
-                <AddPriceModal
-                    hidden={addPrice.visibility.value}
-                    toggleHidden={addPrice.visibility.toggle}
-                    product={product}
-                    priceDTO={addPrice.priceDTO.value}
-                    setPriceDTO={addPrice.priceDTO.setPriceDTO}
-                    addPrice={addPrice.mutation.mutate}
-                />
-
-                <DeleteProductModal
-                    hidden={deleteProduct.visibility.value}
-                    toggleHidden={deleteProduct.visibility.toggle}
-                    product={product}
-                    deleteProduct={deleteProduct.mutation.mutate}
-                />
-
-                <EditProductModal
-                    hidden={editProduct.visibility.value}
-                    toggleHidden={editProduct.visibility.toggle}
-                    editProduct={editProduct.mutation.mutate}
-                    productDTO={editProduct.productDTO.value}
-                    setProductDTO={editProduct.productDTO.setProductDTO}
-                />
-
+                
             </div>
+
+            {/* Lower content */}
+            {hideLowerContent.value === false ?
+                <div className='w-full h-full flex justify-between gap-2'>
+                    <PriceHistoryChart priceData={priceData.chartPriceData} />
+                    <PriceList
+                        sortedPrices={priceData.sortedPricesByDate}
+                        toggleShowAddPrice={toggleShowAddPrice}
+                        productId={product.productId}
+                    />
+                </div>
+                : <></>
+            }
+
+            <AddPriceModal
+                hidden={addPrice.visibility.value}
+                toggleHidden={addPrice.visibility.toggle}
+                product={product}
+                priceDTO={addPrice.priceDTO.value}
+                setPriceDTO={addPrice.priceDTO.setPriceDTO}
+                addPrice={addPrice.mutation.mutate}
+            />
+
+            <DeleteProductModal
+                hidden={deleteProduct.visibility.value}
+                toggleHidden={deleteProduct.visibility.toggle}
+                product={product}
+                deleteProduct={deleteProduct.mutation.mutate}
+            />
+
+            <EditProductModal
+                hidden={editProduct.visibility.value}
+                toggleHidden={editProduct.visibility.toggle}
+                editProduct={editProduct.mutation.mutate}
+                productDTO={editProduct.productDTO.value}
+                setProductDTO={editProduct.productDTO.setProductDTO}
+            />
+
+        </div>
     )
 }
 
