@@ -1,5 +1,4 @@
 import Button from '../../common/Button'
-import { FiPlus } from 'react-icons/fi'
 import { MdClear, MdRefresh, MdSearch, MdSort } from 'react-icons/md'
 import Input from '../../common/Input'
 import type { Dispatch, SetStateAction } from 'react'
