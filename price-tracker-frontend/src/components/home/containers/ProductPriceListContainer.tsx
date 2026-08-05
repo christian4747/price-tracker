@@ -43,7 +43,7 @@ const ProductContainer = ({product}: ProductProps) => {
     if (hideProduct.value === true) return (<></>)
 
     return (
-        <div className='h-full w-full border border-smoke rounded-sm flex flex-col p-2 gap-2 group'>
+        <div className='h-full w-full border-b border-smoke flex flex-col p-2 gap-2 group last:border-b-0'>
             {/* Top content */}
             <div className='h-full w-full flex justify-between items-center'>
                 <Product

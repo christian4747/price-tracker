@@ -28,7 +28,7 @@ const PriceList = ({sortedPrices, toggleShowAddPrice, productId}: Props) => {
                     onClick={toggleShowAddPrice}
                     className="m-2"
                 >
-                    <FiPlus size={24} />
+                    Add Price
                 </Button>
             </div>
         </>
