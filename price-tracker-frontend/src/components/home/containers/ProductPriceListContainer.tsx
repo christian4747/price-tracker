@@ -43,7 +43,6 @@ const ProductContainer = ({product}: ProductProps) => {
     if (hideProduct.value === true) return (<></>)
 
     return (
-        <>
             <div className='h-full w-full border border-smoke rounded-sm flex flex-col p-2 gap-2 group'>
                 {/* Top content */}
                 <div className='h-full w-full flex justify-between items-center'>
@@ -76,32 +75,32 @@ const ProductContainer = ({product}: ProductProps) => {
                     </div>
                     : <></>
                 }
+
+                <AddPriceModal
+                    hidden={addPrice.visibility.value}
+                    toggleHidden={addPrice.visibility.toggle}
+                    product={product}
+                    priceDTO={addPrice.priceDTO.value}
+                    setPriceDTO={addPrice.priceDTO.setPriceDTO}
+                    addPrice={addPrice.mutation.mutate}
+                />
+
+                <DeleteProductModal
+                    hidden={deleteProduct.visibility.value}
+                    toggleHidden={deleteProduct.visibility.toggle}
+                    product={product}
+                    deleteProduct={deleteProduct.mutation.mutate}
+                />
+
+                <EditProductModal
+                    hidden={editProduct.visibility.value}
+                    toggleHidden={editProduct.visibility.toggle}
+                    editProduct={editProduct.mutation.mutate}
+                    productDTO={editProduct.productDTO.value}
+                    setProductDTO={editProduct.productDTO.setProductDTO}
+                />
+
             </div>
-
-            <AddPriceModal
-                hidden={addPrice.visibility.value}
-                toggleHidden={addPrice.visibility.toggle}
-                product={product}
-                priceDTO={addPrice.priceDTO.value}
-                setPriceDTO={addPrice.priceDTO.setPriceDTO}
-                addPrice={addPrice.mutation.mutate}
-            />
-
-            <DeleteProductModal
-                hidden={deleteProduct.visibility.value}
-                toggleHidden={deleteProduct.visibility.toggle}
-                product={product}
-                deleteProduct={deleteProduct.mutation.mutate}
-            />
-
-            <EditProductModal
-                hidden={editProduct.visibility.value}
-                toggleHidden={editProduct.visibility.toggle}
-                editProduct={editProduct.mutation.mutate}
-                productDTO={editProduct.productDTO.value}
-                setProductDTO={editProduct.productDTO.setProductDTO}
-            />
-        </>
     )
 }
 
