@@ -97,7 +97,7 @@ public class ProductServiceTest {
     @Test
     public void getAllProducts_twoProducts_returnTwoProducts() {
         when(productPage.getContent()).thenReturn(productList);
-        when(productDAO.findAll(any(Pageable.class))).thenReturn(productPage);
+        when(productDAO.findAllByOrderByNameAsc(any(Pageable.class))).thenReturn(productPage);
 
         assertEquals(2, productService.getAllProducts(pageable).size());
     }
