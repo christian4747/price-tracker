@@ -3,7 +3,6 @@ import PriceBanner from "../price/PriceBanner"
 import DeleteProductModal from "../modals/DeleteProductModal"
 import EditProductModal from "../modals/EditProductModal"
 import AddPriceModal from "../modals/AddPriceModal"
-import ExpandButton from "../../common/ExpandButton"
 import Product from "../product/Product"
 import PriceHistoryChart from "../price/PriceHistoryChart"
 import PriceList from "../price/PriceList"
@@ -13,6 +12,7 @@ import { useEditProduct } from "../../../hooks/product/useEditProduct"
 import { useDeleteProduct } from "../../../hooks/product/useDeleteProduct"
 import { useAddPrice } from "../../../hooks/price/useAddPrice"
 import { usePriceData } from "../../../hooks/price/usePriceData"
+import { Accordion } from "@mantine/core"
 
 type ProductProps = {
     product: ProductType
@@ -20,8 +20,6 @@ type ProductProps = {
 
 const ProductContainer = ({product}: ProductProps) => {
 
-    // State for Product's lower content visibility
-    const hideLowerContent = useToggleVisibility(true)
     // State for Product visibility
     const hideProduct = useToggleVisibility(false)
 
@@ -43,28 +41,30 @@ const ProductContainer = ({product}: ProductProps) => {
     if (hideProduct.value === true) return (<></>)
 
     return (
-        <div className='h-full w-full border-t border-smoke flex flex-col p-2 gap-2 group'>
-            {/* Top content */}
-            <div className='h-full w-full flex justify-between items-center'>
-                <Product
-                    product={product}
-                    toggleShowDelete={deleteProduct.visibility.toggle}
-                    toggleShowEdit={editProduct.visibility.toggle}
-                />
-
-                <div className='flex gap-3 items-center font-bold'>
-                    <PriceBanner
-                        discountPercent={priceData.getMostRecentDiscount()}
-                        bannerType={priceData.getBannerType()}
-                        price={priceData.getMostRecentPrice()}
+        <div className='h-full w-full border-t border-smoke flex flex-col gap-2 group'>
+            <Accordion.Control>
+                {/* Top content */}
+                <div className='h-full w-full flex justify-between items-center pr-2'>
+                    <Product
+                        product={product}
+                        toggleShowDelete={deleteProduct.visibility.toggle}
+                        toggleShowEdit={editProduct.visibility.toggle}
                     />
-                    <ExpandButton hidden={hideLowerContent.value} setHidden={hideLowerContent.toggle}/>
-                </div>
-                
-            </div>
 
-            {/* Lower content */}
-            {hideLowerContent.value === false ?
+                    <div className='flex gap-3 items-center font-bold'>
+                        <PriceBanner
+                            discountPercent={priceData.getMostRecentDiscount()}
+                            bannerType={priceData.getBannerType()}
+                            price={priceData.getMostRecentPrice()}
+                        />
+                    </div>
+                    
+                </div>
+            </Accordion.Control>
+
+            
+            <Accordion.Panel>
+                {/* Lower content */}
                 <div className='w-full h-full flex justify-between gap-2'>
                     <PriceHistoryChart priceData={priceData.chartPriceData} />
                     <PriceList
@@ -73,8 +73,7 @@ const ProductContainer = ({product}: ProductProps) => {
                         productId={product.productId}
                     />
                 </div>
-                : <></>
-            }
+            </Accordion.Panel>
 
             <AddPriceModal
                 hidden={addPrice.visibility.value}

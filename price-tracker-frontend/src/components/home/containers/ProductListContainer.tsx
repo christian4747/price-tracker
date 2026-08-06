@@ -26,6 +26,12 @@ const ProductListContainer = () => {
     if (getAllProducts.query.isPending) {
         return (
             <>
+                <div className="flex items-center gap-2 mb-3">
+                    <div className="text-5xl">
+                        My Products
+                    </div>
+                </div>
+
                 <ProductListHeader
                     toggleAddProduct={addProduct.visibility.toggle}
                     getAllProducts={getAllProducts.refresh}
@@ -39,6 +45,12 @@ const ProductListContainer = () => {
     } else if (getAllProducts.query.isError) {
         return (
             <>
+                <div className="flex items-center gap-2 mb-3">
+                    <div className="text-5xl">
+                        My Products
+                    </div>
+                </div>
+
                 <ProductListHeader
                     toggleAddProduct={addProduct.visibility.toggle}
                     getAllProducts={getAllProducts.refresh}
@@ -60,7 +72,7 @@ const ProductListContainer = () => {
     return (
         <>
             <div className="flex items-center gap-2 mb-3">
-                <div className="text-5xl font-bold">
+                <div className="text-5xl">
                     My Products
                 </div>
             </div>

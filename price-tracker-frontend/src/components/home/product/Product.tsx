@@ -12,19 +12,31 @@ const Product = ({product, toggleShowEdit, toggleShowDelete}: ProductProps) => {
     return (
         <>
             <div className='flex gap-3 items-baseline-last'>
-                <div className="font-bold text-lg max-w-125 truncate untruncate">
+                <div className="text-lg max-w-125 truncate untruncate">
                     {product.name}
                 </div>
-                <div>
+                <div className="text-raincloud">
                     {product.store}
                 </div>
                 <a className="cursor-pointer" href={product.link} target="_blank">
                     <FaLink />
                 </a>
-                <div className="hidden group-hover:block cursor-pointer" onClick={toggleShowEdit}>
+                <div
+                    className="hidden group-hover:block cursor-pointer"
+                    onClick={(e) => {
+                        toggleShowEdit()
+                        e.stopPropagation()
+                    }}
+                >
                     <MdEdit />
                 </div>
-                <div className="hidden group-hover:block cursor-pointer" onClick={toggleShowDelete}>
+                <div
+                    className="hidden group-hover:block cursor-pointer"
+                    onClick={(e) => {
+                        toggleShowDelete()
+                        e.stopPropagation()
+                    }}
+                >
                     <MdDelete />
                 </div>
             </div>

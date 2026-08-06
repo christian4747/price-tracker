@@ -1,3 +1,4 @@
+import { Accordion } from "@mantine/core"
 import type { ProductType } from "../../../utils/Types"
 import ProductContainer from '../containers/ProductPriceListContainer'
 
@@ -9,14 +10,20 @@ const ProductList = ({products}: ProductListProps) => {
     return (
         <>
             <div className="flex pb-5 flex-col border-smoke">
-                {products?.map((product) => {
-                    return (
-                        <ProductContainer
-                            key={product.name + product.store}
-                            product={product}
-                        />
-                    )
-                })}
+                <Accordion
+                    multiple
+                    variant="unstyled"
+                >
+                    {products?.map((product) => {
+                        return (
+                            <Accordion.Item value={product.name + product.store} key={product.name + product.store}>
+                                <ProductContainer
+                                    product={product}
+                                />
+                            </Accordion.Item>
+                        )
+                    })}
+                </Accordion>
             </div>
         </>
     )
