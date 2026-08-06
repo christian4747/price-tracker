@@ -1,14 +1,16 @@
+import { Button } from "@mantine/core"
+
 type Props = React.ComponentPropsWithoutRef<"button"> & {
     children?: React.ReactNode,
     className?: string
 }
 
-const Button = ({children, className, ...props}: Props) => {
+const ButtonWrapper = ({children, className, ...props}: Props) => {
     return (
-        <button className={'hover:bg-raisin-hover min-w-30 min-h-8 rounded-xl bg-raisin text-cloud flex justify-center items-center cursor-pointer ' + className} {...props}>
+        <Button color="var(--color-raisin)" radius="xl" className={'min-w-30 min-h-8 rounded-xl font-normal text-cloud flex justify-center items-center cursor-pointer ' + className} {...props}>
             {children}
-        </button>
+        </Button>
     )
 }
 
-export default Button
+export default ButtonWrapper
