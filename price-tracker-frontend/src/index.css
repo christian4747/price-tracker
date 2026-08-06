@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import url('https://googleapis.com');
 
 @theme {
     --color-raisin: #332933;
@@ -7,7 +8,7 @@
     --color-smoke: #BCBBBD;
     --color-raincloud: #757575;
 
-    --font-roboto: "Roboto", sans-serif;
+    --font-inter: "Inter", sans-serif;
 }
 
 :root {
@@ -29,7 +30,7 @@
     --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
     --mono: ui-monospace, Consolas, monospace;
 
-    font: 18px/145% var(--font-roboto);
+    font: 18px/145% var(--font-inter);
     letter-spacing: 0.18px;
     color-scheme: light dark;
     color: var(--text);
