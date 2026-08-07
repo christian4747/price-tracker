@@ -14,11 +14,10 @@ const LabeledInput = ({children, className, required, label, ...props}: Props) =
                     <div className="font-bold">
                         {label} <span className="text-red-500">*</span>
                     </div>
-                    <input
-                        className={"border border-smoke rounded-sm p-1 w-full " + className}
+                    <Input
                         {...props}
                     >
-                    </input>
+                    </Input>
                 </div>
             </>
         )
@@ -31,7 +30,6 @@ const LabeledInput = ({children, className, required, label, ...props}: Props) =
                     {label}
                 </div>
                 <Input
-                    className={"border border-smoke rounded-sm p-1 w-full " + className}
                     {...props}
                 />
             </div>
