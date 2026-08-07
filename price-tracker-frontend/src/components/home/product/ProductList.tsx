@@ -13,6 +13,11 @@ const ProductList = ({products}: ProductListProps) => {
                 <Accordion
                     multiple
                     variant="unstyled"
+                    styles={{
+                        control: { cursor: 'default' },
+                        chevron: { cursor: 'pointer' },
+                    }}
+                    chevronIconSize={24}
                 >
                     {products?.map((product) => {
                         return (
