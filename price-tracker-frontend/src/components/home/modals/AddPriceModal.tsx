@@ -23,7 +23,7 @@ const AddPriceModal = ({ product }: AddPriceModalProps) => {
     const [useEndDate, setUseEndDate] = useState(false)
 
     // Hook for adding prices
-    const { priceDTO, mutation } = useAddPrice(product, getHighestPrice(product?.prices))
+    const { priceDTO, mutation: multiMutation, singleMutation } = useAddPrice(product, getHighestPrice(product?.prices))
 
     // Automatically set price started with current time when opening
     const openAddPriceModal = () => {
@@ -83,7 +83,6 @@ const AddPriceModal = ({ product }: AddPriceModalProps) => {
                         </Button>
                     </Button.Group>
                 </Center>
-                
                 <DateTimePicker
                     label="Start Date"
                     withAsterisk
@@ -120,7 +119,7 @@ const AddPriceModal = ({ product }: AddPriceModalProps) => {
                     fullWidth
                     onClick={
                         () => {
-                            mutation.mutate()
+                            useEndDate || priceDTO.value.priceEnded?.length === 0 ? multiMutation.mutate() : singleMutation.mutate()
                             close()
                         }
                     }
