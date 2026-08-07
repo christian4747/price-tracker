@@ -7,7 +7,6 @@ import PriceHistoryChart from "../price/PriceHistoryChart"
 import PriceList from "../price/PriceList"
 import { useToggleVisibility } from "@/hooks/common/useToggleVisibility"
 import { useEditProduct } from "@/hooks/product/useEditProduct"
-import { useDeleteProduct } from "@/hooks/product/useDeleteProduct"
 import { usePriceData } from "@/hooks/price/usePriceData"
 import { Accordion } from "@mantine/core"
 
@@ -20,8 +19,6 @@ const ProductContainer = ({product}: ProductProps) => {
     // State for Product visibility
     const hideProduct = useToggleVisibility(false)
 
-    // Hook for deleting products
-    const deleteProduct = useDeleteProduct(product)
     // Hook for editing products
     const editProduct = useEditProduct(product)
     // Hook for price data
@@ -36,7 +33,6 @@ const ProductContainer = ({product}: ProductProps) => {
                 <div className='h-full w-full flex justify-between items-center pr-2'>
                     <Product
                         product={product}
-                        toggleShowDelete={deleteProduct.visibility.toggle}
                         toggleShowEdit={editProduct.visibility.toggle}
                     />
 
@@ -62,13 +58,6 @@ const ProductContainer = ({product}: ProductProps) => {
                     />
                 </div>
             </Accordion.Panel>
-
-            <DeleteProductModal
-                hidden={deleteProduct.visibility.value}
-                toggleHidden={deleteProduct.visibility.toggle}
-                product={product}
-                deleteProduct={deleteProduct.mutation.mutate}
-            />
 
             <EditProductModal
                 hidden={editProduct.visibility.value}
