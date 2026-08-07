@@ -1,11 +1,13 @@
 
-import { Button, Modal } from "@mantine/core";
-import type { ProductType } from "@/utils/Types";
-import LabeledInput from "components/common/LabeledInput";
-import { useDisclosure } from "@mantine/hooks";
-import { useAddPrice } from "@/hooks/price/useAddPrice";
-import { javaTimestampToJS } from "@/utils/DateUtilities";
-import { getHighestPrice } from "@/utils/PriceUtilities";
+import { Button, Center, Collapse, Modal, NumberInput, TextInput } from '@mantine/core'
+import type { ProductType } from '@/utils/Types'
+import { useDisclosure } from '@mantine/hooks'
+import { useAddPrice } from '@/hooks/price/useAddPrice'
+import { javaTimestampToJS } from '@/utils/DateUtilities'
+import { getHighestPrice } from '@/utils/PriceUtilities'
+import { DateTimePicker } from '@mantine/dates'
+import { FiCalendar } from 'react-icons/fi'
+import { useState } from 'react'
 
 type AddPriceModalProps = {
     product: ProductType
@@ -13,11 +15,17 @@ type AddPriceModalProps = {
 
 const AddPriceModal = ({ product }: AddPriceModalProps) => {
 
+    // Track state of modal open/close
     const [opened, { open, close }] = useDisclosure(false)
+    // Track state of expanding the end date input
+    const [expandEndDate, { toggle: toggleEndDate }] = useDisclosure(false)
+    // Track button group state for selecting start date or start + end date
+    const [useEndDate, setUseEndDate] = useState(false)
 
     // Hook for adding prices
     const { priceDTO, mutation } = useAddPrice(product, getHighestPrice(product?.prices))
 
+    // Automatically set price started with current time when opening
     const openAddPriceModal = () => {
         priceDTO.setPriceDTO(prev => ({...prev, priceStarted: javaTimestampToJS(new Date(Date.now()).toISOString())}))
         open()
@@ -31,40 +39,81 @@ const AddPriceModal = ({ product }: AddPriceModalProps) => {
                 title="Add Price"
                 removeScrollProps={{ enabled: false }}
             >
-                <LabeledInput
+                <NumberInput
                     label="Price"
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {priceDTO.setPriceDTO(prev => ({...prev, amount: e.target.value}))}}
+                    withAsterisk
+                    radius='xl'
+                    placeholder=""
                     value={priceDTO.value.amount}
-                    type="number"
-                    step=".01"
-                    required
+                    onChange={(val) => {val ? priceDTO.setPriceDTO(prev => ({...prev, amount: val.toString()})) : priceDTO.setPriceDTO(prev => ({...prev, amount: '0.00'}))}}
+                    step={.01}
+                    decimalScale={2}
+                    fixedDecimalScale
+                    allowNegative={false}
+                    className="mb-2"
                 />
-                <LabeledInput
+                <TextInput
                     label="Description"
+                    radius='xl'
                     placeholder="Description"
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => {priceDTO.setPriceDTO(prev => ({...prev, description: e.target.value}))}}
                     value={priceDTO.value.description}
+                    className="mb-2"
                 />
                 {/* <Input
                     placeholder="Currency"
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => {setPriceDTO(prev => ({...prev, currency: e.target.value}))}}
                     value={priceDTO.currency}
                 /> */}
-                <LabeledInput
+
+                <Center>
+                    <Button.Group>
+                        <Button
+                            variant={useEndDate ? "default" : "filled"}
+                            onClick={() => {setUseEndDate(false);toggleEndDate()}}
+                        >
+                            Start Date Only
+                        </Button>
+                        <Button
+                            variant={useEndDate ? "filled" : "default"}
+                            onClick={() => {setUseEndDate(true);toggleEndDate()}}
+                        >
+                            Start and End Date
+                        </Button>
+                    </Button.Group>
+                </Center>
+                
+                <DateTimePicker
                     label="Start Date"
-                    placeholder="Start Date"
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {priceDTO.setPriceDTO(prev => ({...prev, priceStarted: e.target.value}))}}
+                    withAsterisk
+                    radius='xl'
+                    onChange={(val) => {val ? priceDTO.setPriceDTO(prev => ({...prev, priceStarted: val})) : priceDTO.setPriceDTO(prev => ({...prev, priceStarted: ''}))}}
                     value={priceDTO.value.priceStarted}
-                    type="datetime-local"
-                    required
+                    rightSectionPointerEvents="none"
+                    rightSection={
+                        <div className='pr-2'>
+                            <FiCalendar size={24} />
+                        </div>
+                    }
+                    className="mb-2"
                 />
-                <LabeledInput
-                    label="End Date"
-                    placeholder="End Date"
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {priceDTO.setPriceDTO(prev => ({...prev, priceEnded: e.target.value}))}}
-                    value={priceDTO.value.priceEnded}
-                    type="datetime-local"
-                />
+
+                <Collapse expanded={expandEndDate}>
+                    <DateTimePicker
+                        label="End Date"
+                        placeholder="Date price ends"
+                        radius='xl'
+                        onChange={(val) => {val ? priceDTO.setPriceDTO(prev => ({...prev, priceEnded: val})) : priceDTO.setPriceDTO(prev => ({...prev, priceEnded: ''}))}}
+                        value={priceDTO.value.priceEnded}
+                        rightSectionPointerEvents="none"
+                        rightSection={
+                            <div className='pr-2'>
+                                <FiCalendar size={24} />
+                            </div>
+                        }
+                    />
+                </Collapse>
+
                 <Button
                     className="mt-5"
                     fullWidth
