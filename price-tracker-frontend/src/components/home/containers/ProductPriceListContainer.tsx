@@ -1,17 +1,14 @@
-import { type ProductType } from "../../../utils/Types"
+import { type ProductType } from "@/utils/Types"
 import PriceBanner from "../price/PriceBanner"
 import DeleteProductModal from "../modals/DeleteProductModal"
 import EditProductModal from "../modals/EditProductModal"
-import AddPriceModal from "../modals/AddPriceModal"
 import Product from "../product/Product"
 import PriceHistoryChart from "../price/PriceHistoryChart"
 import PriceList from "../price/PriceList"
-import { javaTimestampToJS } from "../../../utils/DateUtilities"
-import { useToggleVisibility } from "../../../hooks/common/useToggleVisibility"
-import { useEditProduct } from "../../../hooks/product/useEditProduct"
-import { useDeleteProduct } from "../../../hooks/product/useDeleteProduct"
-import { useAddPrice } from "../../../hooks/price/useAddPrice"
-import { usePriceData } from "../../../hooks/price/usePriceData"
+import { useToggleVisibility } from "@/hooks/common/useToggleVisibility"
+import { useEditProduct } from "@/hooks/product/useEditProduct"
+import { useDeleteProduct } from "@/hooks/product/useDeleteProduct"
+import { usePriceData } from "@/hooks/price/usePriceData"
 import { Accordion } from "@mantine/core"
 
 type ProductProps = {
@@ -29,14 +26,6 @@ const ProductContainer = ({product}: ProductProps) => {
     const editProduct = useEditProduct(product)
     // Hook for price data
     const priceData = usePriceData(product)
-    // Hook for adding prices
-    const addPrice = useAddPrice(product, priceData.getHighestPrice(product.prices))
-
-    // Toggle visibility of AddPriceModal (wrapper)
-    const toggleShowAddPrice = () => {
-        addPrice.priceDTO.setPriceDTO(prev => ({...prev, priceStarted: javaTimestampToJS(new Date(Date.now()).toISOString())}))
-        addPrice.visibility.toggle()
-    }
 
     if (hideProduct.value === true) return (<></>)
 
@@ -69,20 +58,10 @@ const ProductContainer = ({product}: ProductProps) => {
                     <PriceHistoryChart priceData={priceData.chartPriceData} />
                     <PriceList
                         sortedPrices={priceData.sortedPricesByDate}
-                        toggleShowAddPrice={toggleShowAddPrice}
-                        productId={product.productId}
+                        product={product}
                     />
                 </div>
             </Accordion.Panel>
-
-            <AddPriceModal
-                hidden={addPrice.visibility.value}
-                toggleHidden={addPrice.visibility.toggle}
-                product={product}
-                priceDTO={addPrice.priceDTO.value}
-                setPriceDTO={addPrice.priceDTO.setPriceDTO}
-                addPrice={addPrice.mutation.mutate}
-            />
 
             <DeleteProductModal
                 hidden={deleteProduct.visibility.value}

@@ -1,13 +1,9 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import api from '../../services/api'
-import { useToggleVisibility } from '../common/useToggleVisibility'
 import { usePriceDTO } from './usePriceDTO'
 import type { PriceType, ProductType } from '../../utils/Types'
 
 export function useAddPrice(product: ProductType, highestPrice: number) {
-    // State for AddPriceModal visibility
-    const showAddPrice = useToggleVisibility(false)
-
     // State for PriceDTO when adding Prices
     const priceDTO = usePriceDTO(
         {
@@ -39,7 +35,6 @@ export function useAddPrice(product: ProductType, highestPrice: number) {
     // Mutation for adding prices
     const addPriceMutation = useMutation({
         mutationFn: () => {
-            showAddPrice.toggle()
             return api.addPrice(priceDTO.value)
         },
         onSuccess: (newData: PriceType) => {
@@ -72,7 +67,6 @@ export function useAddPrice(product: ProductType, highestPrice: number) {
     })
 
     const useAddPriceProps = {
-        visibility: showAddPrice,
         mutation: addPriceMutation,
         priceDTO: priceDTO
     }
