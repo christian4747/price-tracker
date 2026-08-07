@@ -2,6 +2,7 @@ import { Button, createTheme, MantineProvider, Modal } from '@mantine/core'
 import './App.css'
 import Home from './pages/HomePage'
 import '@mantine/core/styles.css'
+import '@mantine/dates/styles.css'
 
 const theme = createTheme({
     fontFamily: 'Inter, sans-serif',
