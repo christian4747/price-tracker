@@ -32,6 +32,7 @@ const ProductListHeader = ({toggleAddProduct, searchSearchTerm}: Props) => {
                 <div className='flex items-center gap-2'>
                     <div className='flex max-w-50'>
                         <InputWrapper
+                            radius='xl'
                             className='border-none focus-visible:border-none focus-within:outline-none min-h-8'
                             onChange={(e) => setCurrentSearchTerm(e.target.value)}
                             value={currentSearchTerm}

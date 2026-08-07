@@ -38,6 +38,7 @@ const AddPriceModal = ({ product }: AddPriceModalProps) => {
                 onClose={close}
                 title="Add Price"
                 removeScrollProps={{ enabled: false }}
+                yOffset={'20vh'}
             >
                 <NumberInput
                     label="Price"
