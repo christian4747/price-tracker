@@ -1,6 +1,5 @@
 import { type ProductType } from "@/utils/Types"
 import PriceBanner from "../price/PriceBanner"
-import DeleteProductModal from "../modals/DeleteProductModal"
 import EditProductModal from "../modals/EditProductModal"
 import Product from "../product/Product"
 import PriceHistoryChart from "../price/PriceHistoryChart"
