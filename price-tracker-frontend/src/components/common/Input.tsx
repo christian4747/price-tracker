@@ -1,14 +1,15 @@
-type Props = React.ComponentPropsWithoutRef<"input">
+import { Input, type InputProps } from "@mantine/core"
 
-const Input = ({children, className, ...props}: Props) => {
+type Props = React.ComponentPropsWithoutRef<"input"> & InputProps
+
+const InputWrapper = ({className, ...props}: Props) => {
     return (
-        <>
-            <input
-                className={"border border-smoke rounded-sm p-1 w-full " + className}
-                {...props}
-            />
-        </>
+        <Input
+            radius='xl'
+            className={"border border-smoke rounded-sm p-1 w-full " + className}
+            {...props}
+        />
     )
 }
 
-export default Input
+export default InputWrapper

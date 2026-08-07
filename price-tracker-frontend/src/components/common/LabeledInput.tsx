@@ -1,6 +1,7 @@
+import type { InputProps } from "@mantine/core"
 import Input from "./Input"
 
-type Props = React.ComponentPropsWithoutRef<"input"> & {
+type Props = React.ComponentPropsWithoutRef<"input"> & InputProps &  {
     label: string
 }
 

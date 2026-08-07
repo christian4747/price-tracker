@@ -8,8 +8,6 @@ import type { ProductType } from '../../../utils/Types'
 
 const ProductListContainer = () => {
 
-    // State for tracking current input value
-    const [currentSearchTerm, setCurrentSearchTerm] = useState('')
     // State for tracking current searched term
     const [searchedTerm, setSearchedTerm] = useState('')
 
@@ -32,13 +30,14 @@ const ProductListContainer = () => {
                     </div>
                 </div>
 
-                <ProductListHeader
-                    toggleAddProduct={addProduct.visibility.toggle}
-                    getAllProducts={getAllProducts.refresh}
-                    currentSearchTerm={currentSearchTerm}
-                    setCurrentSearchTerm={setCurrentSearchTerm}
-                    searchSearchTerm={searchSearchTerm}
-                />
+                <div className='border-t pb-0 mb-5 pt-3 border-smoke'>
+                    <ProductListHeader
+                        toggleAddProduct={addProduct.visibility.toggle}
+                        getAllProducts={getAllProducts.refresh}
+                        searchSearchTerm={searchSearchTerm}
+                    />
+                </div>
+                
                 Loading...
             </>
         )
@@ -51,13 +50,14 @@ const ProductListContainer = () => {
                     </div>
                 </div>
 
-                <ProductListHeader
-                    toggleAddProduct={addProduct.visibility.toggle}
-                    getAllProducts={getAllProducts.refresh}
-                    currentSearchTerm={currentSearchTerm}
-                    setCurrentSearchTerm={setCurrentSearchTerm}
-                    searchSearchTerm={searchSearchTerm}
-                />
+                <div className='border-t pb-0 mb-5 pt-3 border-smoke'>
+                    <ProductListHeader
+                        toggleAddProduct={addProduct.visibility.toggle}
+                        getAllProducts={getAllProducts.refresh}
+                        searchSearchTerm={searchSearchTerm}
+                    />
+                </div>
+                
                 An error occurred: {getAllProducts.query.error.message}
             </>
         )
@@ -81,8 +81,6 @@ const ProductListContainer = () => {
                 <ProductListHeader
                     toggleAddProduct={addProduct.visibility.toggle}
                     getAllProducts={getAllProducts.refresh}
-                    currentSearchTerm={currentSearchTerm}
-                    setCurrentSearchTerm={setCurrentSearchTerm}
                     searchSearchTerm={searchSearchTerm}
                 />
                 {getAllProducts.query.isSuccess && (
