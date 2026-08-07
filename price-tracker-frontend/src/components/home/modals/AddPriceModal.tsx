@@ -18,7 +18,7 @@ const AddPriceModal = ({ product }: AddPriceModalProps) => {
     // Track state of modal open/close
     const [opened, { open, close }] = useDisclosure(false)
     // Track state of expanding the end date input
-    const [expandEndDate, { toggle: toggleEndDate }] = useDisclosure(false)
+    const [expandEndDate, { open: openEndDate, close: closeEndDate }] = useDisclosure(false)
     // Track button group state for selecting start date or start + end date
     const [useEndDate, setUseEndDate] = useState(false)
 
@@ -70,13 +70,13 @@ const AddPriceModal = ({ product }: AddPriceModalProps) => {
                     <Button.Group>
                         <Button
                             variant={useEndDate ? "default" : "filled"}
-                            onClick={() => {setUseEndDate(false);toggleEndDate()}}
+                            onClick={() => {setUseEndDate(false);closeEndDate()}}
                         >
                             Start Date Only
                         </Button>
                         <Button
                             variant={useEndDate ? "filled" : "default"}
-                            onClick={() => {setUseEndDate(true);toggleEndDate()}}
+                            onClick={() => {setUseEndDate(true);openEndDate()}}
                         >
                             Start and End Date
                         </Button>
