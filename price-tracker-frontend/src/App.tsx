@@ -1,4 +1,4 @@
-import { Button, createTheme, MantineProvider, Modal } from '@mantine/core'
+import { Button, createTheme, MantineProvider, Modal, TextInput } from '@mantine/core'
 import './App.css'
 import Home from './pages/HomePage'
 import '@mantine/core/styles.css'
@@ -26,6 +26,11 @@ const theme = createTheme({
                 yOffset: '20vh'
             },
         }),
+        TextInput: TextInput.extend({
+            defaultProps: {
+                radius: 'xl'
+            },
+        })
     },
 });
 
