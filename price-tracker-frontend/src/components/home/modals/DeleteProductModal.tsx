@@ -35,7 +35,7 @@ const DeleteProductModal = ({product}: DeleteProductModalProps) => {
                     </div>
                 </Center>
 
-                <Button fullWidth onClick={() => mutation.mutate()}>Delete Product</Button>
+                <Button fullWidth className="mt-5" onClick={(e) => {mutation.mutate();close();e.stopPropagation()}}>Delete Product</Button>
             </Modal>
             <div
                 className="hidden group-hover:block cursor-pointer"
