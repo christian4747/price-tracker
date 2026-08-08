@@ -1,12 +1,17 @@
 import { Accordion } from "@mantine/core"
 import type { ProductType } from "../../../utils/Types"
 import ProductContainer from '../containers/ProductPriceListContainer'
+import { useState } from "react"
 
 type ProductListProps = {
     products: ProductType[]
 }
 
 const ProductList = ({products}: ProductListProps) => {
+
+    // Accordion state (prevents closing when tanstack refreshes)
+    const [value, setValue] = useState<string[]>([]);
+
     return (
         <>
             <div className="flex pb-5 flex-col border-smoke">
@@ -18,10 +23,12 @@ const ProductList = ({products}: ProductListProps) => {
                         chevron: { cursor: 'pointer' },
                     }}
                     chevronIconSize={24}
+                    value={value}
+                    onChange={setValue}
                 >
-                    {products?.map((product) => {
+                    {products?.map((product, idx) => {
                         return (
-                            <Accordion.Item value={product.name + product.store} key={product.name + product.store}>
+                            <Accordion.Item value={`item-${idx}`} key={product.name + product.store}>
                                 <ProductContainer
                                     product={product}
                                 />
