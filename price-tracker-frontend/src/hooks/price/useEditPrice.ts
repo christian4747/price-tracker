@@ -1,13 +1,10 @@
 import type { PriceType, ProductType } from '../../utils/Types'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import api from '../../services/api'
-import { useToggleVisibility } from '../common/useToggleVisibility'
 import { usePriceDTO } from './usePriceDTO'
 import { javaTimestampToJS } from '../../utils/DateUtilities'
 
 export function useEditPrice(price: PriceType) {
-    // EditPriceModal visibility
-    const showEditPrice = useToggleVisibility(false)
 
     // PriceDTO for editing
     const priceDTO = usePriceDTO(
@@ -27,7 +24,6 @@ export function useEditPrice(price: PriceType) {
     // Mutation for editing prices
     const editPriceMutation = useMutation({
         mutationFn: () => {
-            showEditPrice.toggle()
             return api.editPrice(price.priceId, priceDTO.value)
         },
         onSuccess: (newData) => {
@@ -57,7 +53,6 @@ export function useEditPrice(price: PriceType) {
     })
 
     const useEditPriceProps = {
-        visibility: showEditPrice,
         mutation: editPriceMutation,
         priceDTO: priceDTO
     }

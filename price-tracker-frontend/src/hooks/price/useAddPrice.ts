@@ -1,13 +1,10 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import api from '../../services/api'
-import { useToggleVisibility } from '../common/useToggleVisibility'
 import { usePriceDTO } from './usePriceDTO'
 import type { PriceType, ProductType } from '../../utils/Types'
+import dayjs from 'dayjs'
 
 export function useAddPrice(product: ProductType, highestPrice: number) {
-    // State for AddPriceModal visibility
-    const showAddPrice = useToggleVisibility(false)
-
     // State for PriceDTO when adding Prices
     const priceDTO = usePriceDTO(
         {
@@ -36,28 +33,47 @@ export function useAddPrice(product: ProductType, highestPrice: number) {
         })
     }
 
-    // Mutation for adding prices
+    // Mutation for adding start date only
+    const addSinglePriceMutation = useMutation({
+        mutationFn: () => {
+            priceDTO.value.priceStarted = dayjs(priceDTO.value.priceStarted).format()
+            priceDTO.value.priceEnded = ''
+            return api.addPrice(priceDTO.value)
+        },
+        onSuccess: (newData: PriceType) => {
+            priceDTO.resetPriceDTO()
+            updatePriceList(newData)
+        },
+        onError: (error) => {
+            console.log(`Error occurred while adding ${priceDTO} (${error.message})`)
+        }
+    }) 
+
+    // Mutation for adding start date and end date
     const addPriceMutation = useMutation({
         mutationFn: () => {
-            showAddPrice.toggle()
+            if (priceDTO.value.priceEnded && priceDTO.value.priceEnded.length > 0) {
+                priceDTO.value.priceEnded = dayjs(priceDTO.value.priceEnded).format()
+            }
+
+            priceDTO.value.priceStarted = dayjs(priceDTO.value.priceStarted).format()
             return api.addPrice(priceDTO.value)
         },
         onSuccess: (newData: PriceType) => {
             if (priceDTO.value.priceEnded && priceDTO.value.priceEnded.length > 0) {
                 priceDTO.value.priceStarted = priceDTO.value.priceEnded
                 priceDTO.value.priceEnded = ""
-                updatePriceList(newData)
                 addEndPriceMutation.mutate()
-            } else {
-                priceDTO.resetPriceDTO()
-                updatePriceList(newData)
             }
+            priceDTO.resetPriceDTO()
+            updatePriceList(newData)
         },
         onError: (error) => {
             console.log(`Error occurred while adding ${priceDTO} (${error.message})`)
         }
     })
 
+    // Chained mutation for adding end date
     const addEndPriceMutation = useMutation({
         mutationFn: () => {
             priceDTO.value.amount = highestPrice.toFixed(2)
@@ -72,8 +88,8 @@ export function useAddPrice(product: ProductType, highestPrice: number) {
     })
 
     const useAddPriceProps = {
-        visibility: showAddPrice,
         mutation: addPriceMutation,
+        singleMutation: addSinglePriceMutation,
         priceDTO: priceDTO
     }
 

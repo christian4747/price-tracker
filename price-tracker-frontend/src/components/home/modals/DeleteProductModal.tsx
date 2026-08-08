@@ -1,23 +1,52 @@
-import Button from "../../common/Button"
-import Modal from "../../common/Modal"
-import type { ProductModalProps } from "../../../utils/Types";
-import ModalHeader from "../../common/ModalHeader";
 
-type DeleteProductModalProps = ProductModalProps & {
-    deleteProduct: () => void
+import type { ProductType } from "../../../utils/Types";
+import { useDisclosure } from "@mantine/hooks";
+import { Button, Center, Modal } from "@mantine/core";
+import { useDeleteProduct } from "@/hooks/product/useDeleteProduct";
+import { MdDelete } from "react-icons/md";
+
+type DeleteProductModalProps = {
+    product: ProductType
 }
 
-const DeleteProductModal = ({hidden, toggleHidden, product, deleteProduct}: DeleteProductModalProps) => {
+const DeleteProductModal = ({product}: DeleteProductModalProps) => {
+
+    // Track state of modal open/close
+    const [opened, { open, close }] = useDisclosure(false)
+
+    // Hook for deleting products
+    const { mutation } = useDeleteProduct(product)
+
     return (
-        <Modal
-            hidden={hidden}
-        >
-            <ModalHeader toggleHidden={toggleHidden}>Delete Product</ModalHeader>
-            <div className="text-xl flex flex-col">
-                Are you sure you want to delete Product {product.name}? <span className="text-red-600 font-bold">This cannot be undone.</span>
+        <>
+            <Modal
+                title="Delete Product"
+                opened={opened}
+                onClose={close}
+                onClick={(e) => e.stopPropagation()}
+            >
+                <Center className="flex flex-col">
+                    <div className="text-xl mb-2 text-center">
+                        Are you sure you want to delete Product {product.name}?
+                    </div>
+
+                    <div className="text-xl text-red-600 font-bold mb-2">
+                        This cannot be undone.
+                    </div>
+                </Center>
+
+                <Button fullWidth className="mt-5" onClick={(e) => {mutation.mutate();close();e.stopPropagation()}}>Delete Product</Button>
+            </Modal>
+            <div
+                className="hidden group-hover:block cursor-pointer"
+                onClick={(e) => {
+                    open()
+                    e.stopPropagation()
+                }}
+            >
+                <MdDelete />
             </div>
-            <Button className="w-full" onClick={deleteProduct}>Delete Product</Button>
-        </Modal>
+        </>
     )
 }
 

@@ -1,24 +1,51 @@
-import Button from "../../common/Button"
-import Modal from "../../common/Modal"
-import type { PriceModalProps } from "../../../utils/Types";
-import { getUSDateStringFromTimestamp } from "../../../utils/DateUtilities";
-import ModalHeader from "../../common/ModalHeader";
 
-type DeletePriceModalProps = PriceModalProps & {
-    deletePrice: () => any
+import type { PriceType } from "../../../utils/Types";
+import { getUSDateStringFromTimestamp } from "../../../utils/DateUtilities";
+import { Button, Center, Modal } from "@mantine/core";
+import { useDisclosure } from "@mantine/hooks";
+import { MdDelete } from "react-icons/md";
+import { useDeletePrice } from "@/hooks/price/useDeletePrice";
+
+type DeletePriceModalProps =  {
+    price: PriceType
 }
 
-const DeletePriceModal = ({hidden, toggleHidden, price, deletePrice}: DeletePriceModalProps) => {
+const DeletePriceModal = ({price}: DeletePriceModalProps) => {
+
+    // Track state of modal open/close
+    const [opened, { open, close }] = useDisclosure(false)
+
+    // Hook for deleting prices
+    const { mutation } = useDeletePrice(price)
+
     return (
-        <Modal
-            hidden={hidden}
-        >
-            <ModalHeader toggleHidden={toggleHidden}>Delete Price</ModalHeader>
-            <div className="text-xl flex flex-col">
-                Are you sure you want to delete Price {getUSDateStringFromTimestamp(price.priceStarted)} (${price.amount})? <span className="text-red-600 font-bold">This cannot be undone.</span>
+        <>
+            <Modal
+                title="Delete Price"
+                opened={opened}
+                onClose={close}
+                onClick={(e) => e.stopPropagation()}
+            >
+                <Center className="flex flex-col">
+                    <div className="text-xl mb-2 text-center">
+                        Are you sure you want to delete Price {getUSDateStringFromTimestamp(price.priceStarted)} (${price.amount})?
+                    </div>
+
+                    <div className="text-xl text-red-600 font-bold mb-2">This cannot be undone.</div>
+                </Center>
+
+                <Button fullWidth className="mt-5" onClick={(e) => {mutation.mutate();close();e.stopPropagation()}}>Delete Price</Button>
+            </Modal>
+            <div
+                className="hidden group-hover/product:block cursor-pointer"
+                onClick={(e) => {
+                    open()
+                    e.stopPropagation()
+                }}
+            >
+                <MdDelete />
             </div>
-            <Button className="w-full" onClick={deletePrice}>Delete Price</Button>
-        </Modal>
+        </>
     )
 }
 

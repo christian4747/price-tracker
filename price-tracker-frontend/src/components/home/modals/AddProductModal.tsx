@@ -1,47 +1,54 @@
-import Button from "../../common/Button"
+
 import Input from "../../common/Input"
-import Modal from "../../common/Modal"
-import type { ModalProps, ProductDTO } from "../../../utils/Types";
-import ModalHeader from "../../common/ModalHeader";
-import LabeledInput from "../../common/LabeledInput";
+import { Button, Modal, TextInput } from "@mantine/core";
+import { useDisclosure } from "@mantine/hooks";
+import { useAddProduct } from "@/hooks/product/useAddProduct";
 
-type AddProductModalProps = ModalProps & {
-    product: ProductDTO,
-    addProduct: () => void,
-    setProductDTO: React.Dispatch<React.SetStateAction<ProductDTO>>
-}
+const AddProductModal = () => {
 
-const AddProductModal = ({hidden, toggleHidden, product, addProduct, setProductDTO}: AddProductModalProps) => {
+    // Track state of modal open/close
+    const [opened, { open, close }] = useDisclosure(false)
+
+    // Hook for adding products
+    const { productDTO, mutation } = useAddProduct()
+
     return (
-        <Modal
-            hidden={hidden}
-        >
-            <ModalHeader toggleHidden={toggleHidden}>Add Product</ModalHeader>
-            <LabeledInput
-                label="Name"
-                placeholder="Name"
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {setProductDTO(prev => ({...prev, name: e.target.value}))}}
-                value={product.name}
-                required
-            />
-            <LabeledInput
-                label="Store"
-                placeholder="Store"
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {setProductDTO(prev => ({...prev, store: e.target.value}))}}
-                value={product.store}
-            />
-            <LabeledInput
-                label="Link"
-                placeholder="Link"
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {setProductDTO(prev => ({...prev, link: e.target.value}))}}
-                value={product.link}
-            />
-            <Input
-                className="hidden"
-                placeholder="Initial Price"
-            />
-            <Button className="w-full" onClick={addProduct}>Add Product</Button>
-        </Modal>
+        <>
+            <Modal
+                opened={opened}
+                onClose={close}
+                title="Add Product"
+            >
+                <TextInput
+                    label="Name"
+                    placeholder="Name"
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {productDTO.setProductDTO(prev => ({...prev, name: e.target.value}))}}
+                    value={productDTO.value.name}
+                    className="mb-2"
+                />
+                <TextInput
+                    label="Store"
+                    placeholder="Store"
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {productDTO.setProductDTO(prev => ({...prev, store: e.target.value}))}}
+                    value={productDTO.value.store}
+                    className="mb-2"
+                />
+                <TextInput
+                    label="Link"
+                    placeholder="Link"
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {productDTO.setProductDTO(prev => ({...prev, link: e.target.value}))}}
+                    value={productDTO.value.link}
+                    className="mb-2"
+                />
+
+                <Input
+                    className="hidden"
+                    placeholder="Initial Price"
+                />
+                <Button fullWidth className="mt-5" onClick={(e) => {mutation.mutate();close();e.stopPropagation()}}>Add Product</Button>
+            </Modal>
+            <Button className="m-2" onClick={open}>Add Product</Button>
+        </>
     )
 }
 

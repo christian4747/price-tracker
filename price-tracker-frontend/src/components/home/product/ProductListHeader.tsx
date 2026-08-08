@@ -1,17 +1,20 @@
-import Button from '../../common/Button'
-import { MdClear, MdExpandMore, MdSearch, MdSort } from 'react-icons/md'
-import Input from '../../common/Input'
-import type { Dispatch, SetStateAction } from 'react'
+import Button from '@/components/common/Button'
+import { MdExpandMore, MdSearch, MdSort } from 'react-icons/md'
+import { useState } from 'react'
+import { Input } from '@mantine/core'
+import InputWrapper from '@/components/common/Input'
+import AddProductModal from '../modals/AddProductModal'
 
 type Props = {
-    toggleAddProduct: () => void
     getAllProducts: () => void
-    currentSearchTerm: string
-    setCurrentSearchTerm: Dispatch<SetStateAction<string>>
     searchSearchTerm: (searchTerm: string) => void
 }
 
-const ProductListHeader = ({toggleAddProduct, currentSearchTerm, setCurrentSearchTerm, searchSearchTerm}: Props) => {
+const ProductListHeader = ({searchSearchTerm}: Props) => {
+
+    // State for tracking current input value
+    const [currentSearchTerm, setCurrentSearchTerm] = useState('')
+
     return (
         <>
             <div className="flex items-center gap-2 justify-between mb-3">
@@ -27,40 +30,42 @@ const ProductListHeader = ({toggleAddProduct, currentSearchTerm, setCurrentSearc
                 </div>
 
                 <div className='flex items-center gap-2'>
-
-                    <div className='flex border border-smoke rounded-sm max-w-50'>
-                        <Input
+                    <div className='flex max-w-50'>
+                        <InputWrapper
+                            radius='xl'
                             className='border-none focus-visible:border-none focus-within:outline-none min-h-8'
                             onChange={(e) => setCurrentSearchTerm(e.target.value)}
                             value={currentSearchTerm}
                             placeholder='Search'
-                        />
-                        <div className='flex items-center gap-1'>
-                            {/* Clear input */}
-                            {currentSearchTerm.length >= 1 &&
-                                <div
-                                    className='cursor-pointer'
+                            leftSectionPointerEvents="all"
+                            leftSection={
+                                <div className='cursor-pointer pl-2' onClick={() => searchSearchTerm(currentSearchTerm)}>
+                                    <MdSearch size={24} />
+                                </div>
+                            }
+                            rightSectionPointerEvents="all"
+                            rightSection={
+                                currentSearchTerm ? (
+                                    <Input.ClearButton
+                                    aria-label="Clear input"
                                     onClick={() => {
                                         setCurrentSearchTerm('')
                                         searchSearchTerm('')
                                     }}
-                                >
-                                    <MdClear size={24} />
-                                </div>
+                                    />
+                                ) : null
                             }
-                            {/* Search button */}
-                            <div className='cursor-pointer pr-1' onClick={() => searchSearchTerm(currentSearchTerm)}>
-                                <MdSearch size={24} />
-                            </div>
-                        </div>
+                            onKeyDown={(event) => {
+                                if (event.key === 'Enter') {
+                                    setCurrentSearchTerm(currentSearchTerm)
+                                    searchSearchTerm(currentSearchTerm)
+                                }
+                            }}
+                        />
                     </div>
 
                     <div>
-                        <Button
-                        onClick={toggleAddProduct}
-                        >
-                            Add Product
-                        </Button>
+                        <AddProductModal />
                     </div>
 
                     {/* <div className="pr-2 cursor-pointer" onClick={getAllProducts}>
