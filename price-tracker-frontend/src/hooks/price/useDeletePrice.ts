@@ -1,11 +1,8 @@
 import type { PriceType, ProductType } from '../../utils/Types'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import api from '../../services/api'
-import { useToggleVisibility } from '../common/useToggleVisibility'
 
 export function useDeletePrice(price: PriceType) {
-    // DeletePriceModal visibility
-    const showDeletePrice = useToggleVisibility(false)
 
     // Get the query client
     const queryClient = useQueryClient()
@@ -13,7 +10,6 @@ export function useDeletePrice(price: PriceType) {
     // Mutation for deleting prices
     const deletePriceMutation = useMutation({
         mutationFn: () => {
-            showDeletePrice.toggle()
             return api.deletePrice(price.priceId)
         },
         onSuccess: () => {
@@ -43,7 +39,6 @@ export function useDeletePrice(price: PriceType) {
     })
 
     const useDeletePriceProps = {
-        visibility: showDeletePrice,
         mutation: deletePriceMutation
     }
 
