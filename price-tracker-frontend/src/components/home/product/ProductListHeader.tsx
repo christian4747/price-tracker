@@ -3,14 +3,14 @@ import { MdExpandMore, MdSearch, MdSort } from 'react-icons/md'
 import { useState } from 'react'
 import { Input } from '@mantine/core'
 import InputWrapper from '@/components/common/Input'
+import AddProductModal from '../modals/AddProductModal'
 
 type Props = {
-    toggleAddProduct: () => void
     getAllProducts: () => void
     searchSearchTerm: (searchTerm: string) => void
 }
 
-const ProductListHeader = ({toggleAddProduct, searchSearchTerm}: Props) => {
+const ProductListHeader = ({searchSearchTerm}: Props) => {
 
     // State for tracking current input value
     const [currentSearchTerm, setCurrentSearchTerm] = useState('')
@@ -65,11 +65,7 @@ const ProductListHeader = ({toggleAddProduct, searchSearchTerm}: Props) => {
                     </div>
 
                     <div>
-                        <Button
-                            onClick={toggleAddProduct}
-                        >
-                            Add Product
-                        </Button>
+                        <AddProductModal />
                     </div>
 
                     {/* <div className="pr-2 cursor-pointer" onClick={getAllProducts}>
