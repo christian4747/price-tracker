@@ -26,7 +26,7 @@ const DeleteProductModal = ({product}: DeleteProductModalProps) => {
                 onClick={(e) => e.stopPropagation()}
             >
                 <Center className="flex flex-col">
-                    <div className="text-xl mb-2">
+                    <div className="text-xl mb-2 text-center">
                         Are you sure you want to delete Product {product.name}?
                     </div>
 
