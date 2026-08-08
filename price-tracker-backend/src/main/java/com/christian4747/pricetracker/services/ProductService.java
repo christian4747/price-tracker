@@ -67,7 +67,7 @@ public class ProductService {
      * @return A list of Products (default 20)
      */
     public List<Product> getAllProducts(Pageable pageable) {
-        return productDAO.findAll(pageable).getContent();
+        return productDAO.findAllByOrderByNameAsc(pageable).getContent();
     }
 
     /**

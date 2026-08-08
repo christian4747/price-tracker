@@ -1,66 +1,82 @@
-import Button from '../../common/Button'
-import { FiPlus } from 'react-icons/fi'
-import { MdClear, MdRefresh, MdSearch } from 'react-icons/md'
-import Input from '../../common/Input'
-import type { Dispatch, SetStateAction } from 'react'
+import Button from '@/components/common/Button'
+import { MdExpandMore, MdSearch, MdSort } from 'react-icons/md'
+import { useState } from 'react'
+import { Input } from '@mantine/core'
+import InputWrapper from '@/components/common/Input'
+import AddProductModal from '../modals/AddProductModal'
 
 type Props = {
-    toggleAddProduct: () => void
     getAllProducts: () => void
-    currentSearchTerm: string
-    setCurrentSearchTerm: Dispatch<SetStateAction<string>>
     searchSearchTerm: (searchTerm: string) => void
 }
 
-const ProductListHeader = ({toggleAddProduct, getAllProducts, currentSearchTerm, setCurrentSearchTerm, searchSearchTerm}: Props) => {
+const ProductListHeader = ({searchSearchTerm}: Props) => {
+
+    // State for tracking current input value
+    const [currentSearchTerm, setCurrentSearchTerm] = useState('')
+
     return (
-        <div className="flex items-center gap-2 justify-between mb-3">
+        <>
+            <div className="flex items-center gap-2 justify-between mb-3">
 
-            <div className="flex items-center gap-2">
-                <div className="text-5xl font-bold font-mono">
-                    Products
+                <div className='flex gap-2'>
+                    <Button className='flex gap-2'>
+                        Active<MdExpandMore/>
+                    </Button>
+
+                    <Button className='flex gap-2'>
+                        <MdSort/>Sort
+                    </Button>
                 </div>
-                <Button
-                    onClick={toggleAddProduct}
-                >
-                    <FiPlus size={24} />
-                </Button>
-            </div>
 
-            <div className='flex items-center gap-2 max-w-[300px]'>
-                <div className='flex border border-smoke rounded-sm group/search'>
-                    <Input
-                        className='border-none focus-visible:border-none focus-within:outline-none'
-                        onChange={(e) => setCurrentSearchTerm(e.target.value)}
-                        value={currentSearchTerm}
-                    />
-                    <div className='flex items-center gap-1'>
-                        {/* Clear input */}
-                        {currentSearchTerm.length >= 1 &&
-                            <div
-                                className='cursor-pointer hidden group-hover/search:block'
-                                onClick={() => {
-                                    setCurrentSearchTerm('')
-                                    searchSearchTerm('')
-                                }}
-                            >
-                                <MdClear size={24} />
-                            </div>
-                        }
-                        {/* Search button */}
-                        <div className='cursor-pointer pr-1' onClick={() => searchSearchTerm(currentSearchTerm)}>
-                            <MdSearch size={24} />
-                        </div>
+                <div className='flex items-center gap-2'>
+                    <div className='flex max-w-50'>
+                        <InputWrapper
+                            radius='xl'
+                            className='border-none focus-visible:border-none focus-within:outline-none min-h-8'
+                            onChange={(e) => setCurrentSearchTerm(e.target.value)}
+                            value={currentSearchTerm}
+                            placeholder='Search'
+                            leftSectionPointerEvents="all"
+                            leftSection={
+                                <div className='cursor-pointer pl-2' onClick={() => searchSearchTerm(currentSearchTerm)}>
+                                    <MdSearch size={24} />
+                                </div>
+                            }
+                            rightSectionPointerEvents="all"
+                            rightSection={
+                                currentSearchTerm ? (
+                                    <Input.ClearButton
+                                    aria-label="Clear input"
+                                    onClick={() => {
+                                        setCurrentSearchTerm('')
+                                        searchSearchTerm('')
+                                    }}
+                                    />
+                                ) : null
+                            }
+                            onKeyDown={(event) => {
+                                if (event.key === 'Enter') {
+                                    setCurrentSearchTerm(currentSearchTerm)
+                                    searchSearchTerm(currentSearchTerm)
+                                }
+                            }}
+                        />
                     </div>
+
+                    <div>
+                        <AddProductModal />
+                    </div>
+
+                    {/* <div className="pr-2 cursor-pointer" onClick={getAllProducts}>
+                        <MdRefresh size={48} />
+                    </div> */}
                 </div>
-                <div className="pr-2 cursor-pointer" onClick={getAllProducts}>
-                    <MdRefresh size={36} />
-                </div>
+                {/* <div className="pr-2">
+                    <FaFilter size={24} />
+                </div> */}
             </div>
-            {/* <div className="pr-2">
-                <FaFilter size={24} />
-            </div> */}
-        </div>
+        </>
     )
 }
 

@@ -20,7 +20,13 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "erasableSyntaxOnly": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+
+    /* Import path */
+    "paths": {
+      "@/*": ["./src/*"],
+      "components/*": ["./src/components/*"]
+    }
   },
   "include": ["src"]
 }

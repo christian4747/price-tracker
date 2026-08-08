@@ -1,22 +1,41 @@
+import { Accordion } from "@mantine/core"
 import type { ProductType } from "../../../utils/Types"
 import ProductContainer from '../containers/ProductPriceListContainer'
+import { useState } from "react"
 
 type ProductListProps = {
     products: ProductType[]
 }
 
 const ProductList = ({products}: ProductListProps) => {
+
+    // Accordion state (prevents closing when tanstack refreshes)
+    const [value, setValue] = useState<string[]>([]);
+
     return (
         <>
-            <div className="flex flex-col gap-2 mb-5">
-                {products?.map((product) => {
-                    return (
-                        <ProductContainer
-                            key={product.name + product.store}
-                            product={product}
-                        />
-                    )
-                })}
+            <div className="flex pb-5 flex-col border-smoke">
+                <Accordion
+                    multiple
+                    variant="unstyled"
+                    styles={{
+                        control: { cursor: 'default' },
+                        chevron: { cursor: 'pointer' },
+                    }}
+                    chevronIconSize={24}
+                    value={value}
+                    onChange={setValue}
+                >
+                    {products?.map((product, idx) => {
+                        return (
+                            <Accordion.Item value={`item-${idx}`} key={product.name + product.store}>
+                                <ProductContainer
+                                    product={product}
+                                />
+                            </Accordion.Item>
+                        )
+                    })}
+                </Accordion>
             </div>
         </>
     )

@@ -11,7 +11,7 @@ const Modal = ({hidden, children}: Props) => {
                 "hidden fixed z-1 left-0 top-0 w-full h-full overflow-auto bg-raisin/40 items-center"
             }
         >
-            <div className="bg-cloud m-auto mt-[20vh] p-3 min-w-5/20 max-w-5/20 max-h-6/10 rounded-sm flex flex-col gap-2 justify-between text-center">
+            <div className="bg-cloud m-auto mt-[20vh] p-3 min-w-5/20 max-w-5/20 max-h-6/10 rounded-sm flex flex-col gap-2 justify-between text-center shadow-2xl">
                 {children}
             </div>
         </div>

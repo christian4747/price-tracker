@@ -34,7 +34,7 @@ type BannerProps = BannerPriceProps & {
 const Banner = ({discountPercent, price, color, text, bg}: BannerProps) => {
     return (
         <>
-            <div className={'text-cloud rounded-sm p-2 font-mono font-bold min-w-32.5 flex justify-center ' + bg}>
+            <div className={'text-cloud rounded-sm p-2 font-bold min-w-38 flex justify-center ' + bg}>
                 {text}
             </div>
 

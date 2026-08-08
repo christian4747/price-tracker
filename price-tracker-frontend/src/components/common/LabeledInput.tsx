@@ -1,6 +1,7 @@
+import type { InputProps } from "@mantine/core"
 import Input from "./Input"
 
-type Props = React.ComponentPropsWithoutRef<"input"> & {
+type Props = React.ComponentPropsWithoutRef<"input"> & InputProps &  {
     label: string
 }
 
@@ -10,14 +11,13 @@ const LabeledInput = ({children, className, required, label, ...props}: Props) =
         return (
             <>
                 <div className="flex flex-col items-start gap-1 w-full">
-                    <div className="font-bold font-mono">
+                    <div className="font-bold">
                         {label} <span className="text-red-500">*</span>
                     </div>
-                    <input
-                        className={"border border-smoke rounded-sm p-1 w-full " + className}
+                    <Input
                         {...props}
                     >
-                    </input>
+                    </Input>
                 </div>
             </>
         )
@@ -26,11 +26,10 @@ const LabeledInput = ({children, className, required, label, ...props}: Props) =
     return (
         <>
             <div className="flex flex-col items-start gap-1 w-full">
-                <div className="font-bold font-mono">
+                <div className="font-bold">
                     {label}
                 </div>
                 <Input
-                    className={"border border-smoke rounded-sm p-1 w-full " + className}
                     {...props}
                 />
             </div>

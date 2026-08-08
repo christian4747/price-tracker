@@ -1,11 +1,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import api from '../../services/api'
-import { useToggleVisibility } from '../common/useToggleVisibility'
 import { useProductDTO } from './useProductDTO'
 
 export function useAddProduct() {
-    // State for AddProductModal visibility
-    const showAddProduct = useToggleVisibility(false)
 
     // State for ProductDTO used in adding products
     const productDTO = useProductDTO(
@@ -22,7 +19,6 @@ export function useAddProduct() {
     // Mutation for adding new products
     const addProductMutation = useMutation({
         mutationFn: () => {
-            showAddProduct.toggle()
             return api.addProduct(productDTO.value)
         },
         onSuccess: (newData: any) => {
@@ -36,7 +32,6 @@ export function useAddProduct() {
     })
 
     const useAddProductProps = {
-        visibility: showAddProduct,
         mutation: addProductMutation,
         productDTO: productDTO
     }

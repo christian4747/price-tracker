@@ -1,12 +1,9 @@
 import type { ProductType } from '../../utils/Types'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import api from '../../services/api'
-import { useToggleVisibility } from '../common/useToggleVisibility'
 import { useProductDTO } from './useProductDTO'
 
 export function useEditProduct(product: ProductType) {
-    // EditProductModal visibility
-    const showEditProduct = useToggleVisibility(false)
 
     // State for ProductDTO when editing Products
     const productDTO = useProductDTO(
@@ -23,7 +20,6 @@ export function useEditProduct(product: ProductType) {
     // Mutation for editing products
     const editProductMutation = useMutation({
         mutationFn: () => {
-            showEditProduct.toggle()
             return api.editProduct(product.productId, productDTO.value)
         },
         onSuccess: (newData) => {
@@ -43,7 +39,6 @@ export function useEditProduct(product: ProductType) {
     })
 
     const useEditProductProps = {
-        visibility: showEditProduct,
         mutation: editProductMutation,
         productDTO: productDTO
     }

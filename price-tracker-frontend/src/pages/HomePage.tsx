@@ -3,7 +3,7 @@ import ProductListContainer from "../components/home/containers/ProductListConta
 function Home() {
     return (
         <>
-            <ProductListContainer />         
+            <ProductListContainer />
         </>
     )
 }

@@ -1,32 +1,27 @@
 import { FaLink } from "react-icons/fa6"
-import { MdDelete, MdEdit } from "react-icons/md"
 import type { ProductType } from "../../../utils/Types"
+import DeleteProductModal from "../modals/DeleteProductModal"
+import EditProductModal from "../modals/EditProductModal"
 
 type ProductProps = {
-    product: ProductType,
-    toggleShowEdit: () => void,
-    toggleShowDelete: () => void
+    product: ProductType
 }
 
-const Product = ({product, toggleShowEdit, toggleShowDelete}: ProductProps) => {
+const Product = ({product}: ProductProps) => {
     return (
         <>
             <div className='flex gap-3 items-baseline-last'>
-                <div className="font-bold text-3xl font-mono">
+                <div className="text-lg max-w-125 truncate untruncate">
                     {product.name}
                 </div>
-                <div className="font-mono">
+                <div className="text-raincloud">
                     {product.store}
                 </div>
                 <a className="cursor-pointer" href={product.link} target="_blank">
                     <FaLink />
                 </a>
-                <div className="hidden group-hover:block cursor-pointer" onClick={toggleShowEdit}>
-                    <MdEdit />
-                </div>
-                <div className="hidden group-hover:block cursor-pointer" onClick={toggleShowDelete}>
-                    <MdDelete />
-                </div>
+                <EditProductModal product={product}/>
+                <DeleteProductModal product={product}/>
             </div>
         </>
     )

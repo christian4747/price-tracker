@@ -6,7 +6,7 @@ type Props = React.ComponentPropsWithoutRef<"div"> & {
 
 const ModalHeader = ({children, className, toggleHidden, ...props}: Props) => {
     return (
-        <div className="text-3xl font-mono font-bold flex justify-between items-center" {...props}>
+        <div className="text-3xl font-bold flex justify-between items-center" {...props}>
             <div>{children}</div>
             <div className="cursor-pointer" onClick={toggleHidden}><MdClose/></div>
         </div>
