@@ -22,10 +22,8 @@ const DeleteProductModal = ({product}: DeleteProductModalProps) => {
             <Modal
                 title="Delete Product"
                 opened={opened}
-                onClose={() => close()}
+                onClose={close}
                 onClick={(e) => e.stopPropagation()}
-                removeScrollProps={{ enabled: false }}
-                yOffset={'20vh'}
             >
                 <Center className="flex flex-col">
                     <div className="text-xl mb-2">

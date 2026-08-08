@@ -21,6 +21,10 @@ const theme = createTheme({
                     fontWeight: 700
                 },
             },
+            defaultProps: {
+                removeScrollProps: { enabled: false },
+                yOffset: '20vh'
+            },
         }),
     },
 });
