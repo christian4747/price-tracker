@@ -1,13 +1,16 @@
-import type { PriceType, ProductType } from "../../../utils/Types"
+import { sortPricesByDateAscending } from "@/utils/PriceUtilities"
+import type { ProductType } from "../../../utils/Types"
 import AddPriceModal from "../modals/AddPriceModal"
 import Price from "./Price"
 
 type Props = {
-    sortedPrices: PriceType[]
     product: ProductType
 }
 
-const PriceList = ({sortedPrices, product}: Props) => {
+const PriceList = ({product}: Props) => {
+
+    const sortedPrices = sortPricesByDateAscending(product.prices)
+
     return (
         <>
             <div className='flex flex-col max-h-full w-3/10 border border-smoke rounded-sm overflow-hidden justify-between'>

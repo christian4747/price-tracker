@@ -3,7 +3,6 @@ import PriceBanner from "../price/PriceBanner"
 import Product from "../product/Product"
 import PriceHistoryChart from "../price/PriceHistoryChart"
 import PriceList from "../price/PriceList"
-import { usePriceData } from "@/hooks/price/usePriceData"
 import { Accordion } from "@mantine/core"
 
 type ProductProps = {
@@ -11,10 +10,6 @@ type ProductProps = {
 }
 
 const ProductContainer = ({product}: ProductProps) => {
-
-    // Hook for price data
-    const priceData = usePriceData(product)
-
     return (
         <div className='h-full w-full border-t border-smoke flex flex-col gap-2 group'>
             <Accordion.Control>
@@ -26,9 +21,6 @@ const ProductContainer = ({product}: ProductProps) => {
 
                     <div className='flex gap-3 items-center font-bold'>
                         <PriceBanner
-                            discountPercent={priceData.getMostRecentDiscount()}
-                            bannerType={priceData.getBannerType()}
-                            price={priceData.getMostRecentPrice()}
                             product={product}
                         />
                     </div>
@@ -39,11 +31,8 @@ const ProductContainer = ({product}: ProductProps) => {
             <Accordion.Panel>
                 {/* Lower content */}
                 <div className='w-full h-full flex justify-between gap-2'>
-                    <PriceHistoryChart priceData={priceData.chartPriceData} />
-                    <PriceList
-                        sortedPrices={priceData.sortedPricesByDate}
-                        product={product}
-                    />
+                    <PriceHistoryChart product={product} />
+                    <PriceList product={product}/>
                 </div>
             </Accordion.Panel>
 
