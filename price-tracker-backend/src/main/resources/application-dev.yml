@@ -16,3 +16,4 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
+    schemas: ${DEV_DATABASE_SCHEMA}
