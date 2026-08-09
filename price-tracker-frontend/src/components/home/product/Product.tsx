@@ -19,7 +19,7 @@ const Product = ({product}: ProductProps) => {
                     {product.store}
                 </div>
                 <a className="cursor-pointer" href={product.link} target="_blank">
-                    <FaLink />
+                    <Tooltip withArrow label={product.link}><FaLink /></Tooltip>
                 </a>
                 <EditProductModal product={product}/>
                 <DeleteProductModal product={product}/>
