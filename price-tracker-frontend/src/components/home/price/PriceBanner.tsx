@@ -1,12 +1,17 @@
+import type { ProductType } from '@/utils/Types'
 import '../../../styles/PriceBanner.css'
+import { Tooltip } from '@mantine/core'
+import { getLatestUpdatedPrice } from '@/utils/PriceUtilities'
+import dayjs from 'dayjs'
 
 type BannerPriceProps = {
-    discountPercent: number,
-    price: string,
-    color?: string,
+    discountPercent: number
+    price: string
+    color?: string
+    priceListLastUpdated: string
 }
 
-const BannerPrice = ({discountPercent, price, color}: BannerPriceProps) => {
+const BannerPrice = ({discountPercent, price, color, priceListLastUpdated}: BannerPriceProps) => {
     const textStyle: string = color ? color : discountPercent >= 50 ? 'good-deal' : ''
 
     return (
@@ -19,34 +24,45 @@ const BannerPrice = ({discountPercent, price, color}: BannerPriceProps) => {
             }
 
             <div className={'min-w-17.5 text-right ' + textStyle}>
-                ${price}
+                {parseInt(priceListLastUpdated) >= 7 ? 
+                    <div>
+                        $
+                        <Tooltip label={priceListLastUpdated === '1' ? `${priceListLastUpdated} day old` : `${priceListLastUpdated} days old`}>
+                            <span className='underline underline-offset-5 decoration-wavy'>{price}</span>
+                        </Tooltip>
+                    </div>
+                    :
+                    <>${price}</>
+                }
             </div>
         </>
     )
 }
 
 type BannerProps = BannerPriceProps & {
-    text: string,
-    color: string,
+    text: string
+    color: string
     bg: string
+    priceListLastUpdated: string
 }
 
-const Banner = ({discountPercent, price, color, text, bg}: BannerProps) => {
+const Banner = ({discountPercent, price, color, text, bg, priceListLastUpdated}: BannerProps) => {
     return (
         <>
             <div className={'text-cloud rounded-sm p-2 font-bold min-w-38 flex justify-center ' + bg}>
                 {text}
             </div>
 
-            <BannerPrice discountPercent={discountPercent} price={price} color={color}/>
+            <BannerPrice discountPercent={discountPercent} price={price} color={color} priceListLastUpdated={priceListLastUpdated}/>
         </>
     )
 }
 
 type PriceBannerProps = {
-    bannerType?: 'one-year' | 'two-year' | 'all-time' | '',
-    discountPercent?: number,
+    bannerType?: 'one-year' | 'two-year' | 'all-time' | ''
+    discountPercent?: number
     price?: string
+    product: ProductType
 }
 
 const PriceBanner = (props: PriceBannerProps) => {
@@ -58,11 +74,13 @@ const PriceBanner = (props: PriceBannerProps) => {
     
     const priceText = parseFloat(props.price).toFixed(2)
 
+    const priceListLastUpdated = dayjs().diff(getLatestUpdatedPrice(props.product.prices), 'day').toString()
+
     if (!props.discountPercent) 
-        return <BannerPrice discountPercent={0} price={priceText} />
+        return <BannerPrice discountPercent={0} price={priceText} priceListLastUpdated={priceListLastUpdated}/>
 
     if (!props.bannerType && props.discountPercent > 0) 
-        return <BannerPrice discountPercent={props.discountPercent} price={priceText} />
+        return <BannerPrice discountPercent={props.discountPercent} price={priceText} priceListLastUpdated={priceListLastUpdated}/>
     
     switch(props.bannerType) {
         case 'one-year':
@@ -73,6 +91,7 @@ const PriceBanner = (props: PriceBannerProps) => {
                     color="one-year"
                     bg="one-year-bg"
                     text="ONE YEAR LOW"
+                    priceListLastUpdated={priceListLastUpdated}
                 />
             )
         case 'two-year':
@@ -83,6 +102,7 @@ const PriceBanner = (props: PriceBannerProps) => {
                     color="two-year"
                     bg="two-year-bg"
                     text="TWO YEAR LOW"
+                    priceListLastUpdated={priceListLastUpdated}
                 />
             )
         case 'all-time':
@@ -93,6 +113,7 @@ const PriceBanner = (props: PriceBannerProps) => {
                     color="all-time"
                     bg="all-time-bg"
                     text="LOWEST EVER"
+                    priceListLastUpdated={priceListLastUpdated}
                 />
             )
         default:
@@ -100,6 +121,7 @@ const PriceBanner = (props: PriceBannerProps) => {
                 <BannerPrice
                     discountPercent={props.discountPercent}
                     price={priceText}
+                    priceListLastUpdated={priceListLastUpdated}
                 />
             )
     }

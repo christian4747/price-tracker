@@ -29,6 +29,7 @@ const ProductContainer = ({product}: ProductProps) => {
                             discountPercent={priceData.getMostRecentDiscount()}
                             bannerType={priceData.getBannerType()}
                             price={priceData.getMostRecentPrice()}
+                            product={product}
                         />
                     </div>
                     
