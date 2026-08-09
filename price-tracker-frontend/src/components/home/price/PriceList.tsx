@@ -1,6 +1,6 @@
 import type { PriceType, ProductType } from "../../../utils/Types"
-import PriceContainer from '../containers/PriceContainer'
 import AddPriceModal from "../modals/AddPriceModal"
+import Price from "./Price"
 
 type Props = {
     sortedPrices: PriceType[]
@@ -15,7 +15,7 @@ const PriceList = ({sortedPrices, product}: Props) => {
                     {sortedPrices?.map((price) => {
                         price.productId = product.productId
                         return (
-                            <PriceContainer
+                            <Price
                                 key={price.priceId}
                                 price={price}
                             />
