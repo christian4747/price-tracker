@@ -1,5 +1,4 @@
 
-import Input from "../../common/Input"
 import type { ProductType } from "../../../utils/Types";
 import { Button, Modal, TextInput } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
@@ -48,7 +47,7 @@ const EditProductModal = ({product}: EditPriceModalProps) => {
                     className="mb-2"
                 />
 
-                <Input className="hidden" placeholder="Initial Price"></Input>
+                {/* <Input className="hidden" placeholder="Initial Price"></Input> */}
                 <Button fullWidth className="mt-5" onClick={(e) => {mutation.mutate();close();e.stopPropagation()}}>Edit Product</Button>
             </Modal>
             <div

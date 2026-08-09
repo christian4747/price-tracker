@@ -1,5 +1,3 @@
-
-import Input from "../../common/Input"
 import { Button, Modal, TextInput } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { useAddProduct } from "@/hooks/product/useAddProduct";
@@ -41,10 +39,10 @@ const AddProductModal = () => {
                     className="mb-2"
                 />
 
-                <Input
+                {/* <Input
                     className="hidden"
                     placeholder="Initial Price"
-                />
+                /> */}
                 <Button fullWidth className="mt-5" onClick={(e) => {mutation.mutate();close();e.stopPropagation()}}>Add Product</Button>
             </Modal>
             <Button className="m-2" onClick={open}>Add Product</Button>
