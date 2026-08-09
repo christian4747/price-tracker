@@ -15,18 +15,19 @@ const getHighestPrice = (prices: PriceType[]) => {
     return highest
 }
 
-// Get the date the price list was last updated
-const getLatestUpdatedPrice = (prices: PriceType[]) => {
+// Get the date of the price last added before today
+const getLatestPriceBeforeToday = (prices: PriceType[]) => {
     if (!prices || prices.length <= 0) return dayjs()
-    let latest = dayjs(prices[0].updatedAt)
+    let latest = dayjs(prices[0].priceStarted)
+    let today = dayjs()
 
     for (const price of prices) {
-        const currentUpdatedAt = dayjs(price.updatedAt)
-        if (currentUpdatedAt.isAfter(latest)) {
-            latest = currentUpdatedAt
+        const currentPriceStarted = dayjs(price.priceStarted)
+        if (currentPriceStarted.isAfter(latest) && currentPriceStarted.isBefore(today)) {
+            latest = currentPriceStarted
         }
     }
     return latest
 }
 
-export { getHighestPrice, getLatestUpdatedPrice }
+export { getHighestPrice, getLatestPriceBeforeToday }

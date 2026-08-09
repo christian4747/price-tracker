@@ -1,7 +1,7 @@
 import type { ProductType } from '@/utils/Types'
 import '../../../styles/PriceBanner.css'
 import { Tooltip } from '@mantine/core'
-import { getLatestUpdatedPrice } from '@/utils/PriceUtilities'
+import { getLatestPriceBeforeToday } from '@/utils/PriceUtilities'
 import dayjs from 'dayjs'
 
 type BannerPriceProps = {
@@ -74,7 +74,7 @@ const PriceBanner = (props: PriceBannerProps) => {
     
     const priceText = parseFloat(props.price).toFixed(2)
 
-    const priceListLastUpdated = dayjs().diff(getLatestUpdatedPrice(props.product.prices), 'day').toString()
+    const priceListLastUpdated = dayjs().diff(getLatestPriceBeforeToday(props.product.prices), 'day').toString()
 
     if (!props.discountPercent) 
         return <BannerPrice discountPercent={0} price={priceText} priceListLastUpdated={priceListLastUpdated}/>
