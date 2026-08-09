@@ -1,0 +1,15 @@
+spring:
+  datasource:
+    url: ${DEV_DATABASE_URL}
+    username: ${DEV_DATABASE_USERNAME}
+    password: ${DEV_DATABASE_PASSWORD}
+
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+    properties:
+      hibernate:
+        default_schema: ${DEV_DATABASE_SCHEMA}
+        jdbc:
+          time_zone: UTC
