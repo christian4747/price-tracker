@@ -1,7 +1,7 @@
 
 import type { PriceType } from "../../../utils/Types";
 import { getUSDateStringFromTimestamp } from "../../../utils/DateUtilities";
-import { Button, Center, Modal } from "@mantine/core";
+import { Button, Center, Modal, Tooltip } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { MdDelete } from "react-icons/md";
 import { useDeletePrice } from "@/hooks/price/useDeletePrice";
@@ -43,7 +43,7 @@ const DeletePriceModal = ({price}: DeletePriceModalProps) => {
                     e.stopPropagation()
                 }}
             >
-                <MdDelete />
+                <Tooltip withArrow label="Delete Price"><MdDelete /></Tooltip>
             </div>
         </>
     )

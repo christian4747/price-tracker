@@ -1,7 +1,7 @@
 
 import type { ProductType } from "../../../utils/Types";
 import { useDisclosure } from "@mantine/hooks";
-import { Button, Center, Modal } from "@mantine/core";
+import { Button, Center, Modal, Tooltip } from "@mantine/core";
 import { useDeleteProduct } from "@/hooks/product/useDeleteProduct";
 import { MdDelete } from "react-icons/md";
 
@@ -44,7 +44,7 @@ const DeleteProductModal = ({product}: DeleteProductModalProps) => {
                     e.stopPropagation()
                 }}
             >
-                <MdDelete />
+                <Tooltip withArrow label="Delete Product"><MdDelete /></Tooltip>
             </div>
         </>
     )

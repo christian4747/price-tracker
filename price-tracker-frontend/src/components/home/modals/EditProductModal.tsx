@@ -1,6 +1,6 @@
 
 import type { ProductType } from "../../../utils/Types";
-import { Button, Modal, TextInput } from "@mantine/core";
+import { Button, Modal, TextInput, Tooltip } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { useEditProduct } from "@/hooks/product/useEditProduct";
 import { MdEdit } from "react-icons/md";
@@ -57,7 +57,7 @@ const EditProductModal = ({product}: EditPriceModalProps) => {
                     e.stopPropagation()
                 }}
             >
-                <MdEdit />
+                <Tooltip withArrow label="Edit Product"><MdEdit /></Tooltip>
             </div>
         </>
     )
