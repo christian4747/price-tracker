@@ -6,7 +6,6 @@ server:
 spring:
   application:
     name: "price-tracker"
-
   config:
     import:
       - "optional:file:.env[.properties]"
