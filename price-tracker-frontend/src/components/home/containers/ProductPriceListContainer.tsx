@@ -3,7 +3,6 @@ import PriceBanner from "../price/PriceBanner"
 import Product from "../product/Product"
 import PriceHistoryChart from "../price/PriceHistoryChart"
 import PriceList from "../price/PriceList"
-import { useToggleVisibility } from "@/hooks/common/useToggleVisibility"
 import { usePriceData } from "@/hooks/price/usePriceData"
 import { Accordion } from "@mantine/core"
 
@@ -13,13 +12,8 @@ type ProductProps = {
 
 const ProductContainer = ({product}: ProductProps) => {
 
-    // State for Product visibility
-    const hideProduct = useToggleVisibility(false)
-
     // Hook for price data
     const priceData = usePriceData(product)
-
-    if (hideProduct.value === true) return (<></>)
 
     return (
         <div className='h-full w-full border-t border-smoke flex flex-col gap-2 group'>
