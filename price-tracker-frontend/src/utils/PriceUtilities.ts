@@ -17,7 +17,7 @@ const getHighestPrice = (prices: PriceType[]) => {
 
 // Get the date the price list was last updated
 const getLatestUpdatedPrice = (prices: PriceType[]) => {
-    if (!prices || prices.length <= 0) return 0
+    if (!prices || prices.length <= 0) return dayjs()
     let latest = dayjs(prices[0].updatedAt)
 
     for (const price of prices) {
