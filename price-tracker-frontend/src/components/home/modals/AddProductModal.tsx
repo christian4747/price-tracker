@@ -43,7 +43,7 @@ const AddProductModal = () => {
                     className="hidden"
                     placeholder="Initial Price"
                 /> */}
-                <Button fullWidth className="mt-5" onClick={(e) => {mutation.mutate();close();e.stopPropagation()}}>Add Product</Button>
+                <Button fullWidth className="mt-5" onClick={(e) => {mutation.mutate();close();e.stopPropagation();productDTO.resetProductDTO()}}>Add Product</Button>
             </Modal>
             <Button className="m-2" onClick={open}>Add Product</Button>
         </>
