@@ -37,6 +37,7 @@ public class ProductService {
                 productDTO.getName(),
                 productDTO.getLink(),
                 productDTO.getStore(),
+                true,
                 null,
                 null,
                 null
