@@ -59,11 +59,14 @@ const AddPriceModal = ({ product }: AddPriceModalProps) => {
                     value={priceDTO.value.description}
                     className="mb-2"
                 />
-                {/* <Input
-                    placeholder="Currency"
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {setPriceDTO(prev => ({...prev, currency: e.target.value}))}}
-                    value={priceDTO.currency}
-                /> */}
+                <TextInput
+                    label="Currency"
+                    radius='xl'
+                    placeholder="ex. USD"
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {priceDTO.setPriceDTO(prev => ({...prev, currency: e.target.value}))}}
+                    value={priceDTO.value.currency}
+                    className="mb-2"
+                />
 
                 <Center>
                     <Button.Group>
