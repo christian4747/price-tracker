@@ -87,9 +87,3 @@ body {
 p {
   margin: 0;
 }
-
-.untruncate:hover {
-    overflow: visible;
-    white-space: initial;
-    text-overflow: initial;
-}

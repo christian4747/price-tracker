@@ -1,5 +1,5 @@
 import type { PriceType } from "../../../utils/Types";
-import { Button, Modal, NumberInput, TextInput } from "@mantine/core";
+import { Button, Modal, NumberInput, TextInput, Tooltip } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { DateTimePicker } from "@mantine/dates";
 import { useEditPrice } from "@/hooks/price/useEditPrice";
@@ -76,7 +76,7 @@ const EditPriceModal = ({price}: EditPriceModalProps) => {
                     e.stopPropagation()
                 }}
             >
-                <MdEdit />
+                <Tooltip withArrow label="Edit Price"><MdEdit /></Tooltip>
             </div>
         </>
     )

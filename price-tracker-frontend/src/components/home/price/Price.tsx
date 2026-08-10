@@ -1,13 +1,17 @@
 import type { PriceType } from '../../../utils/Types'
 import EditPriceModal from '../modals/EditPriceModal'
 import DeletePriceModal from '../modals/DeletePriceModal'
+import { getUSDateStringFromTimestamp } from '@/utils/DateUtilities'
 
-type Props = {
-    price: PriceType,
-    priceStartedDateString: string,
+type PriceProps = {
+    price: PriceType
 }
 
-const Price = ({price, priceStartedDateString}: Props) => {
+const Price = ({price}: PriceProps) => {
+
+    // Constructing the string to show the date on the PriceList
+    const priceStartedDateString = getUSDateStringFromTimestamp(price.priceStarted)
+
     return (
         <div className="flex justify-between even:bg-cloud group/product">
             <div className="pl-2">

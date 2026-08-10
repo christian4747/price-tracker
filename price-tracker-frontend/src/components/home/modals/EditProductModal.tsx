@@ -1,7 +1,6 @@
 
-import Input from "../../common/Input"
 import type { ProductType } from "../../../utils/Types";
-import { Button, Modal, TextInput } from "@mantine/core";
+import { Button, Modal, TextInput, Tooltip } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { useEditProduct } from "@/hooks/product/useEditProduct";
 import { MdEdit } from "react-icons/md";
@@ -48,7 +47,7 @@ const EditProductModal = ({product}: EditPriceModalProps) => {
                     className="mb-2"
                 />
 
-                <Input className="hidden" placeholder="Initial Price"></Input>
+                {/* <Input className="hidden" placeholder="Initial Price"></Input> */}
                 <Button fullWidth className="mt-5" onClick={(e) => {mutation.mutate();close();e.stopPropagation()}}>Edit Product</Button>
             </Modal>
             <div
@@ -58,7 +57,7 @@ const EditProductModal = ({product}: EditPriceModalProps) => {
                     e.stopPropagation()
                 }}
             >
-                <MdEdit />
+                <Tooltip withArrow label="Edit Product"><MdEdit /></Tooltip>
             </div>
         </>
     )

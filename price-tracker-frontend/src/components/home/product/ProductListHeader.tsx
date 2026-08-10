@@ -1,8 +1,6 @@
-import Button from '@/components/common/Button'
 import { MdExpandMore, MdSearch, MdSort } from 'react-icons/md'
 import { useState } from 'react'
-import { Input } from '@mantine/core'
-import InputWrapper from '@/components/common/Input'
+import { Button, Input } from '@mantine/core'
 import AddProductModal from '../modals/AddProductModal'
 
 type Props = {
@@ -31,7 +29,7 @@ const ProductListHeader = ({searchSearchTerm}: Props) => {
 
                 <div className='flex items-center gap-2'>
                     <div className='flex max-w-50'>
-                        <InputWrapper
+                        <Input
                             radius='xl'
                             className='border-none focus-visible:border-none focus-within:outline-none min-h-8'
                             onChange={(e) => setCurrentSearchTerm(e.target.value)}

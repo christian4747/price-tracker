@@ -25,14 +25,6 @@ const ProductListContainer = () => {
                         My Products
                     </div>
                 </div>
-
-                <div className='border-t pb-0 mb-5 pt-3 border-smoke'>
-                    <ProductListHeader
-                        getAllProducts={getAllProducts.refresh}
-                        searchSearchTerm={searchSearchTerm}
-                    />
-                </div>
-                
                 Loading...
             </>
         )
@@ -44,14 +36,6 @@ const ProductListContainer = () => {
                         My Products
                     </div>
                 </div>
-
-                <div className='border-t pb-0 mb-5 pt-3 border-smoke'>
-                    <ProductListHeader
-                        getAllProducts={getAllProducts.refresh}
-                        searchSearchTerm={searchSearchTerm}
-                    />
-                </div>
-                
                 An error occurred: {getAllProducts.query.error.message}
             </>
         )

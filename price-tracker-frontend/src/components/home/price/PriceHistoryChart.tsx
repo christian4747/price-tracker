@@ -1,8 +1,6 @@
+import { createPriceData } from '@/utils/PriceUtilities';
+import type { ProductType } from '@/utils/Types';
 import { Line, LineChart, ReferenceLine, Tooltip, XAxis, type TooltipContentProps } from 'recharts'
-
-type Props = {
-    priceData: any[]
-}
 
 const PriceHistoryTooltip = ({active, payload, label}: TooltipContentProps) => {
     const firstPayload = payload?.[0];
@@ -25,7 +23,13 @@ const PriceHistoryTooltip = ({active, payload, label}: TooltipContentProps) => {
     );
 }
 
-const PriceHistoryChart = ({priceData}: Props) => {
+type PriceHistoryChartProps = {
+    product: ProductType
+}
+
+const PriceHistoryChart = ({product}: PriceHistoryChartProps) => {
+    const priceData = createPriceData(product.prices)
+
     return (
         <div className='w-7/10 border border-smoke rounded-sm p-1'>
             <LineChart style={{ width: '100%', aspectRatio: 3}} responsive data={priceData}>
