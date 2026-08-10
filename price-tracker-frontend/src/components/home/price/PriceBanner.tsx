@@ -24,7 +24,11 @@ const PriceBanner = ({product}: PriceBannerProps) => {
     let priceText = ''
     if (latestPrice) {
         discount = getPriceDiscount(product.prices, latestPrice)
-        priceText = new Intl.NumberFormat(undefined, { style: "currency", currency: "USD" }).format(parseFloat(latestPrice.amount))
+        if (latestPrice.currency) {
+            priceText = new Intl.NumberFormat(undefined, { style: "currency", currency: latestPrice.currency }).format(parseFloat(latestPrice.amount))
+        } else {
+            priceText = new Intl.NumberFormat(undefined, { style: "currency", currency: "USD" }).format(parseFloat(latestPrice.amount))
+        }
     }
     
     switch(bannerType) {
