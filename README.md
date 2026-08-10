@@ -3,4 +3,4 @@
   
 A simple full stack web application for locally tracking price history.
 
-<img width="1920" height="947" alt="image" src="https://github.com/user-attachments/assets/87689693-7f65-4a05-8635-ca038f183d23" />
+<img width="1349" height="911" alt="price-tracker" src="https://github.com/user-attachments/assets/5aaee967-b395-4422-a2c7-3ac73903b98d" />
