@@ -1,7 +1,7 @@
 import type { ProductType } from '@/utils/Types'
 import '../../../styles/PriceBanner.css'
 import { Tooltip } from '@mantine/core'
-import { getBannerType, getLatestPriceBeforeToday, getPriceDiscount } from '@/utils/PriceUtilities'
+import { getBannerType, getLatestPriceBeforeToday, getPriceDiscount, getPriceString } from '@/utils/PriceUtilities'
 import dayjs from 'dayjs'
 
 type PriceBannerProps = {
@@ -24,11 +24,7 @@ const PriceBanner = ({product}: PriceBannerProps) => {
     let priceText = ''
     if (latestPrice) {
         discount = getPriceDiscount(product.prices, latestPrice)
-        if (latestPrice.currency) {
-            priceText = new Intl.NumberFormat(undefined, { style: "currency", currency: latestPrice.currency }).format(parseFloat(latestPrice.amount))
-        } else {
-            priceText = new Intl.NumberFormat(undefined, { style: "currency", currency: "USD" }).format(parseFloat(latestPrice.amount))
-        }
+        priceText = getPriceString(latestPrice)
     }
     
     switch(bannerType) {

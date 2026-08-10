@@ -197,6 +197,15 @@ const getMostRecentPrice = (prices: PriceType[]) => {
     return sortedPricesByDate ? sortedPricesByDate[sortedPricesByDate.length - 1]?.amount : ''
 }
 
+// Get the given amount in the given currency format, default to USD
+const getPriceString = (price: PriceType) => {
+    if (price.currency) {
+        return new Intl.NumberFormat(undefined, { style: "currency", currency: price.currency }).format(parseFloat(price.amount))
+    } else {
+        return new Intl.NumberFormat(undefined, { style: "currency", currency: "USD" }).format(parseFloat(price.amount))
+    }
+}
+
 export { 
     sortPricesByDateAscending,
     filterPricesBeforeDate,
@@ -210,5 +219,6 @@ export {
     createPriceData,
     getBannerType,
     getMostRecentDiscount,
-    getMostRecentPrice
+    getMostRecentPrice,
+    getPriceString
 }
