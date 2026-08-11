@@ -9,67 +9,45 @@ type PriceBannerProps = {
 }
 
 const PriceBanner = ({product}: PriceBannerProps) => {
-
-    // Latest price PriceType before today
-    const latestPrice = getLatestPriceBeforeToday(product.prices)
-    // Date stored in latest price
-    const latestDate = dayjs(latestPrice?.priceStarted)
-    // Number of days since last recorded price
-    const priceListLastUpdated = dayjs().diff(latestDate, 'day').toString()
+    
     // Banner type of price
     const bannerType = getBannerType(product.prices)
 
-    // Calculate discount and price string
-    let discount = 0
-    let priceText = ''
-    if (latestPrice) {
-        discount = getPriceDiscount(product.prices, latestPrice)
-        priceText = getPriceString(latestPrice)
-    }
-    
     switch(bannerType) {
         case 'one-year':
             return (
                 <Banner
-                    discountPercent={discount}
-                    priceText={priceText}
                     color="one-year"
                     bg="one-year-bg"
                     text="ONE YEAR LOW"
-                    priceListLastUpdated={priceListLastUpdated}
+                    product={product}
                 />
             )
         case 'two-year':
             return (
                 <Banner
-                    discountPercent={discount}
-                    priceText={priceText}
                     color="two-year"
                     bg="two-year-bg"
                     text="TWO YEAR LOW"
-                    priceListLastUpdated={priceListLastUpdated}
+                    product={product}
                 />
             )
         case 'all-time':
             return (
                 <Banner
-                    discountPercent={discount}
-                    priceText={priceText}
                     color="all-time"
                     bg="all-time-bg"
                     text="LOWEST EVER"
-                    priceListLastUpdated={priceListLastUpdated}
+                    product={product}
                 />
             )
         default:
             return (
                 <Banner
-                    discountPercent={discount}
-                    priceText={priceText}
                     color=""
                     bg=""
                     text=""
-                    priceListLastUpdated={priceListLastUpdated}
+                    product={product}
                 />
             )
     }
@@ -79,12 +57,32 @@ type BannerProps =  {
     text: string
     color: string
     bg: string
-    priceListLastUpdated: string
-    discountPercent: number
-    priceText: string
+    product: ProductType
 }
 
-const Banner = ({discountPercent, priceText, color, text, bg, priceListLastUpdated}: BannerProps) => {
+const Banner = ({color, text, bg, product}: BannerProps) => {
+
+    // Latest price PriceType before today
+    const latestPrice = getLatestPriceBeforeToday(product.prices)
+    // Date stored in latest price
+    const latestDate = dayjs(latestPrice?.priceStarted)
+    // Number of days since last recorded price
+    const priceListLastUpdated = dayjs().diff(latestDate, 'day').toString()
+
+    // Calculate discount and price string
+    let discountPercent = 0
+    let priceText = ''
+    let timeLeft = ''
+    if (latestPrice) {
+        discountPercent = getPriceDiscount(product.prices, latestPrice)
+        priceText = getPriceString(latestPrice)
+
+        const lastPrice = product.prices[product.prices.length - 1]
+        if (lastPrice !== latestPrice) {
+            timeLeft = dayjs(lastPrice.priceStarted).diff(dayjs(), 'day').toString()
+        }
+    }
+
 
     const textStyle: string = color ? color : discountPercent >= 50 ? 'good-deal' : ''
 
@@ -98,7 +96,20 @@ const Banner = ({discountPercent, priceText, color, text, bg, priceListLastUpdat
 
             {discountPercent > 0 ? 
                 <div className={'min-w-16.25 text-center ' + textStyle}>
-                    -{discountPercent}%
+                    {timeLeft !== '' ?
+                        <Tooltip
+                            withArrow
+                            label={
+                                timeLeft === '1' ?
+                                    <>Ends in {timeLeft} day</>
+                                    :
+                                    `Ends in ${timeLeft} days`}
+                        >
+                            <span className='underline underline-offset-5 decoration-wavy'>-{discountPercent}%</span>
+                        </Tooltip>
+                        :
+                        <>-{discountPercent}%</>
+                    }
                 </div>
                 : <></>
             }
