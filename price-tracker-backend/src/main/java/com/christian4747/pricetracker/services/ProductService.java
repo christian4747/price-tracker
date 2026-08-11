@@ -103,6 +103,7 @@ public class ProductService {
         productToUpdate.setName(productDTO.getName());
         productToUpdate.setLink(productDTO.getLink());
         productToUpdate.setStore(productDTO.getStore());
+        productToUpdate.setActive(productDTO.isActive());
 
         return productDAO.save(productToUpdate);
     }

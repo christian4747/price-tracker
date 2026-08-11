@@ -9,7 +9,8 @@ export function useAddProduct() {
         {
             name: '',
             link: '',
-            store: ''
+            store: '',
+            active: true
         }
     )
 

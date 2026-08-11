@@ -4,14 +4,16 @@ public class IncomingProductDTO {
     private String name;
     private String link;
     private String store;
+    private boolean active;
 
     public IncomingProductDTO() {
     }
 
-    public IncomingProductDTO(String name, String link, String store) {
+    public IncomingProductDTO(String name, String link, String store, boolean active) {
         this.name = name;
         this.link = link;
         this.store = store;
+        this.active = active;
     }
 
     public String getName() {
@@ -38,12 +40,21 @@ public class IncomingProductDTO {
         this.store = store;
     }
 
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
+    }
+
     @Override
     public String toString() {
         return "IncomingProductDTO{" +
                 "name='" + name + '\'' +
                 ", link='" + link + '\'' +
                 ", store='" + store + '\'' +
+                ", active=" + active +
                 '}';
     }
 }

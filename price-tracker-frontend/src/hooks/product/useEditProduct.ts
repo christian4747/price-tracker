@@ -10,7 +10,8 @@ export function useEditProduct(product: ProductType) {
         {
             name: product.name,
             store: product.store,
-            link: product.link
+            link: product.link,
+            active: product.active
         }
     )
 
