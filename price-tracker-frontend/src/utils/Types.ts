@@ -1,4 +1,5 @@
 type ProductType = {
+    active: boolean,
     productId: number,
     name: string,
     link: string,

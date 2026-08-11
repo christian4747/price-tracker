@@ -8,6 +8,8 @@ const ProductListContainer = () => {
 
     // State for tracking current searched term
     const [searchedTerm, setSearchedTerm] = useState('')
+    // State for filtering by product status
+    const [productStatusFilter, setProductStatusFilter] = useState('Active')
 
     // Hook for getting all products
     const getAllProducts = useGetAllProducts()
@@ -41,8 +43,19 @@ const ProductListContainer = () => {
         )
     }
 
+    // Product list with status filter applied
+    const filterByStatus = getAllProducts.query.data.filter((product: ProductType) => {
+        if (productStatusFilter === 'Active') {
+            return product.active
+        } else if (productStatusFilter === 'Inactive') {
+            return !product.active
+        } else {
+            return true
+        }
+    })
+
     // Product list with search term filter applied
-    const filteredProducts = getAllProducts.query.data.filter((product: ProductType) => {
+    const filteredProducts = filterByStatus.filter((product: ProductType) => {
         return product.name.toLowerCase().includes(searchedTerm.toLowerCase()) ||
             product.store.toLowerCase().includes(searchedTerm.toLowerCase())
     })
@@ -59,6 +72,8 @@ const ProductListContainer = () => {
                 <ProductListHeader
                     getAllProducts={getAllProducts.refresh}
                     searchSearchTerm={searchSearchTerm}
+                    productStatusFilter={productStatusFilter}
+                    setProductStatusFilter={setProductStatusFilter}
                 />
                 {getAllProducts.query.isSuccess && (
                     <ProductList

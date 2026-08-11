@@ -1,14 +1,16 @@
-import { MdExpandMore, MdSearch, MdSort } from 'react-icons/md'
+import { MdSearch, MdSort } from 'react-icons/md'
 import { useState } from 'react'
-import { Button, Input } from '@mantine/core'
+import { Button, Input, Menu } from '@mantine/core'
 import AddProductModal from '../modals/AddProductModal'
 
 type Props = {
     getAllProducts: () => void
     searchSearchTerm: (searchTerm: string) => void
+    productStatusFilter: string
+    setProductStatusFilter: React.Dispatch<React.SetStateAction<string>>
 }
 
-const ProductListHeader = ({searchSearchTerm}: Props) => {
+const ProductListHeader = ({searchSearchTerm, productStatusFilter, setProductStatusFilter}: Props) => {
 
     // State for tracking current input value
     const [currentSearchTerm, setCurrentSearchTerm] = useState('')
@@ -18,9 +20,22 @@ const ProductListHeader = ({searchSearchTerm}: Props) => {
             <div className="flex items-center gap-2 justify-between mb-3">
 
                 <div className='flex gap-2'>
-                    <Button className='flex gap-2'>
-                        Active<MdExpandMore/>
-                    </Button>
+                    <Menu>
+                        <Menu.Target>
+                            <Button className='flex gap-2 min-w-27.5'>
+                                {productStatusFilter}
+                            </Button>
+                        </Menu.Target>
+
+                        <Menu.Dropdown>
+                            <Menu.Label>Status</Menu.Label>
+                            <Menu.RadioGroup value={productStatusFilter} onChange={setProductStatusFilter}>
+                                <Menu.RadioItem value="All">All</Menu.RadioItem>
+                                <Menu.RadioItem value="Active">Active</Menu.RadioItem>
+                                <Menu.RadioItem value="Inactive">Inactive</Menu.RadioItem>
+                            </Menu.RadioGroup>
+                        </Menu.Dropdown>
+                    </Menu>
 
                     <Button className='flex gap-2'>
                         <MdSort/>Sort
