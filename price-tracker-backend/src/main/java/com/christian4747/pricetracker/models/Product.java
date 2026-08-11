@@ -24,6 +24,9 @@ public class Product {
 
     private String store;
 
+    @Column(nullable = false)
+    private boolean active = true;
+
     @CreationTimestamp
     private Timestamp createdAt;
 
@@ -37,11 +40,12 @@ public class Product {
     public Product() {
     }
 
-    public Product(int productId, String name, String link, String store, Timestamp createdAt, Timestamp updatedAt, List<Price> prices) {
+    public Product(int productId, String name, String link, String store, boolean active, Timestamp createdAt, Timestamp updatedAt, List<Price> prices) {
         this.productId = productId;
         this.name = name;
         this.link = link;
         this.store = store;
+        this.active = active;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
         this.prices = prices;
@@ -79,6 +83,14 @@ public class Product {
         this.store = store;
     }
 
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
+    }
+
     public Timestamp getCreatedAt() {
         return createdAt;
     }
@@ -110,6 +122,7 @@ public class Product {
                 ", name='" + name + '\'' +
                 ", link='" + link + '\'' +
                 ", store='" + store + '\'' +
+                ", active=" + active +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
                 ", prices=" + prices +

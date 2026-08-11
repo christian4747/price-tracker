@@ -1,6 +1,6 @@
 
 import type { ProductType } from "../../../utils/Types";
-import { Button, Modal, TextInput, Tooltip } from "@mantine/core";
+import { Button, Modal, Switch, TextInput, Tooltip } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { useEditProduct } from "@/hooks/product/useEditProduct";
 import { MdEdit } from "react-icons/md";
@@ -45,6 +45,11 @@ const EditProductModal = ({product}: EditPriceModalProps) => {
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => {productDTO.setProductDTO(prev => ({...prev, link: e.target.value}))}}
                     value={productDTO.value.link}
                     className="mb-2"
+                />
+                <Switch
+                    label='Active'
+                    checked={productDTO.value.active}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {productDTO.setProductDTO(prev => ({...prev, active: e.target.checked}))}}
                 />
 
                 {/* <Input className="hidden" placeholder="Initial Price"></Input> */}

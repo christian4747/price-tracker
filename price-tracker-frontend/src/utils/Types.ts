@@ -1,4 +1,5 @@
 type ProductType = {
+    active: boolean,
     productId: number,
     name: string,
     link: string,
@@ -36,7 +37,8 @@ type PriceModalProps = ModalProps & {
 type ProductDTO = {
     name: string,
     store: string,
-    link: string
+    link: string,
+    active: boolean
 }
 
 type PriceDTO = {

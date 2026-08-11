@@ -10,7 +10,8 @@ export function useProductDTO(initialState: ProductDTO) {
             {
                 name: '',
                 link: '',
-                store: ''
+                store: '',
+                active: true
             }
         )
     }

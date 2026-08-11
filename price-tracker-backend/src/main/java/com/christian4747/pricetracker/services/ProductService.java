@@ -37,6 +37,7 @@ public class ProductService {
                 productDTO.getName(),
                 productDTO.getLink(),
                 productDTO.getStore(),
+                true,
                 null,
                 null,
                 null
@@ -102,6 +103,7 @@ public class ProductService {
         productToUpdate.setName(productDTO.getName());
         productToUpdate.setLink(productDTO.getLink());
         productToUpdate.setStore(productDTO.getStore());
+        productToUpdate.setActive(productDTO.isActive());
 
         return productDAO.save(productToUpdate);
     }

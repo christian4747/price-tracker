@@ -1,4 +1,4 @@
-import { Button, Modal, TextInput } from "@mantine/core";
+import { Button, Modal, Switch, TextInput } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { useAddProduct } from "@/hooks/product/useAddProduct";
 
@@ -37,6 +37,11 @@ const AddProductModal = () => {
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => {productDTO.setProductDTO(prev => ({...prev, link: e.target.value}))}}
                     value={productDTO.value.link}
                     className="mb-2"
+                />
+                <Switch
+                    label='Active'
+                    checked={productDTO.value.active}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {productDTO.setProductDTO(prev => ({...prev, active: e.target.checked}))}}
                 />
 
                 {/* <Input
