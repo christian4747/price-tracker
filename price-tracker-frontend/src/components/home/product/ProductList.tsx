@@ -2,14 +2,16 @@ import { Accordion } from "@mantine/core"
 import type { ProductType } from "../../../utils/Types"
 import ProductContainer from '../containers/ProductPriceListContainer'
 import { useState } from "react"
+import { useDebounce } from "@/hooks/common/useDebounce"
 
 type ProductListProps = {
     products: ProductType[]
-    dateToday: Date
-    setDateToday: (newVal: Date) => void
 }
 
-const ProductList = ({products, dateToday, setDateToday}: ProductListProps) => {
+const ProductList = ({products}: ProductListProps) => {
+
+    // Debounce for setting list's today's date state
+    const {value: dateToday, setValueWithDebounce: setDateToday} = useDebounce(new Date())
 
     // Accordion state (prevents closing when tanstack refreshes)
     const [value, setValue] = useState<string[]>([]);
