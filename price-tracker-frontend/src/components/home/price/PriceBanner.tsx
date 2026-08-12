@@ -13,6 +13,7 @@ type BannerStyle = {
     text: string
 }
 
+// Returns the appropriate color, bg, and text depending on the given banner type string
 const getBannerStyle = (bannerType: string): BannerStyle => {
     switch(bannerType) {
         case 'one-year':
@@ -67,20 +68,22 @@ const PriceBanner = ({ product, dateToday, setDateToday }: PriceBannerProps) => 
                     <Tooltip
                         withArrow
                         label={
-                            <>
-                                <div className='flex flex-col items-center'>
-                                    <div>
-                                        Ends in
-                                    </div>
-                                    <div>
-                                        {timerText}
-                                    </div>
+                            <div className='flex flex-col items-center'>
+                                <div>
+                                    Ends in
                                 </div>
-                            </>
+                                <div>
+                                    {timerText}
+                                </div>
+                            </div>
                         }
                     >
-                        {parseInt(timeLeft) >= 1 ? <MdTimer size={24} className='text-amber-400'/> : <MdTimer size={24} className='text-red-400'/>}
-                        </Tooltip>
+                        {parseInt(timeLeft) >= 1 ?
+                            <MdTimer size={24} className='text-amber-400'/>
+                            :
+                            <MdTimer size={24} className='text-red-400'/>
+                        }
+                    </Tooltip>
                 </div>
             }
 
