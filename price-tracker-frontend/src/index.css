@@ -1,5 +1,9 @@
-@import url('https://googleapis.com');
 @import "tailwindcss";
+
+@font-face {
+    font-family: 'Inter';
+    src: url(./fonts/Inter.ttf)
+}
 
 @theme {
     --color-raisin: #332933;
