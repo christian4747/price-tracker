@@ -1,15 +1,16 @@
 import type { ProductType } from '@/utils/Types'
-import '../../../styles/PriceBanner.css'
+import '@/styles/PriceBanner.css'
 import { Tooltip } from '@mantine/core'
 import { getBannerType, getLatestPriceBeforeToday, getPriceDiscount, getPriceString } from '@/utils/PriceUtilities'
 import dayjs from 'dayjs'
+import { useTimer } from '@/hooks/common/useTimer'
 
 type PriceBannerProps = {
     product: ProductType
 }
 
 const PriceBanner = ({product}: PriceBannerProps) => {
-    
+
     // Banner type of price
     const bannerType = getBannerType(product.prices)
 
@@ -72,7 +73,9 @@ const Banner = ({color, text, bg, product}: BannerProps) => {
     // Calculate discount and price string
     let discountPercent = 0
     let priceText = ''
+    // Calculate the time left for timer
     let timeLeft = ''
+    let timer
     if (latestPrice) {
         discountPercent = getPriceDiscount(product.prices, latestPrice)
         priceText = getPriceString(latestPrice)
@@ -80,9 +83,9 @@ const Banner = ({color, text, bg, product}: BannerProps) => {
         const lastPrice = product.prices[product.prices.length - 1]
         if (lastPrice !== latestPrice) {
             timeLeft = dayjs(lastPrice.priceStarted).diff(dayjs(), 'day').toString()
+            timer = useTimer(dayjs(lastPrice.priceStarted).valueOf() / 1000)
         }
     }
-
 
     const textStyle: string = color ? color : discountPercent >= 50 ? 'good-deal' : ''
 
@@ -96,16 +99,35 @@ const Banner = ({color, text, bg, product}: BannerProps) => {
 
             {discountPercent > 0 ? 
                 <div className={'min-w-16.25 text-center ' + textStyle}>
-                    {timeLeft !== '' ?
+                    {timeLeft !== '' && timer !== undefined ?
                         <Tooltip
                             withArrow
                             label={
                                 timeLeft === '1' ?
-                                    <>Ends in {timeLeft} day</>
+                                    <>
+                                        <div className='flex flex-col items-center'>
+                                            <div>
+                                                Ends in {timeLeft} day
+                                            </div>
+                                            <div>
+                                                {timer.value}
+                                            </div>
+                                        </div>
+                                    </>
                                     :
-                                    `Ends in ${timeLeft} days`}
+                                    <>
+                                        <div className='flex flex-col items-center'>
+                                            <div>
+                                                Ends in {timeLeft} days
+                                            </div>
+                                            <div>
+                                                {timer.value}
+                                            </div>
+                                        </div>
+                                    </>
+                            }
                         >
-                            <span className='underline underline-offset-5 decoration-wavy'>-{discountPercent}%</span>
+                            <span className='border-b-2 border-red-400'>-{discountPercent}%</span>
                         </Tooltip>
                         :
                         <>-{discountPercent}%</>
