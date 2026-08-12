@@ -123,7 +123,7 @@ const Banner = ({color, text, bg, product}: BannerProps) => {
                                     </>
                             }
                         >
-                            <MdTimer size={24} className='text-amber-400'/>
+                        {parseInt(timeLeft) >= 1 ? <MdTimer size={24} className='text-amber-400'/> : <MdTimer size={24} className='text-red-400'/>}
                         </Tooltip>
                 </div>
                 :
