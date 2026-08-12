@@ -63,6 +63,7 @@ const PriceBanner = ({ product, dateToday, setDateToday }: PriceBannerProps) => 
 
     return (
         <>
+            {/* Timer text */}
             {timerText !== '' &&
                 <div>
                     <Tooltip
@@ -87,18 +88,21 @@ const PriceBanner = ({ product, dateToday, setDateToday }: PriceBannerProps) => 
                 </div>
             }
 
+            {/* Price banner */}
             {text.length > 0 &&
                 <div className={'text-cloud rounded-sm p-2 font-bold min-w-38 flex justify-center ' + bg}>
                     {text}
                 </div>
             }
 
+            {/* Discount percentage */}
             {discountPercent > 0 && 
                 <div className={'min-w-16.25 text-center ' + textStyle}>
                     <>-{discountPercent}%</>
                 </div>
             }
-            
+
+            {/* Price text */}
             <div className={'min-w-17.5 text-right ' + textStyle}>
                 {priceText?.length > 0 && parseInt(priceListLastUpdated) >= 7 ? 
                     <div>
