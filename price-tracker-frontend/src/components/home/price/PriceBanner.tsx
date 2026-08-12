@@ -109,7 +109,7 @@ const Banner = ({color, text, bg, product}: BannerProps) => {
                                     <>
                                         <div className='flex flex-col items-center'>
                                             <div>
-                                                Ends in {timeLeft} day
+                                                Ends in
                                             </div>
                                             <div>
                                                 {timer.value}
@@ -120,7 +120,7 @@ const Banner = ({color, text, bg, product}: BannerProps) => {
                                     <>
                                         <div className='flex flex-col items-center'>
                                             <div>
-                                                Ends in {timeLeft} days
+                                                Ends in
                                             </div>
                                             <div>
                                                 {timer.value}

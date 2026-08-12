@@ -4,8 +4,13 @@ const formatTime = (time: number) => {
     const days = Math.floor(time / 86400)
     const hours = Math.floor(time % 86400 / 3600)
     const mins = Math.floor(time % 3600 / 60)
-    const secs = time % 60
-    return `${days.toString().padStart(2, '0')}:${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+    // const secs = time % 60
+
+    const dayString = days > 1 ? `${days.toString()} days, ` : `${days.toString()} day, `
+    const hourString = hours > 1 ? `${hours.toString()} hours, ` : `${hours.toString()} hour, `
+    const minsString = mins > 1 ? `and ${mins.toString()} minutes` : `and ${mins.toString()} minute`
+
+    return dayString + hourString + minsString
 }
 
 export function useTimer(endMs: number) {
@@ -25,7 +30,7 @@ export function useTimer(endMs: number) {
                     return Math.floor(prev - now)
                 })
                 setTimeText(formatTime(secondsLeftTilEnd))
-            }, 500)
+            }, 60000)
         } else if (secondsLeftTilEnd <= 0) {
             clearInterval(timerRef.current)
         }
