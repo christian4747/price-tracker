@@ -1,7 +1,7 @@
 import type { ProductType } from '@/utils/Types'
 import '@/styles/PriceBanner.css'
 import { Tooltip } from '@mantine/core'
-import { getBannerType, getLatestPriceBeforeToday, getPriceDiscount, getPriceString } from '@/utils/PriceUtilities'
+import { getBannerType, getLatestPriceAfterToday, getLatestPriceBeforeToday, getPriceDiscount, getPriceString } from '@/utils/PriceUtilities'
 import dayjs from 'dayjs'
 import { useTimer } from '@/hooks/common/useTimer'
 
@@ -73,18 +73,18 @@ const Banner = ({color, text, bg, product}: BannerProps) => {
     // Calculate discount and price string
     let discountPercent = 0
     let priceText = ''
-    // Calculate the time left for timer
-    let timeLeft = ''
-    let timer
     if (latestPrice) {
         discountPercent = getPriceDiscount(product.prices, latestPrice)
         priceText = getPriceString(latestPrice)
+    }
 
-        const lastPrice = product.prices[product.prices.length - 1]
-        if (lastPrice !== latestPrice) {
-            timeLeft = dayjs(lastPrice.priceStarted).diff(dayjs(), 'day').toString()
-            timer = useTimer(dayjs(lastPrice.priceStarted).valueOf() / 1000)
-        }
+    // Calculate the time left for timer
+    let timeLeft = ''
+    let timer
+    const lastPrice = getLatestPriceAfterToday(product.prices)
+    if (lastPrice && lastPrice !== latestPrice) {
+        timeLeft = dayjs(lastPrice.priceStarted).diff(dayjs(), 'day').toString()
+        timer = useTimer(dayjs(lastPrice.priceStarted).valueOf() / 1000)
     }
 
     const textStyle: string = color ? color : discountPercent >= 50 ? 'good-deal' : ''

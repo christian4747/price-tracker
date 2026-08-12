@@ -44,7 +44,26 @@ const getHighestPrice = (prices: PriceType[]) => {
     return highest
 }
 
-// Get the date of the price last added before today
+// Get the first price after today
+const getLatestPriceAfterToday = (prices: PriceType[]) => {
+    if (!prices || prices.length <= 0) return
+    let latestPrice = prices[0]
+    let latest = dayjs(prices[0].priceStarted)
+    let today = dayjs()
+
+    for (const price of prices) {
+        const currentPriceStarted = dayjs(price.priceStarted)
+        if (currentPriceStarted.isAfter(today)) {
+            latest = currentPriceStarted
+            latestPrice = price
+            return latestPrice
+        }
+    }
+
+    return undefined
+}
+
+// Get the first price before today
 const getLatestPriceBeforeToday = (prices: PriceType[]) => {
     if (!prices || prices.length <= 0) return
     let latestPrice = prices[0]
@@ -210,6 +229,7 @@ export {
     sortPricesByDateAscending,
     filterPricesBeforeDate,
     getHighestPrice,
+    getLatestPriceAfterToday,
     getLatestPriceBeforeToday,
     getPriceDiscount,
     getPercentage,
