@@ -84,7 +84,9 @@ const Banner = ({color, text, bg, product}: BannerProps) => {
     const lastPrice = getLatestPriceAfterToday(product.prices)
     if (lastPrice && lastPrice !== latestPrice) {
         timeLeft = dayjs(lastPrice.priceStarted).diff(dayjs(), 'day').toString()
-        timer = useTimer(dayjs(lastPrice.priceStarted).valueOf() / 1000)
+        if (parseInt(timeLeft) <= 7) {
+            timer = useTimer(dayjs(lastPrice.priceStarted).valueOf() / 1000)
+        }
     }
 
     const textStyle: string = color ? color : discountPercent >= 50 ? 'good-deal' : ''
