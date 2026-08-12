@@ -3,7 +3,7 @@ import '@/styles/PriceBanner.css'
 import { Tooltip } from '@mantine/core'
 import { getPriceDiscount, getPriceString } from '@/utils/PriceUtilities'
 import dayjs from 'dayjs'
-import { useTimer } from '@/hooks/common/useTimer'
+import { usePriceTimer } from '@/hooks/price/usePriceTimer'
 import { MdTimer } from 'react-icons/md'
 import { usePriceData } from '@/hooks/price/usePriceData'
 
@@ -56,7 +56,7 @@ const PriceBanner = ({ product, dateToday, setDateToday }: PriceBannerProps) => 
     // Calculate the time left for timer
     let timeLeft = ''
     const lastPrice = priceData.getLatestPriceAfterToday(product.prices)
-    let timerText = useTimer(dayjs(lastPrice?.priceStarted).valueOf() / 1000, setDateToday)
+    let timerText = usePriceTimer(dayjs(lastPrice?.priceStarted).valueOf() / 1000, setDateToday)
     if (lastPrice && lastPrice !== latestPrice) {
         timeLeft = dayjs(lastPrice.priceStarted).diff(dayjs(), 'day').toString()
     }

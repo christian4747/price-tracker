@@ -24,7 +24,7 @@ const formatTime = (time: number | undefined) => {
     return dayString + hourString + minsString + andSecsString + secsString
 }
 
-export function useTimer(endMs: number, setDateToday: any) {
+export function usePriceTimer(endMs: number, setDateToday: any) {
 
     // Check if there exists a date after today for an ending deal
     let now = Date.now() / 1000
