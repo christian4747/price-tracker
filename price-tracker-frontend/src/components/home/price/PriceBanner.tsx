@@ -4,6 +4,7 @@ import { Tooltip } from '@mantine/core'
 import { getBannerType, getLatestPriceAfterToday, getLatestPriceBeforeToday, getPriceDiscount, getPriceString } from '@/utils/PriceUtilities'
 import dayjs from 'dayjs'
 import { useTimer } from '@/hooks/common/useTimer'
+import { MdTimer } from 'react-icons/md'
 
 type PriceBannerProps = {
     product: ProductType
@@ -93,16 +94,9 @@ const Banner = ({color, text, bg, product}: BannerProps) => {
 
     return (
         <>
-            {text.length > 0 &&
-                <div className={'text-cloud rounded-sm p-2 font-bold min-w-38 flex justify-center ' + bg}>
-                    {text}
-                </div>
-            }
-
-            {discountPercent > 0 ? 
-                <div className={'min-w-16.25 text-center ' + textStyle}>
-                    {timeLeft !== '' && timer !== undefined ?
-                        <Tooltip
+            {timer !== undefined ?
+                <div>
+                    <Tooltip
                             withArrow
                             label={
                                 timeLeft === '1' ?
@@ -129,11 +123,22 @@ const Banner = ({color, text, bg, product}: BannerProps) => {
                                     </>
                             }
                         >
-                            <span className='border-b-2 border-red-400'>-{discountPercent}%</span>
+                            <MdTimer size={24} className='text-amber-400'/>
                         </Tooltip>
-                        :
+                </div>
+                :
+                <></>
+            }
+
+            {text.length > 0 &&
+                <div className={'text-cloud rounded-sm p-2 font-bold min-w-38 flex justify-center ' + bg}>
+                    {text}
+                </div>
+            }
+
+            {discountPercent > 0 ? 
+                <div className={'min-w-16.25 text-center ' + textStyle}>
                         <>-{discountPercent}%</>
-                    }
                 </div>
                 : <></>
             }
