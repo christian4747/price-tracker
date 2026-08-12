@@ -5,9 +5,11 @@ import { useState } from "react"
 
 type ProductListProps = {
     products: ProductType[]
+    dateToday: Date
+    setDateToday: (newVal: Date) => void
 }
 
-const ProductList = ({products}: ProductListProps) => {
+const ProductList = ({products, dateToday, setDateToday}: ProductListProps) => {
 
     // Accordion state (prevents closing when tanstack refreshes)
     const [value, setValue] = useState<string[]>([]);
@@ -31,6 +33,8 @@ const ProductList = ({products}: ProductListProps) => {
                             <Accordion.Item value={`item-${idx}`} key={product.name + product.store}>
                                 <ProductContainer
                                     product={product}
+                                    dateToday={dateToday}
+                                    setDateToday={setDateToday}
                                 />
                             </Accordion.Item>
                         )

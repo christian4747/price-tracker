@@ -7,9 +7,11 @@ import { Accordion } from "@mantine/core"
 
 type ProductProps = {
     product: ProductType
+    dateToday: Date
+    setDateToday: (newVal: Date) => void
 }
 
-const ProductContainer = ({product}: ProductProps) => {
+const ProductContainer = ({product, dateToday, setDateToday}: ProductProps) => {
     return (
         <div className='h-full w-full border-t border-smoke flex flex-col gap-2 group'>
             <Accordion.Control>
@@ -22,6 +24,8 @@ const ProductContainer = ({product}: ProductProps) => {
                     <div className='flex gap-3 items-center font-bold'>
                         <PriceBanner
                             product={product}
+                            dateToday={dateToday}
+                            setDateToday={setDateToday}
                         />
                     </div>
                     
@@ -31,11 +35,15 @@ const ProductContainer = ({product}: ProductProps) => {
             <Accordion.Panel>
                 {/* Lower content */}
                 <div className='w-full h-full flex justify-between gap-2'>
-                    <PriceHistoryChart product={product} />
-                    <PriceList product={product}/>
+                    <PriceHistoryChart
+                        product={product}
+                        dateToday={dateToday}
+                    />
+                    <PriceList
+                        product={product}
+                    />
                 </div>
             </Accordion.Panel>
-
         </div>
     )
 }

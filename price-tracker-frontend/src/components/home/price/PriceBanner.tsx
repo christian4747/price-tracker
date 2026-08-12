@@ -1,19 +1,22 @@
 import type { ProductType } from '@/utils/Types'
 import '@/styles/PriceBanner.css'
 import { Tooltip } from '@mantine/core'
-import { getBannerType, getLatestPriceAfterToday, getLatestPriceBeforeToday, getPriceDiscount, getPriceString } from '@/utils/PriceUtilities'
+import { getPriceDiscount, getPriceString } from '@/utils/PriceUtilities'
 import dayjs from 'dayjs'
 import { useTimer } from '@/hooks/common/useTimer'
 import { MdTimer } from 'react-icons/md'
+import { usePriceData } from '@/hooks/price/usePriceData'
 
 type PriceBannerProps = {
     product: ProductType
+    dateToday: Date
+    setDateToday: (newVal: Date) => void
 }
 
-const PriceBanner = ({product}: PriceBannerProps) => {
+const PriceBanner = ({ product, dateToday, setDateToday }: PriceBannerProps) => {
 
     // Banner type of price
-    const bannerType = getBannerType(product.prices)
+    const bannerType = usePriceData(dateToday).getBannerType(product.prices)
 
     switch(bannerType) {
         case 'one-year':
@@ -23,6 +26,8 @@ const PriceBanner = ({product}: PriceBannerProps) => {
                     bg="one-year-bg"
                     text="ONE YEAR LOW"
                     product={product}
+                    dateToday={dateToday}
+                    setDateToday={setDateToday}
                 />
             )
         case 'two-year':
@@ -32,6 +37,8 @@ const PriceBanner = ({product}: PriceBannerProps) => {
                     bg="two-year-bg"
                     text="TWO YEAR LOW"
                     product={product}
+                    dateToday={dateToday}
+                    setDateToday={setDateToday}
                 />
             )
         case 'all-time':
@@ -41,6 +48,8 @@ const PriceBanner = ({product}: PriceBannerProps) => {
                     bg="all-time-bg"
                     text="LOWEST EVER"
                     product={product}
+                    dateToday={dateToday}
+                    setDateToday={setDateToday}
                 />
             )
         default:
@@ -50,6 +59,8 @@ const PriceBanner = ({product}: PriceBannerProps) => {
                     bg=""
                     text=""
                     product={product}
+                    dateToday={dateToday}
+                    setDateToday={setDateToday}
                 />
             )
     }
@@ -60,69 +71,68 @@ type BannerProps =  {
     color: string
     bg: string
     product: ProductType
+    dateToday: Date
+    setDateToday: (newVal: Date) => void
 }
 
-const Banner = ({color, text, bg, product}: BannerProps) => {
+const Banner = ({ color, text, bg, product, dateToday, setDateToday }: BannerProps) => {
+
+    const priceData = usePriceData(dateToday)
 
     // Latest price PriceType before today
-    const latestPrice = getLatestPriceBeforeToday(product.prices)
+    const latestPrice = priceData.getLatestPriceBeforeToday(product.prices)
     // Date stored in latest price
     const latestDate = dayjs(latestPrice?.priceStarted)
     // Number of days since last recorded price
     const priceListLastUpdated = dayjs().diff(latestDate, 'day').toString()
 
+    const discountPercent = getPriceDiscount(product.prices, latestPrice)
+
     // Calculate discount and price string
-    let discountPercent = 0
     let priceText = ''
-    if (latestPrice) {
-        discountPercent = getPriceDiscount(product.prices, latestPrice)
-        priceText = getPriceString(latestPrice)
-    }
+    priceText = getPriceString(latestPrice)
 
     // Calculate the time left for timer
     let timeLeft = ''
-    let timer
-    const lastPrice = getLatestPriceAfterToday(product.prices)
+    const lastPrice = priceData.getLatestPriceAfterToday(product.prices)
+    let timerText = useTimer(dayjs(lastPrice?.priceStarted).valueOf() / 1000, setDateToday)
     if (lastPrice && lastPrice !== latestPrice) {
         timeLeft = dayjs(lastPrice.priceStarted).diff(dayjs(), 'day').toString()
-        if (parseInt(timeLeft) <= 7) {
-            timer = useTimer(dayjs(lastPrice.priceStarted).valueOf() / 1000)
-        }
     }
 
     const textStyle: string = color ? color : discountPercent >= 50 ? 'good-deal' : ''
 
     return (
         <>
-            {timer !== undefined ?
+            {timerText !== '' ?
                 <div>
                     <Tooltip
-                            withArrow
-                            label={
-                                timeLeft === '1' ?
-                                    <>
-                                        <div className='flex flex-col items-center'>
-                                            <div>
-                                                Ends in
-                                            </div>
-                                            <div>
-                                                {timer.value}
-                                            </div>
+                        withArrow
+                        label={
+                            timeLeft === '1' ?
+                                <>
+                                    <div className='flex flex-col items-center'>
+                                        <div>
+                                            Ends in
                                         </div>
-                                    </>
-                                    :
-                                    <>
-                                        <div className='flex flex-col items-center'>
-                                            <div>
-                                                Ends in
-                                            </div>
-                                            <div>
-                                                {timer.value}
-                                            </div>
+                                        <div>
+                                            {timerText}
                                         </div>
-                                    </>
-                            }
-                        >
+                                    </div>
+                                </>
+                                :
+                                <>
+                                    <div className='flex flex-col items-center'>
+                                        <div>
+                                            Ends in
+                                        </div>
+                                        <div>
+                                            {timerText}
+                                        </div>
+                                    </div>
+                                </>
+                        }
+                    >
                         {parseInt(timeLeft) >= 1 ? <MdTimer size={24} className='text-amber-400'/> : <MdTimer size={24} className='text-red-400'/>}
                         </Tooltip>
                 </div>
@@ -142,7 +152,7 @@ const Banner = ({color, text, bg, product}: BannerProps) => {
                 </div>
                 : <></>
             }
-
+            
             <div className={'min-w-17.5 text-right ' + textStyle}>
                 {priceText?.length > 0 ? parseInt(priceListLastUpdated) >= 7 ? 
                     <div>
@@ -155,6 +165,7 @@ const Banner = ({color, text, bg, product}: BannerProps) => {
                     : <></>
                 }
             </div>
+            
         </>
     )
 }

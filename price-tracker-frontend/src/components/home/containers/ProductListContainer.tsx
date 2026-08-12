@@ -3,8 +3,11 @@ import ProductListHeader from '../product/ProductListHeader'
 import { useGetAllProducts } from '../../../hooks/product/useGetAllProducts'
 import { useState } from 'react'
 import type { ProductType } from '../../../utils/Types'
+import { useDebounce } from '@/hooks/common/useDebounce'
 
 const ProductListContainer = () => {
+
+    const {value: dateToday, setValueWithDebounce: setDateToday} = useDebounce(new Date())
 
     // State for tracking current searched term
     const [searchedTerm, setSearchedTerm] = useState('')
@@ -78,6 +81,8 @@ const ProductListContainer = () => {
                 {getAllProducts.query.isSuccess && (
                     <ProductList
                         products={filteredProducts}
+                        dateToday={dateToday}
+                        setDateToday={setDateToday}
                     />
                 )}
             </div>
