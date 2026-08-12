@@ -1,6 +1,6 @@
 import { Accordion } from "@mantine/core"
 import type { ProductType } from "../../../utils/Types"
-import ProductContainer from '../containers/ProductPriceListContainer'
+import ProductContainer from '../containers/ProductContainer'
 import { useState } from "react"
 import { useDebounce } from "@/hooks/common/useDebounce"
 
