@@ -11,9 +11,10 @@ import { useState } from 'react'
 
 type AddPriceModalProps = {
     product: ProductType
+    setDateToday: (newVal: Date) => void
 }
 
-const AddPriceModal = ({ product }: AddPriceModalProps) => {
+const AddPriceModal = ({ product, setDateToday }: AddPriceModalProps) => {
 
     // Track state of modal open/close
     const [opened, { open, close }] = useDisclosure(false)
@@ -122,6 +123,7 @@ const AddPriceModal = ({ product }: AddPriceModalProps) => {
                         () => {
                             useEndDate || priceDTO.value.priceEnded?.length === 0 ? multiMutation.mutate() : singleMutation.mutate()
                             close()
+                            setDateToday(new Date())
                         }
                     }
                 >
