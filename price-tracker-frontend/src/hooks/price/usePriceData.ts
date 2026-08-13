@@ -24,7 +24,8 @@ export function usePriceData(dateToday: Date) {
                     priceId: price.priceId,
                     priceStarted: localizeFormatDayjs(getLocalDateFromUTC(new Date(price.priceStarted)), 'lll'),
                     price: price.amount,
-                    description: price.description
+                    description: price.description,
+                    currency: price.currency
                 }
             }
         )
@@ -34,7 +35,8 @@ export function usePriceData(dateToday: Date) {
                 priceId: -1,
                 priceStarted: 'Now',
                 price: sortedPricesByDate[todayIndex - 1].amount,
-                description: sortedPricesByDate[todayIndex - 1].description
+                description: sortedPricesByDate[todayIndex - 1].description,
+                currency: sortedPricesByDate[todayIndex - 1].currency
             }
         )
 
