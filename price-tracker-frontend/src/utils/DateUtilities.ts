@@ -5,11 +5,6 @@ import localizedFormat from 'dayjs/plugin/localizedFormat'
 dayjs.extend(utc)
 dayjs.extend(localizedFormat)
 
-// Converts backend Java timestamps to frontend timestamps
-const javaTimestampToJS = (timestamp: string) => {
-    return timestamp?.slice(0, -8)
-}
-
 // Returns the given timestamp as a US date
 const getUSDateStringFromTimestamp = (timestamp: string) => {
     const priceStartedDate = new Date(timestamp)
@@ -26,4 +21,4 @@ const localizeFormatDayjs = (toFormat: dayjs.Dayjs, stringFormat: string) => {
     return toFormat.format(stringFormat)
 }
 
-export { javaTimestampToJS, getUSDateStringFromTimestamp, getLocalDateFromUTC, localizeFormatDayjs }
+export { getUSDateStringFromTimestamp, getLocalDateFromUTC, localizeFormatDayjs }
