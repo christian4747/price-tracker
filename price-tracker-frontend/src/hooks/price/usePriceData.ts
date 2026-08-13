@@ -1,3 +1,4 @@
+import { getLocalDateFromUTC, localizeFormatDayjs } from "@/utils/DateUtilities"
 import { getBestDiscount, getPriceDiscount, getXYearAgoPrices, sortPricesByDateAscending } from "@/utils/PriceUtilities"
 import type { PriceType } from "@/utils/Types"
 import dayjs from "dayjs"
@@ -14,14 +15,14 @@ export function usePriceData(dateToday: Date) {
         let todayIndex = prices.length
         const priceData = sortedPricesByDate
             .map((price, idx) => {
-                if (Date.parse(price.priceStarted) > dateToday.getTime() && todayFound === false) {
+                if (getLocalDateFromUTC(new Date(price.priceEnded)).toDate().getTime() > dateToday.getTime() && todayFound === false) {
                     todayFound = true
                     todayIndex = idx
                 }
 
                 return {
                     priceId: price.priceId,
-                    priceStarted: new Date(price.priceStarted).toUTCString(),
+                    priceStarted: localizeFormatDayjs(getLocalDateFromUTC(new Date(price.priceStarted)), 'llll'),
                     price: price.amount,
                     description: price.description
                 }
