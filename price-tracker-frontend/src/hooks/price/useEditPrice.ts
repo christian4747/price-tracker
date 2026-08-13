@@ -2,7 +2,7 @@ import type { PriceType, ProductType } from '../../utils/Types'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import api from '../../services/api'
 import { usePriceDTO } from './usePriceDTO'
-import { javaTimestampToJS } from '../../utils/DateUtilities'
+import { getLocalDateFromUTC } from '../../utils/DateUtilities'
 import dayjs from 'dayjs'
 
 export function useEditPrice(price: PriceType) {
@@ -12,8 +12,8 @@ export function useEditPrice(price: PriceType) {
         {
             amount: parseFloat(price.amount).toFixed(2),
             currency: price.currency || '',
-            priceStarted: price.priceStarted ? javaTimestampToJS(price.priceStarted) : '',
-            priceEnded: price.priceEnded? javaTimestampToJS(price.priceEnded) : '',
+            priceStarted: price.priceStarted ? getLocalDateFromUTC(new Date(price.priceStarted)).format() : '',
+            priceEnded: price.priceEnded ? getLocalDateFromUTC(new Date(price.priceEnded)).format() : '',
             productId: price.productId,
             description: price.description
         }
