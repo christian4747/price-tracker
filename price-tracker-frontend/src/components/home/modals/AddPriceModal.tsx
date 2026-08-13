@@ -3,7 +3,7 @@ import { Button, Center, Collapse, Modal, NumberInput, TextInput } from '@mantin
 import type { ProductType } from '@/utils/Types'
 import { useDisclosure } from '@mantine/hooks'
 import { useAddPrice } from '@/hooks/price/useAddPrice'
-import { javaTimestampToJS } from '@/utils/DateUtilities'
+import { getLocalDateFromUTC } from '@/utils/DateUtilities'
 import { getHighestPrice } from '@/utils/PriceUtilities'
 import { DateTimePicker } from '@mantine/dates'
 import { FiCalendar } from 'react-icons/fi'
@@ -27,7 +27,7 @@ const AddPriceModal = ({ product }: AddPriceModalProps) => {
 
     // Automatically set price started with current time when opening
     const openAddPriceModal = () => {
-        priceDTO.setPriceDTO(prev => ({...prev, priceStarted: javaTimestampToJS(new Date(Date.now()).toISOString())}))
+        priceDTO.setPriceDTO(prev => ({...prev, priceStarted: getLocalDateFromUTC(new Date()).format()}))
         open()
     }
 
