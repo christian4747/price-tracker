@@ -15,7 +15,7 @@ export function usePriceData(dateToday: Date) {
         let todayIndex = prices.length
         const priceData = sortedPricesByDate
             .map((price, idx) => {
-                if (getLocalDateFromUTC(new Date(price.priceEnded)).toDate().getTime() > dateToday.getTime() && todayFound === false) {
+                if (getLocalDateFromUTC(new Date(price.priceStarted)).toDate().getTime() > dateToday.getTime() && todayFound === false) {
                     todayFound = true
                     todayIndex = idx
                 }
