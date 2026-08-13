@@ -16,7 +16,7 @@ const ProductContainer = ({product, dateToday, setDateToday}: ProductProps) => {
         <div className='h-full w-full border-t border-smoke flex flex-col gap-2 group'>
             <Accordion.Control>
                 {/* Top content */}
-                <div className='h-full w-full flex justify-between items-center pr-2'>
+                <div className='h-full min-h-11.25 w-full flex justify-between items-center pr-2'>
                     <Product
                         product={product}
                     />
