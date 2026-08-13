@@ -60,7 +60,9 @@ const PriceBanner = ({ product, dateToday, setDateToday }: PriceBannerProps) => 
     let timerText = usePriceTimer(dayjs(lastPrice?.priceStarted).valueOf() / 1000, setDateToday)
     if (latestPrice && lastPrice && lastPrice !== latestPrice && latestPrice.amount < lastPrice.amount) {
         timeLeft = dayjs(lastPrice.priceStarted).diff(dayjs(), 'day').toString()
-        useTimerText = true
+        if (parseInt(timeLeft) <= 6) {
+            useTimerText = true
+        }
     }
 
     return (
