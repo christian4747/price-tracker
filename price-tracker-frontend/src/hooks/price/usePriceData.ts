@@ -22,7 +22,7 @@ export function usePriceData(dateToday: Date) {
 
                 return {
                     priceId: price.priceId,
-                    priceStarted: localizeFormatDayjs(getLocalDateFromUTC(new Date(price.priceStarted)), 'll'),
+                    priceStarted: localizeFormatDayjs(getLocalDateFromUTC(new Date(price.priceStarted)), 'lll'),
                     price: price.amount,
                     description: price.description
                 }
