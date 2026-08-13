@@ -54,17 +54,19 @@ const PriceBanner = ({ product, dateToday, setDateToday }: PriceBannerProps) => 
     const textStyle: string = color ? color : discountPercent >= 50 ? 'good-deal' : ''
 
     // Calculate the time left for timer
+    let useTimerText = false
     let timeLeft = ''
     const lastPrice = priceData.getLatestPriceAfterToday(product.prices)
     let timerText = usePriceTimer(dayjs(lastPrice?.priceStarted).valueOf() / 1000, setDateToday)
-    if (lastPrice && lastPrice !== latestPrice) {
+    if (latestPrice && lastPrice && lastPrice !== latestPrice && latestPrice.amount < lastPrice.amount) {
         timeLeft = dayjs(lastPrice.priceStarted).diff(dayjs(), 'day').toString()
+        useTimerText = true
     }
 
     return (
         <>
             {/* Timer text */}
-            {timerText !== '' &&
+            {useTimerText && timerText !== '' &&
                 <div>
                     <Tooltip
                         withArrow
