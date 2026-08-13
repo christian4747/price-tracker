@@ -50,10 +50,9 @@ export function usePriceTimer(endMs: number, setDateToday: any) {
     useEffect(() => {
         let intervalId
         updateTime()
-
         if (secondsLeftTilEnd && secondsLeftTilEnd > 0) {
-            // Use - 1 offset because time updates around a second faster
-            intervalId = secondsLeftTilEnd >= 300 ? setInterval(updateTime, (Math.min(secondsLeftTilEnd % 60 - 1, 0)) * 1000) : setInterval(updateTime, 500)
+            // Use + 1 offset because time updates around a second faster
+            intervalId = secondsLeftTilEnd >= 300 ? setInterval(updateTime, (secondsLeftTilEnd % 60 + 1) * 1000) : setInterval(updateTime, 1000)
         } else if (intervalId && secondsLeftTilEnd && secondsLeftTilEnd <= 0) {
             clearInterval(intervalId)
         }
