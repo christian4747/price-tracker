@@ -11,7 +11,7 @@ type ProductType = {
 
 type PriceType = {
     priceId: number
-    amount: string
+    amount: number
     currency: string
     priceStarted: string
     priceEnded: string
@@ -42,7 +42,7 @@ type ProductDTO = {
 }
 
 type PriceDTO = {
-    amount: string
+    amount: number
     currency: string
     priceStarted: string
     priceEnded: string

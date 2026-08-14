@@ -24,6 +24,8 @@ const AddPriceModal = ({ product, setDateToday }: AddPriceModalProps) => {
     const [useEndDate, setUseEndDate] = useState(false)
     // Track state for adding desc to end date
     const [useEndDateDesc, setUseEndDateDesc] = useState(false)
+    // Track return percentage
+    const [returnPercentage, setReturnPercentage] = useState(0)
 
     // Hook for adding prices
     const { priceDTO, mutation: multiMutation, singleMutation } = useAddPrice(product, getHighestPrice(product?.prices), useEndDateDesc)
@@ -47,13 +49,66 @@ const AddPriceModal = ({ product, setDateToday }: AddPriceModalProps) => {
                     radius='xl'
                     placeholder=""
                     value={priceDTO.value.amount}
-                    onChange={(val) => {val ? priceDTO.setPriceDTO(prev => ({...prev, amount: val.toString()})) : priceDTO.setPriceDTO(prev => ({...prev, amount: '0.00'}))}}
+                    onChange={(val) => {
+                            if (val) {
+                                priceDTO.setPriceDTO(prev => ({...prev, amount: val as number}))
+                                priceDTO.setPriceDTO(prev => ({...prev, returnAmount: val as number * (returnPercentage / 100)}))
+                            } else {
+                                priceDTO.setPriceDTO(prev => ({...prev, amount: 0.00}))
+                                priceDTO.setPriceDTO(prev => ({...prev, returnAmount: 0.00}))
+                            }
+                        }
+                    }
                     step={.01}
                     decimalScale={2}
                     fixedDecimalScale
                     allowNegative={false}
                     className="mb-2"
                 />
+                <div className='flex gap-1'>
+                    <NumberInput
+                        label="Return Amount"
+                        radius='xl'
+                        placeholder=""
+                        value={priceDTO.value.returnAmount}
+                        onChange={(val) => {
+                                if (val && priceDTO.value.amount > 0) {
+                                    priceDTO.setPriceDTO(prev => ({...prev, returnAmount: val as number}))
+                                    setReturnPercentage((val as number) / priceDTO.value.amount * 100)
+                                } else {
+                                    priceDTO.setPriceDTO(prev => ({...prev, returnAmount: 0.00}))
+                                    setReturnPercentage(0)
+                                }
+                            }
+                        }
+                        step={.01}
+                        decimalScale={2}
+                        fixedDecimalScale
+                        allowNegative={false}
+                        className="mb-2 min-w-75"
+                    />
+
+                    <NumberInput
+                        label="%"
+                        radius='xl'
+                        placeholder=""
+                        value={returnPercentage}
+                        onChange={(val) => {
+                                if (val && priceDTO.value.amount > 0) {
+                                    priceDTO.setPriceDTO(prev => ({...prev, returnAmount: val as number * (priceDTO.value.amount / 100)}))
+                                    setReturnPercentage((val as number))
+                                } else {
+                                    priceDTO.setPriceDTO(prev => ({...prev, returnAmount: 0.00}))
+                                    setReturnPercentage(0)
+                                }
+                            }
+                        }
+                        allowNegative={false}
+                        decimalScale={2}
+                        className="mb-2 max-w-25"
+                    />
+                </div>
+
                 <TextInput
                     label="Description"
                     radius='xl'
@@ -132,6 +187,7 @@ const AddPriceModal = ({ product, setDateToday }: AddPriceModalProps) => {
                             useEndDate || priceDTO.value.priceEnded?.length === 0 ? multiMutation.mutate() : singleMutation.mutate()
                             close()
                             setDateToday(new Date())
+                            setReturnPercentage(0)
                         }
                     }
                 >

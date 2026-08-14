@@ -8,7 +8,7 @@ export function useAddPrice(product: ProductType, highestPrice: number, useEndDa
     // State for PriceDTO when adding Prices
     const priceDTO = usePriceDTO(
         {
-            amount: '0.00',
+            amount: 0.00,
             currency: '',
             priceStarted: '',
             priceEnded: '',
@@ -81,7 +81,7 @@ export function useAddPrice(product: ProductType, highestPrice: number, useEndDa
                 priceDTO.value.description = ''
             }
 
-            priceDTO.value.amount = highestPrice.toFixed(2)
+            priceDTO.value.amount = highestPrice
             return api.addPrice(priceDTO.value)
         },
         onSuccess: (newData) => {

@@ -8,7 +8,7 @@ export function usePriceDTO(initialState: PriceDTO) {
     const resetPriceDTO = () => {
         setPriceDTO(
             {
-                amount: '0.00',
+                amount: 0.00,
                 currency: '',
                 description: '',
                 priceStarted: '',
