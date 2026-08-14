@@ -17,6 +17,8 @@ public class Product {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int productId;
 
+    private String brand;
+
     @Column(nullable = false)
     private String name;
 
@@ -40,8 +42,9 @@ public class Product {
     public Product() {
     }
 
-    public Product(int productId, String name, String link, String store, boolean active, Timestamp createdAt, Timestamp updatedAt, List<Price> prices) {
+    public Product(int productId, String brand, String name, String link, String store, boolean active, Timestamp createdAt, Timestamp updatedAt, List<Price> prices) {
         this.productId = productId;
+        this.brand = brand;
         this.name = name;
         this.link = link;
         this.store = store;
@@ -57,6 +60,14 @@ public class Product {
 
     public void setProductId(int productId) {
         this.productId = productId;
+    }
+
+    public String getBrand() {
+        return brand;
+    }
+
+    public void setBrand(String brand) {
+        this.brand = brand;
     }
 
     public String getName() {
@@ -119,6 +130,7 @@ public class Product {
     public String toString() {
         return "Product{" +
                 "productId=" + productId +
+                ", brand='" + brand + '\'' +
                 ", name='" + name + '\'' +
                 ", link='" + link + '\'' +
                 ", store='" + store + '\'' +
