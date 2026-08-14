@@ -3,6 +3,7 @@ import type { ProductType } from '@/utils/Types'
 import { Line, LineChart, ReferenceLine, Tooltip, XAxis, type TooltipContentProps } from 'recharts'
 
 const getPriceWithCurrency = (amount: number, currency: string) => {
+    if (!currency || currency.length === 0) currency = 'USD'
     return new Intl.NumberFormat(undefined, { style: "currency", currency: currency }).format(amount)
 }
 
