@@ -13,7 +13,8 @@ export function useAddPrice(product: ProductType, highestPrice: number) {
             priceStarted: '',
             priceEnded: '',
             productId: product.productId,
-            description: ''
+            description: '',
+            returnAmount: 0
         }
     )
 
