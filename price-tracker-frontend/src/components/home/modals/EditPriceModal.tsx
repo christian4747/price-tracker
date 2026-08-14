@@ -5,6 +5,7 @@ import { DateTimePicker } from "@mantine/dates";
 import { useEditPrice } from "@/hooks/price/useEditPrice";
 import { FiCalendar } from "react-icons/fi";
 import { MdEdit } from "react-icons/md";
+import { useState } from "react";
 
 type EditPriceModalProps = {
     price: PriceType
@@ -14,6 +15,8 @@ const EditPriceModal = ({price}: EditPriceModalProps) => {
 
     // Track state of modal open/close
     const [opened, { open, close }] = useDisclosure(false)
+    // Track return percentage
+    const [returnPercentage, setReturnPercentage] = useState(0)
 
     // Hook for editing prices
     const { priceDTO, mutation } = useEditPrice(price)
@@ -31,13 +34,64 @@ const EditPriceModal = ({price}: EditPriceModalProps) => {
                     radius='xl'
                     placeholder=""
                     value={priceDTO.value.amount}
-                    onChange={(val) => {val ? priceDTO.setPriceDTO(prev => ({...prev, amount: val as number})) : priceDTO.setPriceDTO(prev => ({...prev, amount: 0.00}))}}
+                    onChange={(val) => {
+                            if (val) {
+                                priceDTO.setPriceDTO(prev => ({...prev, amount: val as number}))
+                                priceDTO.setPriceDTO(prev => ({...prev, returnAmount: val as number * (returnPercentage / 100)}))
+                            } else {
+                                priceDTO.setPriceDTO(prev => ({...prev, amount: 0.00}))
+                                priceDTO.setPriceDTO(prev => ({...prev, returnAmount: 0.00}))
+                            }
+                        }
+                    }
                     step={.01}
                     decimalScale={2}
                     fixedDecimalScale
                     allowNegative={false}
                     className="mb-2"
                 />
+                <div className='flex gap-1'>
+                    <NumberInput
+                        label="Return Amount"
+                        radius='xl'
+                        value={priceDTO.value.returnAmount}
+                        onChange={(val) => {
+                                if (val && priceDTO.value.amount > 0) {
+                                    priceDTO.setPriceDTO(prev => ({...prev, returnAmount: val as number}))
+                                    setReturnPercentage((val as number) / priceDTO.value.amount * 100)
+                                } else {
+                                    priceDTO.setPriceDTO(prev => ({...prev, returnAmount: 0.00}))
+                                    setReturnPercentage(0)
+                                }
+                            }
+                        }
+                        step={.01}
+                        decimalScale={2}
+                        fixedDecimalScale
+                        allowNegative={false}
+                        className="mb-2 min-w-75"
+                    />
+
+                    <NumberInput
+                        label="%"
+                        radius='xl'
+                        value={returnPercentage}
+                        onChange={(val) => {
+                                if (val && priceDTO.value.amount > 0) {
+                                    priceDTO.setPriceDTO(prev => ({...prev, returnAmount: val as number * (priceDTO.value.amount / 100)}))
+                                    setReturnPercentage((val as number))
+                                } else {
+                                    priceDTO.setPriceDTO(prev => ({...prev, returnAmount: 0.00}))
+                                    setReturnPercentage(0)
+                                }
+                            }
+                        }
+                        allowNegative={false}
+                        decimalScale={2}
+                        className="mb-2 max-w-25"
+                    />
+                </div>
+
                 <TextInput
                     label="Description"
                     radius='xl'

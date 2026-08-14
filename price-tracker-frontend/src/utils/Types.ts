@@ -19,6 +19,7 @@ type PriceType = {
     updatedAt: string
     productId: number
     description: string
+    returnAmount: number
 }
 
 type ModalProps = {
