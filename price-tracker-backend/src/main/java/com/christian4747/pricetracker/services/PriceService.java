@@ -43,6 +43,7 @@ public class PriceService {
                 priceDTO.getDescription(),
                 priceDTO.getPriceStarted(),
                 priceDTO.getPriceEnded(),
+                priceDTO.getReturnAmount(),
                 null,
                 null,
                 existingProduct.get()
