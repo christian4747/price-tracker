@@ -31,7 +31,7 @@ const EditPriceModal = ({price}: EditPriceModalProps) => {
                     radius='xl'
                     placeholder=""
                     value={priceDTO.value.amount}
-                    onChange={(val) => {val ? priceDTO.setPriceDTO(prev => ({...prev, amount: val.toString()})) : priceDTO.setPriceDTO(prev => ({...prev, amount: '0.00'}))}}
+                    onChange={(val) => {val ? priceDTO.setPriceDTO(prev => ({...prev, amount: val as number})) : priceDTO.setPriceDTO(prev => ({...prev, amount: 0.00}))}}
                     step={.01}
                     decimalScale={2}
                     fixedDecimalScale
