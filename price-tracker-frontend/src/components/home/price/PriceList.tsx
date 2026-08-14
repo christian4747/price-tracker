@@ -5,9 +5,10 @@ import Price from "./Price"
 
 type Props = {
     product: ProductType
+    setDateToday: (newVal: Date) => void
 }
 
-const PriceList = ({product}: Props) => {
+const PriceList = ({product, setDateToday}: Props) => {
 
     const sortedPrices = sortPricesByDateAscending(product.prices)
 
@@ -27,6 +28,7 @@ const PriceList = ({product}: Props) => {
                 </div>
                 <AddPriceModal
                     product={product}
+                    setDateToday={setDateToday}
                 />
             </div>
         </>

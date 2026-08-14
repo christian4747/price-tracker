@@ -3,7 +3,7 @@ import { Button, Center, Collapse, Modal, NumberInput, TextInput } from '@mantin
 import type { ProductType } from '@/utils/Types'
 import { useDisclosure } from '@mantine/hooks'
 import { useAddPrice } from '@/hooks/price/useAddPrice'
-import { javaTimestampToJS } from '@/utils/DateUtilities'
+import { getLocalDateFromUTC } from '@/utils/DateUtilities'
 import { getHighestPrice } from '@/utils/PriceUtilities'
 import { DateTimePicker } from '@mantine/dates'
 import { FiCalendar } from 'react-icons/fi'
@@ -11,9 +11,10 @@ import { useState } from 'react'
 
 type AddPriceModalProps = {
     product: ProductType
+    setDateToday: (newVal: Date) => void
 }
 
-const AddPriceModal = ({ product }: AddPriceModalProps) => {
+const AddPriceModal = ({ product, setDateToday }: AddPriceModalProps) => {
 
     // Track state of modal open/close
     const [opened, { open, close }] = useDisclosure(false)
@@ -27,7 +28,7 @@ const AddPriceModal = ({ product }: AddPriceModalProps) => {
 
     // Automatically set price started with current time when opening
     const openAddPriceModal = () => {
-        priceDTO.setPriceDTO(prev => ({...prev, priceStarted: javaTimestampToJS(new Date(Date.now()).toISOString())}))
+        priceDTO.setPriceDTO(prev => ({...prev, priceStarted: getLocalDateFromUTC(new Date()).format()}))
         open()
     }
 
@@ -122,6 +123,7 @@ const AddPriceModal = ({ product }: AddPriceModalProps) => {
                         () => {
                             useEndDate || priceDTO.value.priceEnded?.length === 0 ? multiMutation.mutate() : singleMutation.mutate()
                             close()
+                            setDateToday(new Date())
                         }
                     }
                 >

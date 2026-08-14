@@ -1,4 +1,3 @@
-import dayjs from "dayjs"
 import type { PriceType } from "./Types"
 
 // Sorts the given PriceType array ascending by date
@@ -44,26 +43,8 @@ const getHighestPrice = (prices: PriceType[]) => {
     return highest
 }
 
-// Get the date of the price last added before today
-const getLatestPriceBeforeToday = (prices: PriceType[]) => {
-    if (!prices || prices.length <= 0) return
-    let latestPrice = prices[0]
-    let latest = dayjs(prices[0].priceStarted)
-    let today = dayjs()
-
-    for (const price of prices) {
-        const currentPriceStarted = dayjs(price.priceStarted)
-        if (currentPriceStarted.isAfter(latest) && currentPriceStarted.isBefore(today)) {
-            latest = currentPriceStarted
-            latestPrice = price
-        }
-    }
-
-    return latestPrice
-}
-
 // Gets the discount percentage for the given Price
-const getPriceDiscount = (prices: PriceType[], price: PriceType) => {
+const getPriceDiscount = (prices: PriceType[], price: PriceType | undefined) => {
     if (!price || !prices || prices.length <= 1) return 0
 
     const highest = getHighestPrice(prices)
@@ -147,33 +128,6 @@ const createPriceData = (prices: PriceType[]) => {
     return priceData
 }
 
-// Returns the banner type by comparing the best discount and most recent discount
-const getBannerType = (prices: PriceType[]) => {
-    if (!prices || prices.length <= 1) return ''
-
-    const sortedPricesByDate = sortPricesByDateAscending(prices)
-
-    const mostRecentPrice = getLatestPriceBeforeToday(prices)
-    if (!mostRecentPrice) return ''
-
-    const mostRecentDiscount = getPriceDiscount(prices, mostRecentPrice)
-
-    const allTimeDiscount = getBestDiscount(sortedPricesByDate)
-    const twoYearDiscount = getBestDiscount(getXYearAgoPrices(prices, 2))
-    const oneYearDiscount = getBestDiscount(getXYearAgoPrices(prices, 1))
-
-    // console.log(allTimeDiscount, twoYearDiscount, oneYearDiscount, mostRecentDiscount)
-
-    if (allTimeDiscount === mostRecentDiscount) {
-        return 'all-time'
-    } else if (twoYearDiscount === mostRecentDiscount) {
-        return 'two-year'
-    } else if (oneYearDiscount === mostRecentDiscount) {
-        return 'one-year'
-    }
-    return ''
-}
-
 // Gets the discount percentage for the most recent Price
 const getMostRecentDiscount = (prices: PriceType[]) => {
     const sortedPricesByDate = sortPricesByDateAscending(prices)
@@ -198,7 +152,8 @@ const getMostRecentPrice = (prices: PriceType[]) => {
 }
 
 // Get the given amount in the given currency format, default to USD
-const getPriceString = (price: PriceType) => {
+const getPriceString = (price: PriceType | undefined) => {
+    if (!price) return ''
     if (price.currency) {
         return new Intl.NumberFormat(undefined, { style: "currency", currency: price.currency }).format(parseFloat(price.amount))
     } else {
@@ -210,14 +165,12 @@ export {
     sortPricesByDateAscending,
     filterPricesBeforeDate,
     getHighestPrice,
-    getLatestPriceBeforeToday,
     getPriceDiscount,
     getPercentage,
     getBestDiscount,
     getXYearAgoPrices,
     sortPricesByAmountAsc,
     createPriceData,
-    getBannerType,
     getMostRecentDiscount,
     getMostRecentPrice,
     getPriceString

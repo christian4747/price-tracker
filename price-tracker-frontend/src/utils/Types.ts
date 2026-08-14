@@ -1,28 +1,28 @@
 type ProductType = {
-    active: boolean,
-    productId: number,
-    name: string,
-    link: string,
-    store: string,
-    createdAt: string,
-    updatedAt: string,
+    active: boolean
+    productId: number
+    name: string
+    link: string
+    store: string
+    createdAt: string
+    updatedAt: string
     prices: PriceType[]
 }
 
 type PriceType = {
-    priceId: number,
-    amount: string,
-    currency: string,
-    priceStarted: string,
-    priceEnded: string,
-    createdAt: string,
-    updatedAt: string,
-    productId: number,
+    priceId: number
+    amount: string
+    currency: string
+    priceStarted: string
+    priceEnded: string
+    createdAt: string
+    updatedAt: string
+    productId: number
     description: string
 }
 
 type ModalProps = {
-    hidden: boolean,
+    hidden: boolean
     toggleHidden: () => void
 }
 
@@ -35,18 +35,18 @@ type PriceModalProps = ModalProps & {
 }
 
 type ProductDTO = {
-    name: string,
-    store: string,
-    link: string,
+    name: string
+    store: string
+    link: string
     active: boolean
 }
 
 type PriceDTO = {
-    amount: string,
-    currency: string,
-    priceStarted: string,
-    priceEnded: string,
-    productId: number,
+    amount: string
+    currency: string
+    priceStarted: string
+    priceEnded: string
+    productId: number
     description: string
 }
 
