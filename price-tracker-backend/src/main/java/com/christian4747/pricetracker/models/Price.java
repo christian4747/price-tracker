@@ -28,7 +28,8 @@ public class Price {
 
     private Timestamp priceEnded;
 
-    private double returnAmount;
+    @Column(nullable = false)
+    private double returnAmount = 0.0;
 
     @CreationTimestamp
     private Timestamp createdAt;
