@@ -1,6 +1,8 @@
 package com.christian4747.pricetracker.models.dtos;
 
 public class IncomingProductDTO {
+
+    private String brand;
     private String name;
     private String link;
     private String store;
@@ -9,11 +11,20 @@ public class IncomingProductDTO {
     public IncomingProductDTO() {
     }
 
-    public IncomingProductDTO(String name, String link, String store, boolean active) {
+    public IncomingProductDTO(String brand, String name, String link, String store, boolean active) {
+        this.brand = brand;
         this.name = name;
         this.link = link;
         this.store = store;
         this.active = active;
+    }
+
+    public String getBrand() {
+        return brand;
+    }
+
+    public void setBrand(String brand) {
+        this.brand = brand;
     }
 
     public String getName() {
@@ -51,7 +62,8 @@ public class IncomingProductDTO {
     @Override
     public String toString() {
         return "IncomingProductDTO{" +
-                "name='" + name + '\'' +
+                "brand='" + brand + '\'' +
+                ", name='" + name + '\'' +
                 ", link='" + link + '\'' +
                 ", store='" + store + '\'' +
                 ", active=" + active +

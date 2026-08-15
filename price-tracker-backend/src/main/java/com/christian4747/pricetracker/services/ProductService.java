@@ -34,6 +34,7 @@ public class ProductService {
 
         Product newProduct = new Product(
                 0,
+                productDTO.getBrand(),
                 productDTO.getName(),
                 productDTO.getLink(),
                 productDTO.getStore(),
@@ -100,6 +101,7 @@ public class ProductService {
 
         Product productToUpdate = existingProduct.get();
 
+        productToUpdate.setBrand(productDTO.getBrand());
         productToUpdate.setName(productDTO.getName());
         productToUpdate.setLink(productDTO.getLink());
         productToUpdate.setStore(productDTO.getStore());

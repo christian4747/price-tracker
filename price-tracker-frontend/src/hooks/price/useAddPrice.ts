@@ -4,7 +4,7 @@ import { usePriceDTO } from './usePriceDTO'
 import type { PriceType, ProductType } from '../../utils/Types'
 import dayjs from 'dayjs'
 
-export function useAddPrice(product: ProductType, highestPrice: number) {
+export function useAddPrice(product: ProductType, highestPrice: number, useEndDateDesc: boolean) {
     // State for PriceDTO when adding Prices
     const priceDTO = usePriceDTO(
         {
@@ -13,7 +13,8 @@ export function useAddPrice(product: ProductType, highestPrice: number) {
             priceStarted: '',
             priceEnded: '',
             productId: product.productId,
-            description: ''
+            description: '',
+            returnAmount: 0
         }
     )
 
@@ -76,6 +77,10 @@ export function useAddPrice(product: ProductType, highestPrice: number) {
     // Chained mutation for adding end date
     const addEndPriceMutation = useMutation({
         mutationFn: () => {
+            if (useEndDateDesc) {
+                priceDTO.value.description = ''
+            }
+
             priceDTO.value.amount = highestPrice.toFixed(2)
             return api.addPrice(priceDTO.value)
         },

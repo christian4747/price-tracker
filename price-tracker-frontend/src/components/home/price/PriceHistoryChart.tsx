@@ -3,7 +3,11 @@ import type { ProductType } from '@/utils/Types'
 import { Line, LineChart, ReferenceLine, Tooltip, XAxis, type TooltipContentProps } from 'recharts'
 
 const getPriceWithCurrency = (amount: number, currency: string) => {
-    return new Intl.NumberFormat(undefined, { style: "currency", currency: currency }).format(amount)
+    try {
+        return new Intl.NumberFormat(undefined, { style: "currency", currency: currency }).format(amount)
+    } catch {
+        return new Intl.NumberFormat(undefined, { style: "currency", currency: 'USD' }).format(amount)
+    }
 }
 
 const PriceHistoryTooltip = ({active, payload, label}: TooltipContentProps) => {

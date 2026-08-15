@@ -13,7 +13,8 @@ export function usePriceDTO(initialState: PriceDTO) {
                 description: '',
                 priceStarted: '',
                 priceEnded: '',
-                productId: initialState.productId
+                productId: initialState.productId,
+                returnAmount: 0
             }
         )
     }

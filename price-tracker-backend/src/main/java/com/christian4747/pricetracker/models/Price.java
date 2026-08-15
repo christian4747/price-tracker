@@ -28,6 +28,9 @@ public class Price {
 
     private Timestamp priceEnded;
 
+    @Column(nullable = false)
+    private double returnAmount = 0.0;
+
     @CreationTimestamp
     private Timestamp createdAt;
 
@@ -42,13 +45,14 @@ public class Price {
     public Price() {
     }
 
-    public Price(int priceId, double amount, String currency, String description, Timestamp priceStarted, Timestamp priceEnded, Timestamp createdAt, Timestamp updatedAt, Product product) {
+    public Price(int priceId, double amount, String currency, String description, Timestamp priceStarted, Timestamp priceEnded, double returnAmount, Timestamp createdAt, Timestamp updatedAt, Product product) {
         this.priceId = priceId;
         this.amount = amount;
         this.currency = currency;
         this.description = description;
         this.priceStarted = priceStarted;
         this.priceEnded = priceEnded;
+        this.returnAmount = returnAmount;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
         this.product = product;
@@ -94,6 +98,14 @@ public class Price {
         this.priceStarted = priceStarted;
     }
 
+    public double getReturnAmount() {
+        return returnAmount;
+    }
+
+    public void setReturnAmount(double returnAmount) {
+        this.returnAmount = returnAmount;
+    }
+
     public Timestamp getPriceEnded() {
         return priceEnded;
     }
@@ -135,6 +147,7 @@ public class Price {
                 ", description='" + description + '\'' +
                 ", priceStarted=" + priceStarted +
                 ", priceEnded=" + priceEnded +
+                ", returnAmount=" + returnAmount +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
                 ", product=" + product +

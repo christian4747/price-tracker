@@ -1,5 +1,5 @@
 
-import { Button, Center, Collapse, Modal, NumberInput, TextInput } from '@mantine/core'
+import { Button, Center, Collapse, Modal, NumberInput, Switch, TextInput } from '@mantine/core'
 import type { ProductType } from '@/utils/Types'
 import { useDisclosure } from '@mantine/hooks'
 import { useAddPrice } from '@/hooks/price/useAddPrice'
@@ -22,9 +22,11 @@ const AddPriceModal = ({ product, setDateToday }: AddPriceModalProps) => {
     const [expandEndDate, { open: openEndDate, close: closeEndDate }] = useDisclosure(false)
     // Track button group state for selecting start date or start + end date
     const [useEndDate, setUseEndDate] = useState(false)
+    // Track state for adding desc to end date
+    const [useEndDateDesc, setUseEndDateDesc] = useState(false)
 
     // Hook for adding prices
-    const { priceDTO, mutation: multiMutation, singleMutation } = useAddPrice(product, getHighestPrice(product?.prices))
+    const { priceDTO, mutation: multiMutation, singleMutation } = useAddPrice(product, getHighestPrice(product?.prices), useEndDateDesc)
 
     // Automatically set price started with current time when opening
     const openAddPriceModal = () => {
@@ -113,6 +115,12 @@ const AddPriceModal = ({ product, setDateToday }: AddPriceModalProps) => {
                                 <FiCalendar size={24} />
                             </div>
                         }
+                        className="mb-2"
+                    />
+                    <Switch
+                        label='Use same description for end date'
+                        checked={useEndDateDesc}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {setUseEndDateDesc(e.target.checked)}}
                     />
                 </Collapse>
 

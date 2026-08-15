@@ -48,6 +48,7 @@ type PriceDTO = {
     priceEnded: string
     productId: number
     description: string
+    returnAmount: number
 }
 
 export type {ModalProps, ProductModalProps, PriceModalProps, ProductDTO, PriceDTO, PriceType, ProductType}
