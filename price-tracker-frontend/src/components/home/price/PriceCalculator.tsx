@@ -1,5 +1,33 @@
-import { Accordion, NumberInput } from "@mantine/core"
-import { useState } from "react"
+import { Accordion, NumberInput } from '@mantine/core'
+import { useState } from 'react'
+
+/**
+ * Returns the percentage value of the given value and percentage.
+ * @param val The original value
+ * @param percentage The value's desired percentage
+ * @returns The percentage value of the original value
+ */
+const percentageValue = (val: number, percentage: number) => {
+    return val * percentage / 100
+}
+
+// Provide NumberInput with standard attributes
+const NumberInputWrapper = ({...attributes}: NumberInput.Props) => {
+    return (
+        <NumberInput
+            radius='xl'
+            step={1}
+            decimalScale={2}
+            fixedDecimalScale
+            allowNegative={false}
+            className='mb-2'
+            min={0}
+            max={100}
+            clampBehavior='blur'
+            {...attributes}
+        />
+    )
+}
 
 const PriceCalculator = () => {
 
@@ -11,134 +39,163 @@ const PriceCalculator = () => {
     const [discountAmount, setDiscountAmount] = useState(0)
     // Track price discount percentage
     const [discountPercentage, setDiscountPercentage] = useState(0)
-
     // Track return percentage
     const [returnPercentage, setReturnPercentage] = useState(0)
+
+    /**
+     * Resets the discount amount & percentage to 0.
+     */
+    const resetDiscount = () => {
+        setDiscountAmount(0)
+        setDiscountPercentage(0)
+    }
+
+    /**
+     * Resets the return amount & percentage to 0.
+     */
+    const resetReturn = () => {
+        setPriceCalulatorReturn(0)
+        setReturnPercentage(0)
+    }
 
     return (
         <Accordion>
             <Accordion.Item value='PriceCalculator'>
                 <Accordion.Control>Price Calculator</Accordion.Control>
                 <Accordion.Panel>
-                    <NumberInput
-                        label="Example Price"
-                        radius='xl'
+                    <NumberInputWrapper
+                        label='Example Price'
                         value={priceCalculatorAmount}
-                        onChange={(val) => {
-                                if (val) {
-                                    setPriceCalculatorAmount(val as number)
-                                    setDiscountAmount((val as number) * discountPercentage / 100)
-                                    setPriceCalulatorReturn((val as number - ((val as number) * discountPercentage) / 100) * (returnPercentage / 100))
+                        max={undefined}
+                        onChange={
+                            (newPriceAmount) => {
+                                newPriceAmount = newPriceAmount as number
+                                if (newPriceAmount > 0) {
+                                    // Calculate discount
+                                    const priceMinusDiscount = newPriceAmount - percentageValue(newPriceAmount, discountPercentage)
+                                    // Calculate return
+                                    const returnAmount = percentageValue(priceMinusDiscount, returnPercentage)
+
+                                    // Set the amount
+                                    setPriceCalculatorAmount(newPriceAmount)
+                                    // Set the discount amount
+                                    setDiscountAmount(priceMinusDiscount)
+                                    // Set the return amount
+                                    setPriceCalulatorReturn(returnAmount)
                                 } else {
-                                    setDiscountAmount(0)
-                                    setDiscountPercentage(0)
-                                    setPriceCalulatorReturn(0)
-                                    setReturnPercentage(0)
+                                    // If the new price amount is 0, reset the other values
+                                    resetDiscount()
+                                    resetReturn()
                                 }
                             }
                         }
-                        step={.01}
-                        decimalScale={2}
-                        fixedDecimalScale
-                        allowNegative={false}
-                        className="mb-2"
                     />
 
-                    <div className='flex gap-1'>
-                        <NumberInput
-                            label="Amount w/ Discount"
-                            radius='xl'
-                            placeholder=""
+                    <div className='flex gap-1 mb-2'>
+                        <NumberInputWrapper
+                            label='Amount - Discount'
+                            className='min-w-65'
                             value={discountAmount}
-                            onChange={(val) => {
-                                    if (val && priceCalculatorAmount > 0) {
-                                        setDiscountAmount(val as number)
-                                        setDiscountPercentage((val as number) / (priceCalculatorAmount) * 100)
-                                        setPriceCalulatorReturn((priceCalculatorAmount - discountAmount) * (returnPercentage / 100))
-                                        setReturnPercentage((val as number) / (discountAmount))
+                            max={priceCalculatorAmount}
+                            onChange={
+                                (newDiscountAmount) => {
+                                    newDiscountAmount = newDiscountAmount as number
+                                    if (priceCalculatorAmount > 0) {
+                                        // Calculate discount percentage
+                                        const discountPercentage = 100 - newDiscountAmount / priceCalculatorAmount * 100
+                                        // Calculate return
+                                        const returnAmount = percentageValue(newDiscountAmount, returnPercentage)
+
+                                        // Set the discount amount
+                                        setDiscountAmount(newDiscountAmount)
+                                        // Set the discount percentage
+                                        setDiscountPercentage(discountPercentage)
+                                        // Set the new return amount
+                                        setPriceCalulatorReturn(returnAmount)
                                     } else {
-                                        setDiscountAmount(0)
-                                        setDiscountPercentage(0)
-                                        setPriceCalulatorReturn(0)
-                                        setReturnPercentage(0)
+                                        // If the current price amount is 0, reset the other values
+                                        resetDiscount()
+                                        resetReturn()
                                     }
                                 }
                             }
-                            step={.01}
-                            decimalScale={2}
-                            fixedDecimalScale
-                            allowNegative={false}
-                            className="mb-2 min-w-65"
                         />
 
-                        <NumberInput
-                            label="Discount %"
-                            radius='xl'
-                            placeholder=""
+                        <NumberInputWrapper
+                            label='Discount %'
+                            className='max-w-25'
                             value={discountPercentage}
-                            onChange={(val) => {
-                                    if (val && priceCalculatorAmount > 0) {
-                                        val = Math.min(val as number, 100)
-                                        setDiscountAmount(priceCalculatorAmount - (val as number) * (priceCalculatorAmount / 100))
-                                        setDiscountPercentage(val as number)
-                                        setPriceCalulatorReturn((priceCalculatorAmount - (priceCalculatorAmount * val as number / 100)) * (returnPercentage / 100))
+                            onChange={
+                                (newDiscountPercentage) => {
+                                    newDiscountPercentage = newDiscountPercentage as number
+                                    if (priceCalculatorAmount > 0) {
+                                        // Calculate discount
+                                        const priceMinusDiscount = priceCalculatorAmount - percentageValue(priceCalculatorAmount, newDiscountPercentage)
+                                        // Calculate return
+                                        const returnAmount = percentageValue(priceMinusDiscount, returnPercentage)
+
+                                        // Set the new discount percentage
+                                        setDiscountPercentage(newDiscountPercentage)
+                                        // Set the new discount
+                                        setDiscountAmount(priceMinusDiscount)
+                                        // Set the new price return
+                                        setPriceCalulatorReturn(returnAmount)
                                     } else {
-                                        setDiscountAmount(0)
-                                        setDiscountPercentage(0)
-                                        setPriceCalulatorReturn(0)
-                                        setReturnPercentage(0)
+                                        // If the current price amount is 0, reset the other values
+                                        resetDiscount()
+                                        resetReturn()
                                     }
                                 }
                             }
-                            allowNegative={false}
-                            decimalScale={2}
-                            className="mb-2 max-w-25"
                         />
                     </div>
 
-                    <div className='flex gap-1'>
-                        <NumberInput
-                            label="Return Amount"
-                            radius='xl'
-                            placeholder=""
+                    <div className='flex gap-1 mb-2'>
+                        <NumberInputWrapper
+                            label='Return Amount'
+                            className='min-w-65'
                             value={priceCalculatorReturn}
-                            onChange={(val) => {
-                                    if (val && priceCalculatorAmount - discountAmount > 0) {
-                                        val = Math.min(val as number, priceCalculatorAmount - discountAmount)
-                                        setPriceCalulatorReturn(val as number)
-                                        setReturnPercentage((val as number) / (priceCalculatorAmount - discountAmount))
+                            max={discountAmount}
+                            onChange={
+                                (newReturnAmount) => {
+                                    newReturnAmount = newReturnAmount as number
+                                    if (priceCalculatorAmount - discountAmount > 0) {
+                                        // Calculate the return percentage
+                                        const returnPercentage = newReturnAmount / discountAmount * 100
+
+                                        // Set the new return amount
+                                        setPriceCalulatorReturn(newReturnAmount)
+                                        // Set the return percentage
+                                        setReturnPercentage(returnPercentage)
                                     } else {
-                                        setPriceCalulatorReturn(0)
-                                        setReturnPercentage(0)
+                                        // If the current price amount is 0, reset the other values
+                                        resetReturn()
                                     }
                                 }
                             }
-                            step={.01}
-                            decimalScale={2}
-                            fixedDecimalScale
-                            allowNegative={false}
-                            className="mb-2 min-w-65"
                         />
 
-                        <NumberInput
-                            label="Return %"
-                            radius='xl'
-                            placeholder=""
+                        <NumberInputWrapper
+                            label='Return %'
+                            className='max-w-25'
                             value={returnPercentage}
-                            onChange={(val) => {
-                                    if (val && priceCalculatorAmount - discountAmount > 0) {
-                                        val = Math.min(val as number, 100)
-                                        setPriceCalulatorReturn(val as number * ((priceCalculatorAmount - discountAmount) / 100))
-                                        setReturnPercentage((val as number))
+                            onChange={
+                                (newReturnPercentage) => {
+                                    newReturnPercentage = newReturnPercentage as number
+                                    if (priceCalculatorAmount - discountAmount > 0) {
+                                        // Calculate the return amount
+                                        const returnAmount = percentageValue(discountAmount, newReturnPercentage)
+
+                                        // Set the return amount
+                                        setPriceCalulatorReturn(returnAmount)
+                                        // Set the new return percentage
+                                        setReturnPercentage(newReturnPercentage)
                                     } else {
-                                        setPriceCalulatorReturn(0.00)
-                                        setReturnPercentage(0)
+                                        // If the current price amount is 0, reset the other values
+                                        resetReturn()
                                     }
                                 }
                             }
-                            allowNegative={false}
-                            decimalScale={2}
-                            className="mb-2 max-w-25"
                         />
                     </div>
                 </Accordion.Panel>
