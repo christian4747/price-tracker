@@ -11,7 +11,7 @@ const PriceNumberInput = ({...attributes}: NumberInput.Props) => {
             allowNegative={false}
             className='mb-2'
             min={0}
-            max={100}
+            max={undefined}
             clampBehavior='blur'
             {...attributes}
         />

@@ -1,10 +1,11 @@
 import type { PriceType } from "../../../utils/Types"
-import { Button, Modal, NumberInput, TextInput, Tooltip } from "@mantine/core"
+import { Button, Modal, TextInput, Tooltip } from "@mantine/core"
 import { useDisclosure } from "@mantine/hooks"
 import { DateTimePicker } from "@mantine/dates"
 import { useEditPrice } from "@/hooks/price/useEditPrice"
 import { FiCalendar } from "react-icons/fi"
 import { MdEdit } from "react-icons/md"
+import PriceNumberInput from "../price/PriceNumberInput"
 
 type EditPriceModalProps = {
     price: PriceType
@@ -25,11 +26,10 @@ const EditPriceModal = ({price}: EditPriceModalProps) => {
                 onClose={close}
                 title="Edit Price"
             >
-                <NumberInput
+                <PriceNumberInput
                     label="Price"
+                    className="mb-2 min-w-75"
                     withAsterisk
-                    radius='xl'
-                    placeholder=""
                     value={priceDTO.value.amount}
                     onChange={(val) => {
                             if (val) {
@@ -40,18 +40,14 @@ const EditPriceModal = ({price}: EditPriceModalProps) => {
                             }
                         }
                     }
-                    step={.01}
-                    decimalScale={2}
-                    fixedDecimalScale
-                    allowNegative={false}
-                    className="mb-2 min-w-75"
                 />
                 
-                <NumberInput
+                <PriceNumberInput
                     label="Return Amount"
+                    className="mb-2"
                     radius='xl'
-                    placeholder=""
                     value={priceDTO.value.returnAmount}
+                    max={priceDTO.value.amount}
                     onChange={(val) => {
                             if (val && priceDTO.value.amount > 0) {
                                 priceDTO.setPriceDTO(prev => ({...prev, returnAmount: val as number}))
@@ -60,11 +56,6 @@ const EditPriceModal = ({price}: EditPriceModalProps) => {
                             }
                         }
                     }
-                    step={.01}
-                    decimalScale={2}
-                    fixedDecimalScale
-                    allowNegative={false}
-                    className="mb-2"
                 />
 
                 <TextInput

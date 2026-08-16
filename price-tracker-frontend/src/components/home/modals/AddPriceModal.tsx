@@ -1,5 +1,5 @@
 
-import { Button, Center, Collapse, Modal, NumberInput, Switch, TextInput } from '@mantine/core'
+import { Button, Center, Collapse, Modal, Switch, TextInput } from '@mantine/core'
 import type { ProductType } from '@/utils/Types'
 import { useDisclosure } from '@mantine/hooks'
 import { useAddPrice } from '@/hooks/price/useAddPrice'
@@ -9,6 +9,7 @@ import { DateTimePicker } from '@mantine/dates'
 import { FiCalendar } from 'react-icons/fi'
 import { useState } from 'react'
 import PriceCalculator from '../price/PriceCalculator'
+import PriceNumberInput from '../price/PriceNumberInput'
 
 type AddPriceModalProps = {
     product: ProductType
@@ -43,11 +44,10 @@ const AddPriceModal = ({ product, setDateToday }: AddPriceModalProps) => {
                 title="Add Price"
             >
                 <PriceCalculator />
-                <NumberInput
+                <PriceNumberInput
                     label="Price"
+                    className="mb-2 min-w-75"
                     withAsterisk
-                    radius='xl'
-                    placeholder=""
                     value={priceDTO.value.amount}
                     onChange={(val) => {
                             if (val) {
@@ -58,18 +58,14 @@ const AddPriceModal = ({ product, setDateToday }: AddPriceModalProps) => {
                             }
                         }
                     }
-                    step={.01}
-                    decimalScale={2}
-                    fixedDecimalScale
-                    allowNegative={false}
-                    className="mb-2 min-w-75"
                 />
                 
-                <NumberInput
+                <PriceNumberInput
                     label="Return Amount"
+                    className="mb-2"
                     radius='xl'
-                    placeholder=""
                     value={priceDTO.value.returnAmount}
+                    max={priceDTO.value.amount}
                     onChange={(val) => {
                             if (val && priceDTO.value.amount > 0) {
                                 priceDTO.setPriceDTO(prev => ({...prev, returnAmount: val as number}))
@@ -78,11 +74,6 @@ const AddPriceModal = ({ product, setDateToday }: AddPriceModalProps) => {
                             }
                         }
                     }
-                    step={.01}
-                    decimalScale={2}
-                    fixedDecimalScale
-                    allowNegative={false}
-                    className="mb-2"
                 />
 
                 <TextInput

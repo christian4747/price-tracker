@@ -49,7 +49,6 @@ const PriceCalculator = () => {
                     <PriceNumberInput
                         label='Example Price'
                         value={priceCalculatorAmount}
-                        max={undefined}
                         onChange={
                             (newPriceAmount) => {
                                 newPriceAmount = newPriceAmount as number
@@ -108,6 +107,7 @@ const PriceCalculator = () => {
                             label='Discount %'
                             className='max-w-25'
                             value={discountPercentage}
+                            max={100}
                             onChange={
                                 (newDiscountPercentage) => {
                                     newDiscountPercentage = newDiscountPercentage as number
@@ -162,6 +162,7 @@ const PriceCalculator = () => {
                             label='Return %'
                             className='max-w-25'
                             value={returnPercentage}
+                            max={100}
                             onChange={
                                 (newReturnPercentage) => {
                                     newReturnPercentage = newReturnPercentage as number
