@@ -1,4 +1,4 @@
-import type { ProductType } from '@/utils/Types'
+import type { PriceType, ProductType } from '@/utils/Types'
 import '@/styles/PriceBanner.css'
 import { Tooltip } from '@mantine/core'
 import { getPriceDiscount, getPriceString } from '@/utils/PriceUtilities'
@@ -6,6 +6,7 @@ import dayjs from 'dayjs'
 import { usePriceTimer } from '@/hooks/price/usePriceTimer'
 import { MdTimer } from 'react-icons/md'
 import { usePriceData } from '@/hooks/price/usePriceData'
+import { LuClockAlert } from 'react-icons/lu'
 
 type BannerStyle = {
     color: string
@@ -27,6 +28,21 @@ const getBannerStyle = (bannerType: string): BannerStyle => {
     }
 }
 
+const getMostRecentlyUpdatedPrice = (prices: PriceType[]) => {
+    if (!prices) return
+    if (prices.length === 1) return prices[0]
+
+    let mostRecent = prices[0]
+
+    for (const price of prices) {
+        if (price.updatedAt > mostRecent.updatedAt) {
+            mostRecent = price
+        }
+    }
+
+    return mostRecent
+}
+
 type PriceBannerProps =  {
     product: ProductType
     dateToday: Date
@@ -40,10 +56,11 @@ const PriceBanner = ({ product, dateToday, setDateToday }: PriceBannerProps) => 
 
     // Latest price PriceType before today
     const latestPrice = priceData.getLatestPriceBeforeToday(product.prices)
+
     // Date stored in latest price
-    const latestDate = dayjs(latestPrice?.priceStarted)
+    const mostRecentUpdatedPrice = dayjs(getMostRecentlyUpdatedPrice(product.prices)?.updatedAt)
     // Number of days since last recorded price
-    const priceListLastUpdated = dayjs().diff(latestDate, 'day').toString()
+    const priceListLastUpdated = dayjs().diff(mostRecentUpdatedPrice, 'day').toString()
 
     // Calculate discount and price string
     const priceText = getPriceString(latestPrice)
@@ -67,6 +84,14 @@ const PriceBanner = ({ product, dateToday, setDateToday }: PriceBannerProps) => 
 
     return (
         <>
+            {priceText?.length > 0 && parseInt(priceListLastUpdated) >= 7 &&
+                <div>
+                    <Tooltip withArrow label={priceListLastUpdated === '1' ? `Last updated ${priceListLastUpdated} day ago` : `Last updated ${priceListLastUpdated} days ago`}>
+                        <span className='underline underline-offset-5 decoration-wavy'><LuClockAlert /></span>
+                    </Tooltip>
+                </div>
+            }
+
             {/* Timer text */}
             {useTimerText && timerText !== '' &&
                 <div>
@@ -107,17 +132,17 @@ const PriceBanner = ({ product, dateToday, setDateToday }: PriceBannerProps) => 
             }
 
             {/* Price text */}
-            <div className={'min-w-17.5 text-right ' + textStyle}>
-                {priceText?.length > 0 && parseInt(priceListLastUpdated) >= 7 ? 
-                    <div>
-                        <Tooltip withArrow label={priceListLastUpdated === '1' ? `${priceListLastUpdated} day old` : `${priceListLastUpdated} days old`}>
-                            <span className='underline underline-offset-5 decoration-wavy'>{priceText}</span>
-                        </Tooltip>
+            {latestPrice && latestPrice.returnAmount > 0 ?
+                <Tooltip withArrow label={<>{latestPrice.amount} (base) - {latestPrice.returnAmount} (return)</>}>
+                    <div className={'min-w-17.5 text-right ' + textStyle}>
+                        {priceText}
                     </div>
-                    :
-                    <>{priceText}</>
-                }
-            </div>
+                </Tooltip>
+                :
+                <div className={'min-w-17.5 text-right ' + textStyle}>
+                    {priceText}
+                </div>
+            }
         </>
     )
 }

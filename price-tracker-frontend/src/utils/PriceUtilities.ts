@@ -49,19 +49,19 @@ const getPriceDiscount = (prices: PriceType[], price: PriceType | undefined) => 
 
     const highest = getHighestPrice(prices)
 
-    return getPercentage(1 - (price.amount / highest))
+    return getPercentage(1 - ((price.amount - price.returnAmount) / highest))
 }
 
 // Gets the best discount found in the array of Prices
 const getBestDiscount = (prices: PriceType[]) => {
     if (!prices || prices.length <= 1) return 0
 
-    let lowest = prices[0].amount
-    let highest = prices[0].amount
+    let lowest = prices[0].amount - prices[0].returnAmount
+    let highest = prices[0].amount - prices[0].returnAmount
     let profit = highest - lowest
 
     for (const price of prices) {
-        const priceVal = price.amount
+        const priceVal = price.amount - price.returnAmount
         if (priceVal < lowest) {
             lowest = priceVal
             profit = highest - lowest
@@ -154,10 +154,13 @@ const getMostRecentPrice = (prices: PriceType[]) => {
 // Get the given amount in the given currency format, default to USD
 const getPriceString = (price: PriceType | undefined) => {
     if (!price) return ''
+
+    const amountAfterReturn = price.amount - price.returnAmount
+
     if (price.currency) {
-        return new Intl.NumberFormat(undefined, { style: "currency", currency: price.currency }).format(price.amount)
+        return new Intl.NumberFormat(undefined, { style: "currency", currency: price.currency }).format(amountAfterReturn)
     } else {
-        return new Intl.NumberFormat(undefined, { style: "currency", currency: "USD" }).format(price.amount)
+        return new Intl.NumberFormat(undefined, { style: "currency", currency: "USD" }).format(amountAfterReturn)
     }
 }
 
