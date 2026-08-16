@@ -1,5 +1,6 @@
-import { Accordion, NumberInput } from '@mantine/core'
+import { Accordion } from '@mantine/core'
 import { useState } from 'react'
+import PriceNumberInput from './PriceNumberInput'
 
 /**
  * Returns the percentage value of the given value and percentage.
@@ -9,24 +10,6 @@ import { useState } from 'react'
  */
 const percentageValue = (val: number, percentage: number) => {
     return val * percentage / 100
-}
-
-// Provide NumberInput with standard attributes
-const NumberInputWrapper = ({...attributes}: NumberInput.Props) => {
-    return (
-        <NumberInput
-            radius='xl'
-            step={1}
-            decimalScale={2}
-            fixedDecimalScale
-            allowNegative={false}
-            className='mb-2'
-            min={0}
-            max={100}
-            clampBehavior='blur'
-            {...attributes}
-        />
-    )
 }
 
 const PriceCalculator = () => {
@@ -63,7 +46,7 @@ const PriceCalculator = () => {
             <Accordion.Item value='PriceCalculator'>
                 <Accordion.Control>Price Calculator</Accordion.Control>
                 <Accordion.Panel>
-                    <NumberInputWrapper
+                    <PriceNumberInput
                         label='Example Price'
                         value={priceCalculatorAmount}
                         max={undefined}
@@ -92,7 +75,7 @@ const PriceCalculator = () => {
                     />
 
                     <div className='flex gap-1 mb-2'>
-                        <NumberInputWrapper
+                        <PriceNumberInput
                             label='Amount - Discount'
                             className='min-w-65'
                             value={discountAmount}
@@ -121,7 +104,7 @@ const PriceCalculator = () => {
                             }
                         />
 
-                        <NumberInputWrapper
+                        <PriceNumberInput
                             label='Discount %'
                             className='max-w-25'
                             value={discountPercentage}
@@ -151,7 +134,7 @@ const PriceCalculator = () => {
                     </div>
 
                     <div className='flex gap-1 mb-2'>
-                        <NumberInputWrapper
+                        <PriceNumberInput
                             label='Return Amount'
                             className='min-w-65'
                             value={priceCalculatorReturn}
@@ -175,7 +158,7 @@ const PriceCalculator = () => {
                             }
                         />
 
-                        <NumberInputWrapper
+                        <PriceNumberInput
                             label='Return %'
                             className='max-w-25'
                             value={returnPercentage}
