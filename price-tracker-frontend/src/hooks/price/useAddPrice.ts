@@ -82,6 +82,7 @@ export function useAddPrice(product: ProductType, highestPrice: number, useEndDa
             }
 
             priceDTO.value.amount = highestPrice
+            priceDTO.value.returnAmount = 0
             return api.addPrice(priceDTO.value)
         },
         onSuccess: (newData) => {
