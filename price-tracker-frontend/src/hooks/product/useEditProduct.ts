@@ -23,16 +23,8 @@ export function useEditProduct(product: ProductType) {
         mutationFn: () => {
             return api.editProduct(product.productId, productDTO.value)
         },
-        onSuccess: (newData) => {
-            queryClient.setQueryData(['products'], (old: any) => {
-                const idx = old.indexOf(product)
-                return old.map((p: ProductType, i: number) => {
-                    if (i === idx) {
-                        return newData
-                    }
-                    return p
-                })
-            })
+        onSuccess: () => {
+            queryClient.invalidateQueries({queryKey: ['products']})
         },
         onError: (error) => {
             console.log(`Error occurred while updating ${product.productId}: ${product.name} (${error.message})`)

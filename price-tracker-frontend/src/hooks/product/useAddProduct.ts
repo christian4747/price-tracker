@@ -22,10 +22,8 @@ export function useAddProduct() {
         mutationFn: () => {
             return api.addProduct(productDTO.value)
         },
-        onSuccess: (newData: any) => {
-            queryClient.setQueryData(['products'], (oldData: any) => {
-                return oldData ? [...oldData, newData] : []
-            })
+        onSuccess: () => {
+            queryClient.invalidateQueries({queryKey: ['products']})
         },
         onError: (error) => {
             console.log(`Error occurred while adding ${productDTO.value.name} (${error.message})`)
