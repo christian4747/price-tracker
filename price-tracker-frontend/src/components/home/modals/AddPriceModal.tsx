@@ -63,7 +63,6 @@ const AddPriceModal = ({ product, setDateToday }: AddPriceModalProps) => {
                 <PriceNumberInput
                     label="Return Amount"
                     className="mb-2"
-                    radius='xl'
                     value={priceDTO.value.returnAmount}
                     max={priceDTO.value.amount}
                     onChange={(val) => {
