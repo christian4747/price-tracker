@@ -77,7 +77,8 @@ export function useAddPrice(product: ProductType, highestPrice: number, useEndDa
     // Chained mutation for adding end date
     const addEndPriceMutation = useMutation({
         mutationFn: () => {
-            if (useEndDateDesc) {
+            console.log(useEndDateDesc)
+            if (!useEndDateDesc) {
                 priceDTO.value.description = ''
             }
 
