@@ -3,12 +3,16 @@ package com.christian4747.pricetracker.services;
 import com.christian4747.pricetracker.daos.ProductDAO;
 import com.christian4747.pricetracker.models.Product;
 import com.christian4747.pricetracker.models.dtos.IncomingProductDTO;
+import com.christian4747.pricetracker.models.dtos.ProductNameGroupDTO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class ProductService {
@@ -70,6 +74,26 @@ public class ProductService {
      */
     public List<Product> getAllProducts(Pageable pageable) {
         return productDAO.findAllByOrderByNameAsc(pageable).getContent();
+    }
+
+    /**
+     * Gets the Products grouped by name.
+     * The returned list is formatted as ProductNameGroupDTO records and contains the following:
+     *  - name: name of the Product
+     *  - products: list of the Products corresponding to the 'name'
+     * @param pageable Pagination settings
+     * @return A list of ProductNameGroupDTO
+     */
+    public List<ProductNameGroupDTO> getProductsGroupedByName(Pageable pageable) {
+        Page<String> namesPage = productDAO.findDistinctNames(pageable);
+        List<Product> productsInNamesPage = productDAO.findByNameIn(namesPage.getContent());
+
+        Map<String, List<Product>> groupedByName = productsInNamesPage.stream()
+                .collect(Collectors.groupingBy(Product :: getName));
+
+        return namesPage.getContent().stream()
+                .map(name -> new ProductNameGroupDTO(name, groupedByName.getOrDefault(name, List.of())))
+                .toList();
     }
 
     /**

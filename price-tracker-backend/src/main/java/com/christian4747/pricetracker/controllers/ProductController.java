@@ -2,6 +2,7 @@ package com.christian4747.pricetracker.controllers;
 
 import com.christian4747.pricetracker.models.Product;
 import com.christian4747.pricetracker.models.dtos.IncomingProductDTO;
+import com.christian4747.pricetracker.models.dtos.ProductNameGroupDTO;
 import com.christian4747.pricetracker.services.ProductService;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -48,6 +49,20 @@ public class ProductController {
     @GetMapping
     public ResponseEntity<List<Product>> getAllProducts(Pageable pageable) {
         return ResponseEntity.ok(productService.getAllProducts(pageable));
+    }
+
+    /**
+     * Gets all the Products in 'products' database table with a grouping. Uses pagination (default 20 per page).
+     * Includes an optional category query parameter:
+     *  - "name" groups products by name.
+     *  TODO: Add grouping by 'store', 'brand', etc.
+     * @param pageable Pagination settings
+     * @param groupBy The method to group the products by
+     * @return A list of Products (default 20)
+     */
+    @GetMapping("/grouped")
+    public ResponseEntity<List<ProductNameGroupDTO>> getAllProductsByGroup(Pageable pageable, @RequestParam(defaultValue = "name") String groupBy) {
+        return ResponseEntity.ok(productService.getProductsGroupedByName(pageable));
     }
 
     /**
