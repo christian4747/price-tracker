@@ -10,12 +10,13 @@ export function useEditPrice(price: PriceType) {
     // PriceDTO for editing
     const priceDTO = usePriceDTO(
         {
-            amount: parseFloat(price.amount).toFixed(2),
+            amount: price.amount,
             currency: price.currency || '',
             priceStarted: price.priceStarted ? getLocalDateFromUTC(new Date(price.priceStarted)).format() : '',
             priceEnded: price.priceEnded ? getLocalDateFromUTC(new Date(price.priceEnded)).format() : '',
             productId: price.productId,
-            description: price.description
+            description: price.description,
+            returnAmount: price.returnAmount
         }
     )
 

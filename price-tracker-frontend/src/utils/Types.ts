@@ -11,7 +11,7 @@ type ProductType = {
 
 type PriceType = {
     priceId: number
-    amount: string
+    amount: number
     currency: string
     priceStarted: string
     priceEnded: string
@@ -19,6 +19,7 @@ type PriceType = {
     updatedAt: string
     productId: number
     description: string
+    returnAmount: number
 }
 
 type ModalProps = {
@@ -42,7 +43,7 @@ type ProductDTO = {
 }
 
 type PriceDTO = {
-    amount: string
+    amount: number
     currency: string
     priceStarted: string
     priceEnded: string

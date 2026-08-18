@@ -32,10 +32,10 @@ const getPercentage = (float: number) => {
 // Get the highest price from the price list
 const getHighestPrice = (prices: PriceType[]) => {
     if (!prices || prices.length <= 0) return 0
-    let highest = parseFloat(prices[0].amount)
+    let highest = prices[0].amount
 
     for (const price of prices) {
-        const priceVal = parseFloat(price.amount)
+        const priceVal = price.amount
         if (priceVal > highest) {
             highest = priceVal
         }
@@ -49,19 +49,19 @@ const getPriceDiscount = (prices: PriceType[], price: PriceType | undefined) => 
 
     const highest = getHighestPrice(prices)
 
-    return getPercentage(1 - (parseFloat(price.amount) / highest))
+    return getPercentage(1 - ((price.amount - price.returnAmount) / highest))
 }
 
 // Gets the best discount found in the array of Prices
 const getBestDiscount = (prices: PriceType[]) => {
     if (!prices || prices.length <= 1) return 0
 
-    let lowest = parseFloat(prices[0].amount)
-    let highest = parseFloat(prices[0].amount)
+    let lowest = prices[0].amount - prices[0].returnAmount
+    let highest = prices[0].amount - prices[0].returnAmount
     let profit = highest - lowest
 
     for (const price of prices) {
-        const priceVal = parseFloat(price.amount)
+        const priceVal = price.amount - price.returnAmount
         if (priceVal < lowest) {
             lowest = priceVal
             profit = highest - lowest
@@ -88,7 +88,7 @@ const sortPricesByAmountAsc = (prices: PriceType[]) => {
     if (prices.length <= 1) return prices
 
     return prices.toSorted((a, b) => {
-        return parseFloat(a.amount) - parseFloat(b.amount)
+        return a.amount - b.amount
     })
 }
 
@@ -141,7 +141,7 @@ const getMostRecentDiscount = (prices: PriceType[]) => {
     const recent = sortedPricesByDate[sortedPricesByDate.length - 1]
 
     // console.log(highest.amount, recent.amount)
-    return getPercentage(1 - (parseFloat(recent.amount) / parseFloat(highest.amount)))
+    return getPercentage(1 - (recent.amount / highest.amount))
 }
 
 // Get the most recent price from the price list
@@ -154,10 +154,13 @@ const getMostRecentPrice = (prices: PriceType[]) => {
 // Get the given amount in the given currency format, default to USD
 const getPriceString = (price: PriceType | undefined) => {
     if (!price) return ''
+
+    const amountAfterReturn = price.amount - price.returnAmount
+
     if (price.currency) {
-        return new Intl.NumberFormat(undefined, { style: "currency", currency: price.currency }).format(parseFloat(price.amount))
+        return new Intl.NumberFormat(undefined, { style: "currency", currency: price.currency }).format(amountAfterReturn)
     } else {
-        return new Intl.NumberFormat(undefined, { style: "currency", currency: "USD" }).format(parseFloat(price.amount))
+        return new Intl.NumberFormat(undefined, { style: "currency", currency: "USD" }).format(amountAfterReturn)
     }
 }
 

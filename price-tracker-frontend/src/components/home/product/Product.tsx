@@ -12,7 +12,7 @@ const Product = ({product}: ProductProps) => {
     return (
         <>
             <div className='flex gap-3 items-baseline-last'>
-                <div title={product.name} className="text-lg max-w-110 truncate">
+                <div title={product.name} className="text-lg max-w-100 truncate">
                     {product.name}
                 </div>
                 <div className="text-raincloud">
