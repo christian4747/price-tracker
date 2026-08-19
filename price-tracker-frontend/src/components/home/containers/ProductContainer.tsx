@@ -13,7 +13,7 @@ type ProductProps = {
 
 const ProductContainer = ({product, dateToday, setDateToday}: ProductProps) => {
     return (
-        <div className='h-full w-full border-t border-smoke flex flex-col gap-2 group'>
+        <div className='h-full w-full border-b border-smoke flex flex-col gap-2 group'>
             <Accordion.Control>
                 {/* Top content */}
                 <div className='h-full min-h-11.25 w-full flex justify-between items-center pr-2'>

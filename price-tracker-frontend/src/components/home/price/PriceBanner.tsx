@@ -132,17 +132,16 @@ const PriceBanner = ({ product, dateToday, setDateToday }: PriceBannerProps) => 
             }
 
             {/* Price text */}
+            {/* TODO: Can maybe use div outside */}
+            <div className={'min-w-17.5 text-right ' + textStyle}>
             {latestPrice && latestPrice.returnAmount > 0 ?
                 <Tooltip withArrow label={<>{latestPrice.amount} (base) - {latestPrice.returnAmount} (return)</>}>
-                    <div className={'min-w-17.5 text-right ' + textStyle}>
-                        {priceText}
-                    </div>
+                    <div>{priceText}</div>
                 </Tooltip>
                 :
-                <div className={'min-w-17.5 text-right ' + textStyle}>
-                    {priceText}
-                </div>
+                <>{priceText}</>
             }
+            </div>
         </>
     )
 }

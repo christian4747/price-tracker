@@ -46,20 +46,23 @@ const ProductListContainer = () => {
     } else {
         return (
             <>
-                <div className="flex items-center gap-2 mb-3">
+                <div className="sticky top-0 pt-5 z-50 bg-white flex flex-col gap-2">
                     <div className="text-5xl">
                         My Products
                     </div>
+
+                    <div className='border-t border-b pb-0 pt-3 border-smoke'>
+                        <ProductListHeader
+                            searchSearchTerm={searchSearchTerm}
+                            productStatusFilter={productStatusFilter}
+                            setProductStatusFilter={setProductStatusFilter}
+                            productsGroupBy={productsGroupBy}
+                            setProductsGroupBy={setProductsGroupBy}
+                        />
+                    </div>
                 </div>
 
-                <div className='border-t pb-0 mb-5 pt-3 border-smoke'>
-                    <ProductListHeader
-                        searchSearchTerm={searchSearchTerm}
-                        productStatusFilter={productStatusFilter}
-                        setProductStatusFilter={setProductStatusFilter}
-                        productsGroupBy={productsGroupBy}
-                        setProductsGroupBy={setProductsGroupBy}
-                    />
+                <div className='mb-15'>
                     <ProductList
                         searchedTerm={searchedTerm}
                         productStatusFilter={productStatusFilter}
