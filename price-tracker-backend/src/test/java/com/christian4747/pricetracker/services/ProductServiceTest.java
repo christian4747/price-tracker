@@ -33,6 +33,9 @@ public class ProductServiceTest {
     private Page<Product> productPage;
 
     @Mock
+    private Page<String> namePage;
+
+    @Mock
     private Pageable pageable;
 
     private Product addedProduct;
@@ -49,11 +52,15 @@ public class ProductServiceTest {
         addedProduct2.setName("Product2");
         addedProduct2.setStore("Store");
 
+        Product addedProduct3 = new Product();
+        addedProduct3.setName("Product");
+        addedProduct3.setStore("Store2");
+
         productDTO = new IncomingProductDTO();
         productDTO.setName("Product");
         productDTO.setStore("Store");
 
-        productList = List.of(addedProduct, addedProduct2);
+        productList = List.of(addedProduct, addedProduct2, addedProduct3);
     }
 
     @Test
@@ -95,11 +102,11 @@ public class ProductServiceTest {
     }
 
     @Test
-    public void getAllProducts_twoProducts_returnTwoProducts() {
+    public void getAllProducts_threeProducts_returnTwoProducts() {
         when(productPage.getContent()).thenReturn(productList);
         when(productDAO.findAllByOrderByNameAsc(any(Pageable.class))).thenReturn(productPage);
 
-        assertEquals(2, productService.getAllProducts(pageable).size());
+        assertEquals(3, productService.getAllProducts(pageable).size());
     }
 
     @Test
@@ -114,6 +121,15 @@ public class ProductServiceTest {
         when(productDAO.findById(anyInt())).thenReturn(Optional.of(addedProduct));
 
         assertEquals("Product", productService.getProductById(1).getName());
+    }
+
+    @Test
+    public void getProductsGroupedByName_twoUniqueNames_returnTwoLists() {
+        when(productDAO.findDistinctNames(any())).thenReturn(namePage);
+        when(productDAO.findByNameIn(any())).thenReturn(productList);
+        when(namePage.getContent()).thenReturn(List.of("Product", "Product2"));
+
+        assertEquals(2, productService.getProductsGroupedByName(pageable).size());
     }
 
     @Test
