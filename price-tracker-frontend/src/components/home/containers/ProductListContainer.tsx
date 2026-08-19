@@ -1,3 +1,4 @@
+import GroupedProductList from '../product/GroupedProductList'
 import ProductList from '../product/ProductList'
 import ProductListHeader from '../product/ProductListHeader'
 import { useState } from 'react'
@@ -19,76 +20,30 @@ const ProductListContainer = () => {
         setSearchedTerm(searchTerm)
     }
 
-    // if (productsGroupBy !== '') {
-    //     console.log(productsGroupBy)
-    //     if (getProductsGrouped.query.isPending) {
-    //         return (
-    //             <>
-    //                 <div className="flex items-center gap-2 mb-3">
-    //                     <div className="text-5xl">
-    //                         My Products
-    //                     </div>
-    //                 </div>
-    //                 Loading...
-    //             </>
-    //         )
-    //     } else if (getProductsGrouped.query.isError) {
-    //         return (
-    //             <>
-    //                 <div className="flex items-center gap-2 mb-3">
-    //                     <div className="text-5xl">
-    //                         My Products
-    //                     </div>
-    //                 </div>
-    //                 An error occurred: {getProductsGrouped.query.error.message}
-    //             </>
-    //         )
-    //     }
+    if (productsGroupBy !== '') {
+        return (
+            <>
+                <div className="flex items-center gap-2 mb-3">
+                    <div className="text-5xl">
+                        My Products
+                    </div>
+                </div>
 
-    //     // Product list with status filter applied
-    //     const filterByStatus = getProductsGrouped.query.data.filter((product: ProductType) => {
-    //         if (productStatusFilter === 'Active') {
-    //             return product.active
-    //         } else if (productStatusFilter === 'Inactive') {
-    //             return !product.active
-    //         } else {
-    //             return true
-    //         }
-    //     })
-
-    //     // Product list with search term filter applied
-    //     const filteredProducts = filterByStatus.filter((product: ProductType) => {
-    //         return product.name.toLowerCase().includes(searchedTerm.toLowerCase()) ||
-    //             product.store.toLowerCase().includes(searchedTerm.toLowerCase())
-    //     })
-
-    //     return (
-    //         <>
-    //             <div className="flex items-center gap-2 mb-3">
-    //                 <div className="text-5xl">
-    //                     My Products
-    //                 </div>
-    //             </div>
-
-    //             <div className='border-t pb-0 mb-5 pt-3 border-smoke'>
-    //                 <ProductListHeader
-    //                     searchSearchTerm={searchSearchTerm}
-    //                     productStatusFilter={productStatusFilter}
-    //                     setProductStatusFilter={setProductStatusFilter}
-    //                     productsGroupBy={productsGroupBy}
-    //                     setProductsGroupBy={setProductsGroupBy}
-    //                 />
-    //                 {getProductsGrouped.query.isSuccess && (
-    //                     <GroupedProductList
-    //                         groupedProducts={filteredProducts}
-    //                     />
-    //                 )}
-    //             </div>
-                
-    //         </>
-    //     )
-    // } else {
-
+                <div className='border-t pb-0 mb-5 pt-3 border-smoke'>
+                    <ProductListHeader
+                        searchSearchTerm={searchSearchTerm}
+                        productStatusFilter={productStatusFilter}
+                        setProductStatusFilter={setProductStatusFilter}
+                        productsGroupBy={productsGroupBy}
+                        setProductsGroupBy={setProductsGroupBy}
+                    />
+                    <GroupedProductList
+                        searchedTerm={searchedTerm}
+                    />
+                </div>
+            </>
+        )
+    } else {
         return (
             <>
                 <div className="flex items-center gap-2 mb-3">
@@ -110,10 +65,9 @@ const ProductListContainer = () => {
                         productStatusFilter={productStatusFilter}
                     />
                 </div>
-                
             </>
         )
-    // }
+    }
 }
 
 export default ProductListContainer
