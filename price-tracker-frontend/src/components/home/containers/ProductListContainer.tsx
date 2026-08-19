@@ -1,8 +1,6 @@
 import ProductList from '../product/ProductList'
 import ProductListHeader from '../product/ProductListHeader'
 import { useState } from 'react'
-import type { ProductType } from '../../../utils/Types'
-import { useGetProductPage } from '@/hooks/product/useGetProductPage'
 
 const ProductListContainer = () => {
 
@@ -15,8 +13,6 @@ const ProductListContainer = () => {
 
     // // Hook for getting products grouped
     // const getProductsGrouped = useGetProductsGrouped(activePage)
-    // Hook for regular product list pagination
-    const getProductPage = useGetProductPage()
 
     // Sets the search term, triggering a filter and refresh
     const searchSearchTerm = (searchTerm: string) => {
@@ -92,46 +88,6 @@ const ProductListContainer = () => {
     //         </>
     //     )
     // } else {
-        if (getProductPage.query.isPending) {
-            return (
-                <>
-                    <div className="flex items-center gap-2 mb-3">
-                        <div className="text-5xl">
-                            My Products
-                        </div>
-                    </div>
-                    Loading...
-                </>
-            )
-        } else if (getProductPage.query.isError) {
-            return (
-                <>
-                    <div className="flex items-center gap-2 mb-3">
-                        <div className="text-5xl">
-                            My Products
-                        </div>
-                    </div>
-                    An error occurred: {getProductPage.query.error.message}
-                </>
-            )
-        }
-
-        // Product list with status filter applied
-        const filterByStatus = getProductPage.query.data.filter((product: ProductType) => {
-            if (productStatusFilter === 'Active') {
-                return product.active
-            } else if (productStatusFilter === 'Inactive') {
-                return !product.active
-            } else {
-                return true
-            }
-        })
-
-        // Product list with search term filter applied
-        const filteredProducts = filterByStatus.filter((product: ProductType) => {
-            return product.name.toLowerCase().includes(searchedTerm.toLowerCase()) ||
-                product.store.toLowerCase().includes(searchedTerm.toLowerCase())
-        })
 
         return (
             <>
@@ -149,14 +105,10 @@ const ProductListContainer = () => {
                         productsGroupBy={productsGroupBy}
                         setProductsGroupBy={setProductsGroupBy}
                     />
-                    {getProductPage.query.isSuccess && getProductPage.countQuery.isSuccess && (
-                        <ProductList
-                            productCount={getProductPage.countQuery.data}
-                            products={filteredProducts}
-                            currentPageNumber={getProductPage.currentPageNumber}
-                            setCurrentPageNumber={getProductPage.setCurrentPageNumber}
-                        />
-                    )}
+                    <ProductList
+                        searchedTerm={searchedTerm}
+                        productStatusFilter={productStatusFilter}
+                    />
                 </div>
                 
             </>
