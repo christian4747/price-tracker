@@ -12,15 +12,7 @@ export function useDeleteProduct(product: ProductType) {
             return api.deleteProduct(product.productId)
         },
         onSuccess: () => {
-            queryClient.setQueryData(['products'], (old: any) => {
-                const idx = old.indexOf(product)
-                return old.filter((p: ProductType, i: number) => {
-                    if (i === idx) {
-                        return
-                    }
-                    return p
-                })
-            })
+            queryClient.invalidateQueries({queryKey: ['products']})
         },
         onError: (error) => {
             console.log(`Error occurred while deleting ${product.productId}: ${product.name} (${error.message})`)
