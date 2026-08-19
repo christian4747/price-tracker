@@ -26,6 +26,10 @@ export default {
         return productService.getAllProducts(rootUrl)
     },
 
+    getProductsGrouped: async () => {
+        return productService.getProductsGrouped(rootUrl)
+    },
+
     addProduct: async (productToAdd: ProductDTO) => {
         return productService.addProduct(rootUrl, productToAdd)
     },

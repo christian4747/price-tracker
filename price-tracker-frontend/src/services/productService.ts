@@ -10,6 +10,17 @@ export default {
         return res.data
     },
 
+    getProductsGrouped: async (rootUrl: string) => {
+        const res = await axios.get(`${rootUrl}${apiPath}/grouped`,
+            {
+                params: {
+                    groupBy: 'name'
+                }
+            }
+        )
+        return res.data
+    },
+
     addProduct: async (rootUrl: string, productToAdd: ProductDTO) => {
         const res = await axios.post(rootUrl + apiPath, productToAdd)
         return res.data
