@@ -111,6 +111,14 @@ public class ProductService {
     }
 
     /**
+     * Gets the number of products in the 'products' database table.
+     * @return the product count
+     */
+    public Long getProductCount() {
+        return productDAO.count();
+    }
+
+    /**
      * Updates a Product from the 'products' database table.
      * @param productId The ID of the Product to update
      * @param productDTO The updated Product details

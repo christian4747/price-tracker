@@ -76,6 +76,15 @@ public class ProductController {
     }
 
     /**
+     * Gets the number of products in the 'products' database table.
+     * @return the product count
+     */
+    @GetMapping("/count")
+    public ResponseEntity<Long> getProductCount() {
+        return ResponseEntity.ok(productService.getProductCount());
+    }
+
+    /**
      * Updates a Product from the 'products' database table.
      * @param productId The ID of the Product to update
      * @param productDTO The updated Product details
