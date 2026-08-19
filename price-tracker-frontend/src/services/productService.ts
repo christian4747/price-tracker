@@ -10,14 +10,18 @@ export default {
         return res.data
     },
 
-    getProductsGrouped: async (rootUrl: string) => {
-        const res = await axios.get(`${rootUrl}${apiPath}/grouped`,
-            {
-                params: {
-                    groupBy: 'name'
-                }
-            }
-        )
+    getProductCount: async (rootUrl: string) => {
+        const res = await axios.get(`${rootUrl}${apiPath}/count`)
+        return res.data
+    },
+
+    getProductPage: async (rootUrl: string, pageNumber: number = 0, pageSize: number = 10) => {
+        const res = await axios.get(`${rootUrl}${apiPath}?page=${pageNumber}&size=${pageSize}`)
+        return res.data
+    },
+
+    getProductsGrouped: async (rootUrl: string, pageNumber: number, pageSize: number, groupBy: string = 'name') => {
+        const res = await axios.get(`${rootUrl}${apiPath}/grouped?page=${pageNumber}&size=${pageSize}&groupBy=${groupBy}`)
         return res.data
     },
 
