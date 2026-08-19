@@ -1,16 +1,17 @@
-import { MdSearch, MdSort } from 'react-icons/md'
+import { MdSearch } from 'react-icons/md'
 import { useState } from 'react'
 import { Button, Input, Menu } from '@mantine/core'
 import AddProductModal from '../modals/AddProductModal'
 
 type Props = {
-    getAllProducts: () => void
     searchSearchTerm: (searchTerm: string) => void
     productStatusFilter: string
     setProductStatusFilter: React.Dispatch<React.SetStateAction<string>>
+    productsGroupBy: string
+    setProductsGroupBy: React.Dispatch<React.SetStateAction<string>>
 }
 
-const ProductListHeader = ({searchSearchTerm, productStatusFilter, setProductStatusFilter}: Props) => {
+const ProductListHeader = ({searchSearchTerm, productStatusFilter, setProductStatusFilter, productsGroupBy, setProductsGroupBy}: Props) => {
 
     // State for tracking current input value
     const [currentSearchTerm, setCurrentSearchTerm] = useState('')
@@ -22,7 +23,7 @@ const ProductListHeader = ({searchSearchTerm, productStatusFilter, setProductSta
                 <div className='flex gap-2'>
                     <Menu>
                         <Menu.Target>
-                            <Button className='flex gap-2 min-w-27.5'>
+                            <Button className='flex gap-2 min-w-30'>
                                 {productStatusFilter}
                             </Button>
                         </Menu.Target>
@@ -37,9 +38,21 @@ const ProductListHeader = ({searchSearchTerm, productStatusFilter, setProductSta
                         </Menu.Dropdown>
                     </Menu>
 
-                    <Button className='flex gap-2'>
-                        <MdSort/>Sort
-                    </Button>
+                    <Menu>
+                        <Menu.Target>
+                            <Button className='flex gap-2 min-w-30'>
+                                {productsGroupBy.length > 0 ? `Sort: ${productsGroupBy}` : 'Sort'}
+                            </Button>
+                        </Menu.Target>
+
+                        <Menu.Dropdown>
+                            <Menu.Label>Sort</Menu.Label>
+                            <Menu.RadioGroup value={productsGroupBy} onChange={setProductsGroupBy}>
+                                <Menu.RadioItem value=''>None</Menu.RadioItem>
+                                <Menu.RadioItem value='Name'>Name</Menu.RadioItem>
+                            </Menu.RadioGroup>
+                        </Menu.Dropdown>
+                    </Menu>
                 </div>
 
                 <div className='flex items-center gap-2'>
