@@ -22,27 +22,9 @@ const ProductList = ({productStatusFilter, searchedTerm}: ProductListProps) => {
     const getProductPage = useGetProductPage()
 
     if (getProductPage.query.isPending) {
-        return (
-            <>
-                <div className="flex items-center gap-2 mb-3">
-                    <div className="text-5xl">
-                        My Products
-                    </div>
-                </div>
-                Loading...
-            </>
-        )
+        return (<>Loading...</>)
     } else if (getProductPage.query.isError) {
-        return (
-            <>
-                <div className="flex items-center gap-2 mb-3">
-                    <div className="text-5xl">
-                        My Products
-                    </div>
-                </div>
-                An error occurred: {getProductPage.query.error.message}
-            </>
-        )
+        return (<>An error occurred: {getProductPage.query.error.message}</>)
     }
 
     // Product list with status filter applied

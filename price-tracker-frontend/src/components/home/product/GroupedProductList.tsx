@@ -26,20 +26,10 @@ const GroupedProductList = ({searchedTerm}: GroupedProductListProps) => {
     const getProductsGrouped = useGetProductsGrouped()
 
     if (getProductsGrouped.query.isPending) {
-        return (
-            <>
-                Loading...
-            </>
-        )
+        return (<>Loading...</>)
     } else if (getProductsGrouped.query.isError) {
-        return (
-            <>
-                An error occurred: {getProductsGrouped.query.error.message}
-            </>
-        )
+        return (<>An error occurred: {getProductsGrouped.query.error.message}</>)
     }
-
-    console.log(getProductsGrouped.query.data)
 
     // Product list with search term filter applied
     const filteredProducts: GroupedProduct[] = getProductsGrouped.query.data?.productNameGroupDTOs.filter((productNameGroupDTO: GroupedProduct) => {
