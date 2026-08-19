@@ -21,6 +21,11 @@ const ProductList = ({productStatusFilter, searchedTerm}: ProductListProps) => {
     // Hook for regular product list pagination
     const getProductPage = useGetProductPage()
 
+    const changePageNumber = (pageNumber: number) => {
+        getProductPage.setCurrentPageNumber(pageNumber)
+        setValue([])
+    }
+
     if (getProductPage.query.isPending) {
         return (<>Loading...</>)
     } else if (getProductPage.query.isError) {
@@ -47,7 +52,7 @@ const ProductList = ({productStatusFilter, searchedTerm}: ProductListProps) => {
     return (
         <>
             {getProductPage.query.isSuccess && getProductPage.countQuery.isSuccess && (
-                <div className="flex pb-5 flex-col border-smoke">
+                <div className="flex pb-5 flex-col">
                     <Accordion
                         multiple
                         variant="unstyled"
@@ -70,13 +75,15 @@ const ProductList = ({productStatusFilter, searchedTerm}: ProductListProps) => {
                                 </Accordion.Item>
                             )
                         })}
-                        <Center>
-                            <Pagination
-                                total={Math.ceil(getProductPage.countQuery.data / 10)}
-                                value={getProductPage.currentPageNumber}
-                                onChange={getProductPage.setCurrentPageNumber}
-                            />
-                        </Center>
+                        <footer className="fixed bottom-5 left-0 z-50 w-full">
+                            <Center>
+                                <Pagination
+                                    total={Math.ceil(getProductPage.countQuery.data / 10)}
+                                    value={getProductPage.currentPageNumber}
+                                    onChange={changePageNumber}
+                                />
+                            </Center>
+                        </footer>
                     </Accordion>
                 </div>
             )}
