@@ -72,10 +72,19 @@ const GroupedProduct = ({products, dateToday, setDateToday}: ProductProps) => {
             <Accordion.Panel>
                 {/* Lower content */}
                 <div className='w-full h-full flex justify-between gap-2'>
-                    <PriceHistoryChart
-                        product={products[0]}
-                        dateToday={dateToday}
-                    />
+                    {products?.map((product) => {
+                            return (
+                                <>
+                                    {product.store === selectedStore &&
+                                        <PriceHistoryChart
+                                            product={product}
+                                            dateToday={dateToday}
+                                        />
+                                    }
+                                </>
+                            )
+                        })
+                    }
                     <div className="flex flex-col w-3/10 h-auto gap-2">
                         <div className="flex items-center w-auto gap-2">
                             <Box className="w-full">
