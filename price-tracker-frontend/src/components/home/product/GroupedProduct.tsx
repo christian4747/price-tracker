@@ -1,8 +1,8 @@
 import { type ProductType } from "@/utils/Types"
 import PriceHistoryChart from "../price/PriceHistoryChart"
 import PriceList from "../price/PriceList"
-import { Accordion, Button, Center, CopyButton, Tooltip } from "@mantine/core"
-import { FaLink, FaCheck, FaCopy } from "react-icons/fa6"
+import { Accordion, Box, Combobox, CopyButton, Input, InputBase, Tooltip, useCombobox } from "@mantine/core"
+import { FaCheck, FaCopy, FaLink } from "react-icons/fa6"
 import DeleteProductModal from "../modals/DeleteProductModal"
 import EditProductModal from "../modals/EditProductModal"
 import { useState } from "react"
@@ -19,7 +19,17 @@ const GroupedProduct = ({products, dateToday, setDateToday}: ProductProps) => {
         return <></>
     }
 
+    const combobox = useCombobox({
+        onDropdownClose: () => combobox.resetSelectedOption()
+    })
+
     const [selectedStore, setSelectedStore] = useState(products[0].store)
+
+    const storeOptions = products.map(({store}) => (
+        <Combobox.Option value={store} key={store}>
+            {store}
+        </Combobox.Option>
+    ))
 
     return (
         <div className='h-full w-full border-t border-smoke flex flex-col gap-2 group'>
@@ -27,17 +37,9 @@ const GroupedProduct = ({products, dateToday, setDateToday}: ProductProps) => {
                 {/* Top content */}
                 <div className='h-full min-h-11.25 w-full flex justify-between items-center pr-2'>
                     <div className='flex gap-3 items-baseline-last'>
-                        <div title={products[0].name} className="text-lg max-w-100 truncate">
+                        <div title={products[0].name} className="text-lg w-auto truncate">
                             {products[0].name}
                         </div>
-                        <div className="text-raincloud">
-                            {products[0].store}
-                        </div>
-                        <a className="cursor-pointer" href={products[0].link} target="_blank">
-                            <Tooltip withArrow label={products[0].link}><FaLink /></Tooltip>
-                        </a>
-                        <EditProductModal product={products[0]}/>
-                        <DeleteProductModal product={products[0]}/>
                         <CopyButton value={products[0].name} timeout={1000}>
                             {({copied, copy}) => (
                                 <div
@@ -69,21 +71,50 @@ const GroupedProduct = ({products, dateToday, setDateToday}: ProductProps) => {
                         dateToday={dateToday}
                     />
                     <div className="flex flex-col w-3/10 h-auto gap-2">
-                        <div>
-                            <Center>
-                                <Button.Group>
-                                    {products?.map((product) => {
-                                        return (
-                                            <Button
-                                                variant={product.store !== selectedStore ? "default" : "filled"}
-                                                onClick={() => {setSelectedStore(product.store)}}
-                                            >
-                                                {product.store}
-                                            </Button>
-                                        )
-                                    })}
-                                </Button.Group>
-                            </Center>
+                        <div className="flex items-center w-auto gap-2">
+                            <Box className="w-full">
+                                <Combobox
+                                    store={combobox}
+                                    onOptionSubmit={(store) => {
+                                        setSelectedStore(store)
+                                        combobox.closeDropdown()
+                                    }}
+                                >
+                                    <Combobox.Target>
+                                        <InputBase
+                                            component="button"
+                                            type="button"
+                                            pointer
+                                            rightSection={<Combobox.Chevron />}
+                                            rightSectionPointerEvents="none"
+                                            onClick={() => combobox.toggleDropdown()}
+                                        >
+                                            {selectedStore || <Input.Placeholder>Pick store</Input.Placeholder>}
+                                        </InputBase>
+                                    </Combobox.Target>
+
+                                    <Combobox.Dropdown mah={150} className="overflow-y-auto" >
+                                        <Combobox.Options>{storeOptions}</Combobox.Options>
+                                    </Combobox.Dropdown>
+                                </Combobox>
+                            </Box>
+
+                            {products?.map((product) => {
+                                return (
+                                    <>
+                                        {product.store === selectedStore &&
+                                            <>
+                                                <a className="cursor-pointer" href={products[0].link} target="_blank">
+                                                    <Tooltip withArrow label={products[0].link}><FaLink /></Tooltip>
+                                                </a>
+                                                <EditProductModal product={product} showOnHover={false}/>
+                                                <DeleteProductModal product={product} showOnHover={false}/>
+                                            </>
+                                        }
+                                    </>
+                                )
+                            })}
+
                         </div>
                         {products?.map((product) => {
                             return (
