@@ -143,8 +143,8 @@ const GroupedProduct = ({products, dateToday, setDateToday}: ProductProps) => {
                                     <>
                                         {product.store === selectedStore &&
                                             <>
-                                                <a className="cursor-pointer" href={products[0].link} target="_blank">
-                                                    <Tooltip withArrow label={products[0].link}><FaLink /></Tooltip>
+                                                <a className="cursor-pointer" href={product.link} target="_blank">
+                                                    <Tooltip withArrow label={product.link}><FaLink /></Tooltip>
                                                 </a>
                                                 <EditProductModal product={product} showOnHover={false} onEdit={() => onProductDeleteEdit(product.store)}/>
                                                 <DeleteProductModal product={product} showOnHover={false} onDelete={() => onProductDeleteEdit(product.store)}/>
