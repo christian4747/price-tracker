@@ -45,12 +45,12 @@ const GroupedProduct = ({products, dateToday, setDateToday}: ProductProps) => {
     }
 
     return (
-        <div className='h-full w-full border-t border-smoke flex flex-col gap-2 group'>
+        <div className='h-full w-full border-b border-smoke flex flex-col gap-2 group'>
             <Accordion.Control>
                 {/* Top content */}
                 <div className='h-full min-h-11.25 w-full flex justify-between items-center pr-2'>
                     <div className='flex gap-3 items-baseline-last'>
-                        <div title={products[0].name} className="text-lg w-auto truncate">
+                        <div title={products[0].name} className="text-lg max-w-125 truncate">
                             {products[0].name}
                         </div>
                         <div className="text-raincloud">

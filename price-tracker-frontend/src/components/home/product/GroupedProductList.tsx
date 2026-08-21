@@ -25,6 +25,11 @@ const GroupedProductList = ({searchedTerm}: GroupedProductListProps) => {
     // Hook for getting products grouped
     const getProductsGrouped = useGetProductsGrouped()
 
+    const changePageNumber = (pageNumber: number) => {
+        getProductsGrouped.setCurrentPageNumber(pageNumber)
+        setValue([])
+    }
+
     if (getProductsGrouped.query.isPending) {
         return (<>Loading...</>)
     } else if (getProductsGrouped.query.isError) {
@@ -39,7 +44,7 @@ const GroupedProductList = ({searchedTerm}: GroupedProductListProps) => {
     return (
         <>
             {getProductsGrouped.query.isSuccess && getProductsGrouped.countQuery.isSuccess && (
-                <div className="flex pb-5 flex-col border-smoke">
+                <div className="flex pb-5 flex-col">
                     <Accordion
                         multiple
                         variant="unstyled"
@@ -62,13 +67,15 @@ const GroupedProductList = ({searchedTerm}: GroupedProductListProps) => {
                                 </Accordion.Item>
                             )
                         })}
-                        <Center>
-                            <Pagination
-                                total={Math.ceil(getProductsGrouped.query.data?.count / 10)}
-                                value={getProductsGrouped.currentPageNumber}
-                                onChange={getProductsGrouped.setCurrentPageNumber}
-                            />
-                        </Center>
+                        <footer className="fixed bottom-5 left-0 z-50 w-full">
+                            <Center>
+                                <Pagination
+                                    total={Math.ceil(getProductsGrouped.query.data.count / 10)}
+                                    value={getProductsGrouped.currentPageNumber}
+                                    onChange={changePageNumber}
+                                />
+                            </Center>
+                        </footer>
                     </Accordion>
                 </div>
             )}
