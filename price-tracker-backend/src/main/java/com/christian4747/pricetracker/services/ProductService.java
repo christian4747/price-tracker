@@ -31,10 +31,15 @@ public class ProductService {
      * @return The newly added Product
      */
     public Product addProduct(IncomingProductDTO productDTO) {
-        Optional<Product> existingProduct = productDAO.findByName(productDTO.getName());
+        List<Product> existingProducts = productDAO.findAllByName(productDTO.getName());
 
-        if (existingProduct.isPresent() && existingProduct.get().getStore().equals(productDTO.getStore())) {
-            throw new IllegalArgumentException("Product already exists!");
+        if (!existingProducts.isEmpty()) {
+            existingProducts
+                .forEach(product -> {
+                    if (product.getStore().equals(productDTO.getStore())) {
+                        throw new IllegalArgumentException("Product already exists!");
+                    }
+                });
         }
 
         Product newProduct = new Product(

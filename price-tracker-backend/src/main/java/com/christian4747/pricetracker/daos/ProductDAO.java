@@ -14,11 +14,11 @@ import java.util.Optional;
 public interface ProductDAO extends JpaRepository<Product, Integer> {
 
     /**
-     * Finds whether a Product with the same name exists in the database's 'products' table.
+     * Finds all Products with the same name as the given name
      * @param name Name of the Product to find
-     * @return An optional which may or may not have the Product
+     * @return A list of all the Products with the given name
      */
-    Optional<Product> findByName(String name);
+    List<Product> findAllByName(String name);
 
     /**
      * Find all Products by name ascending in the database's 'products' table.

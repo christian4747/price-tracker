@@ -65,7 +65,7 @@ public class ProductServiceTest {
 
     @Test
     public void addProduct_productExists_throwException() {
-        when(productDAO.findByName(anyString())).thenReturn(Optional.of(addedProduct));
+        when(productDAO.findAllByName(anyString())).thenReturn(List.of(addedProduct));
 
         assertThrows(IllegalArgumentException.class, () -> productService.addProduct(productDTO));
     }
@@ -74,7 +74,7 @@ public class ProductServiceTest {
     public void addProduct_productExistsDiffStore_returnProduct() {
         addedProduct.setStore("Store2");
 
-        when(productDAO.findByName(anyString())).thenReturn(Optional.of(addedProduct));
+        when(productDAO.findAllByName(anyString())).thenReturn(List.of(addedProduct));
         when(productDAO.save(any())).thenReturn(addedProduct);
 
         assertEquals("Product", productService.addProduct(productDTO).getName());
