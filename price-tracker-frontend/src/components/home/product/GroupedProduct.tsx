@@ -49,7 +49,7 @@ const GroupedProduct = ({products, dateToday, setDateToday}: ProductProps) => {
                         <CopyButton value={products[0].name} timeout={1000}>
                             {({copied, copy}) => (
                                 <div
-                                    className="hidden group-hover:block cursor-pointer"
+                                    className="cursor-pointer"
                                     onClick={(e) => {
                                         copy()
                                         e.stopPropagation()
