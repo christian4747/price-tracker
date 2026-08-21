@@ -53,6 +53,9 @@ const GroupedProduct = ({products, dateToday, setDateToday}: ProductProps) => {
                         <div title={products[0].name} className="text-lg w-auto truncate">
                             {products[0].name}
                         </div>
+                        <div className="text-raincloud">
+                            {selectedStore + ` (${products.length})`}
+                        </div>
                         <CopyButton value={products[0].name} timeout={1000}>
                             {({copied, copy}) => (
                                 <div
