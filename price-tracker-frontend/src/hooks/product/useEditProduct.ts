@@ -24,7 +24,11 @@ export function useEditProduct(product: ProductType) {
             return api.editProduct(product.productId, productDTO.value)
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({queryKey: ['products']})
+            queryClient.invalidateQueries({
+                predicate: (query) => {
+                    return (query.queryKey[0] as string) === 'products' || (query.queryKey[0] as string) === 'productsGrouped'
+                }
+            })
         },
         onError: (error) => {
             console.log(`Error occurred while updating ${product.productId}: ${product.name} (${error.message})`)

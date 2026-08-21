@@ -12,7 +12,11 @@ export function useDeleteProduct(product: ProductType) {
             return api.deleteProduct(product.productId)
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({queryKey: ['products']})
+            queryClient.invalidateQueries({
+                predicate: (query) => {
+                    return (query.queryKey[0] as string).includes('product')
+                }
+            })
         },
         onError: (error) => {
             console.log(`Error occurred while deleting ${product.productId}: ${product.name} (${error.message})`)

@@ -23,7 +23,11 @@ export function useAddProduct() {
             return api.addProduct(productDTO.value)
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({queryKey: ['products']})
+            queryClient.invalidateQueries({
+                predicate: (query) => {
+                    return (query.queryKey[0] as string).includes('product')
+                }
+            })
         },
         onError: (error) => {
             console.log(`Error occurred while adding ${productDTO.value.name} (${error.message})`)

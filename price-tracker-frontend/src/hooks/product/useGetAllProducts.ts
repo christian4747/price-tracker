@@ -13,7 +13,11 @@ export function useGetAllProducts() {
     })
 
     const refreshAllProducts = () => {
-        queryClient.invalidateQueries({queryKey: ['products']})
+        queryClient.invalidateQueries({
+            predicate: (query) => {
+                return (query.queryKey[0] as string).includes('product')
+            }
+        })
     }
 
     const useGetAllProductsProps = {
