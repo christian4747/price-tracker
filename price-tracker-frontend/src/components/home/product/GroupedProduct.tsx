@@ -1,7 +1,7 @@
 import { type ProductType } from "@/utils/Types"
 import PriceHistoryChart from "../price/PriceHistoryChart"
 import PriceList from "../price/PriceList"
-import { Accordion, Box, Combobox, CopyButton, InputBase, Tooltip, useCombobox } from "@mantine/core"
+import { Accordion, Box, Combobox, CopyButton, Input, InputBase, Skeleton, Tooltip, useCombobox } from "@mantine/core"
 import { FaCheck, FaCopy, FaLink } from "react-icons/fa6"
 import DeleteProductModal from "../modals/DeleteProductModal"
 import EditProductModal from "../modals/EditProductModal"
@@ -23,7 +23,7 @@ const GroupedProduct = ({products, dateToday, setDateToday}: ProductProps) => {
         onDropdownClose: () => combobox.resetSelectedOption()
     })
 
-    const [selectedStore, setSelectedStore] = useState(products[0].store)
+    const [selectedStore, setSelectedStore] = useState<string | undefined>(products[0].store)
 
     const storeOptions = products.map(({store}) => (
         <Combobox.Option value={store} key={store}>
@@ -33,7 +33,7 @@ const GroupedProduct = ({products, dateToday, setDateToday}: ProductProps) => {
 
     const onProductDeleteEdit = (prevStore: string) => {
         if (selectedStore === prevStore) {
-            setSelectedStore('')
+            setSelectedStore(undefined)
         }
     }
 
@@ -72,7 +72,8 @@ const GroupedProduct = ({products, dateToday, setDateToday}: ProductProps) => {
             <Accordion.Panel>
                 {/* Lower content */}
                 <div className='w-full h-full flex justify-between gap-2'>
-                    {products?.map((product) => {
+                    {selectedStore ? 
+                        products?.map((product) => {
                             return (
                                 <>
                                     {product.store === selectedStore &&
@@ -84,8 +85,10 @@ const GroupedProduct = ({products, dateToday, setDateToday}: ProductProps) => {
                                 </>
                             )
                         })
+                        :
+                        <Skeleton style={{aspectRatio: 3 / 1}} height="100%" width="70%" animate={false} />
                     }
-                    <div className="flex flex-col w-3/10 h-auto gap-2">
+                    <div className="flex flex-col w-3/10 gap-2">
                         <div className="flex items-center w-auto gap-2">
                             <Box className="w-full">
                                 <Combobox
@@ -104,7 +107,7 @@ const GroupedProduct = ({products, dateToday, setDateToday}: ProductProps) => {
                                             rightSectionPointerEvents="none"
                                             onClick={() => combobox.toggleDropdown()}
                                         >
-                                            {selectedStore}
+                                            {selectedStore ? selectedStore : <Input.Placeholder>Select store</Input.Placeholder>}
                                         </InputBase>
                                     </Combobox.Target>
 
@@ -131,18 +134,22 @@ const GroupedProduct = ({products, dateToday, setDateToday}: ProductProps) => {
                             })}
 
                         </div>
-                        {products?.map((product) => {
-                            return (
-                                <>
-                                    {selectedStore === product.store &&
-                                        <PriceList
-                                            product={product}
-                                            setDateToday={setDateToday}
-                                        />
-                                    }
-                                </>
-                            )
-                        })}
+                        {selectedStore ?
+                            products?.map((product) => {
+                                return (
+                                    <>
+                                        {selectedStore === product.store &&
+                                            <PriceList
+                                                product={product}
+                                                setDateToday={setDateToday}
+                                            />
+                                        }
+                                    </>
+                                )
+                            })
+                            :
+                            <Skeleton height='100%' className='w-full' animate={false} />
+                        }
                     </div>
                 </div>
             </Accordion.Panel>
