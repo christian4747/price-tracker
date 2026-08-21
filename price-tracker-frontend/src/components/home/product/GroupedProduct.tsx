@@ -6,6 +6,8 @@ import { FaCheck, FaCopy, FaLink } from "react-icons/fa6"
 import DeleteProductModal from "../modals/DeleteProductModal"
 import EditProductModal from "../modals/EditProductModal"
 import { useState } from "react"
+import PriceBanner from "../price/PriceBanner"
+import PriceBannerBadge from "../price/PriceBannerBadge"
 
 type ProductProps = {
     products: ProductType[]
@@ -25,9 +27,14 @@ const GroupedProduct = ({products, dateToday, setDateToday}: ProductProps) => {
 
     const [selectedStore, setSelectedStore] = useState<string | undefined>(products[0].store)
 
-    const storeOptions = products.map(({store}) => (
-        <Combobox.Option value={store} key={store}>
-            {store}
+    const storeOptions = products.map((product) => (
+        <Combobox.Option value={product.store} key={product.store} className="flex items-center gap-2">
+            {product.store}
+            <PriceBannerBadge
+                product={product}
+                dateToday={dateToday}
+                setDateToday={setDateToday}
+            />
         </Combobox.Option>
     ))
 
@@ -65,7 +72,21 @@ const GroupedProduct = ({products, dateToday, setDateToday}: ProductProps) => {
                             )}
                         </CopyButton>
                     </div>
-                    
+                    <div className='flex gap-3 items-center font-bold'>
+                        {products?.map((product) => {
+                            return (
+                                <>
+                                    {product.store === selectedStore &&
+                                        <PriceBanner
+                                            product={product}
+                                            dateToday={dateToday}
+                                            setDateToday={setDateToday}
+                                        />
+                                    }
+                                </>
+                            )
+                        })}
+                    </div>
             </div>
             </Accordion.Control>
 
