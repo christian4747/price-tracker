@@ -8,9 +8,10 @@ import { MdDelete } from "react-icons/md";
 type DeleteProductModalProps = {
     product: ProductType
     showOnHover?: boolean
+    onDelete?: () => void
 }
 
-const DeleteProductModal = ({product, showOnHover = true}: DeleteProductModalProps) => {
+const DeleteProductModal = ({product, showOnHover = true, onDelete}: DeleteProductModalProps) => {
 
     // Track state of modal open/close
     const [opened, { open, close }] = useDisclosure(false)
@@ -36,7 +37,7 @@ const DeleteProductModal = ({product, showOnHover = true}: DeleteProductModalPro
                     </div>
                 </Center>
 
-                <Button fullWidth className="mt-5" onClick={(e) => {mutation.mutate();close();e.stopPropagation()}}>Delete Product</Button>
+                <Button fullWidth className="mt-5" onClick={(e) => {mutation.mutate();onDelete && onDelete();close();e.stopPropagation()}}>Delete Product</Button>
             </Modal>
             <div
                 className={showOnHover ? "hidden group-hover:block cursor-pointer" : "cursor-pointer"}
