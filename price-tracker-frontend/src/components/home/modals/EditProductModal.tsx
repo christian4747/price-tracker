@@ -7,9 +7,10 @@ import { MdEdit } from "react-icons/md";
 
 type EditPriceModalProps = {
     product: ProductType
+    showOnHover?: boolean
 }
 
-const EditProductModal = ({product}: EditPriceModalProps) => {
+const EditProductModal = ({product, showOnHover = true}: EditPriceModalProps) => {
 
     // Track state of modal open/close
     const [opened, { open, close }] = useDisclosure(false)
@@ -56,7 +57,7 @@ const EditProductModal = ({product}: EditPriceModalProps) => {
                 <Button fullWidth className="mt-5" onClick={(e) => {mutation.mutate();close();e.stopPropagation()}}>Edit Product</Button>
             </Modal>
             <div
-                className="hidden group-hover:block cursor-pointer"
+                className={showOnHover ? "hidden group-hover:block cursor-pointer" : "cursor-pointer"}
                 onClick={(e) => {
                     open()
                     e.stopPropagation()
