@@ -39,10 +39,12 @@ const ProductContainer = ({product, dateToday, setDateToday}: ProductProps) => {
                         product={product}
                         dateToday={dateToday}
                     />
-                    <PriceList
-                        product={product}
-                        setDateToday={setDateToday}
-                    />
+                    <div className="w-3/10">
+                        <PriceList
+                            product={product}
+                            setDateToday={setDateToday}
+                        />
+                    </div>
                 </div>
             </Accordion.Panel>
         </div>
