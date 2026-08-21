@@ -1,7 +1,7 @@
 import { type ProductType } from "@/utils/Types"
 import PriceHistoryChart from "../price/PriceHistoryChart"
 import PriceList from "../price/PriceList"
-import { Accordion, Box, Combobox, CopyButton, Input, InputBase, Tooltip, useCombobox } from "@mantine/core"
+import { Accordion, Box, Combobox, CopyButton, InputBase, Tooltip, useCombobox } from "@mantine/core"
 import { FaCheck, FaCopy, FaLink } from "react-icons/fa6"
 import DeleteProductModal from "../modals/DeleteProductModal"
 import EditProductModal from "../modals/EditProductModal"
@@ -30,6 +30,12 @@ const GroupedProduct = ({products, dateToday, setDateToday}: ProductProps) => {
             {store}
         </Combobox.Option>
     ))
+
+    const onProductDeleteEdit = (prevStore: string) => {
+        if (selectedStore === prevStore) {
+            setSelectedStore('')
+        }
+    }
 
     return (
         <div className='h-full w-full border-t border-smoke flex flex-col gap-2 group'>
@@ -89,7 +95,7 @@ const GroupedProduct = ({products, dateToday, setDateToday}: ProductProps) => {
                                             rightSectionPointerEvents="none"
                                             onClick={() => combobox.toggleDropdown()}
                                         >
-                                            {selectedStore || <Input.Placeholder>Pick store</Input.Placeholder>}
+                                            {selectedStore}
                                         </InputBase>
                                     </Combobox.Target>
 
@@ -107,8 +113,8 @@ const GroupedProduct = ({products, dateToday, setDateToday}: ProductProps) => {
                                                 <a className="cursor-pointer" href={products[0].link} target="_blank">
                                                     <Tooltip withArrow label={products[0].link}><FaLink /></Tooltip>
                                                 </a>
-                                                <EditProductModal product={product} showOnHover={false}/>
-                                                <DeleteProductModal product={product} showOnHover={false}/>
+                                                <EditProductModal product={product} showOnHover={false} onEdit={() => onProductDeleteEdit(product.store)}/>
+                                                <DeleteProductModal product={product} showOnHover={false} onDelete={() => onProductDeleteEdit(product.store)}/>
                                             </>
                                         }
                                     </>
