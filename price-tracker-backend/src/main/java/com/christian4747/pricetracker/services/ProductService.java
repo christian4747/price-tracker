@@ -4,6 +4,7 @@ import com.christian4747.pricetracker.daos.ProductDAO;
 import com.christian4747.pricetracker.models.Product;
 import com.christian4747.pricetracker.models.dtos.IncomingProductDTO;
 import com.christian4747.pricetracker.models.dtos.ProductNameGroupDTO;
+import com.christian4747.pricetracker.models.dtos.ProductNameGroupDTOAndCount;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -30,10 +31,15 @@ public class ProductService {
      * @return The newly added Product
      */
     public Product addProduct(IncomingProductDTO productDTO) {
-        Optional<Product> existingProduct = productDAO.findByName(productDTO.getName());
+        List<Product> existingProducts = productDAO.findAllByName(productDTO.getName());
 
-        if (existingProduct.isPresent() && existingProduct.get().getStore().equals(productDTO.getStore())) {
-            throw new IllegalArgumentException("Product already exists!");
+        if (!existingProducts.isEmpty()) {
+            existingProducts
+                .forEach(product -> {
+                    if (product.getStore().equals(productDTO.getStore())) {
+                        throw new IllegalArgumentException("Product already exists!");
+                    }
+                });
         }
 
         Product newProduct = new Product(
@@ -84,16 +90,19 @@ public class ProductService {
      * @param pageable Pagination settings
      * @return A list of ProductNameGroupDTO
      */
-    public List<ProductNameGroupDTO> getProductsGroupedByName(Pageable pageable) {
+    public ProductNameGroupDTOAndCount getProductsGroupedByName(Pageable pageable) {
         Page<String> namesPage = productDAO.findDistinctNames(pageable);
         List<Product> productsInNamesPage = productDAO.findByNameIn(namesPage.getContent());
 
         Map<String, List<Product>> groupedByName = productsInNamesPage.stream()
                 .collect(Collectors.groupingBy(Product :: getName));
 
-        return namesPage.getContent().stream()
-                .map(name -> new ProductNameGroupDTO(name, groupedByName.getOrDefault(name, List.of())))
-                .toList();
+        return new ProductNameGroupDTOAndCount(
+                productDAO.findDistinctNames(Pageable.unpaged()).getSize(),
+                namesPage.getContent().stream()
+                    .map(name -> new ProductNameGroupDTO(name, groupedByName.getOrDefault(name, List.of())))
+                    .toList()
+        );
     }
 
     /**
@@ -108,6 +117,14 @@ public class ProductService {
             throw new IllegalArgumentException("Product with ID " + productId + " does not exist!");
 
         return existingProduct.get();
+    }
+
+    /**
+     * Gets the number of products in the 'products' database table.
+     * @return the product count
+     */
+    public Long getProductCount() {
+        return productDAO.count();
     }
 
     /**

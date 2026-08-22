@@ -2,6 +2,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import api from '../../services/api'
 
 export function useGetAllProducts() {
+
     // Get the query client
     const queryClient = useQueryClient()
 
@@ -12,7 +13,11 @@ export function useGetAllProducts() {
     })
 
     const refreshAllProducts = () => {
-        queryClient.invalidateQueries({queryKey: ['products']})
+        queryClient.invalidateQueries({
+            predicate: (query) => {
+                return (query.queryKey[0] as string).includes('product')
+            }
+        })
     }
 
     const useGetAllProductsProps = {

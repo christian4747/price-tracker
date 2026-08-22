@@ -1,8 +1,7 @@
+import GroupedProductList from '../product/GroupedProductList'
 import ProductList from '../product/ProductList'
 import ProductListHeader from '../product/ProductListHeader'
-import { useGetAllProducts } from '../../../hooks/product/useGetAllProducts'
 import { useState } from 'react'
-import type { ProductType } from '../../../utils/Types'
 
 const ProductListContainer = () => {
 
@@ -10,80 +9,68 @@ const ProductListContainer = () => {
     const [searchedTerm, setSearchedTerm] = useState('')
     // State for filtering by product status
     const [productStatusFilter, setProductStatusFilter] = useState('Active')
-
-    // Hook for getting all products
-    const getAllProducts = useGetAllProducts()
+    // State for tracking group by
+    const [productsGroupBy, setProductsGroupBy] = useState('')
 
     // Sets the search term, triggering a filter and refresh
     const searchSearchTerm = (searchTerm: string) => {
         setSearchedTerm(searchTerm)
     }
 
-    if (getAllProducts.query.isPending) {
+    if (productsGroupBy !== '') {
         return (
             <>
-                <div className="flex items-center gap-2 mb-3">
+                <div className="sticky top-0 pt-5 z-50 bg-white flex flex-col gap-2">
                     <div className="text-5xl">
                         My Products
                     </div>
+                
+                    <div className='border-t border-b pb-0 pt-3 border-smoke'>
+                        <ProductListHeader
+                            searchSearchTerm={searchSearchTerm}
+                            productStatusFilter={productStatusFilter}
+                            setProductStatusFilter={setProductStatusFilter}
+                            productsGroupBy={productsGroupBy}
+                            setProductsGroupBy={setProductsGroupBy}
+                        />
+                    </div>
                 </div>
-                Loading...
+
+                <div className='mb-15'>
+                    <GroupedProductList
+                        searchedTerm={searchedTerm}
+                    />
+                </div>
             </>
         )
-    } else if (getAllProducts.query.isError) {
+    } else {
         return (
             <>
-                <div className="flex items-center gap-2 mb-3">
+                <div className="sticky top-0 pt-5 z-50 bg-white flex flex-col gap-2">
                     <div className="text-5xl">
                         My Products
                     </div>
+
+                    <div className='border-t border-b pb-0 pt-3 border-smoke'>
+                        <ProductListHeader
+                            searchSearchTerm={searchSearchTerm}
+                            productStatusFilter={productStatusFilter}
+                            setProductStatusFilter={setProductStatusFilter}
+                            productsGroupBy={productsGroupBy}
+                            setProductsGroupBy={setProductsGroupBy}
+                        />
+                    </div>
                 </div>
-                An error occurred: {getAllProducts.query.error.message}
+
+                <div className='mb-15'>
+                    <ProductList
+                        searchedTerm={searchedTerm}
+                        productStatusFilter={productStatusFilter}
+                    />
+                </div>
             </>
         )
     }
-
-    // Product list with status filter applied
-    const filterByStatus = getAllProducts.query.data.filter((product: ProductType) => {
-        if (productStatusFilter === 'Active') {
-            return product.active
-        } else if (productStatusFilter === 'Inactive') {
-            return !product.active
-        } else {
-            return true
-        }
-    })
-
-    // Product list with search term filter applied
-    const filteredProducts = filterByStatus.filter((product: ProductType) => {
-        return product.name.toLowerCase().includes(searchedTerm.toLowerCase()) ||
-            product.store.toLowerCase().includes(searchedTerm.toLowerCase())
-    })
-
-    return (
-        <>
-            <div className="flex items-center gap-2 mb-3">
-                <div className="text-5xl">
-                    My Products
-                </div>
-            </div>
-
-            <div className='border-t pb-0 mb-5 pt-3 border-smoke'>
-                <ProductListHeader
-                    getAllProducts={getAllProducts.refresh}
-                    searchSearchTerm={searchSearchTerm}
-                    productStatusFilter={productStatusFilter}
-                    setProductStatusFilter={setProductStatusFilter}
-                />
-                {getAllProducts.query.isSuccess && (
-                    <ProductList
-                        products={filteredProducts}
-                    />
-                )}
-            </div>
-            
-        </>
-    )
 }
 
 export default ProductListContainer

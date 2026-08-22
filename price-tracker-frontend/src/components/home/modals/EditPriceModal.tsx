@@ -6,6 +6,7 @@ import { useEditPrice } from "@/hooks/price/useEditPrice"
 import { FiCalendar } from "react-icons/fi"
 import { MdEdit } from "react-icons/md"
 import PriceNumberInput from "../price/PriceNumberInput"
+import PriceCalculator from "../price/PriceCalculator"
 
 type EditPriceModalProps = {
     price: PriceType
@@ -26,6 +27,7 @@ const EditPriceModal = ({price}: EditPriceModalProps) => {
                 onClose={close}
                 title="Edit Price"
             >
+                <PriceCalculator />
                 <PriceNumberInput
                     label="Price"
                     className="mb-2 min-w-75"

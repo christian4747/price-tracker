@@ -2,7 +2,7 @@ package com.christian4747.pricetracker.controllers;
 
 import com.christian4747.pricetracker.models.Product;
 import com.christian4747.pricetracker.models.dtos.IncomingProductDTO;
-import com.christian4747.pricetracker.models.dtos.ProductNameGroupDTO;
+import com.christian4747.pricetracker.models.dtos.ProductNameGroupDTOAndCount;
 import com.christian4747.pricetracker.services.ProductService;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -61,7 +61,7 @@ public class ProductController {
      * @return A list of Products (default 20)
      */
     @GetMapping("/grouped")
-    public ResponseEntity<List<ProductNameGroupDTO>> getAllProductsByGroup(Pageable pageable, @RequestParam(defaultValue = "name") String groupBy) {
+    public ResponseEntity<ProductNameGroupDTOAndCount> getAllProductsByGroup(Pageable pageable, @RequestParam(defaultValue = "name") String groupBy) {
         return ResponseEntity.ok(productService.getProductsGroupedByName(pageable));
     }
 
@@ -73,6 +73,15 @@ public class ProductController {
     @GetMapping("/{productId}")
     public ResponseEntity<Product> getProductById(@PathVariable Integer productId) {
         return ResponseEntity.ok(productService.getProductById(productId));
+    }
+
+    /**
+     * Gets the number of products in the 'products' database table.
+     * @return the product count
+     */
+    @GetMapping("/count")
+    public ResponseEntity<Long> getProductCount() {
+        return ResponseEntity.ok(productService.getProductCount());
     }
 
     /**

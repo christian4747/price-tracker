@@ -12,14 +12,10 @@ export function useDeleteProduct(product: ProductType) {
             return api.deleteProduct(product.productId)
         },
         onSuccess: () => {
-            queryClient.setQueryData(['products'], (old: any) => {
-                const idx = old.indexOf(product)
-                return old.filter((p: ProductType, i: number) => {
-                    if (i === idx) {
-                        return
-                    }
-                    return p
-                })
+            queryClient.invalidateQueries({
+                predicate: (query) => {
+                    return (query.queryKey[0] as string).includes('product')
+                }
             })
         },
         onError: (error) => {

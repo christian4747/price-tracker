@@ -26,6 +26,18 @@ export default {
         return productService.getAllProducts(rootUrl)
     },
 
+    getProductCount: async () => {
+        return productService.getProductCount(rootUrl)
+    },
+
+    getProductPage: async (pageNumber: number = 0, pageSize: number = 10) => {
+        return productService.getProductPage(rootUrl, pageNumber, pageSize)
+    },
+
+    getProductsGrouped: async (pageNumber: number = 0, pageSize: number = 10) => {
+        return productService.getProductsGrouped(rootUrl, pageNumber, pageSize)
+    },
+
     addProduct: async (productToAdd: ProductDTO) => {
         return productService.addProduct(rootUrl, productToAdd)
     },

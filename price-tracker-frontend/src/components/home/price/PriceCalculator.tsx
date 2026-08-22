@@ -142,7 +142,7 @@ const PriceCalculator = () => {
                             onChange={
                                 (newReturnAmount) => {
                                     newReturnAmount = newReturnAmount as number
-                                    if (priceCalculatorAmount - discountAmount > 0) {
+                                    if (priceCalculatorAmount > 0) {
                                         // Calculate the return percentage
                                         const returnPercentage = newReturnAmount / discountAmount * 100
 
@@ -166,7 +166,7 @@ const PriceCalculator = () => {
                             onChange={
                                 (newReturnPercentage) => {
                                     newReturnPercentage = newReturnPercentage as number
-                                    if (priceCalculatorAmount - discountAmount > 0) {
+                                    if (priceCalculatorAmount > 0) {
                                         // Calculate the return amount
                                         const returnAmount = percentageValue(discountAmount, newReturnPercentage)
 

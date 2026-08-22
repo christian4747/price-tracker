@@ -49,7 +49,7 @@ type PriceBannerProps =  {
     setDateToday: (newVal: Date) => void
 }
 
-const PriceBanner = ({ product, dateToday, setDateToday }: PriceBannerProps) => {
+const PriceBannerBadge = ({ product, dateToday, setDateToday }: PriceBannerProps) => {
 
     // Use priceData hook
     const priceData = usePriceData(dateToday)
@@ -67,15 +67,14 @@ const PriceBanner = ({ product, dateToday, setDateToday }: PriceBannerProps) => 
     const discountPercent = getPriceDiscount(product.prices, latestPrice)
 
     // Banner style based on banner type & percentage
-    const { color, bg, text } = getBannerStyle(priceData.getBannerType(product.prices))
-    const textStyle: string = color ? color : discountPercent >= 50 ? 'good-deal' : ''
+    const { bg, text } = getBannerStyle(priceData.getBannerType(product.prices))
 
     // Calculate the time left for timer
     let useTimerText = false
     let timeLeft = ''
     const lastPrice = priceData.getLatestPriceAfterToday(product.prices)
     let timerText = usePriceTimer(dayjs(lastPrice?.priceStarted).valueOf() / 1000, setDateToday)
-    if (latestPrice && lastPrice && lastPrice !== latestPrice) {
+    if (latestPrice && lastPrice && lastPrice !== latestPrice && latestPrice.amount < lastPrice.amount) {
         timeLeft = dayjs(lastPrice.priceStarted).diff(dayjs(), 'day').toString()
         if (parseInt(timeLeft) <= 6) {
             useTimerText = true
@@ -119,31 +118,13 @@ const PriceBanner = ({ product, dateToday, setDateToday }: PriceBannerProps) => 
 
             {/* Price banner */}
             {text.length > 0 &&
-                <div className={'text-cloud rounded-sm p-2 font-bold min-w-38 flex justify-center ' + bg}>
-                    {text}
+                <div className={'text-cloud rounded-sm p-1 font-bold flex justify-center ' + bg}>
+                    -{discountPercent}%
                 </div>
             }
-
-            {/* Discount percentage */}
-            {discountPercent > 0 && 
-                <div className={'min-w-16.25 text-center ' + textStyle}>
-                    <>-{discountPercent}%</>
-                </div>
-            }
-
-            {/* Price text */}
-            {/* TODO: Can maybe use div outside */}
-            <div className={'min-w-17.5 text-right ' + textStyle}>
-            {latestPrice && latestPrice.returnAmount > 0 ?
-                <Tooltip withArrow label={<>{latestPrice.amount} (base) - {latestPrice.returnAmount} (return)</>}>
-                    <div>{priceText}</div>
-                </Tooltip>
-                :
-                <>{priceText}</>
-            }
-            </div>
+        
         </>
     )
 }
 
-export default PriceBanner
+export default PriceBannerBadge

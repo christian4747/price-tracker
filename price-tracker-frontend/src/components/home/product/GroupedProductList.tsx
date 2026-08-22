@@ -1,16 +1,20 @@
 import { Accordion, Center, Pagination } from "@mantine/core"
 import type { ProductType } from "../../../utils/Types"
-import ProductContainer from '../containers/ProductContainer'
 import { useState } from "react"
 import { useDebounce } from "@/hooks/common/useDebounce"
-import { useGetProductPage } from "@/hooks/product/useGetProductPage"
+import GroupedProduct from "./GroupedProduct"
+import { useGetProductsGrouped } from "@/hooks/product/useGetProductsGrouped"
 
-type ProductListProps = {
-    productStatusFilter: string
+type GroupedProduct = {
+    name: string
+    products: ProductType[]
+}
+
+type GroupedProductListProps = {
     searchedTerm: string
 }
 
-const ProductList = ({productStatusFilter, searchedTerm}: ProductListProps) => {
+const GroupedProductList = ({searchedTerm}: GroupedProductListProps) => {
 
     // Debounce for setting list's today's date state
     const {value: dateToday, setValueWithDebounce: setDateToday} = useDebounce(new Date())
@@ -18,40 +22,28 @@ const ProductList = ({productStatusFilter, searchedTerm}: ProductListProps) => {
     // Accordion state (prevents closing when tanstack refreshes)
     const [value, setValue] = useState<string[]>([])
 
-    // Hook for regular product list pagination
-    const getProductPage = useGetProductPage()
+    // Hook for getting products grouped
+    const getProductsGrouped = useGetProductsGrouped()
 
     const changePageNumber = (pageNumber: number) => {
-        getProductPage.setCurrentPageNumber(pageNumber)
+        getProductsGrouped.setCurrentPageNumber(pageNumber)
         setValue([])
     }
 
-    if (getProductPage.query.isPending) {
+    if (getProductsGrouped.query.isPending) {
         return (<>Loading...</>)
-    } else if (getProductPage.query.isError) {
-        return (<>An error occurred: {getProductPage.query.error.message}</>)
+    } else if (getProductsGrouped.query.isError) {
+        return (<>An error occurred: {getProductsGrouped.query.error.message}</>)
     }
 
-    // Product list with status filter applied
-    const filterByStatus = getProductPage.query.data.filter((product: ProductType) => {
-        if (productStatusFilter === 'Active') {
-            return product.active
-        } else if (productStatusFilter === 'Inactive') {
-            return !product.active
-        } else {
-            return true
-        }
-    })
-
     // Product list with search term filter applied
-    const filteredProducts: ProductType[] = filterByStatus.filter((product: ProductType) => {
-        return product.name.toLowerCase().includes(searchedTerm.toLowerCase()) ||
-            product.store.toLowerCase().includes(searchedTerm.toLowerCase())
+    const filteredProducts: GroupedProduct[] = getProductsGrouped.query.data?.productNameGroupDTOs.filter((productNameGroupDTO: GroupedProduct) => {
+        return productNameGroupDTO.name.toLowerCase().includes(searchedTerm.toLowerCase())
     })
 
     return (
         <>
-            {getProductPage.query.isSuccess && getProductPage.countQuery.isSuccess && (
+            {getProductsGrouped.query.isSuccess && getProductsGrouped.countQuery.isSuccess && (
                 <div className="flex pb-5 flex-col">
                     <Accordion
                         multiple
@@ -64,11 +56,11 @@ const ProductList = ({productStatusFilter, searchedTerm}: ProductListProps) => {
                         value={value}
                         onChange={setValue}
                     >
-                        {filteredProducts?.map((product, idx) => {
+                        {filteredProducts?.map((groupedProduct, idx) => {
                             return (
-                                <Accordion.Item value={`item-${idx}`} key={product.name + product.store}>
-                                    <ProductContainer
-                                        product={product}
+                                <Accordion.Item value={`item-${idx}`} key={groupedProduct.name}>
+                                    <GroupedProduct
+                                        products={groupedProduct.products}
                                         dateToday={dateToday}
                                         setDateToday={setDateToday}
                                     />
@@ -78,8 +70,8 @@ const ProductList = ({productStatusFilter, searchedTerm}: ProductListProps) => {
                         <footer className="fixed bottom-5 left-0 z-50 w-full">
                             <Center>
                                 <Pagination
-                                    total={Math.ceil(getProductPage.countQuery.data / 10)}
-                                    value={getProductPage.currentPageNumber}
+                                    total={Math.ceil(getProductsGrouped.query.data.count / 10)}
+                                    value={getProductsGrouped.currentPageNumber}
                                     onChange={changePageNumber}
                                 />
                             </Center>
@@ -91,4 +83,4 @@ const ProductList = ({productStatusFilter, searchedTerm}: ProductListProps) => {
     )
 }
 
-export default ProductList
+export default GroupedProductList

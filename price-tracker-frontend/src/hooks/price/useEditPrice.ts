@@ -1,4 +1,4 @@
-import type { PriceType, ProductType } from '../../utils/Types'
+import type { PriceType } from '../../utils/Types'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import api from '../../services/api'
 import { usePriceDTO } from './usePriceDTO'
@@ -29,26 +29,8 @@ export function useEditPrice(price: PriceType) {
             priceDTO.value.priceStarted = dayjs(priceDTO.value.priceStarted).format()
             return api.editPrice(price.priceId, priceDTO.value)
         },
-        onSuccess: (newData) => {
-            queryClient.setQueryData(['products'], (old: any) => {
-                return old.map((p: ProductType) => {
-                    if (p.productId === price.productId) {
-                        const priceIdx = p.prices.indexOf(price)
-
-                        const updatedPrices = p.prices.map((price, i) => {
-                            if (i === priceIdx) {
-                                return newData
-                            }
-                            return price
-                        })
-
-                        let productCopy = {...p}
-                        productCopy = {...productCopy, prices: updatedPrices}
-                        return productCopy
-                    }
-                    return p
-                })
-            })
+        onSuccess: () => {
+            queryClient.invalidateQueries({queryKey: ['products']})
         },
         onError: (error) => {
             console.log(`Error occurred while updating ${price.productId}: ${price.amount} (${error.message})`)

@@ -65,7 +65,7 @@ public class ProductServiceTest {
 
     @Test
     public void addProduct_productExists_throwException() {
-        when(productDAO.findByName(anyString())).thenReturn(Optional.of(addedProduct));
+        when(productDAO.findAllByName(anyString())).thenReturn(List.of(addedProduct));
 
         assertThrows(IllegalArgumentException.class, () -> productService.addProduct(productDTO));
     }
@@ -74,7 +74,7 @@ public class ProductServiceTest {
     public void addProduct_productExistsDiffStore_returnProduct() {
         addedProduct.setStore("Store2");
 
-        when(productDAO.findByName(anyString())).thenReturn(Optional.of(addedProduct));
+        when(productDAO.findAllByName(anyString())).thenReturn(List.of(addedProduct));
         when(productDAO.save(any())).thenReturn(addedProduct);
 
         assertEquals("Product", productService.addProduct(productDTO).getName());
@@ -128,8 +128,9 @@ public class ProductServiceTest {
         when(productDAO.findDistinctNames(any())).thenReturn(namePage);
         when(productDAO.findByNameIn(any())).thenReturn(productList);
         when(namePage.getContent()).thenReturn(List.of("Product", "Product2"));
+        when(namePage.getSize()).thenReturn(2);
 
-        assertEquals(2, productService.getProductsGroupedByName(pageable).size());
+        assertEquals(2, productService.getProductsGroupedByName(pageable).count());
     }
 
     @Test
