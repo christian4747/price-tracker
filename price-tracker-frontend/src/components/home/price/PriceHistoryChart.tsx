@@ -1,6 +1,7 @@
 import { usePriceData } from '@/hooks/price/usePriceData'
 import type { ProductType } from '@/utils/Types'
-import { Line, LineChart, ReferenceLine, Tooltip, XAxis, type TooltipContentProps } from 'recharts'
+import { LineChart, type ChartTooltipProps } from '@mantine/charts'
+import { Paper, Text } from '@mantine/core'
 
 const getPriceWithCurrency = (amount: number, currency: string) => {
     try {
@@ -10,25 +11,21 @@ const getPriceWithCurrency = (amount: number, currency: string) => {
     }
 }
 
-const PriceHistoryTooltip = ({active, payload, label}: TooltipContentProps) => {
-    const firstPayload = payload?.[0]
-    const isVisible = active && firstPayload != null
+function ChartTooltip({ label, payload }: ChartTooltipProps) {
+    if (!payload) return null
+    console.log(payload)
     return (
-        <div
-            className="custom-tooltip"
-            style={{
-                visibility: isVisible ? 'visible' : 'hidden'
-            }}
-        >
-        {isVisible && (
-            <div className='m-0 p-3 bg-cloud border border-smoke rounded-sm flex flex-col flex-wrap w-full h-full'>
-                <p className="label">{`${label}`}</p>
-                <p>{`Price: ${getPriceWithCurrency(firstPayload.value as number, firstPayload.payload.currency as string)}`}</p>
-                {firstPayload.payload.description ? <p className='text-raincloud max-w-75 wrap-break-word'>{`${firstPayload.payload.description}`}</p> : <></> }
-            </div>
-        )}
-        </div>
-    );
+        <Paper px="md" py="sm" withBorder shadow="md">
+        <Text fw={500} mb={5}>
+            {label}
+        </Text>
+        {payload.map((item: any) => (
+            <Text key={item.name} c={item.color} fz="sm">
+                Price: {getPriceWithCurrency(item.value, item.payload.currency)}
+            </Text>
+        ))}
+        </Paper>
+    )
 }
 
 type PriceHistoryChartProps = {
@@ -36,17 +33,29 @@ type PriceHistoryChartProps = {
     dateToday: Date
 }
 
+// TODO: Update to use mantine charts
 const PriceHistoryChart = ({product, dateToday}: PriceHistoryChartProps) => {
     const priceData = usePriceData(dateToday).createPriceData(product.prices)
 
     return (
-        <div className='w-7/10 border border-smoke rounded-sm p-1'>
-            <LineChart style={{ width: '100%', aspectRatio: 3}} responsive data={priceData}>
-                <XAxis dataKey="priceStarted" />
-                <ReferenceLine x="Now" />
-                <Line type="stepAfter" dataKey="price" />
-                <Tooltip content={PriceHistoryTooltip} />
-            </LineChart>
+        <div className='w-7/10 border border-smoke rounded-sm p-5'>
+            <LineChart
+                h={200}
+                data={priceData}
+                dataKey="priceStarted"
+                series={[
+                    { name: 'price', color: 'blue.6'}
+                ]}
+                referenceLines={[
+                    { x: 'Now'}
+                ]}
+                tooltipProps={{
+                    content: ({ label, payload }) => <ChartTooltip label={label} payload={payload} />,
+                }}
+                gridAxis='none'
+                withYAxis={false}
+                curveType='stepAfter'
+            />
         </div>
     )
 }

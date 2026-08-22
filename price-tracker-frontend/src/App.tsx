@@ -3,6 +3,7 @@ import './App.css'
 import Home from './pages/HomePage'
 import '@mantine/core/styles.css'
 import '@mantine/dates/styles.css'
+import '@mantine/charts/styles.css'
 
 const theme = createTheme({
     fontFamily: 'Inter, sans-serif',
