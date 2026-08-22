@@ -12,9 +12,6 @@ const ProductListContainer = () => {
     // State for tracking group by
     const [productsGroupBy, setProductsGroupBy] = useState('')
 
-    // // Hook for getting products grouped
-    // const getProductsGrouped = useGetProductsGrouped(activePage)
-
     // Sets the search term, triggering a filter and refresh
     const searchSearchTerm = (searchTerm: string) => {
         setSearchedTerm(searchTerm)
