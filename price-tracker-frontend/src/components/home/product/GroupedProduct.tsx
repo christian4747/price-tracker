@@ -50,7 +50,7 @@ const GroupedProduct = ({products, dateToday, setDateToday}: ProductProps) => {
                 {/* Top content */}
                 <div className='h-full min-h-11.25 w-full flex justify-between items-center pr-2'>
                     <div className='flex gap-3 items-baseline-last'>
-                        <div title={products[0].name} className="text-lg max-w-125 truncate">
+                        <div title={products[0].name} className="text-lg max-w-110 truncate">
                             {products[0].name}
                         </div>
                         <div className="text-raincloud">
