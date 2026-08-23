@@ -13,7 +13,11 @@ export function useDeletePrice(price: PriceType) {
             return api.deletePrice(price.priceId)
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({queryKey: ['products']})
+            queryClient.invalidateQueries({
+                predicate: (query) => {
+                    return (query.queryKey[0] as string) === 'products' || (query.queryKey[0] as string) === 'productsGrouped'
+                }
+            })
         },
         onError: (error) => {
             console.log(`Error occurred while deleting ${price.priceId}: ${price.amount} ${price.priceStarted} (${error.message})`)
