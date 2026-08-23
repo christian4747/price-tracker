@@ -18,89 +18,96 @@ const ProductListHeader = ({searchSearchTerm, productStatusFilter, setProductSta
 
     return (
         <>
-            <div className="flex items-center gap-2 justify-between mb-3">
-
-                <div className='flex gap-2'>
-                    <Menu>
-                        <Menu.Target>
-                            <Button className='flex gap-2 min-w-30'>
-                                {productStatusFilter}
-                            </Button>
-                        </Menu.Target>
-
-                        <Menu.Dropdown>
-                            <Menu.Label>Status</Menu.Label>
-                            <Menu.RadioGroup value={productStatusFilter} onChange={setProductStatusFilter}>
-                                <Menu.RadioItem value="All">All</Menu.RadioItem>
-                                <Menu.RadioItem value="Active">Active</Menu.RadioItem>
-                                <Menu.RadioItem value="Inactive">Inactive</Menu.RadioItem>
-                            </Menu.RadioGroup>
-                        </Menu.Dropdown>
-                    </Menu>
-
-                    <Menu>
-                        <Menu.Target>
-                            <Button className='flex gap-2 min-w-30'>
-                                {productsGroupBy.length > 0 ? `Sort: ${productsGroupBy}` : 'Sort'}
-                            </Button>
-                        </Menu.Target>
-
-                        <Menu.Dropdown>
-                            <Menu.Label>Sort</Menu.Label>
-                            <Menu.RadioGroup value={productsGroupBy} onChange={setProductsGroupBy}>
-                                <Menu.RadioItem value=''>None</Menu.RadioItem>
-                                <Menu.RadioItem value='Name'>Name</Menu.RadioItem>
-                            </Menu.RadioGroup>
-                        </Menu.Dropdown>
-                    </Menu>
+            <div className="sticky top-0 pt-5 z-50 bg-white flex flex-col gap-2">
+                <div className="text-5xl">
+                    My Products
                 </div>
+                <div className='border-t border-b pb-0 pt-3 border-smoke'>
+                    <div className="flex items-center gap-2 justify-between mb-3">
 
-                <div className='flex items-center gap-2'>
-                    <div className='flex max-w-50'>
-                        <Input
-                            radius='xl'
-                            className='border-none focus-visible:border-none focus-within:outline-none min-h-8'
-                            onChange={(e) => setCurrentSearchTerm(e.target.value)}
-                            value={currentSearchTerm}
-                            placeholder='Search'
-                            leftSectionPointerEvents="all"
-                            leftSection={
-                                <div className='cursor-pointer pl-2' onClick={() => searchSearchTerm(currentSearchTerm)}>
-                                    <MdSearch size={24} />
-                                </div>
-                            }
-                            rightSectionPointerEvents="all"
-                            rightSection={
-                                currentSearchTerm ? (
-                                    <Input.ClearButton
-                                    aria-label="Clear input"
-                                    onClick={() => {
-                                        setCurrentSearchTerm('')
-                                        searchSearchTerm('')
+                        <div className='flex gap-2'>
+                            <Menu>
+                                <Menu.Target>
+                                    <Button className='flex gap-2 min-w-30'>
+                                        {productStatusFilter}
+                                    </Button>
+                                </Menu.Target>
+
+                                <Menu.Dropdown>
+                                    <Menu.Label>Status</Menu.Label>
+                                    <Menu.RadioGroup value={productStatusFilter} onChange={setProductStatusFilter}>
+                                        <Menu.RadioItem value="All">All</Menu.RadioItem>
+                                        <Menu.RadioItem value="Active">Active</Menu.RadioItem>
+                                        <Menu.RadioItem value="Inactive">Inactive</Menu.RadioItem>
+                                    </Menu.RadioGroup>
+                                </Menu.Dropdown>
+                            </Menu>
+
+                            <Menu>
+                                <Menu.Target>
+                                    <Button className='flex gap-2 min-w-30'>
+                                        {productsGroupBy.length > 0 ? `Sort: ${productsGroupBy}` : 'Sort'}
+                                    </Button>
+                                </Menu.Target>
+
+                                <Menu.Dropdown>
+                                    <Menu.Label>Sort</Menu.Label>
+                                    <Menu.RadioGroup value={productsGroupBy} onChange={setProductsGroupBy}>
+                                        <Menu.RadioItem value=''>None</Menu.RadioItem>
+                                        <Menu.RadioItem value='Name'>Name</Menu.RadioItem>
+                                    </Menu.RadioGroup>
+                                </Menu.Dropdown>
+                            </Menu>
+                        </div>
+
+                        <div className='flex items-center gap-2'>
+                            <div className='flex max-w-50'>
+                                <Input
+                                    radius='xl'
+                                    className='border-none focus-visible:border-none focus-within:outline-none min-h-8'
+                                    onChange={(e) => setCurrentSearchTerm(e.target.value)}
+                                    value={currentSearchTerm}
+                                    placeholder='Search'
+                                    leftSectionPointerEvents="all"
+                                    leftSection={
+                                        <div className='cursor-pointer pl-2' onClick={() => searchSearchTerm(currentSearchTerm)}>
+                                            <MdSearch size={24} />
+                                        </div>
+                                    }
+                                    rightSectionPointerEvents="all"
+                                    rightSection={
+                                        currentSearchTerm ? (
+                                            <Input.ClearButton
+                                            aria-label="Clear input"
+                                            onClick={() => {
+                                                setCurrentSearchTerm('')
+                                                searchSearchTerm('')
+                                            }}
+                                            />
+                                        ) : null
+                                    }
+                                    onKeyDown={(event) => {
+                                        if (event.key === 'Enter') {
+                                            setCurrentSearchTerm(currentSearchTerm)
+                                            searchSearchTerm(currentSearchTerm)
+                                        }
                                     }}
-                                    />
-                                ) : null
-                            }
-                            onKeyDown={(event) => {
-                                if (event.key === 'Enter') {
-                                    setCurrentSearchTerm(currentSearchTerm)
-                                    searchSearchTerm(currentSearchTerm)
-                                }
-                            }}
-                        />
-                    </div>
+                                />
+                            </div>
 
-                    <div>
-                        <AddProductModal />
-                    </div>
+                            <div>
+                                <AddProductModal />
+                            </div>
 
-                    {/* <div className="pr-2 cursor-pointer" onClick={getAllProducts}>
-                        <MdRefresh size={48} />
-                    </div> */}
+                            {/* <div className="pr-2 cursor-pointer" onClick={getAllProducts}>
+                                <MdRefresh size={48} />
+                            </div> */}
+                        </div>
+                        {/* <div className="pr-2">
+                            <FaFilter size={24} />
+                        </div> */}
+                    </div>
                 </div>
-                {/* <div className="pr-2">
-                    <FaFilter size={24} />
-                </div> */}
             </div>
         </>
     )

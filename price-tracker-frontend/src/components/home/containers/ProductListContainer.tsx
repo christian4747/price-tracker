@@ -20,54 +20,34 @@ const ProductListContainer = () => {
     if (productsGroupBy !== '') {
         return (
             <>
-                <div className="sticky top-0 pt-5 z-50 bg-white flex flex-col gap-2">
-                    <div className="text-5xl">
-                        My Products
-                    </div>
-                
-                    <div className='border-t border-b pb-0 pt-3 border-smoke'>
-                        <ProductListHeader
-                            searchSearchTerm={searchSearchTerm}
-                            productStatusFilter={productStatusFilter}
-                            setProductStatusFilter={setProductStatusFilter}
-                            productsGroupBy={productsGroupBy}
-                            setProductsGroupBy={setProductsGroupBy}
-                        />
-                    </div>
-                </div>
+                <ProductListHeader
+                    searchSearchTerm={searchSearchTerm}
+                    productStatusFilter={productStatusFilter}
+                    setProductStatusFilter={setProductStatusFilter}
+                    productsGroupBy={productsGroupBy}
+                    setProductsGroupBy={setProductsGroupBy}
+                />
 
-                <div className='mb-15'>
-                    <GroupedProductList
-                        searchedTerm={searchedTerm}
-                    />
-                </div>
+                <GroupedProductList
+                    searchedTerm={searchedTerm}
+                />
             </>
         )
     } else {
         return (
             <>
-                <div className="sticky top-0 pt-5 z-50 bg-white flex flex-col gap-2">
-                    <div className="text-5xl">
-                        My Products
-                    </div>
+                <ProductListHeader
+                    searchSearchTerm={searchSearchTerm}
+                    productStatusFilter={productStatusFilter}
+                    setProductStatusFilter={setProductStatusFilter}
+                    productsGroupBy={productsGroupBy}
+                    setProductsGroupBy={setProductsGroupBy}
+                />
 
-                    <div className='border-t border-b pb-0 pt-3 border-smoke'>
-                        <ProductListHeader
-                            searchSearchTerm={searchSearchTerm}
-                            productStatusFilter={productStatusFilter}
-                            setProductStatusFilter={setProductStatusFilter}
-                            productsGroupBy={productsGroupBy}
-                            setProductsGroupBy={setProductsGroupBy}
-                        />
-                    </div>
-                </div>
-
-                <div className='mb-15'>
-                    <ProductList
-                        searchedTerm={searchedTerm}
-                        productStatusFilter={productStatusFilter}
-                    />
-                </div>
+                <ProductList
+                    searchedTerm={searchedTerm}
+                    productStatusFilter={productStatusFilter}
+                />
             </>
         )
     }

@@ -52,7 +52,7 @@ const ProductList = ({productStatusFilter, searchedTerm}: ProductListProps) => {
     return (
         <>
             {getProductPage.query.isSuccess && getProductPage.countQuery.isSuccess && (
-                <div className="flex pb-5 flex-col">
+                <div className="flex pb-5 flex-col mb-15">
                     <Accordion
                         multiple
                         variant="unstyled"
