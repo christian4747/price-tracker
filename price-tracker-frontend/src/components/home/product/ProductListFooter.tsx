@@ -11,7 +11,7 @@ export const ProductListFooter = ({total, value, onChange}: ProductListFooter) =
         <footer className="fixed bottom-5 left-0 z-50 w-full">
             <Center>
                 <Pagination
-                    total={total / 10}
+                    total={Math.ceil(total / 10)}
                     value={value}
                     onChange={onChange}
                 />
