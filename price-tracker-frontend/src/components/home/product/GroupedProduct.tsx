@@ -50,11 +50,11 @@ const GroupedProduct = ({products, dateToday, setDateToday}: ProductProps) => {
                 {/* Top content */}
                 <div className='h-full min-h-11.25 w-full flex justify-between items-center pr-2'>
                     <div className='flex gap-3 items-baseline-last'>
-                        <div title={products[0].name} className="text-lg max-w-110 truncate">
+                        <div title={products[0].name} className="text-lg max-w-100 truncate">
                             {products[0].name}
                         </div>
                         <div className="text-raincloud">
-                            {selectedStore + ` (${products.length})`}
+                            {selectedStore + (products.length - 1 === 1 ? ` (+${products.length - 1} other store)` : ` (+${products.length - 1} other stores)`)}
                         </div>
                         <CopyButton value={products[0].name} timeout={1000}>
                             {({copied, copy}) => (
@@ -90,7 +90,7 @@ const GroupedProduct = ({products, dateToday, setDateToday}: ProductProps) => {
                             )
                         })}
                     </div>
-            </div>
+                </div>
             </Accordion.Control>
 
             <Accordion.Panel>
