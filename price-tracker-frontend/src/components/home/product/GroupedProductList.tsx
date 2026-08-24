@@ -4,6 +4,7 @@ import { useState } from "react"
 import { useDebounce } from "@/hooks/common/useDebounce"
 import GroupedProduct from "./GroupedProduct"
 import { useGetProductsGrouped } from "@/hooks/product/useGetProductsGrouped"
+import ProductContainer from "../containers/ProductContainer"
 
 type GroupedProduct = {
     name: string
@@ -57,10 +58,21 @@ const GroupedProductList = ({searchedTerm}: GroupedProductListProps) => {
                         onChange={setValue}
                     >
                         {filteredProducts?.map((groupedProduct, idx) => {
+                            if (groupedProduct.products.length > 1) {
+                                return (
+                                    <Accordion.Item value={`item-${idx}`} key={groupedProduct.name}>
+                                        <GroupedProduct
+                                            products={groupedProduct.products}
+                                            dateToday={dateToday}
+                                            setDateToday={setDateToday}
+                                        />
+                                    </Accordion.Item>
+                                )
+                            }
                             return (
                                 <Accordion.Item value={`item-${idx}`} key={groupedProduct.name}>
-                                    <GroupedProduct
-                                        products={groupedProduct.products}
+                                    <ProductContainer
+                                        product={groupedProduct.products[0]}
                                         dateToday={dateToday}
                                         setDateToday={setDateToday}
                                     />
