@@ -1,57 +1,33 @@
-import { Accordion, Center, Pagination } from "@mantine/core"
+import { Accordion } from "@mantine/core"
 import type { ProductType } from "../../../utils/Types"
 import ProductContainer from '../containers/ProductContainer'
-import { useState } from "react"
 import { useDebounce } from "@/hooks/common/useDebounce"
+import { ProductListFooter } from "./ProductListFooter"
 import { useGetProductPage } from "@/hooks/product/useGetProductPage"
 
-type ProductListProps = {
+export interface ProductList {
     productStatusFilter: string
     searchedTerm: string
 }
 
-const ProductList = ({productStatusFilter, searchedTerm}: ProductListProps) => {
+// TODO: Use productStatusFilter and searchedTerm for product list
+export const ProductList = ({}: ProductList) => {
 
     // Debounce for setting list's today's date state
     const {value: dateToday, setValueWithDebounce: setDateToday} = useDebounce(new Date())
-
-    // Accordion state (prevents closing when tanstack refreshes)
-    const [value, setValue] = useState<string[]>([])
-
     // Hook for regular product list pagination
     const getProductPage = useGetProductPage()
 
-    const changePageNumber = (pageNumber: number) => {
-        getProductPage.setCurrentPageNumber(pageNumber)
-        setValue([])
-    }
-
+    // TODO: Add error boundary
     if (getProductPage.query.isPending) {
         return (<>Loading...</>)
     } else if (getProductPage.query.isError) {
         return (<>An error occurred: {getProductPage.query.error.message}</>)
     }
 
-    // Product list with status filter applied
-    const filterByStatus = getProductPage.query.data.filter((product: ProductType) => {
-        if (productStatusFilter === 'Active') {
-            return product.active
-        } else if (productStatusFilter === 'Inactive') {
-            return !product.active
-        } else {
-            return true
-        }
-    })
-
-    // Product list with search term filter applied
-    const filteredProducts: ProductType[] = filterByStatus.filter((product: ProductType) => {
-        return product.name.toLowerCase().includes(searchedTerm.toLowerCase()) ||
-            product.store.toLowerCase().includes(searchedTerm.toLowerCase())
-    })
-
     return (
         <>
-            {getProductPage.query.isSuccess && getProductPage.countQuery.isSuccess && (
+            {getProductPage.query.isSuccess && (
                 <div className="flex pb-5 flex-col mb-15">
                     <Accordion
                         multiple
@@ -61,10 +37,10 @@ const ProductList = ({productStatusFilter, searchedTerm}: ProductListProps) => {
                             chevron: { cursor: 'pointer' },
                         }}
                         chevronIconSize={24}
-                        value={value}
-                        onChange={setValue}
+                        value={getProductPage.currentlyOpened}
+                        onChange={getProductPage.setCurrentlyOpened}
                     >
-                        {filteredProducts?.map((product, idx) => {
+                        {getProductPage.query.data?.map((product: ProductType, idx: number) => {
                             return (
                                 <Accordion.Item value={`item-${idx}`} key={product.name + product.store}>
                                     <ProductContainer
@@ -75,20 +51,14 @@ const ProductList = ({productStatusFilter, searchedTerm}: ProductListProps) => {
                                 </Accordion.Item>
                             )
                         })}
-                        <footer className="fixed bottom-5 left-0 z-50 w-full">
-                            <Center>
-                                <Pagination
-                                    total={Math.ceil(getProductPage.countQuery.data / 10)}
-                                    value={getProductPage.currentPageNumber}
-                                    onChange={changePageNumber}
-                                />
-                            </Center>
-                        </footer>
+                        <ProductListFooter
+                            total={getProductPage.countQuery.data}
+                            value={getProductPage.currentPageNumber}
+                            onChange={getProductPage.changePageNumber}
+                        />
                     </Accordion>
                 </div>
             )}
         </>
     )
 }
-
-export default ProductList
