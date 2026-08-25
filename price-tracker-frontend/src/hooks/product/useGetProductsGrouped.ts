@@ -1,13 +1,17 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import api from '../../services/api'
-import { useState } from 'react'
+import { useListWithPagination } from '../common/useListWithPagination'
 
 export function useGetProductsGrouped(pageNumber: number = 1, pageSize: number = 10) {
 
-    // Current page state
-    const [currentPageNumber, setCurrentPageNumber] = useState(pageNumber)
-    // Current page size state
-    const [currentPageSize, ] = useState(pageSize)
+    const {
+        changePageNumber,
+        currentlyOpened,
+        currentPageNumber,
+        currentPageSize,
+        setCurrentlyOpened,
+        setCurrentPageNumber
+    } = useListWithPagination(pageNumber, pageSize)
 
     // Query for getting all the products
     const getProductsGroupedQuery = useQuery({
@@ -18,18 +22,13 @@ export function useGetProductsGrouped(pageNumber: number = 1, pageSize: number =
         placeholderData: keepPreviousData
     })
 
-    const groupedProductCountQuery = useQuery({
-        queryKey: ['productCount'],
-        queryFn: () => {
-            return api.getProductCount()
-        }
-    })
-
     const useGetProductsGroupedProps = {
-        query: getProductsGroupedQuery,
-        countQuery: groupedProductCountQuery,
+        changePageNumber: changePageNumber,
+        currentlyOpened: currentlyOpened,
         currentPageNumber: currentPageNumber,
-        setCurrentPageNumber: setCurrentPageNumber,
+        query: getProductsGroupedQuery,
+        setCurrentlyOpened: setCurrentlyOpened,
+        setCurrentPageNumber: setCurrentPageNumber
     }
 
     return useGetProductsGroupedProps
