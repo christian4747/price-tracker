@@ -46,12 +46,12 @@ const ProductListHeader = ({searchSearchTerm, productStatusFilter, setProductSta
                             <Menu>
                                 <Menu.Target>
                                     <Button className='flex gap-2 min-w-30'>
-                                        {productsGroupBy.length > 0 ? `Sort: ${productsGroupBy}` : 'Sort'}
+                                        {productsGroupBy.length > 0 ? `Group By: ${productsGroupBy}` : 'Group By'}
                                     </Button>
                                 </Menu.Target>
 
                                 <Menu.Dropdown>
-                                    <Menu.Label>Sort</Menu.Label>
+                                    <Menu.Label>Group By</Menu.Label>
                                     <Menu.RadioGroup value={productsGroupBy} onChange={setProductsGroupBy}>
                                         <Menu.RadioItem value=''>None</Menu.RadioItem>
                                         <Menu.RadioItem value='Name'>Name</Menu.RadioItem>
