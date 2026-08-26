@@ -4,6 +4,7 @@ import { useDebounce } from "@/hooks/common/useDebounce"
 import { ProductListFooter } from "./ProductListFooter"
 import { useGetProductPage } from "@/hooks/product/useGetProductPage"
 import { Product } from "./Product"
+import ProductListSkeleton from "./ProductListSkeleton"
 
 export interface ProductList {
     productStatusFilter: string
@@ -18,11 +19,10 @@ export const ProductList = ({}: ProductList) => {
     // Hook for regular product list pagination
     const getProductPage = useGetProductPage()
 
-    // TODO: Add error boundary
     if (getProductPage.query.isPending) {
-        return (<>Loading...</>)
-    } else if (getProductPage.query.isError) {
-        return (<>An error occurred: {getProductPage.query.error.message}</>)
+        return (
+            <ProductListSkeleton />
+        )
     }
 
     return (

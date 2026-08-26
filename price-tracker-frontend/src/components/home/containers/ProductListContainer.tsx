@@ -1,7 +1,19 @@
+import { Box, Button, Center } from '@mantine/core'
 import { GroupedProductList } from '../product/GroupedProductList'
 import { ProductList } from '../product/ProductList'
 import ProductListHeader from '../product/ProductListHeader'
 import { useState } from 'react'
+import { ErrorBoundary, getErrorMessage, type FallbackProps } from 'react-error-boundary'
+
+const ProductListFallback = ({error, resetErrorBoundary}: FallbackProps) => {
+    return (
+        <Box className='flex flex-col p-2 gap-2 items-center'>
+            <Center>Something went wrong: {getErrorMessage(error)}</Center>
+            
+            <Button onClick={resetErrorBoundary}>Retry</Button>
+        </Box>
+    )
+}
 
 const ProductListContainer = () => {
 
@@ -17,40 +29,30 @@ const ProductListContainer = () => {
         setSearchedTerm(searchTerm)
     }
 
-    if (productsGroupBy !== '') {
-        return (
-            <>
-                <ProductListHeader
-                    searchSearchTerm={searchSearchTerm}
-                    productStatusFilter={productStatusFilter}
-                    setProductStatusFilter={setProductStatusFilter}
-                    productsGroupBy={productsGroupBy}
-                    setProductsGroupBy={setProductsGroupBy}
-                />
+    return (
+        <>
+            <ProductListHeader
+                searchSearchTerm={searchSearchTerm}
+                productStatusFilter={productStatusFilter}
+                setProductStatusFilter={setProductStatusFilter}
+                productsGroupBy={productsGroupBy}
+                setProductsGroupBy={setProductsGroupBy}
+            />
 
-                <GroupedProductList
-                    searchedTerm={searchedTerm}
-                />
-            </>
-        )
-    } else {
-        return (
-            <>
-                <ProductListHeader
-                    searchSearchTerm={searchSearchTerm}
-                    productStatusFilter={productStatusFilter}
-                    setProductStatusFilter={setProductStatusFilter}
-                    productsGroupBy={productsGroupBy}
-                    setProductsGroupBy={setProductsGroupBy}
-                />
-
-                <ProductList
-                    searchedTerm={searchedTerm}
-                    productStatusFilter={productStatusFilter}
-                />
-            </>
-        )
-    }
+            <ErrorBoundary FallbackComponent={ProductListFallback}>
+                {productsGroupBy !== '' ?
+                    <GroupedProductList
+                        searchedTerm={searchedTerm}
+                    />
+                    :
+                    <ProductList
+                        searchedTerm={searchedTerm}
+                        productStatusFilter={productStatusFilter}
+                    />
+                }
+            </ErrorBoundary>
+        </>
+    )
 }
 
 export default ProductListContainer

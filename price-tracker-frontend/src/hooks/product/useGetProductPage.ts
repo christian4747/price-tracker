@@ -19,14 +19,16 @@ export function useGetProductPage(pageNumber: number = 1, pageSize: number = 10)
         queryFn: () => {
             return api.getProductPage(currentPageNumber - 1, currentPageSize)
         },
-        placeholderData: keepPreviousData
+        // placeholderData: keepPreviousData,
+        throwOnError: true
     })
 
     const productCountQuery = useQuery({
         queryKey: ['productCount'],
         queryFn: () => {
             return api.getProductCount()
-        }
+        },
+        throwOnError: true
     })
 
     const useGetProductPageProps = {

@@ -4,6 +4,7 @@ import { useDebounce } from "@/hooks/common/useDebounce"
 import { ProductListFooter } from "./ProductListFooter"
 import { GroupedProduct } from "./GroupedProduct"
 import { useGetProductsGrouped } from "@/hooks/product/useGetProductsGrouped"
+import ProductListSkeleton from "./ProductListSkeleton"
 
 interface GroupedProductData {
     name: string
@@ -14,6 +15,8 @@ export interface GroupedProductList {
     searchedTerm: string
 }
 
+// TODO: Add a formatter
+// TODO: Look into memoizing
 export const GroupedProductList = ({}: GroupedProductList) => {
 
     // Debounce for setting list's today's date state
@@ -22,9 +25,9 @@ export const GroupedProductList = ({}: GroupedProductList) => {
     const getProductsGrouped = useGetProductsGrouped()
 
     if (getProductsGrouped.query.isPending) {
-        return (<>Loading...</>)
-    } else if (getProductsGrouped.query.isError) {
-        return (<>An error occurred: {getProductsGrouped.query.error.message}</>)
+        return (
+            <ProductListSkeleton />
+        )
     }
 
     return (

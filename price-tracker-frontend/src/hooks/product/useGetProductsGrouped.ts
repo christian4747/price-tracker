@@ -19,7 +19,8 @@ export function useGetProductsGrouped(pageNumber: number = 1, pageSize: number =
         queryFn: () => {
             return api.getProductsGrouped(currentPageNumber - 1, currentPageSize)
         },
-        placeholderData: keepPreviousData
+        // placeholderData: keepPreviousData,
+        throwOnError: true
     })
 
     const useGetProductsGroupedProps = {
