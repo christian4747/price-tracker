@@ -1,7 +1,7 @@
 import { type ProductType } from "@/utils/Types"
 import PriceHistoryChart from "../price/PriceHistoryChart"
 import PriceList from "../price/PriceList"
-import { Accordion, Box, Combobox, Input, InputBase, Skeleton, Tooltip, useCombobox } from "@mantine/core"
+import { Accordion, Box, Combobox, Input, InputBase, Tooltip, useCombobox } from "@mantine/core"
 import { FaLink } from "react-icons/fa6"
 import DeleteProductModal from "../modals/DeleteProductModal"
 import EditProductModal from "../modals/EditProductModal"
@@ -15,19 +15,20 @@ export interface GroupedProduct {
     setDateToday: (newVal: Date) => void
 }
 
-// TODO: Optimize repeating code
 export const GroupedProduct = ({ products, dateToday, setDateToday }: GroupedProduct) => {
 
     if (!products || products.length === 0) {
         return <></>
     }
 
+    // Track state of selected store
+    const [selectedStore, setSelectedStore] = useState<string>(products[0].store)
+    // Use mantine combobox
     const combobox = useCombobox({
         onDropdownClose: () => combobox.resetSelectedOption()
     })
-
-    const [selectedStore, setSelectedStore] = useState<string | undefined>(products[0].store)
-
+    
+    // Store options for the combobox
     const storeOptions = products.map((product) => (
         <Combobox.Option value={product.store} key={product.store} className="flex items-center gap-2">
             {product.store}
@@ -39,6 +40,70 @@ export const GroupedProduct = ({ products, dateToday, setDateToday }: GroupedPro
         </Combobox.Option>
     ))
 
+    // ProductTitleBar for each product
+    const productTitleBars = products.map((product) => {
+        if (product.store === selectedStore) {
+            return (
+                <ProductTitleBar
+                    product={product}
+                    dateToday={dateToday}
+                    setDateToday={setDateToday}
+                    storeString={
+                        selectedStore + (
+                            products.length - 1 === 1 ?
+                                products.length - 1 === 1 ?
+                                    ` (+${products.length - 1} other store)`
+                                    :
+                                    ` (+${products.length - 1} other stores)`
+                                :
+                                ''
+                        )
+                    }
+                />
+            )
+        }
+    })
+
+    // PriceHistoryChart for each product
+    const productPriceHistoryCharts = products.map((product) => {
+        if (product.store === selectedStore) {
+            return (
+                <PriceHistoryChart
+                    product={product}
+                    dateToday={dateToday}
+                />
+            )
+        }
+    })
+
+    // Product action bar (link, edit, delete) for each product
+    const productActionBars = products.map((product) => {
+        if (product.store === selectedStore) {
+            return (
+                <>
+                    <a className="cursor-pointer" href={product.link} target="_blank">
+                        <Tooltip withArrow label={product.link}><FaLink /></Tooltip>
+                    </a>
+                    <EditProductModal product={product} showOnHover={false} onEdit={() => onProductDeleteEdit(product.store)} />
+                    <DeleteProductModal product={product} showOnHover={false} onDelete={() => onProductDeleteEdit(product.store)} />
+                </>
+            )
+        }
+    })
+
+    // Product price list for each product
+    const productPriceLists = products?.map((product) => {
+        if (product.store === selectedStore) {
+            return (
+                <PriceList
+                    product={product}
+                    setDateToday={setDateToday}
+                />
+            )
+        }
+    })
+
+    // Reset to first product if editing/deleting the currently selected product
     const onProductDeleteEdit = (prevStore: string) => {
         if (selectedStore === prevStore) {
             setSelectedStore(products[0].store)
@@ -49,50 +114,14 @@ export const GroupedProduct = ({ products, dateToday, setDateToday }: GroupedPro
         <div className='h-full w-full border-b border-smoke flex flex-col gap-2 group'>
             <Accordion.Control>
                 {/* Top content */}
-
-                {products?.map((product) => {
-                    if (product.store === selectedStore) {
-                        return (
-                            <ProductTitleBar
-                                product={product}
-                                dateToday={dateToday}
-                                setDateToday={setDateToday}
-                                storeString={
-                                    selectedStore + (
-                                        products.length - 1 === 1 ?
-                                            products.length - 1 === 1 ?
-                                                ` (+${products.length - 1} other store)`
-                                                :
-                                                ` (+${products.length - 1} other stores)`
-                                            :
-                                            ''
-                                    )
-                                }
-                            />
-                        )
-                    }
-                })}
+                {productTitleBars}
             </Accordion.Control>
 
             <Accordion.Panel>
                 {/* Lower content */}
                 <div className='w-full h-full flex justify-between gap-2'>
-                    {selectedStore ? 
-                        products?.map((product) => {
-                            return (
-                                <>
-                                    {product.store === selectedStore &&
-                                        <PriceHistoryChart
-                                            product={product}
-                                            dateToday={dateToday}
-                                        />
-                                    }
-                                </>
-                            )
-                        })
-                        :
-                        <Skeleton style={{aspectRatio: 3 / 1}} height="100%" width="70%" animate={false} />
-                    }
+                    {productPriceHistoryCharts}
+
                     <div className="flex flex-col w-3/10 gap-2">
                         <div className="flex items-center w-auto gap-2">
                             <Box className="w-full">
@@ -121,40 +150,9 @@ export const GroupedProduct = ({ products, dateToday, setDateToday }: GroupedPro
                                     </Combobox.Dropdown>
                                 </Combobox>
                             </Box>
-
-                            {products?.map((product) => {
-                                return (
-                                    <>
-                                        {product.store === selectedStore &&
-                                            <>
-                                                <a className="cursor-pointer" href={product.link} target="_blank">
-                                                    <Tooltip withArrow label={product.link}><FaLink /></Tooltip>
-                                                </a>
-                                                <EditProductModal product={product} showOnHover={false} onEdit={() => onProductDeleteEdit(product.store)}/>
-                                                <DeleteProductModal product={product} showOnHover={false} onDelete={() => onProductDeleteEdit(product.store)}/>
-                                            </>
-                                        }
-                                    </>
-                                )
-                            })}
-
+                            {productActionBars}
                         </div>
-                        {selectedStore ?
-                            products?.map((product) => {
-                                return (
-                                    <>
-                                        {selectedStore === product.store &&
-                                            <PriceList
-                                                product={product}
-                                                setDateToday={setDateToday}
-                                            />
-                                        }
-                                    </>
-                                )
-                            })
-                            :
-                            <Skeleton height='100%' className='w-full' animate={false} />
-                        }
+                        {productPriceLists}
                     </div>
                 </div>
             </Accordion.Panel>
