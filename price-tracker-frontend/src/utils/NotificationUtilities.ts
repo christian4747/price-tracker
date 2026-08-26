@@ -4,7 +4,7 @@ const sendSuccessNotification = (message: string) => {
     notifications.show({
         message: message,
         color: 'green',
-        position: 'bottom-center'
+        position: 'bottom-right'
     })
 }
 
@@ -12,7 +12,7 @@ const sendErrorNotification = (message: string) => {
     notifications.show({
         message: message,
         color: 'red',
-        position: 'bottom-center'
+        position: 'top-center'
     })
 }
 
