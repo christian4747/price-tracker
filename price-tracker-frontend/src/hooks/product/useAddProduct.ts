@@ -1,6 +1,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import api from '../../services/api'
 import { useProductDTO } from './useProductDTO'
+import { sendSuccessNotification } from '@/utils/NotificationUtilities'
+import type { ProductType } from '@/utils/Types'
 
 export function useAddProduct() {
 
@@ -22,12 +24,13 @@ export function useAddProduct() {
         mutationFn: () => {
             return api.addProduct(productDTO.value)
         },
-        onSuccess: () => {
+        onSuccess: (newProduct: ProductType) => {
             queryClient.invalidateQueries({
                 predicate: (query) => {
                     return (query.queryKey[0] as string).includes('product')
                 }
             })
+            sendSuccessNotification(`Successfully added product ${newProduct.name}`)
         },
         onError: (error) => {
             console.log(`Error occurred while adding ${productDTO.value.name} (${error.message})`)

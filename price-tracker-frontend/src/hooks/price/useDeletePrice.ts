@@ -1,6 +1,8 @@
 import type { PriceType } from '../../utils/Types'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import api from '../../services/api'
+import { sendSuccessNotification } from '@/utils/NotificationUtilities'
+import { getFormattedDateString } from '@/utils/DateUtilities'
 
 export function useDeletePrice(price: PriceType) {
 
@@ -12,12 +14,14 @@ export function useDeletePrice(price: PriceType) {
         mutationFn: () => {
             return api.deletePrice(price.priceId)
         },
-        onSuccess: () => {
+        onSuccess: (oldPrice: PriceType) => {
             queryClient.invalidateQueries({
                 predicate: (query) => {
                     return (query.queryKey[0] as string) === 'products' || (query.queryKey[0] as string) === 'productsGrouped'
                 }
             })
+
+            sendSuccessNotification(`Successfully deleted price ${getFormattedDateString(oldPrice.priceStarted)}`)
         },
         onError: (error) => {
             console.log(`Error occurred while deleting ${price.priceId}: ${price.amount} ${price.priceStarted} (${error.message})`)
