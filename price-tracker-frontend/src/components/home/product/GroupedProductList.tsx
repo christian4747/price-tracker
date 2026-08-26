@@ -1,35 +1,25 @@
-import { Accordion, Center, Pagination } from "@mantine/core"
+import { Accordion } from "@mantine/core"
 import type { ProductType } from "../../../utils/Types"
-import { useState } from "react"
 import { useDebounce } from "@/hooks/common/useDebounce"
-import GroupedProduct from "./GroupedProduct"
+import { ProductListFooter } from "./ProductListFooter"
+import { GroupedProduct } from "./GroupedProduct"
 import { useGetProductsGrouped } from "@/hooks/product/useGetProductsGrouped"
-import ProductContainer from "../containers/ProductContainer"
 
-type GroupedProduct = {
+interface GroupedProductData {
     name: string
     products: ProductType[]
 }
 
-type GroupedProductListProps = {
+export interface GroupedProductList {
     searchedTerm: string
 }
 
-const GroupedProductList = ({searchedTerm}: GroupedProductListProps) => {
+export const GroupedProductList = ({}: GroupedProductList) => {
 
     // Debounce for setting list's today's date state
     const {value: dateToday, setValueWithDebounce: setDateToday} = useDebounce(new Date())
-
-    // Accordion state (prevents closing when tanstack refreshes)
-    const [value, setValue] = useState<string[]>([])
-
     // Hook for getting products grouped
     const getProductsGrouped = useGetProductsGrouped()
-
-    const changePageNumber = (pageNumber: number) => {
-        getProductsGrouped.setCurrentPageNumber(pageNumber)
-        setValue([])
-    }
 
     if (getProductsGrouped.query.isPending) {
         return (<>Loading...</>)
@@ -37,14 +27,9 @@ const GroupedProductList = ({searchedTerm}: GroupedProductListProps) => {
         return (<>An error occurred: {getProductsGrouped.query.error.message}</>)
     }
 
-    // Product list with search term filter applied
-    const filteredProducts: GroupedProduct[] = getProductsGrouped.query.data?.productNameGroupDTOs.filter((productNameGroupDTO: GroupedProduct) => {
-        return productNameGroupDTO.name.toLowerCase().includes(searchedTerm.toLowerCase())
-    })
-
     return (
         <>
-            {getProductsGrouped.query.isSuccess && getProductsGrouped.countQuery.isSuccess && (
+            {getProductsGrouped.query.isSuccess && (
                 <div className="flex pb-5 flex-col mb-15">
                     <Accordion
                         multiple
@@ -54,45 +39,28 @@ const GroupedProductList = ({searchedTerm}: GroupedProductListProps) => {
                             chevron: { cursor: 'pointer' },
                         }}
                         chevronIconSize={24}
-                        value={value}
-                        onChange={setValue}
+                        value={getProductsGrouped.currentlyOpened}
+                        onChange={getProductsGrouped.setCurrentlyOpened}
                     >
-                        {filteredProducts?.map((groupedProduct, idx) => {
-                            if (groupedProduct.products.length > 1) {
-                                return (
-                                    <Accordion.Item value={`item-${idx}`} key={groupedProduct.name}>
-                                        <GroupedProduct
-                                            products={groupedProduct.products}
-                                            dateToday={dateToday}
-                                            setDateToday={setDateToday}
-                                        />
-                                    </Accordion.Item>
-                                )
-                            }
+                        {getProductsGrouped.query.data?.productNameGroupDTOs.map((groupedProduct: GroupedProductData, idx: number) => {
                             return (
                                 <Accordion.Item value={`item-${idx}`} key={groupedProduct.name}>
-                                    <ProductContainer
-                                        product={groupedProduct.products[0]}
+                                    <GroupedProduct
+                                        products={groupedProduct.products}
                                         dateToday={dateToday}
                                         setDateToday={setDateToday}
                                     />
                                 </Accordion.Item>
                             )
                         })}
-                        <footer className="fixed bottom-5 left-0 z-50 w-full">
-                            <Center>
-                                <Pagination
-                                    total={Math.ceil(getProductsGrouped.query.data.count / 10)}
-                                    value={getProductsGrouped.currentPageNumber}
-                                    onChange={changePageNumber}
-                                />
-                            </Center>
-                        </footer>
+                        <ProductListFooter
+                            total={Math.ceil(getProductsGrouped.query.data.count)}
+                            value={getProductsGrouped.currentPageNumber}
+                            onChange={getProductsGrouped.setCurrentPageNumber}
+                        />
                     </Accordion>
                 </div>
             )}
         </>
     )
 }
-
-export default GroupedProductList

@@ -1,49 +1,42 @@
-import { FaCheck, FaCopy, FaLink } from "react-icons/fa6"
-import type { ProductType } from "../../../utils/Types"
-import DeleteProductModal from "../modals/DeleteProductModal"
-import EditProductModal from "../modals/EditProductModal"
-import { CopyButton, Tooltip } from "@mantine/core"
+import { type ProductType } from "@/utils/Types"
+import PriceHistoryChart from "../price/PriceHistoryChart"
+import PriceList from "../price/PriceList"
+import { Accordion } from "@mantine/core"
+import { ProductTitleBar } from "./ProductTitleBar"
 
-type ProductProps = {
+export interface Product {
+    dateToday: Date
     product: ProductType
+    setDateToday: (newVal: Date) => void
 }
 
-const Product = ({product}: ProductProps) => {
+export const Product = ({ product, dateToday, setDateToday }: Product) => {
     return (
-        <>
-            <div className='flex gap-3 items-baseline-last'>
-                <div title={product.name} className="text-lg max-w-100 truncate">
-                    {product.name}
+        <div className='h-full w-full border-b border-smoke flex flex-col gap-2 group'>
+            <Accordion.Control>
+                {/* Top content */}
+                <ProductTitleBar
+                    product={product}
+                    dateToday={dateToday}
+                    setDateToday={setDateToday}
+                />
+            </Accordion.Control>
+
+            <Accordion.Panel>
+                {/* Lower content */}
+                <div className='w-full h-full flex justify-between gap-2'>
+                    <PriceHistoryChart
+                        product={product}
+                        dateToday={dateToday}
+                    />
+                    <div className="w-3/10">
+                        <PriceList
+                            product={product}
+                            setDateToday={setDateToday}
+                        />
+                    </div>
                 </div>
-                <div className="text-raincloud">
-                    {product.store}
-                </div>
-                <a className="cursor-pointer" href={product.link} target="_blank">
-                    <Tooltip withArrow label={product.link}><FaLink /></Tooltip>
-                </a>
-                <EditProductModal product={product}/>
-                <DeleteProductModal product={product}/>
-                <CopyButton value={product.name} timeout={1000}>
-                    {({copied, copy}) => (
-                        <div
-                            className="hidden group-hover:block cursor-pointer"
-                            onClick={(e) => {
-                                copy()
-                                e.stopPropagation()
-                            }}
-                        >
-                            <Tooltip
-                                label={copied ? 'Copied!' : 'Copy Product Name'}
-                                withArrow
-                            >
-                                {copied ? <FaCheck /> :<FaCopy />}
-                            </Tooltip>
-                        </div>
-                    )}
-                </CopyButton>
-            </div>
-        </>
+            </Accordion.Panel>
+        </div>
     )
 }
-
-export default Product

@@ -1,21 +1,22 @@
 import { type ProductType } from "@/utils/Types"
 import PriceHistoryChart from "../price/PriceHistoryChart"
 import PriceList from "../price/PriceList"
-import { Accordion, Box, Combobox, CopyButton, Input, InputBase, Skeleton, Tooltip, useCombobox } from "@mantine/core"
-import { FaCheck, FaCopy, FaLink } from "react-icons/fa6"
+import { Accordion, Box, Combobox, Input, InputBase, Skeleton, Tooltip, useCombobox } from "@mantine/core"
+import { FaLink } from "react-icons/fa6"
 import DeleteProductModal from "../modals/DeleteProductModal"
 import EditProductModal from "../modals/EditProductModal"
 import { useState } from "react"
-import PriceBanner from "../price/PriceBanner"
 import PriceBannerBadge from "../price/PriceBannerBadge"
+import { ProductTitleBar } from "./ProductTitleBar"
 
-type ProductProps = {
+export interface GroupedProduct {
     products: ProductType[]
     dateToday: Date
     setDateToday: (newVal: Date) => void
 }
 
-const GroupedProduct = ({products, dateToday, setDateToday}: ProductProps) => {
+// TODO: Optimize repeating code
+export const GroupedProduct = ({ products, dateToday, setDateToday }: GroupedProduct) => {
 
     if (!products || products.length === 0) {
         return <></>
@@ -40,7 +41,7 @@ const GroupedProduct = ({products, dateToday, setDateToday}: ProductProps) => {
 
     const onProductDeleteEdit = (prevStore: string) => {
         if (selectedStore === prevStore) {
-            setSelectedStore(undefined)
+            setSelectedStore(products[0].store)
         }
     }
 
@@ -48,49 +49,29 @@ const GroupedProduct = ({products, dateToday, setDateToday}: ProductProps) => {
         <div className='h-full w-full border-b border-smoke flex flex-col gap-2 group'>
             <Accordion.Control>
                 {/* Top content */}
-                <div className='h-full min-h-11.25 w-full flex justify-between items-center pr-2'>
-                    <div className='flex gap-3 items-baseline-last'>
-                        <div title={products[0].name} className="text-lg max-w-100 truncate">
-                            {products[0].name}
-                        </div>
-                        <div className="text-raincloud">
-                            {selectedStore + (products.length - 1 === 1 ? ` (+${products.length - 1} other store)` : ` (+${products.length - 1} other stores)`)}
-                        </div>
-                        <CopyButton value={products[0].name} timeout={1000}>
-                            {({copied, copy}) => (
-                                <div
-                                    className="cursor-pointer"
-                                    onClick={(e) => {
-                                        copy()
-                                        e.stopPropagation()
-                                    }}
-                                >
-                                    <Tooltip
-                                        label={copied ? 'Copied!' : 'Copy Product Name'}
-                                        withArrow
-                                    >
-                                        {copied ? <FaCheck /> :<FaCopy />}
-                                    </Tooltip>
-                                </div>
-                            )}
-                        </CopyButton>
-                    </div>
-                    <div className='flex gap-3 items-center font-bold'>
-                        {products?.map((product) => {
-                            return (
-                                <>
-                                    {product.store === selectedStore &&
-                                        <PriceBanner
-                                            product={product}
-                                            dateToday={dateToday}
-                                            setDateToday={setDateToday}
-                                        />
-                                    }
-                                </>
-                            )
-                        })}
-                    </div>
-                </div>
+
+                {products?.map((product) => {
+                    if (product.store === selectedStore) {
+                        return (
+                            <ProductTitleBar
+                                product={product}
+                                dateToday={dateToday}
+                                setDateToday={setDateToday}
+                                storeString={
+                                    selectedStore + (
+                                        products.length - 1 === 1 ?
+                                            products.length - 1 === 1 ?
+                                                ` (+${products.length - 1} other store)`
+                                                :
+                                                ` (+${products.length - 1} other stores)`
+                                            :
+                                            ''
+                                    )
+                                }
+                            />
+                        )
+                    }
+                })}
             </Accordion.Control>
 
             <Accordion.Panel>
@@ -180,5 +161,3 @@ const GroupedProduct = ({products, dateToday, setDateToday}: ProductProps) => {
         </div>
     )
 }
-
-export default GroupedProduct

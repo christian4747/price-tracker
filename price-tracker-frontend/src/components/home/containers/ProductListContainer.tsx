@@ -1,4 +1,4 @@
-import GroupedProductList from '../product/GroupedProductList'
+import { GroupedProductList } from '../product/GroupedProductList'
 import { ProductList } from '../product/ProductList'
 import ProductListHeader from '../product/ProductListHeader'
 import { useState } from 'react'

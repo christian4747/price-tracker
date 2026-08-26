@@ -1,9 +1,9 @@
 import { Accordion } from "@mantine/core"
 import type { ProductType } from "../../../utils/Types"
-import ProductContainer from '../containers/ProductContainer'
 import { useDebounce } from "@/hooks/common/useDebounce"
 import { ProductListFooter } from "./ProductListFooter"
 import { useGetProductPage } from "@/hooks/product/useGetProductPage"
+import { Product } from "./Product"
 
 export interface ProductList {
     productStatusFilter: string
@@ -43,7 +43,7 @@ export const ProductList = ({}: ProductList) => {
                         {getProductPage.query.data?.map((product: ProductType, idx: number) => {
                             return (
                                 <Accordion.Item value={`item-${idx}`} key={product.name + product.store}>
-                                    <ProductContainer
+                                    <Product
                                         product={product}
                                         dateToday={dateToday}
                                         setDateToday={setDateToday}
