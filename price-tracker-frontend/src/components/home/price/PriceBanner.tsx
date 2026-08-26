@@ -47,9 +47,10 @@ type PriceBannerProps =  {
     product: ProductType
     dateToday: Date
     setDateToday: (newVal: Date) => void
+    mini?: boolean
 }
 
-const PriceBanner = ({ product, dateToday, setDateToday }: PriceBannerProps) => {
+const PriceBanner = ({ product, dateToday, setDateToday, mini }: PriceBannerProps) => {
 
     // Use priceData hook
     const priceData = usePriceData(dateToday)
@@ -80,6 +81,52 @@ const PriceBanner = ({ product, dateToday, setDateToday }: PriceBannerProps) => 
         if (parseInt(timeLeft) <= 6) {
             useTimerText = true
         }
+    }
+
+    if (mini) {
+        return (
+            <>
+                {priceText?.length > 0 && parseInt(priceListLastUpdated) >= 7 &&
+                    <div>
+                        <Tooltip withArrow label={priceListLastUpdated === '1' ? `Last updated ${priceListLastUpdated} day ago` : `Last updated ${priceListLastUpdated} days ago`}>
+                            <span className='underline underline-offset-5 decoration-wavy'><LuClockAlert /></span>
+                        </Tooltip>
+                    </div>
+                }
+
+                {/* Timer text */}
+                {useTimerText && timerText !== '' &&
+                    <div>
+                        <Tooltip
+                            withArrow
+                            label={
+                                <div className='flex flex-col items-center'>
+                                    <div>
+                                        Ends in
+                                    </div>
+                                    <div>
+                                        {timerText}
+                                    </div>
+                                </div>
+                            }
+                        >
+                            {parseInt(timeLeft) >= 1 ?
+                                <MdTimer size={24} className='text-amber-400' />
+                                :
+                                <MdTimer size={24} className='text-red-400' />
+                            }
+                        </Tooltip>
+                    </div>
+                }
+
+                {/* Price banner */}
+                {text.length > 0 &&
+                    <div className={'text-cloud rounded-sm p-1 font-bold flex justify-center ' + bg}>
+                        -{discountPercent}%
+                    </div>
+                }
+            </>
+        )
     }
 
     return (
@@ -132,15 +179,14 @@ const PriceBanner = ({ product, dateToday, setDateToday }: PriceBannerProps) => 
             }
 
             {/* Price text */}
-            {/* TODO: Can maybe use div outside */}
             <div className={'min-w-17.5 text-right ' + textStyle}>
-            {latestPrice && latestPrice.returnAmount > 0 ?
-                <Tooltip withArrow label={<>{latestPrice.amount} (base) - {latestPrice.returnAmount} (return)</>}>
-                    <div>{priceText}</div>
-                </Tooltip>
-                :
-                <>{priceText}</>
-            }
+                {latestPrice && latestPrice.returnAmount > 0 ?
+                    <Tooltip withArrow label={<>{latestPrice.amount} (base) - {latestPrice.returnAmount} (return)</>}>
+                        <div>{priceText}</div>
+                    </Tooltip>
+                    :
+                    <>{priceText}</>
+                }
             </div>
         </>
     )
