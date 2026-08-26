@@ -1,13 +1,17 @@
 import api from "@/services/api"
 import { keepPreviousData, useQuery } from "@tanstack/react-query"
-import { useState } from "react"
+import { useListWithPagination } from "../common/useListWithPagination"
 
 export function useGetProductPage(pageNumber: number = 1, pageSize: number = 10) {
 
-    // Current page state
-    const [currentPageNumber, setCurrentPageNumber] = useState(pageNumber)
-    // Current page size state
-    const [currentPageSize, ] = useState(pageSize)
+    const {
+        changePageNumber,
+        currentlyOpened,
+        currentPageNumber,
+        currentPageSize,
+        setCurrentlyOpened,
+        setCurrentPageNumber
+    } = useListWithPagination(pageNumber, pageSize)
 
     // Query for getting all the products
     const productPageQuery = useQuery({
@@ -15,21 +19,26 @@ export function useGetProductPage(pageNumber: number = 1, pageSize: number = 10)
         queryFn: () => {
             return api.getProductPage(currentPageNumber - 1, currentPageSize)
         },
-        placeholderData: keepPreviousData
+        // placeholderData: keepPreviousData,
+        throwOnError: true
     })
 
     const productCountQuery = useQuery({
         queryKey: ['productCount'],
         queryFn: () => {
             return api.getProductCount()
-        }
+        },
+        throwOnError: true
     })
 
     const useGetProductPageProps = {
-        query: productPageQuery,
+        changePageNumber: changePageNumber,
         countQuery: productCountQuery,
+        currentlyOpened: currentlyOpened,
         currentPageNumber: currentPageNumber,
-        setCurrentPageNumber: setCurrentPageNumber,
+        query: productPageQuery,
+        setCurrentlyOpened: setCurrentlyOpened,
+        setCurrentPageNumber: setCurrentPageNumber
     }
 
     return useGetProductPageProps
