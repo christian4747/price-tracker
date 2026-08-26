@@ -1,6 +1,6 @@
 import type { PriceType, ProductType } from '@/utils/Types'
 import '@/styles/PriceBanner.css'
-import { Tooltip } from '@mantine/core'
+import { Box, Tooltip } from '@mantine/core'
 import { getPriceDiscount, getPriceString } from '@/utils/PriceUtilities'
 import dayjs from 'dayjs'
 import { usePriceTimer } from '@/hooks/price/usePriceTimer'
@@ -8,7 +8,7 @@ import { MdTimer } from 'react-icons/md'
 import { usePriceData } from '@/hooks/price/usePriceData'
 import { LuClockAlert } from 'react-icons/lu'
 
-type BannerStyle = {
+interface BannerStyle {
     color: string
     bg: string
     text: string
@@ -16,7 +16,7 @@ type BannerStyle = {
 
 // Returns the appropriate color, bg, and text depending on the given banner type string
 const getBannerStyle = (bannerType: string): BannerStyle => {
-    switch(bannerType) {
+    switch (bannerType) {
         case 'one-year':
             return { color: 'one-year', bg: 'one-year-bg', text: 'ONE YEAR LOW' }
         case 'two-year':
@@ -43,14 +43,45 @@ const getMostRecentlyUpdatedPrice = (prices: PriceType[]) => {
     return mostRecent
 }
 
-type PriceBannerProps =  {
+interface TimeTooltip {
+    timeLeft: string
+    tooltipText: string
+}
+
+const TimeTooltip = ({timeLeft, tooltipText}: TimeTooltip) => {
+    return (
+        <Box>
+            <Tooltip
+                withArrow
+                label={
+                    <div className='flex flex-col items-center'>
+                        <div>
+                            Ends in
+                        </div>
+                        <div>
+                            {tooltipText}
+                        </div>
+                    </div>
+                }
+            >
+                {parseInt(timeLeft) >= 1 ?
+                    <MdTimer size={24} className='text-amber-400' />
+                    :
+                    <MdTimer size={24} className='text-red-400' />
+                }
+            </Tooltip>
+        </Box>
+    )
+}
+
+export interface PriceBanner {
     product: ProductType
     dateToday: Date
     setDateToday: (newVal: Date) => void
     mini?: boolean
 }
 
-const PriceBanner = ({ product, dateToday, setDateToday, mini }: PriceBannerProps) => {
+export const PriceBanner = ({ product, dateToday, setDateToday, mini }: PriceBanner) => {
 
     // Use priceData hook
     const priceData = usePriceData(dateToday)
@@ -96,27 +127,10 @@ const PriceBanner = ({ product, dateToday, setDateToday, mini }: PriceBannerProp
 
                 {/* Timer text */}
                 {useTimerText && timerText !== '' &&
-                    <div>
-                        <Tooltip
-                            withArrow
-                            label={
-                                <div className='flex flex-col items-center'>
-                                    <div>
-                                        Ends in
-                                    </div>
-                                    <div>
-                                        {timerText}
-                                    </div>
-                                </div>
-                            }
-                        >
-                            {parseInt(timeLeft) >= 1 ?
-                                <MdTimer size={24} className='text-amber-400' />
-                                :
-                                <MdTimer size={24} className='text-red-400' />
-                            }
-                        </Tooltip>
-                    </div>
+                    <TimeTooltip
+                        timeLeft={timeLeft}
+                        tooltipText={timerText}
+                    />
                 }
 
                 {/* Price banner */}
@@ -141,27 +155,10 @@ const PriceBanner = ({ product, dateToday, setDateToday, mini }: PriceBannerProp
 
             {/* Timer text */}
             {useTimerText && timerText !== '' &&
-                <div>
-                    <Tooltip
-                        withArrow
-                        label={
-                            <div className='flex flex-col items-center'>
-                                <div>
-                                    Ends in
-                                </div>
-                                <div>
-                                    {timerText}
-                                </div>
-                            </div>
-                        }
-                    >
-                        {parseInt(timeLeft) >= 1 ?
-                            <MdTimer size={24} className='text-amber-400'/>
-                            :
-                            <MdTimer size={24} className='text-red-400'/>
-                        }
-                    </Tooltip>
-                </div>
+                <TimeTooltip
+                    timeLeft={timeLeft}
+                    tooltipText={timerText}
+                />
             }
 
             {/* Price banner */}
@@ -174,7 +171,7 @@ const PriceBanner = ({ product, dateToday, setDateToday, mini }: PriceBannerProp
             {/* Discount percentage */}
             {discountPercent > 0 && 
                 <div className={'min-w-16.25 text-center ' + textStyle}>
-                    <>-{discountPercent}%</>
+                    -{discountPercent}%
                 </div>
             }
 
@@ -191,5 +188,3 @@ const PriceBanner = ({ product, dateToday, setDateToday, mini }: PriceBannerProp
         </>
     )
 }
-
-export default PriceBanner

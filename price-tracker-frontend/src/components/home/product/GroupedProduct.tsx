@@ -6,8 +6,8 @@ import { FaLink } from "react-icons/fa6"
 import DeleteProductModal from "../modals/DeleteProductModal"
 import EditProductModal from "../modals/EditProductModal"
 import { useState } from "react"
-import PriceBannerBadge from "../price/PriceBannerBadge"
 import { ProductTitleBar } from "./ProductTitleBar"
+import { PriceBanner } from "../price/PriceBanner"
 
 export interface GroupedProduct {
     products: ProductType[]
@@ -32,10 +32,11 @@ export const GroupedProduct = ({ products, dateToday, setDateToday }: GroupedPro
     const storeOptions = products.map((product) => (
         <Combobox.Option value={product.store} key={product.store} className="flex items-center gap-2">
             {product.store}
-            <PriceBannerBadge
+            <PriceBanner
                 product={product}
                 dateToday={dateToday}
                 setDateToday={setDateToday}
+                mini
             />
         </Combobox.Option>
     ))

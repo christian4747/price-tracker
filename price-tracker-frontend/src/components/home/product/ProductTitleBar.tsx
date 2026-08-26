@@ -1,5 +1,5 @@
 import type { ProductType } from '@/utils/Types'
-import PriceBanner from '../price/PriceBanner'
+import { PriceBanner } from '../price/PriceBanner'
 import { ProductTitleDetails } from './ProductTitleDetails'
 
 export interface ProductTitleBar {
