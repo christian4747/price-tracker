@@ -16,14 +16,14 @@ function ChartTooltip({ label, payload }: ChartTooltipProps) {
     console.log(payload)
     return (
         <Paper px="md" py="sm" withBorder shadow="md">
-        <Text fw={500} mb={5}>
-            {label}
-        </Text>
-        {payload.map((item: any) => (
-            <Text key={item.name} c={item.color} fz="sm">
-                Price: {getPriceWithCurrency(item.value, item.payload.currency)}
+            <Text fw={500} mb={5}>
+                {label}
             </Text>
-        ))}
+            {payload.map((item: any) => (
+                <Text key={item.name} c={item.color} fz="sm">
+                    Price: {getPriceWithCurrency(item.value, item.payload.currency)}
+                </Text>
+            ))}
         </Paper>
     )
 }
@@ -33,7 +33,6 @@ type PriceHistoryChartProps = {
     dateToday: Date
 }
 
-// TODO: Update to use mantine charts
 const PriceHistoryChart = ({product, dateToday}: PriceHistoryChartProps) => {
     const priceData = usePriceData(dateToday).createPriceData(product.prices)
 
