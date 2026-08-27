@@ -31,12 +31,7 @@ export function useEditPrice(price: PriceType) {
             return api.editPrice(price.priceId, priceDTO.value)
         },
         onSuccess: (newPrice: PriceType) => {
-            queryClient.invalidateQueries({
-                predicate: (query) => {
-                    return (query.queryKey[0] as string) === 'products' || (query.queryKey[0] as string) === 'productsGrouped'
-                }
-            })
-
+            queryClient.invalidateQueries()
             sendSuccessNotification(`Successfully edited price ${getFormattedDateString(newPrice.priceStarted)}`)
         },
         onError: (error) => {

@@ -3,15 +3,13 @@ import { PriceBanner } from '../price/PriceBanner'
 import { ProductTitleDetails } from './ProductTitleDetails'
 
 export interface ProductTitleBar {
-    product?: ProductType
+    product: ProductType
     storeString?: string
     dateToday: Date
     setDateToday: (newVal: Date) => void
 }
 
 export const ProductTitleBar = ({ product, storeString, dateToday, setDateToday }: ProductTitleBar) => {
-    if (!product) return <></>
-
     return (
         <div className='h-full min-h-11.25 w-full flex justify-between items-center pr-2'>
             <ProductTitleDetails

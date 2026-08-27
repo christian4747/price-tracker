@@ -25,11 +25,7 @@ export function useEditProduct(product: ProductType) {
             return api.editProduct(product.productId, productDTO.value)
         },
         onSuccess: (newProduct: ProductType) => {
-            queryClient.invalidateQueries({
-                predicate: (query) => {
-                    return (query.queryKey[0] as string) === 'products' || (query.queryKey[0] as string) === 'productsGrouped'
-                }
-            })
+            queryClient.invalidateQueries()
             sendSuccessNotification(`Successfully edited product ${newProduct.name}`)
         },
         onError: (error) => {

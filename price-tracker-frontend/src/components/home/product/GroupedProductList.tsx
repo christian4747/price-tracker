@@ -3,8 +3,8 @@ import type { ProductType } from "../../../utils/Types"
 import { useDebounce } from "@/hooks/common/useDebounce"
 import { ProductListFooter } from "./ProductListFooter"
 import { GroupedProduct } from "./GroupedProduct"
-import { useGetProductsGrouped } from "@/hooks/product/useGetProductsGrouped"
 import ProductListSkeleton from "./ProductListSkeleton"
+import { useProductPageGrouped } from "@/hooks/product/useProductPageGrouped"
 
 interface GroupedProductData {
     name: string
@@ -22,7 +22,7 @@ export const GroupedProductList = ({}: GroupedProductList) => {
     // Debounce for setting list's today's date state
     const {value: dateToday, setValueWithDebounce: setDateToday} = useDebounce(new Date())
     // Hook for getting products grouped
-    const getProductsGrouped = useGetProductsGrouped()
+    const getProductsGrouped = useProductPageGrouped()
 
     if (getProductsGrouped.query.isPending) {
         return (
@@ -45,7 +45,7 @@ export const GroupedProductList = ({}: GroupedProductList) => {
                         value={getProductsGrouped.currentlyOpened}
                         onChange={getProductsGrouped.setCurrentlyOpened}
                     >
-                        {getProductsGrouped.query.data?.productNameGroupDTOs.map((groupedProduct: GroupedProductData, idx: number) => {
+                        {getProductsGrouped.query.data.content.map((groupedProduct: GroupedProductData, idx: number) => {
                             return (
                                 <Accordion.Item value={`item-${idx}`} key={groupedProduct.name}>
                                     <GroupedProduct

@@ -2,9 +2,9 @@ import { Accordion } from "@mantine/core"
 import type { ProductType } from "../../../utils/Types"
 import { useDebounce } from "@/hooks/common/useDebounce"
 import { ProductListFooter } from "./ProductListFooter"
-import { useGetProductPage } from "@/hooks/product/useGetProductPage"
 import { Product } from "./Product"
 import ProductListSkeleton from "./ProductListSkeleton"
+import { useProductPage } from "@/hooks/product/useProductPage"
 
 export interface ProductList {
     productStatusFilter: string
@@ -17,7 +17,7 @@ export const ProductList = ({}: ProductList) => {
     // Debounce for setting list's today's date state
     const {value: dateToday, setValueWithDebounce: setDateToday} = useDebounce(new Date())
     // Hook for regular product list pagination
-    const getProductPage = useGetProductPage()
+    const getProductPage = useProductPage()
 
     if (getProductPage.query.isPending) {
         return (
@@ -40,7 +40,7 @@ export const ProductList = ({}: ProductList) => {
                         value={getProductPage.currentlyOpened}
                         onChange={getProductPage.setCurrentlyOpened}
                     >
-                        {getProductPage.query.data?.map((product: ProductType, idx: number) => {
+                        {getProductPage.query.data.content.map((product: ProductType, idx: number) => {
                             return (
                                 <Accordion.Item value={`item-${idx}`} key={product.name + product.store}>
                                     <Product
@@ -52,7 +52,7 @@ export const ProductList = ({}: ProductList) => {
                             )
                         })}
                         <ProductListFooter
-                            total={getProductPage.countQuery.data}
+                            total={getProductPage.query.data.count}
                             value={getProductPage.currentPageNumber}
                             onChange={getProductPage.changePageNumber}
                         />

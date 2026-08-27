@@ -15,12 +15,7 @@ export function useDeletePrice(price: PriceType) {
             return api.deletePrice(price.priceId)
         },
         onSuccess: (oldPrice: PriceType) => {
-            queryClient.invalidateQueries({
-                predicate: (query) => {
-                    return (query.queryKey[0] as string) === 'products' || (query.queryKey[0] as string) === 'productsGrouped'
-                }
-            })
-
+            queryClient.invalidateQueries()
             sendSuccessNotification(`Successfully deleted price ${getFormattedDateString(oldPrice.priceStarted)}`)
         },
         onError: (error) => {

@@ -9,6 +9,10 @@ export function useListWithPagination(pageNumber: number = 1, pageSize: number =
     // Opened Accordion state (allows control over open accordion items over a component's lifecycle)
     const [currentlyOpened, setCurrentlyOpened] = useState<string[]>([])
 
+    /**
+     * Changes the current page of the list.
+     * @param pageNumber The page number of the list to change to
+     */
     const changePageNumber = (pageNumber: number) => {
         setCurrentPageNumber(pageNumber)
         setCurrentlyOpened([])

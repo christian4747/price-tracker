@@ -25,11 +25,7 @@ export function useAddProduct() {
             return api.addProduct(productDTO.value)
         },
         onSuccess: (newProduct: ProductType) => {
-            queryClient.invalidateQueries({
-                predicate: (query) => {
-                    return (query.queryKey[0] as string).includes('product')
-                }
-            })
+            queryClient.invalidateQueries()
             sendSuccessNotification(`Successfully added product ${newProduct.name}`)
         },
         onError: (error) => {
