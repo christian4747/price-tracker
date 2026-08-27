@@ -22,6 +22,7 @@ function ChartTooltip({ label, payload }: ChartTooltipProps) {
             {payload.map((item: any) => (
                 <Text key={item.name} c={item.color} fz="sm">
                     Price: {getPriceWithCurrency(item.value, item.payload.currency)}
+                    {item.payload.description ? <p className='text-raincloud max-w-75 wrap-break-word'>{`${item.payload.description}`}</p> : <></>}
                 </Text>
             ))}
         </Paper>

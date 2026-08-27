@@ -5,6 +5,8 @@ import com.christian4747.pricetracker.models.Product;
 import com.christian4747.pricetracker.models.dtos.IncomingProductDTO;
 import com.christian4747.pricetracker.models.dtos.ProductNameGroupDTO;
 import com.christian4747.pricetracker.models.dtos.ProductNameGroupDTOAndCount;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -17,6 +19,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class ProductService {
+
+    private static final Logger logger = LoggerFactory.getLogger(ProductService.class);
 
     private final ProductDAO productDAO;
 
@@ -37,6 +41,8 @@ public class ProductService {
             existingProducts
                 .forEach(product -> {
                     if (product.getStore().equals(productDTO.getStore())) {
+                        logger.info("Attempted to add a Product that already exists: {}, {}",
+                                productDTO.getName(), productDTO.getStore());
                         throw new IllegalArgumentException("Product already exists!");
                     }
                 });
@@ -54,7 +60,10 @@ public class ProductService {
                 null
         );
 
-        return productDAO.save(newProduct);
+        Product savedProduct = productDAO.save(newProduct);
+        logger.info("Created new Product with ID: {}", savedProduct.getProductId());
+
+        return savedProduct;
     }
 
     /**
@@ -67,8 +76,10 @@ public class ProductService {
 
         if (existingProduct.isPresent()) {
             productDAO.deleteById(productId);
+            logger.info("Successfully deleted Product with ID: {}", productId);
             return existingProduct.get();
         } else {
+            logger.info("Attempted to delete a Product that doesn't exist: {}", productId);
             throw new IllegalArgumentException("Product with ID " + productId + " does not exist!");
         }
     }
@@ -113,8 +124,10 @@ public class ProductService {
     public Product getProductById(Integer productId) {
         Optional<Product> existingProduct = productDAO.findById(productId);
 
-        if (existingProduct.isEmpty())
+        if (existingProduct.isEmpty()) {
+            logger.info("Attempted to get a Product that doesn't exist: {}", productId);
             throw new IllegalArgumentException("Product with ID " + productId + " does not exist!");
+        }
 
         return existingProduct.get();
     }
@@ -137,6 +150,7 @@ public class ProductService {
         Optional<Product> existingProduct = productDAO.findById(productId);
 
         if (existingProduct.isEmpty()) {
+            logger.info("Attempted to update a Product that doesn't exist: {}", productId);
             throw new IllegalArgumentException("Product with ID " + productId + " does not exist!");
         }
 
@@ -148,6 +162,9 @@ public class ProductService {
         productToUpdate.setStore(productDTO.getStore());
         productToUpdate.setActive(productDTO.isActive());
 
-        return productDAO.save(productToUpdate);
+        Product savedProduct = productDAO.save(productToUpdate);
+        logger.info("Successfully updated Product with ID: {}", savedProduct.getProductId());
+
+        return savedProduct;
     }
 }

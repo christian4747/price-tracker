@@ -2,6 +2,7 @@ import type { ProductType } from '../../utils/Types'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import api from '../../services/api'
 import { useProductDTO } from './useProductDTO'
+import { sendSuccessNotification } from '@/utils/NotificationUtilities'
 
 export function useEditProduct(product: ProductType) {
 
@@ -23,12 +24,13 @@ export function useEditProduct(product: ProductType) {
         mutationFn: () => {
             return api.editProduct(product.productId, productDTO.value)
         },
-        onSuccess: () => {
+        onSuccess: (newProduct: ProductType) => {
             queryClient.invalidateQueries({
                 predicate: (query) => {
                     return (query.queryKey[0] as string) === 'products' || (query.queryKey[0] as string) === 'productsGrouped'
                 }
             })
+            sendSuccessNotification(`Successfully edited product ${newProduct.name}`)
         },
         onError: (error) => {
             console.log(`Error occurred while updating ${product.productId}: ${product.name} (${error.message})`)

@@ -1,4 +1,4 @@
-import { keepPreviousData, useQuery } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import api from '../../services/api'
 import { useListWithPagination } from '../common/useListWithPagination'
 
@@ -19,7 +19,6 @@ export function useGetProductsGrouped(pageNumber: number = 1, pageSize: number =
         queryFn: () => {
             return api.getProductsGrouped(currentPageNumber - 1, currentPageSize)
         },
-        // placeholderData: keepPreviousData,
         throwOnError: true
     })
 

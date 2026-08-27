@@ -21,4 +21,13 @@ const localizeFormatDayjs = (toFormat: dayjs.Dayjs, stringFormat: string) => {
     return toFormat.format(stringFormat)
 }
 
-export { getUSDateStringFromTimestamp, getLocalDateFromUTC, localizeFormatDayjs }
+/**
+ * Returns the UTC time stamp string formatted in [MMM D, YYYY h:mm A] format (ex. Aug 16, 2018 8:02 PM)
+ * @param timeStamp Time stamp string to convert to a formatted string
+ * @returns The given UTC time stamp string converted to a formatted string
+ */
+const getFormattedDateString = (timeStamp: string) => {
+    return localizeFormatDayjs(getLocalDateFromUTC(new Date(timeStamp)), 'lll')
+}
+
+export { getUSDateStringFromTimestamp, getLocalDateFromUTC, localizeFormatDayjs, getFormattedDateString }

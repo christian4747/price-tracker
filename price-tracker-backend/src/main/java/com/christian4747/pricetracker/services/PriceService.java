@@ -5,6 +5,8 @@ import com.christian4747.pricetracker.daos.ProductDAO;
 import com.christian4747.pricetracker.models.Price;
 import com.christian4747.pricetracker.models.Product;
 import com.christian4747.pricetracker.models.dtos.IncomingPriceDTO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -12,9 +14,10 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 
-
 @Service
 public class PriceService {
+
+    private static final Logger logger = LoggerFactory.getLogger(PriceService.class);
 
     private final PriceDAO priceDAO;
     private final ProductDAO productDAO;
@@ -33,8 +36,10 @@ public class PriceService {
     public Price addPrice(IncomingPriceDTO priceDTO) {
         Optional<Product> existingProduct = productDAO.findById(priceDTO.getProductId());
 
-        if (existingProduct.isEmpty())
+        if (existingProduct.isEmpty()) {
+            logger.info("Attempted to add a Price to Product ID that doesn't exist: {}", priceDTO.getProductId());
             throw new IllegalArgumentException("Product with ID " + priceDTO.getProductId() + " does not exist!");
+        }
 
         Price newPrice = new Price(
                 0,
@@ -49,7 +54,10 @@ public class PriceService {
                 existingProduct.get()
         );
 
-        return priceDAO.save(newPrice);
+        Price savedPrice = priceDAO.save(newPrice);
+        logger.info("Created new Price with ID: {}", savedPrice.getPriceId());
+
+        return savedPrice;
     }
 
     /**
@@ -60,10 +68,14 @@ public class PriceService {
     public Price deletePrice(Integer priceId) {
         Optional<Price> existingPrice = priceDAO.findById(priceId);
 
-        if (existingPrice.isEmpty())
+        if (existingPrice.isEmpty()) {
+            logger.info("Attempted to delete a Price that doesn't exist: {}", priceId);
             throw new IllegalArgumentException("Price with ID " + priceId + " does not exist!");
+        }
 
         priceDAO.deleteById(priceId);
+        logger.info("Successfully deleted Price with ID: {}", priceId);
+
         return existingPrice.get();
     }
 
@@ -82,11 +94,12 @@ public class PriceService {
      * @return The Price associated with the given ID
      */
     public Price getPriceById(Integer priceId) {
-
         Optional<Price> existingPrice = priceDAO.findById(priceId);
 
-        if (existingPrice.isEmpty())
+        if (existingPrice.isEmpty()) {
+            logger.info("Attempted to get a Price that doesn't exist: {}", priceId);
             throw new IllegalArgumentException("Price with ID " + priceId + " does not exist!");
+        }
 
         return existingPrice.get();
     }
@@ -100,8 +113,10 @@ public class PriceService {
     public Price updatePrice(Integer priceId, IncomingPriceDTO priceDTO) {
         Optional<Price> existingPrice = priceDAO.findById(priceId);
 
-        if (existingPrice.isEmpty())
+        if (existingPrice.isEmpty()) {
+            logger.info("Attempted to update a Price that doesn't exist: {}", priceId);
             throw new IllegalArgumentException("Price with ID " + priceId + " does not exist!");
+        }
 
         Price priceToUpdate = existingPrice.get();
         priceToUpdate.setAmount(priceDTO.getAmount());
@@ -114,11 +129,15 @@ public class PriceService {
         if (priceToUpdate.getProduct().getProductId() != priceDTO.getProductId()) {
             Optional<Product> existingProduct = productDAO.findById(priceDTO.getProductId());
             if (existingProduct.isEmpty()) {
+                logger.info("Attempted to update a Price with a Product ID that doesn't exist: {}", priceDTO.getProductId());
                 throw new IllegalArgumentException("Product with ID " + priceDTO.getProductId() + " does not exist!");
             }
             priceToUpdate.setProduct(existingProduct.get());
         }
 
-        return priceDAO.save(priceToUpdate);
+        Price updatedPrice = priceDAO.save(priceToUpdate);
+        logger.info("Successfully updated Price with ID: {}", updatedPrice.getPriceId());
+        
+        return updatedPrice;
     }
 }

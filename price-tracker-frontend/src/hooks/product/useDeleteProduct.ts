@@ -1,6 +1,7 @@
 import type { ProductType } from '../../utils/Types'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import api from '../../services/api'
+import { sendSuccessNotification } from '@/utils/NotificationUtilities'
 
 export function useDeleteProduct(product: ProductType) {
     // Get the query client
@@ -11,12 +12,13 @@ export function useDeleteProduct(product: ProductType) {
         mutationFn: () => {
             return api.deleteProduct(product.productId)
         },
-        onSuccess: () => {
+        onSuccess: (oldProduct: ProductType) => {
             queryClient.invalidateQueries({
                 predicate: (query) => {
                     return (query.queryKey[0] as string).includes('product')
                 }
             })
+            sendSuccessNotification(`Successfully deleted product ${oldProduct.name}`)
         },
         onError: (error) => {
             console.log(`Error occurred while deleting ${product.productId}: ${product.name} (${error.message})`)
