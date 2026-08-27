@@ -13,7 +13,7 @@ export function useProductPageGrouped(pageNumber: number = 1, pageSize: number =
         setCurrentPageNumber
     } = useListWithPagination(pageNumber, pageSize)
 
-    // Query for getting all the products
+    // Query for getting a grouped product page
     const getProductsGroupedQuery = useQuery({
         queryKey: ['productsGrouped', currentPageNumber - 1],
         queryFn: () => {

@@ -13,7 +13,7 @@ export function useProductPage(pageNumber: number = 1, pageSize: number = 10) {
         setCurrentPageNumber
     } = useListWithPagination(pageNumber, pageSize)
 
-    // Query for getting all the products
+    // Query for getting a product page
     const productPageQuery = useQuery({
         queryKey: ['products', currentPageNumber - 1],
         queryFn: () => {
