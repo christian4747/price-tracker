@@ -2,7 +2,7 @@ import api from "@/services/api"
 import { useQuery } from "@tanstack/react-query"
 import { useListWithPagination } from "../common/useListWithPagination"
 
-export function useGetProductPage(pageNumber: number = 1, pageSize: number = 10) {
+export function useProductPage(pageNumber: number = 1, pageSize: number = 10) {
 
     const {
         changePageNumber,
@@ -22,7 +22,7 @@ export function useGetProductPage(pageNumber: number = 1, pageSize: number = 10)
         throwOnError: true
     })
 
-    const useGetProductPageProps = {
+    const useProductPageProps = {
         changePageNumber: changePageNumber,
         currentlyOpened: currentlyOpened,
         currentPageNumber: currentPageNumber,
@@ -31,5 +31,5 @@ export function useGetProductPage(pageNumber: number = 1, pageSize: number = 10)
         setCurrentPageNumber: setCurrentPageNumber
     }
 
-    return useGetProductPageProps
+    return useProductPageProps
 }

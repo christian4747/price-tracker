@@ -2,9 +2,9 @@ import { Accordion } from "@mantine/core"
 import type { ProductType } from "../../../utils/Types"
 import { useDebounce } from "@/hooks/common/useDebounce"
 import { ProductListFooter } from "./ProductListFooter"
-import { useGetProductPage } from "@/hooks/product/useGetProductPage"
 import { Product } from "./Product"
 import ProductListSkeleton from "./ProductListSkeleton"
+import { useProductPage } from "@/hooks/product/useProductPage"
 
 export interface ProductList {
     productStatusFilter: string
@@ -17,7 +17,7 @@ export const ProductList = ({}: ProductList) => {
     // Debounce for setting list's today's date state
     const {value: dateToday, setValueWithDebounce: setDateToday} = useDebounce(new Date())
     // Hook for regular product list pagination
-    const getProductPage = useGetProductPage()
+    const getProductPage = useProductPage()
 
     if (getProductPage.query.isPending) {
         return (

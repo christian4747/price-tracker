@@ -4,7 +4,7 @@ import { useDebounce } from "@/hooks/common/useDebounce"
 import { ProductListFooter } from "./ProductListFooter"
 import { GroupedProduct } from "./GroupedProduct"
 import ProductListSkeleton from "./ProductListSkeleton"
-import { useGetProductsGrouped } from "@/hooks/product/useGetProductsGrouped"
+import { useProductPageGrouped } from "@/hooks/product/useProductPageGrouped"
 
 interface GroupedProductData {
     name: string
@@ -22,7 +22,7 @@ export const GroupedProductList = ({}: GroupedProductList) => {
     // Debounce for setting list's today's date state
     const {value: dateToday, setValueWithDebounce: setDateToday} = useDebounce(new Date())
     // Hook for getting products grouped
-    const getProductsGrouped = useGetProductsGrouped()
+    const getProductsGrouped = useProductPageGrouped()
 
     if (getProductsGrouped.query.isPending) {
         return (
