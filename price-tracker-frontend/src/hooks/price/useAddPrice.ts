@@ -23,15 +23,6 @@ export function useAddPrice(product: ProductType, highestPrice: number, useEndDa
     // Get the query client
     const queryClient = useQueryClient()
 
-    // Function for updating price list
-    const updatePriceList = () => {
-        queryClient.invalidateQueries({
-            predicate: (query) => {
-                return (query.queryKey[0] as string) === 'products' || (query.queryKey[0] as string) === 'productsGrouped'
-            }
-        })
-    }
-
     // Mutation for adding start date only
     const addSinglePriceMutation = useMutation({
         mutationFn: () => {
@@ -41,8 +32,7 @@ export function useAddPrice(product: ProductType, highestPrice: number, useEndDa
         },
         onSuccess: (newPrice: PriceType) => {
             priceDTO.resetPriceDTO()
-            updatePriceList()
-
+            queryClient.invalidateQueries()
             sendSuccessNotification(`Successfully added price ${getFormattedDateString(newPrice.priceStarted)}`)
         },
         onError: (error) => {
@@ -66,9 +56,9 @@ export function useAddPrice(product: ProductType, highestPrice: number, useEndDa
                 priceDTO.value.priceEnded = ""
                 addEndPriceMutation.mutate()
             }
-            priceDTO.resetPriceDTO()
-            updatePriceList()
 
+            priceDTO.resetPriceDTO()
+            queryClient.invalidateQueries()
             sendSuccessNotification(`Successfully added price ${getFormattedDateString(newPrice.priceStarted)}`)
         },
         onError: (error) => {
@@ -89,8 +79,7 @@ export function useAddPrice(product: ProductType, highestPrice: number, useEndDa
             return api.addPrice(priceDTO.value)
         },
         onSuccess: (newPrice: PriceType) => {
-            updatePriceList()
-
+            queryClient.invalidateQueries()
             sendSuccessNotification(`Successfully added price ${getFormattedDateString(newPrice.priceStarted)}`)
         },
         onError: (error) => {
