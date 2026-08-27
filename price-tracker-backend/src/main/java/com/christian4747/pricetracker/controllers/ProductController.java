@@ -2,13 +2,12 @@ package com.christian4747.pricetracker.controllers;
 
 import com.christian4747.pricetracker.models.Product;
 import com.christian4747.pricetracker.models.dtos.IncomingProductDTO;
-import com.christian4747.pricetracker.models.dtos.ProductNameGroupDTOAndCount;
+import com.christian4747.pricetracker.models.dtos.ProductNameGroupDTO;
+import com.christian4747.pricetracker.models.dtos.ResponseAndCount;
 import com.christian4747.pricetracker.services.ProductService;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/products")
@@ -47,7 +46,7 @@ public class ProductController {
      * @return A list of Products (default 20)
      */
     @GetMapping
-    public ResponseEntity<List<Product>> getAllProducts(Pageable pageable) {
+    public ResponseEntity<ResponseAndCount<Product>> getAllProducts(Pageable pageable) {
         return ResponseEntity.ok(productService.getAllProducts(pageable));
     }
 
@@ -61,7 +60,8 @@ public class ProductController {
      * @return A list of Products (default 20)
      */
     @GetMapping("/grouped")
-    public ResponseEntity<ProductNameGroupDTOAndCount> getAllProductsByGroup(Pageable pageable, @RequestParam(defaultValue = "name") String groupBy) {
+    public ResponseEntity<ResponseAndCount<ProductNameGroupDTO>>getAllProductsByGroup(
+            Pageable pageable, @RequestParam(defaultValue = "name") String groupBy) {
         return ResponseEntity.ok(productService.getProductsGroupedByName(pageable));
     }
 

@@ -102,11 +102,12 @@ public class ProductServiceTest {
     }
 
     @Test
-    public void getAllProducts_threeProducts_returnTwoProducts() {
+    public void getAllProducts_threeProducts_returnThreeProducts() {
         when(productPage.getContent()).thenReturn(productList);
         when(productDAO.findAllByOrderByNameAsc(any(Pageable.class))).thenReturn(productPage);
+        when(productPage.getTotalElements()).thenReturn((long) 3);
 
-        assertEquals(3, productService.getAllProducts(pageable).size());
+        assertEquals(3, productService.getAllProducts(pageable).count());
     }
 
     @Test
@@ -128,7 +129,7 @@ public class ProductServiceTest {
         when(productDAO.findDistinctNames(any())).thenReturn(namePage);
         when(productDAO.findByNameIn(any())).thenReturn(productList);
         when(namePage.getContent()).thenReturn(List.of("Product", "Product2"));
-        when(namePage.getSize()).thenReturn(2);
+        when(namePage.getTotalElements()).thenReturn((long) 2);
 
         assertEquals(2, productService.getProductsGroupedByName(pageable).count());
     }

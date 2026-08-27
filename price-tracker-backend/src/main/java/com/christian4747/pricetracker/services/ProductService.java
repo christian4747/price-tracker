@@ -4,7 +4,7 @@ import com.christian4747.pricetracker.daos.ProductDAO;
 import com.christian4747.pricetracker.models.Product;
 import com.christian4747.pricetracker.models.dtos.IncomingProductDTO;
 import com.christian4747.pricetracker.models.dtos.ProductNameGroupDTO;
-import com.christian4747.pricetracker.models.dtos.ProductNameGroupDTOAndCount;
+import com.christian4747.pricetracker.models.dtos.ResponseAndCount;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -89,8 +89,10 @@ public class ProductService {
      * @param pageable Pagination settings
      * @return A list of Products (default 20)
      */
-    public List<Product> getAllProducts(Pageable pageable) {
-        return productDAO.findAllByOrderByNameAsc(pageable).getContent();
+    public ResponseAndCount<Product> getAllProducts(Pageable pageable) {
+        Page<Product> productPage = productDAO.findAllByOrderByNameAsc(pageable);
+        
+        return new ResponseAndCount<>(productPage.getContent(), productPage.getTotalElements());
     }
 
     /**
@@ -101,18 +103,18 @@ public class ProductService {
      * @param pageable Pagination settings
      * @return A list of ProductNameGroupDTO
      */
-    public ProductNameGroupDTOAndCount getProductsGroupedByName(Pageable pageable) {
+    public ResponseAndCount<ProductNameGroupDTO> getProductsGroupedByName(Pageable pageable) {
         Page<String> namesPage = productDAO.findDistinctNames(pageable);
         List<Product> productsInNamesPage = productDAO.findByNameIn(namesPage.getContent());
 
         Map<String, List<Product>> groupedByName = productsInNamesPage.stream()
                 .collect(Collectors.groupingBy(Product :: getName));
 
-        return new ProductNameGroupDTOAndCount(
-                productDAO.findDistinctNames(Pageable.unpaged()).getSize(),
+        return new ResponseAndCount<>(
                 namesPage.getContent().stream()
-                    .map(name -> new ProductNameGroupDTO(name, groupedByName.getOrDefault(name, List.of())))
-                    .toList()
+                        .map(name -> new ProductNameGroupDTO(name, groupedByName.getOrDefault(name, List.of())))
+                        .toList(),
+                namesPage.getTotalElements()
         );
     }
 
