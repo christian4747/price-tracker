@@ -22,17 +22,8 @@ export function useGetProductPage(pageNumber: number = 1, pageSize: number = 10)
         throwOnError: true
     })
 
-    const productCountQuery = useQuery({
-        queryKey: ['productCount'],
-        queryFn: () => {
-            return api.getProductCount()
-        },
-        throwOnError: true
-    })
-
     const useGetProductPageProps = {
         changePageNumber: changePageNumber,
-        countQuery: productCountQuery,
         currentlyOpened: currentlyOpened,
         currentPageNumber: currentPageNumber,
         query: productPageQuery,

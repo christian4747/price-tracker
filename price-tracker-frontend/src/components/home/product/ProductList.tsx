@@ -40,7 +40,7 @@ export const ProductList = ({}: ProductList) => {
                         value={getProductPage.currentlyOpened}
                         onChange={getProductPage.setCurrentlyOpened}
                     >
-                        {getProductPage.query.data?.map((product: ProductType, idx: number) => {
+                        {getProductPage.query.data.content.map((product: ProductType, idx: number) => {
                             return (
                                 <Accordion.Item value={`item-${idx}`} key={product.name + product.store}>
                                     <Product
@@ -52,7 +52,7 @@ export const ProductList = ({}: ProductList) => {
                             )
                         })}
                         <ProductListFooter
-                            total={getProductPage.countQuery.data}
+                            total={getProductPage.query.data.count}
                             value={getProductPage.currentPageNumber}
                             onChange={getProductPage.changePageNumber}
                         />
