@@ -13,10 +13,18 @@ import java.sql.Timestamp;
 public interface PriceDAO extends JpaRepository<Price, Integer> {
 
     /**
-     * Find distinct Prices by added descending in the database's 'prices' table.
-     * @param page Pagination settings
-     * @return The list of Prices ordered by added descending
+     * Gets a distinct list of recently added Price currencies.
+     * @param pageable Pagination settings
+     * @return A distinct list of recently added Price currencies (default 20)
+     */
+    @Query(value = "SELECT p.currency FROM Price p WHERE p.priceId IN (SELECT MIN(p.priceId) FROM Price p WHERE p.currency <> '' GROUP BY p.currency)")
+    Page<String> findDistinctCurrency(Pageable pageable);
+
+    /**
+     * Gets a distinct list of recently added Price priceStarted time stamps.
+     * @param pageable Pagination settings
+     * @return A distinct list of recently added Price priceStarted time stamps (default 20)
      */
     @Query(value = "SELECT p.priceStarted FROM Price p WHERE p.priceId IN (SELECT MIN(p.priceId) FROM Price p GROUP BY p.priceStarted) ORDER BY p.createdAt DESC")
-    Page<Timestamp> findDistinctPriceStartedOrderByCreatedAtDesc(Pageable page);
+    Page<Timestamp> findDistinctPriceStartedOrderByCreatedAtDesc(Pageable pageable);
 }

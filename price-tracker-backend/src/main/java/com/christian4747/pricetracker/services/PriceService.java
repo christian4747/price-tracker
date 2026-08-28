@@ -106,6 +106,15 @@ public class PriceService {
     }
 
     /**
+     * Gets a distinct list of recently added Price currencies.
+     * @param pageable Pagination settings
+     * @return A distinct list of recently added Price currencies (default 20)
+     */
+    public List<String> getRecentCurrencies(Pageable pageable) {
+        return priceDAO.findDistinctCurrency(pageable).getContent();
+    }
+
+    /**
      * Gets a list of recently added Price priceStarted time stamps.
      * @param pageable Pagination settings
      * @return A distinct list of recently added Price priceStarted time stamps (default 20)

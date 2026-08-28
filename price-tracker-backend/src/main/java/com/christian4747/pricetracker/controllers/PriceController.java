@@ -64,7 +64,17 @@ public class PriceController {
     }
 
     /**
-     * Gets a list of recently added Price priceStarted time stamps.
+     * Gets a distinct list of recently added Price currencies.
+     * @param pageable Pagination settings
+     * @return A distinct list of recently added Price currencies (default 20)
+     */
+    @GetMapping("/recent/currencies")
+    public ResponseEntity<List<String>> getRecentCurrencies(Pageable pageable) {
+        return ResponseEntity.ok(priceService.getRecentCurrencies(pageable));
+    }
+
+    /**
+     * Gets a distinct list of recently added Price priceStarted time stamps.
      * @param pageable Pagination settings
      * @return A distinct list of recently added Price priceStarted time stamps (default 20)
      */
