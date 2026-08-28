@@ -18,6 +18,16 @@ export default {
     deletePrice: async (rootUrl: string, priceId: number) => {
         const res = await axios.delete(rootUrl + apiPath + '/' + priceId.toString())
         return res.data
+    },
+
+    getRecentPriceDates: async (rootUrl: string, pageNumber: number = 0, pageSize: number = 5) => {
+        const res = await axios.get(rootUrl + apiPath + '/recent/dates', {
+            params: {
+                page: pageNumber,
+                size: pageSize,
+            }
+        })
+        return res.data
     }
 
 }

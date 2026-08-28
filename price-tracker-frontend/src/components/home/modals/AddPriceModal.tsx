@@ -1,15 +1,16 @@
 
-import { Button, Center, Collapse, Modal, Switch, TextInput } from '@mantine/core'
+import { Button, Center, Collapse, Group, Modal, Scroller, Switch, TextInput } from '@mantine/core'
 import type { ProductType } from '@/utils/Types'
 import { useDisclosure } from '@mantine/hooks'
 import { useAddPrice } from '@/hooks/price/useAddPrice'
-import { getLocalDateFromUTC } from '@/utils/DateUtilities'
+import { getFormattedDateString, getLocalDateFromUTC } from '@/utils/DateUtilities'
 import { getHighestPrice } from '@/utils/PriceUtilities'
 import { DateTimePicker } from '@mantine/dates'
 import { FiCalendar } from 'react-icons/fi'
 import { useState } from 'react'
 import PriceCalculator from '../price/PriceCalculator'
 import PriceNumberInput from '../price/PriceNumberInput'
+import { useRecentPriceDates } from '@/hooks/price/recent/useRecentPriceDates'
 
 type AddPriceModalProps = {
     product: ProductType
@@ -29,6 +30,9 @@ const AddPriceModal = ({ product, setDateToday }: AddPriceModalProps) => {
 
     // Hook for adding prices
     const { priceDTO, mutation: multiMutation, singleMutation } = useAddPrice(product, getHighestPrice(product?.prices), useEndDateDesc)
+    // Hook for recent price dates
+    const { query: recentPricesQuery } = useRecentPriceDates()
+
 
     // Automatically set price started with current time when opening
     const openAddPriceModal = () => {
@@ -108,6 +112,7 @@ const AddPriceModal = ({ product, setDateToday }: AddPriceModalProps) => {
                         </Button>
                     </Button.Group>
                 </Center>
+
                 <DateTimePicker
                     label="Start Date"
                     withAsterisk
@@ -122,6 +127,19 @@ const AddPriceModal = ({ product, setDateToday }: AddPriceModalProps) => {
                     }
                     className="mb-2"
                 />
+                <Scroller>
+                    <Group gap="xs" wrap="nowrap">
+                        {recentPricesQuery.isSuccess && recentPricesQuery.data
+                            .map((priceStarted: string) => {
+                                return (
+                                    <Button onClick={() => priceDTO.setPriceDTO(prev => ({ ...prev, priceEnded: priceStarted }))}>
+                                        {getFormattedDateString(priceStarted)}
+                                    </Button>
+                                )
+                            })
+                        }
+                    </Group>
+                </Scroller>
 
                 <Collapse expanded={expandEndDate}>
                     <DateTimePicker
@@ -138,6 +156,20 @@ const AddPriceModal = ({ product, setDateToday }: AddPriceModalProps) => {
                         }
                         className="mb-2"
                     />
+                    <Scroller className='mb-2'>
+                        <Group gap="xs" wrap="nowrap">
+                            {recentPricesQuery.isSuccess && recentPricesQuery.data
+                                .map((priceStarted: string) => {
+                                    return (
+                                        <Button onClick={() => priceDTO.setPriceDTO(prev => ({ ...prev, priceEnded: priceStarted }))}>
+                                            {getFormattedDateString(priceStarted)}
+                                        </Button>
+                                    )
+                                })
+                            }
+                        </Group>
+                    </Scroller>
+
                     <Switch
                         label='Use same description for end date'
                         checked={useEndDateDesc}
