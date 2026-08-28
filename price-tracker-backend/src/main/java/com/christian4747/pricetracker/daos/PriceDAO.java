@@ -17,7 +17,7 @@ public interface PriceDAO extends JpaRepository<Price, Integer> {
      * @param pageable Pagination settings
      * @return A distinct list of recently added Price currencies (default 20)
      */
-    @Query(value = "SELECT p.currency FROM Price p WHERE p.priceId IN (SELECT MIN(p.priceId) FROM Price p WHERE p.currency <> '' GROUP BY p.currency)")
+    @Query(value = "SELECT p.currency FROM Price p WHERE p.priceId IN (SELECT MAX(p.priceId) FROM Price p WHERE p.currency <> '' GROUP BY p.currency)")
     Page<String> findDistinctCurrency(Pageable pageable);
 
     /**
@@ -33,6 +33,6 @@ public interface PriceDAO extends JpaRepository<Price, Integer> {
      * @param pageable Pagination settings
      * @return A distinct list of recently added Price priceStarted time stamps (default 20)
      */
-    @Query(value = "SELECT p.priceStarted FROM Price p WHERE p.priceId IN (SELECT MIN(p.priceId) FROM Price p GROUP BY p.priceStarted) ORDER BY p.createdAt DESC")
+    @Query(value = "SELECT p.priceStarted FROM Price p WHERE p.priceId IN (SELECT MAX(p.priceId) FROM Price p GROUP BY p.priceStarted) ORDER BY p.createdAt DESC")
     Page<Timestamp> findDistinctPriceStartedOrderByCreatedAtDesc(Pageable pageable);
 }
