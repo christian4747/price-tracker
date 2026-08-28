@@ -84,6 +84,16 @@ public class PriceController {
     }
 
     /**
+     * Gets a distinct list of recently added Price descriptions.
+     * @param pageable Pagination settings
+     * @return A distinct list of recently added Price descriptions (default 20)
+     */
+    @GetMapping("/recent/descriptions")
+    public ResponseEntity<List<String>> getRecentDescriptions(Pageable pageable) {
+        return ResponseEntity.ok(priceService.getRecentDescriptions(pageable));
+    }
+
+    /**
      * Updates a Price from the 'prices' database table.
      * @param priceId The ID of the Price to update
      * @param priceDTO The updated Price details

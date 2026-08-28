@@ -115,6 +115,15 @@ public class PriceService {
     }
 
     /**
+     * Gets a distinct list of recently added Price descriptions.
+     * @param pageable Pagination settings
+     * @return A distinct list of recently added Price descriptions (default 20)
+     */
+    public List<String> getRecentDescriptions(Pageable pageable) {
+        return priceDAO.findDistinctDescription(pageable).getContent();
+    }
+
+    /**
      * Gets a list of recently added Price priceStarted time stamps.
      * @param pageable Pagination settings
      * @return A distinct list of recently added Price priceStarted time stamps (default 20)
