@@ -4,7 +4,7 @@ import { Box, Tooltip } from '@mantine/core'
 import { getPriceDiscount, getPriceString } from '@/utils/PriceUtilities'
 import dayjs from 'dayjs'
 import { usePriceTimer } from '@/hooks/price/usePriceTimer'
-import { MdTimer } from 'react-icons/md'
+import { MdTimer, MdUpdate } from 'react-icons/md'
 import { usePriceData } from '@/hooks/price/usePriceData'
 import { LuClockAlert } from 'react-icons/lu'
 
@@ -102,6 +102,16 @@ export const PriceBanner = ({ product, dateToday, setDateToday, mini }: PriceBan
     const { color, bg, text } = getBannerStyle(priceData.getBannerType(product.prices))
     const textStyle: string = color ? color : discountPercent >= 50 ? 'good-deal' : ''
 
+    // Calculate time since last price before today
+    let useRecentPriceChange = false
+    let recentPriceChangeDays = 0
+    if (latestPrice) {
+        recentPriceChangeDays = dayjs().diff(latestPrice.priceStarted, 'day')
+        if (recentPriceChangeDays <= 6) {
+            useRecentPriceChange = true
+        }
+    }
+
     // Calculate the time left for timer
     let useTimerText = false
     let timeLeft = ''
@@ -117,6 +127,18 @@ export const PriceBanner = ({ product, dateToday, setDateToday, mini }: PriceBan
     if (mini) {
         return (
             <>
+                {/* Recent price change text */}
+                {useRecentPriceChange &&
+                    <div>
+                        <Tooltip
+                            withArrow
+                            label={recentPriceChangeDays === 1 ? `Price change ${recentPriceChangeDays} day ago` : `Price change ${recentPriceChangeDays} days ago`}
+                        >
+                            <MdUpdate />
+                        </Tooltip>
+                    </div>
+                }
+
                 {priceText?.length > 0 && parseInt(priceListLastUpdated) >= 7 &&
                     <div>
                         <Tooltip withArrow label={priceListLastUpdated === '1' ? `Last updated ${priceListLastUpdated} day ago` : `Last updated ${priceListLastUpdated} days ago`}>
@@ -145,10 +167,26 @@ export const PriceBanner = ({ product, dateToday, setDateToday, mini }: PriceBan
 
     return (
         <>
+            {/* Recent price change text */}
+            {useRecentPriceChange &&
+                <div>
+                    <Tooltip
+                        withArrow
+                        label={recentPriceChangeDays === 1 ? `Price change ${recentPriceChangeDays} day ago` : `Price change ${recentPriceChangeDays} days ago`}
+                    >
+                        <MdUpdate />
+                    </Tooltip>
+                </div>
+            }
+
+            {/* Last updated text */}
             {priceText?.length > 0 && parseInt(priceListLastUpdated) >= 7 &&
                 <div>
-                    <Tooltip withArrow label={priceListLastUpdated === '1' ? `Last updated ${priceListLastUpdated} day ago` : `Last updated ${priceListLastUpdated} days ago`}>
-                        <span className='underline underline-offset-5 decoration-wavy'><LuClockAlert /></span>
+                    <Tooltip
+                        withArrow
+                        label={priceListLastUpdated === '1' ? `Last updated ${priceListLastUpdated} day ago` : `Last updated ${priceListLastUpdated} days ago`}
+                    >
+                        <LuClockAlert />
                     </Tooltip>
                 </div>
             }
