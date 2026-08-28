@@ -11,6 +11,7 @@ import { useState } from 'react'
 import PriceCalculator from '../price/PriceCalculator'
 import PriceNumberInput from '../price/PriceNumberInput'
 import { useRecentPriceDates } from '@/hooks/price/recent/useRecentPriceDates'
+import { useRecentPriceCurrencies } from '@/hooks/price/recent/useRecentPriceCurrencies'
 
 type AddPriceModalProps = {
     product: ProductType
@@ -30,8 +31,10 @@ const AddPriceModal = ({ product, setDateToday }: AddPriceModalProps) => {
 
     // Hook for adding prices
     const { priceDTO, mutation: multiMutation, singleMutation } = useAddPrice(product, getHighestPrice(product?.prices), useEndDateDesc)
+    // Hook for recent price currencies
+    const { query: recentCurrenciesQuery } = useRecentPriceCurrencies()
     // Hook for recent price dates
-    const { query: recentPricesQuery } = useRecentPriceDates()
+    const { query: recentPriceAddedQuery } = useRecentPriceDates()
 
 
     // Automatically set price started with current time when opening
@@ -95,6 +98,19 @@ const AddPriceModal = ({ product, setDateToday }: AddPriceModalProps) => {
                     value={priceDTO.value.currency}
                     className="mb-2"
                 />
+                <Scroller className='mb-2'>
+                    <Group gap="xs" wrap="nowrap">
+                        {recentCurrenciesQuery.isSuccess && recentCurrenciesQuery.data
+                            .map((currency: string) => {
+                                return (
+                                    <Button onClick={() => priceDTO.setPriceDTO(prev => ({ ...prev, currency: currency }))}>
+                                        {currency}
+                                    </Button>
+                                )
+                            })
+                        }
+                    </Group>
+                </Scroller>
 
                 <Center>
                     <Button.Group>
@@ -129,10 +145,10 @@ const AddPriceModal = ({ product, setDateToday }: AddPriceModalProps) => {
                 />
                 <Scroller>
                     <Group gap="xs" wrap="nowrap">
-                        {recentPricesQuery.isSuccess && recentPricesQuery.data
+                        {recentPriceAddedQuery.isSuccess && recentPriceAddedQuery.data
                             .map((priceStarted: string) => {
                                 return (
-                                    <Button onClick={() => priceDTO.setPriceDTO(prev => ({ ...prev, priceEnded: priceStarted }))}>
+                                    <Button onClick={() => priceDTO.setPriceDTO(prev => ({ ...prev, priceStarted: priceStarted }))}>
                                         {getFormattedDateString(priceStarted)}
                                     </Button>
                                 )
@@ -158,7 +174,7 @@ const AddPriceModal = ({ product, setDateToday }: AddPriceModalProps) => {
                     />
                     <Scroller className='mb-2'>
                         <Group gap="xs" wrap="nowrap">
-                            {recentPricesQuery.isSuccess && recentPricesQuery.data
+                            {recentPriceAddedQuery.isSuccess && recentPriceAddedQuery.data
                                 .map((priceStarted: string) => {
                                     return (
                                         <Button onClick={() => priceDTO.setPriceDTO(prev => ({ ...prev, priceEnded: priceStarted }))}>

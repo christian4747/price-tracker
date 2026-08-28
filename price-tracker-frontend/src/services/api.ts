@@ -38,6 +38,10 @@ export default {
         return productService.getProductsGrouped(rootUrl, pageNumber, pageSize)
     },
 
+    getRecentPriceCurrencies: async () => {
+        return priceService.getRecentPriceCurrencies(rootUrl, 0, 5)
+    },
+
     getRecentPriceDates: async () => {
         return priceService.getRecentPriceDates(rootUrl, 0, 5)
     },
