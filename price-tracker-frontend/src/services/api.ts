@@ -46,6 +46,10 @@ export default {
         return priceService.getRecentPriceDates(rootUrl, 0, 5)
     },
 
+    getRecentPriceDescriptions: async () => {
+        return priceService.getRecentPriceDescriptions(rootUrl, 0, 5)
+    },
+
     addProduct: async (productToAdd: ProductDTO) => {
         return productService.addProduct(rootUrl, productToAdd)
     },
