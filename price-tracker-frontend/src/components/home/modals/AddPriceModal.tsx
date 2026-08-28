@@ -13,6 +13,7 @@ import PriceNumberInput from '../price/PriceNumberInput'
 import { useRecentPriceDates } from '@/hooks/price/recent/useRecentPriceDates'
 import { useRecentPriceCurrencies } from '@/hooks/price/recent/useRecentPriceCurrencies'
 import { useRecentPriceDescriptions } from '@/hooks/price/recent/useRecentPriceDescriptions'
+import dayjs from 'dayjs'
 
 type AddPriceModalProps = {
     product: ProductType
@@ -159,6 +160,10 @@ const AddPriceModal = ({ product, setDateToday }: AddPriceModalProps) => {
                         </div>
                     }
                     valueFormat="MMM DD, YYYY H:mm A"
+                    presets={[
+                        { value: dayjs(priceDTO.value.priceStarted).startOf('day').format("MMM DD, YYYY H:mm A"), label: '00:00' },
+                        { value: dayjs(priceDTO.value.priceStarted).endOf('day').second(0).toDate().toString(), label: '23:59' }
+                    ]}
                     className="mb-2"
                 />
                 <Scroller>
