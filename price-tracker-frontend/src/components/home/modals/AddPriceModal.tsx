@@ -158,6 +158,7 @@ const AddPriceModal = ({ product, setDateToday }: AddPriceModalProps) => {
                             <FiCalendar size={24} />
                         </div>
                     }
+                    valueFormat="MMM DD, YYYY H:mm A"
                     className="mb-2"
                 />
                 <Scroller>
@@ -187,6 +188,7 @@ const AddPriceModal = ({ product, setDateToday }: AddPriceModalProps) => {
                                 <FiCalendar size={24} />
                             </div>
                         }
+                        valueFormat="MMM DD, YYYY hh:mm A"
                         className="mb-2"
                     />
                     <Scroller className='mb-2'>
