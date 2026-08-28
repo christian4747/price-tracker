@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.sql.Timestamp;
 import java.util.List;
 
 @RestController
@@ -60,6 +61,16 @@ public class PriceController {
     @GetMapping("/{priceId}")
     public ResponseEntity<Price> getPriceById(@PathVariable Integer priceId) {
         return ResponseEntity.ok(priceService.getPriceById(priceId));
+    }
+
+    /**
+     * Gets a list of recently added Price priceStarted time stamps.
+     * @param pageable Pagination settings
+     * @return A distinct list of recently added Price priceStarted time stamps (default 20)
+     */
+    @GetMapping("/recent/dates")
+    public ResponseEntity<List<Timestamp>> getRecentPrices(Pageable pageable) {
+        return ResponseEntity.ok(priceService.getRecentPricesStarted(pageable));
     }
 
     /**

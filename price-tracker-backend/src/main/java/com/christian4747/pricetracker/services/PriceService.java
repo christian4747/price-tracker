@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.Optional;
 
@@ -102,6 +103,15 @@ public class PriceService {
         }
 
         return existingPrice.get();
+    }
+
+    /**
+     * Gets a list of recently added Price priceStarted time stamps.
+     * @param pageable Pagination settings
+     * @return A distinct list of recently added Price priceStarted time stamps (default 20)
+     */
+    public List<Timestamp> getRecentPricesStarted(Pageable pageable) {
+        return priceDAO.findDistinctPriceStartedOrderByCreatedAtDesc(pageable).getContent();
     }
 
     /**
