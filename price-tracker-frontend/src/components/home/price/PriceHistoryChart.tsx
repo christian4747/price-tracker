@@ -13,7 +13,7 @@ const getPriceWithCurrency = (amount: number, currency: string) => {
 
 function ChartTooltip({ label, payload }: ChartTooltipProps) {
     if (!payload) return null
-    console.log(payload)
+
     return (
         <Paper px="md" py="sm" withBorder shadow="md">
             <Text fw={500} mb={5}>
