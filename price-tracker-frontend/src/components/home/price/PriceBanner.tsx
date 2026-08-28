@@ -4,7 +4,7 @@ import { Box, Tooltip } from '@mantine/core'
 import { getPriceDiscount, getPriceString } from '@/utils/PriceUtilities'
 import dayjs from 'dayjs'
 import { usePriceTimer } from '@/hooks/price/usePriceTimer'
-import { MdTimer } from 'react-icons/md'
+import { MdTimer, MdUpdate } from 'react-icons/md'
 import { usePriceData } from '@/hooks/price/usePriceData'
 import { LuClockAlert } from 'react-icons/lu'
 
@@ -44,7 +44,7 @@ const getMostRecentlyUpdatedPrice = (prices: PriceType[]) => {
 }
 
 interface TimeTooltip {
-    timeLeft: string
+    timeLeft: number
     tooltipText: string
 }
 
@@ -64,7 +64,7 @@ const TimeTooltip = ({timeLeft, tooltipText}: TimeTooltip) => {
                     </div>
                 }
             >
-                {parseInt(timeLeft) >= 1 ?
+                {timeLeft >= 1 ?
                     <MdTimer size={24} className='text-amber-400' />
                     :
                     <MdTimer size={24} className='text-red-400' />
@@ -83,6 +83,10 @@ export interface PriceBanner {
 
 export const PriceBanner = ({ product, dateToday, setDateToday, mini }: PriceBanner) => {
 
+    if (!product.prices || product.prices.length === 0) {
+        return <></>
+    }
+
     // Use priceData hook
     const priceData = usePriceData(dateToday)
 
@@ -92,7 +96,20 @@ export const PriceBanner = ({ product, dateToday, setDateToday, mini }: PriceBan
     // Date stored in latest price
     const mostRecentUpdatedPrice = dayjs(getMostRecentlyUpdatedPrice(product.prices)?.updatedAt)
     // Number of days since last recorded price
-    const priceListLastUpdated = dayjs().diff(mostRecentUpdatedPrice, 'day').toString()
+    const priceListLastUpdated = dayjs().diff(mostRecentUpdatedPrice, 'day')
+    let lastUpdatedIndicator = undefined
+    if (priceListLastUpdated > 7) {
+        lastUpdatedIndicator = (
+            <div>
+                <Tooltip
+                    withArrow
+                    label={priceListLastUpdated === 1 ? `Last updated ${priceListLastUpdated} day ago` : `Last updated ${priceListLastUpdated} days ago`}
+                >
+                    <LuClockAlert />
+                </Tooltip>
+            </div>
+        )
+    }
 
     // Calculate discount and price string
     const priceText = getPriceString(latestPrice)
@@ -102,36 +119,54 @@ export const PriceBanner = ({ product, dateToday, setDateToday, mini }: PriceBan
     const { color, bg, text } = getBannerStyle(priceData.getBannerType(product.prices))
     const textStyle: string = color ? color : discountPercent >= 50 ? 'good-deal' : ''
 
-    // Calculate the time left for timer
-    let useTimerText = false
-    let timeLeft = ''
-    const lastPrice = priceData.getLatestPriceAfterToday(product.prices)
-    let timerText = usePriceTimer(dayjs(lastPrice?.priceStarted).valueOf() / 1000, setDateToday)
-    if (latestPrice && lastPrice && lastPrice !== latestPrice) {
-        timeLeft = dayjs(lastPrice.priceStarted).diff(dayjs(), 'day').toString()
-        if (parseInt(timeLeft) <= 6) {
-            useTimerText = true
+    // Calculate time since last price before today
+    let recentPriceChange = undefined
+    if (latestPrice) {
+        const recentPriceChangeDays = dayjs().diff(latestPrice.priceStarted, 'day')
+        if (recentPriceChangeDays <= 6) {
+            recentPriceChange = (
+                <div>
+                    <Tooltip
+                        withArrow
+                        label={recentPriceChangeDays === 1 ? `Price change ${recentPriceChangeDays} day ago` : `Price change ${recentPriceChangeDays} days ago`}
+                    >
+                        <MdUpdate />
+                    </Tooltip>
+                </div>
+            )
         }
     }
+
+    // Calculate the time left for timer
+    const lastPrice = priceData.getLatestPriceAfterToday(product.prices)
+    let timerText = usePriceTimer(dayjs(lastPrice?.priceStarted).valueOf() / 1000, setDateToday)
+    let timeTooltip = undefined
+    if (latestPrice && lastPrice && lastPrice !== latestPrice) {
+        const timeLeft = dayjs(lastPrice.priceStarted).diff(dayjs(), 'day')
+        if (timeLeft <= 6) {
+            timeTooltip = <TimeTooltip timeLeft={timeLeft} tooltipText={timerText} />
+        }
+    }
+
+    // Shows recent price changes, last updated (if < 7 days), and time left on current price (if < 7 days)
+    const priceIndicators = (
+        <>
+            {/* Recent price change text */}
+            {recentPriceChange}
+
+            {/* Last updated indicator */}
+            {lastUpdatedIndicator}
+
+            {/* Timer text */}
+            {timeTooltip}
+        </>
+    )
 
     if (mini) {
         return (
             <>
-                {priceText?.length > 0 && parseInt(priceListLastUpdated) >= 7 &&
-                    <div>
-                        <Tooltip withArrow label={priceListLastUpdated === '1' ? `Last updated ${priceListLastUpdated} day ago` : `Last updated ${priceListLastUpdated} days ago`}>
-                            <span className='underline underline-offset-5 decoration-wavy'><LuClockAlert /></span>
-                        </Tooltip>
-                    </div>
-                }
-
-                {/* Timer text */}
-                {useTimerText && timerText !== '' &&
-                    <TimeTooltip
-                        timeLeft={timeLeft}
-                        tooltipText={timerText}
-                    />
-                }
+                {/* Informational indicators */}
+                {priceIndicators}
 
                 {/* Price banner */}
                 {text.length > 0 &&
@@ -145,21 +180,8 @@ export const PriceBanner = ({ product, dateToday, setDateToday, mini }: PriceBan
 
     return (
         <>
-            {priceText?.length > 0 && parseInt(priceListLastUpdated) >= 7 &&
-                <div>
-                    <Tooltip withArrow label={priceListLastUpdated === '1' ? `Last updated ${priceListLastUpdated} day ago` : `Last updated ${priceListLastUpdated} days ago`}>
-                        <span className='underline underline-offset-5 decoration-wavy'><LuClockAlert /></span>
-                    </Tooltip>
-                </div>
-            }
-
-            {/* Timer text */}
-            {useTimerText && timerText !== '' &&
-                <TimeTooltip
-                    timeLeft={timeLeft}
-                    tooltipText={timerText}
-                />
-            }
+            {/* Informational indicators */}
+            {priceIndicators}
 
             {/* Price banner */}
             {text.length > 0 &&
