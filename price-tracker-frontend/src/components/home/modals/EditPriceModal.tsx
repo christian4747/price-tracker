@@ -1,14 +1,13 @@
 import type { PriceType, RecentPriceData } from "../../../utils/Types"
 import { Button, Modal, TextInput, Tooltip } from "@mantine/core"
 import { useDisclosure } from "@mantine/hooks"
-import { DateTimePicker } from "@mantine/dates"
 import { useEditPrice } from "@/hooks/price/useEditPrice"
-import { FiCalendar } from "react-icons/fi"
 import { MdEdit } from "react-icons/md"
 import PriceNumberInput from "../price/PriceNumberInput"
 import PriceCalculator from "../price/PriceCalculator"
 import { getFormattedDateString } from "@/utils/DateUtilities"
 import { RecentDataScroller } from "@/components/common/RecentDataScroller"
+import { PriceDateTimePicker } from "../price/PriceDateTimePicker"
 
 interface EditPriceModal {
     price: PriceType
@@ -100,19 +99,12 @@ export const EditPriceModal = ({ price, recentPriceData }: EditPriceModal) => {
                 />
                 {recentCurrencies && <RecentDataScroller className='mb-2'>{recentCurrencies}</RecentDataScroller>}
 
-                <DateTimePicker
-                    label="Start Date"
+                <PriceDateTimePicker
+                    label='Start Date'
                     withAsterisk
-                    radius='xl'
                     onChange={(val) => {val ? priceDTO.setPriceDTO(prev => ({...prev, priceStarted: val})) : priceDTO.setPriceDTO(prev => ({...prev, priceStarted: ''}))}}
                     value={priceDTO.value.priceStarted}
-                    rightSectionPointerEvents="none"
-                    rightSection={
-                        <div className='pr-2'>
-                            <FiCalendar size={24} />
-                        </div>
-                    }
-                    className="mb-2"
+                    priceDate={priceDTO.value.priceStarted}
                 />
                 {recentPricesStarted && <RecentDataScroller className='mb-2'>{recentPricesStarted}</RecentDataScroller>}
 

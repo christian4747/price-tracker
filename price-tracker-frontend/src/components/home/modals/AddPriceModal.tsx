@@ -5,13 +5,11 @@ import { useDisclosure } from '@mantine/hooks'
 import { useAddPrice } from '@/hooks/price/useAddPrice'
 import { getFormattedDateString, getLocalDateFromUTC } from '@/utils/DateUtilities'
 import { getHighestPrice } from '@/utils/PriceUtilities'
-import { DateTimePicker } from '@mantine/dates'
-import { FiCalendar } from 'react-icons/fi'
 import { useState } from 'react'
 import PriceCalculator from '../price/PriceCalculator'
 import PriceNumberInput from '../price/PriceNumberInput'
-import dayjs from 'dayjs'
 import { RecentDataScroller } from '@/components/common/RecentDataScroller'
+import { PriceDateTimePicker } from '../price/PriceDateTimePicker'
 
 interface AddPriceModal {
     product: ProductType
@@ -140,42 +138,22 @@ export const AddPriceModal = ({ product, setDateToday, recentPriceData }: AddPri
                     </Button.Group>
                 </Center>
 
-                <DateTimePicker
-                    label="Start Date"
+                <PriceDateTimePicker
+                    label='Start Date'
                     withAsterisk
-                    radius='xl'
                     onChange={(val) => {val ? priceDTO.setPriceDTO(prev => ({...prev, priceStarted: val})) : priceDTO.setPriceDTO(prev => ({...prev, priceStarted: ''}))}}
                     value={priceDTO.value.priceStarted}
-                    rightSectionPointerEvents="none"
-                    rightSection={
-                        <div className='pr-2'>
-                            <FiCalendar size={24} />
-                        </div>
-                    }
-                    valueFormat="MMM DD, YYYY H:mm A"
-                    presets={[
-                        { value: dayjs(priceDTO.value.priceStarted).startOf('day').format("MMM DD, YYYY H:mm A"), label: '00:00' },
-                        { value: dayjs(priceDTO.value.priceStarted).endOf('day').second(0).toDate().toString(), label: '23:59' }
-                    ]}
-                    className="mb-2"
+                    priceDate={priceDTO.value.priceStarted}
                 />
                 {recentPricesStarted && <RecentDataScroller className='mb-2'>{recentPricesStarted}</RecentDataScroller>}
 
                 <Collapse expanded={expandEndDate}>
-                    <DateTimePicker
-                        label="End Date"
-                        placeholder="Date price ends"
-                        radius='xl'
+                    <PriceDateTimePicker
+                        label='End Date'
+                        placeholder='Date price ends'
                         onChange={(val) => {val ? priceDTO.setPriceDTO(prev => ({...prev, priceEnded: val})) : priceDTO.setPriceDTO(prev => ({...prev, priceEnded: ''}))}}
                         value={priceDTO.value.priceEnded}
-                        rightSectionPointerEvents="none"
-                        rightSection={
-                            <div className='pr-2'>
-                                <FiCalendar size={24} />
-                            </div>
-                        }
-                        valueFormat="MMM DD, YYYY hh:mm A"
-                        className="mb-2"
+                        priceDate={priceDTO.value.priceEnded}
                     />
                     {recentPricesEnded && <RecentDataScroller className='mb-2'>{recentPricesEnded}</RecentDataScroller>}
 
