@@ -52,4 +52,11 @@ type PriceDTO = {
     returnAmount: number
 }
 
+export interface RecentPriceData {
+    currencies: string[]
+    descriptions: string[]
+    pricesEnded: string[]
+    pricesStarted: string[]
+}
+
 export type {ModalProps, ProductModalProps, PriceModalProps, ProductDTO, PriceDTO, PriceType, ProductType}
