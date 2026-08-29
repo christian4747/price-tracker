@@ -1,4 +1,4 @@
-import type { PriceType } from "../../../utils/Types"
+import type { PriceType, RecentPriceData } from "../../../utils/Types"
 import { Button, Modal, TextInput, Tooltip } from "@mantine/core"
 import { useDisclosure } from "@mantine/hooks"
 import { DateTimePicker } from "@mantine/dates"
@@ -7,18 +7,39 @@ import { FiCalendar } from "react-icons/fi"
 import { MdEdit } from "react-icons/md"
 import PriceNumberInput from "../price/PriceNumberInput"
 import PriceCalculator from "../price/PriceCalculator"
+import { getFormattedDateString } from "@/utils/DateUtilities"
+import { RecentDataScroller } from "@/components/common/RecentDataScroller"
 
-type EditPriceModalProps = {
+interface EditPriceModal {
     price: PriceType
+    recentPriceData: RecentPriceData
 }
 
-const EditPriceModal = ({price}: EditPriceModalProps) => {
+export const EditPriceModal = ({ price, recentPriceData }: EditPriceModal) => {
 
     // Track state of modal open/close
     const [opened, { open, close }] = useDisclosure(false)
 
     // Hook for editing prices
     const { priceDTO, mutation } = useEditPrice(price)
+
+    const recentDescriptions = recentPriceData?.descriptions.map((description: string, idx: number) => (
+        <Button key={idx} onClick={() => priceDTO.setPriceDTO(prev => ({ ...prev, description: description }))}>
+            {description}
+        </Button>
+    ))
+
+    const recentCurrencies = recentPriceData?.currencies.map((currency: string, idx: number) => (
+        <Button key={idx} onClick={() => priceDTO.setPriceDTO(prev => ({ ...prev, currency: currency }))}>
+            {currency}
+        </Button>
+    ))
+
+    const recentPricesStarted = recentPriceData?.pricesStarted.map((priceStarted: string, idx: number) => (
+        <Button key={idx} onClick={() => priceDTO.setPriceDTO(prev => ({ ...prev, priceStarted: priceStarted }))}>
+            {getFormattedDateString(priceStarted)}
+        </Button>
+    ))
 
     return (
         <>
@@ -67,6 +88,8 @@ const EditPriceModal = ({price}: EditPriceModalProps) => {
                     value={priceDTO.value.description}
                     className="mb-2"
                 />
+                {recentDescriptions && <RecentDataScroller className='mb-2'>{recentDescriptions}</RecentDataScroller>}
+
                 <TextInput
                     label="Currency"
                     radius='xl'
@@ -75,6 +98,7 @@ const EditPriceModal = ({price}: EditPriceModalProps) => {
                     value={priceDTO.value.currency}
                     className="mb-2"
                 />
+                {recentCurrencies && <RecentDataScroller className='mb-2'>{recentCurrencies}</RecentDataScroller>}
 
                 <DateTimePicker
                     label="Start Date"
@@ -90,6 +114,7 @@ const EditPriceModal = ({price}: EditPriceModalProps) => {
                     }
                     className="mb-2"
                 />
+                {recentPricesStarted && <RecentDataScroller className='mb-2'>{recentPricesStarted}</RecentDataScroller>}
 
                 <Button fullWidth className="mt-5" onClick={(e) => {mutation.mutate();close();e.stopPropagation()}}>Edit Price</Button>
             </Modal>
@@ -105,5 +130,3 @@ const EditPriceModal = ({price}: EditPriceModalProps) => {
         </>
     )
 }
-
-export default EditPriceModal

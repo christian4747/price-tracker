@@ -1,7 +1,8 @@
 import { sortPricesByDateAscending } from "@/utils/PriceUtilities"
 import type { ProductType } from "../../../utils/Types"
 import { AddPriceModal } from "../modals/AddPriceModal"
-import Price from "./Price"
+import { Price } from "./Price"
+import { useRecentPriceData } from "@/hooks/price/useRecentPriceData"
 
 interface PriceList {
     product: ProductType
@@ -12,6 +13,9 @@ export const PriceList = ({product, setDateToday}: PriceList) => {
 
     const sortedPrices = sortPricesByDateAscending(product.prices)
 
+    // Hook for recent price currencies
+    const { query: recentPriceData } = useRecentPriceData()
+    
     return (
         <>
             <div className='flex flex-col h-full border border-smoke rounded-sm overflow-hidden justify-between'>
@@ -22,6 +26,7 @@ export const PriceList = ({product, setDateToday}: PriceList) => {
                             <Price
                                 key={price.priceId}
                                 price={price}
+                                recentPriceData={recentPriceData.data}
                             />
                         )
                     })}
@@ -29,6 +34,7 @@ export const PriceList = ({product, setDateToday}: PriceList) => {
                 <AddPriceModal
                     product={product}
                     setDateToday={setDateToday}
+                    recentPriceData={recentPriceData.data}
                 />
             </div>
         </>
