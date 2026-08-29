@@ -1,20 +1,20 @@
 import api from "@/services/api"
 import { useQuery } from "@tanstack/react-query"
 
-export function useRecentPriceCurrencies() {
+export function useRecentPriceData() {
 
     // Query for getting a product page
     const recentPricesQuery = useQuery({
-        queryKey: ['recentCurrencies'],
+        queryKey: ['recentPriceData'],
         queryFn: () => {
-            return api.getRecentPriceCurrencies()
+            return api.getRecentPriceData()
         },
         throwOnError: true
     })
 
-    const useRecentPriceCurrenciesProps = {
+    const useRecentPriceDataProps = {
         query: recentPricesQuery,
     }
 
-    return useRecentPriceCurrenciesProps
+    return useRecentPriceDataProps
 }

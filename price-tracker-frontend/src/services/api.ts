@@ -38,16 +38,8 @@ export default {
         return productService.getProductsGrouped(rootUrl, pageNumber, pageSize)
     },
 
-    getRecentPriceCurrencies: async () => {
-        return priceService.getRecentPriceCurrencies(rootUrl, 0, 5)
-    },
-
-    getRecentPriceDates: async () => {
-        return priceService.getRecentPriceDates(rootUrl, 0, 5)
-    },
-
-    getRecentPriceDescriptions: async () => {
-        return priceService.getRecentPriceDescriptions(rootUrl, 0, 5)
+    getRecentPriceData: async () => {
+        return priceService.getRecentPriceData(rootUrl, 0, 5)
     },
 
     addProduct: async (productToAdd: ProductDTO) => {

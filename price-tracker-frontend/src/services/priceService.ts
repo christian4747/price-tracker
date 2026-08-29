@@ -20,8 +20,8 @@ export default {
         return res.data
     },
 
-    getRecentPriceCurrencies: async (rootUrl: string, pageNumber: number = 0, pageSize: number = 5) => {
-        const res = await axios.get(rootUrl + apiPath + '/recent/currencies', {
+    getRecentPriceData: async (rootUrl: string, pageNumber: number = 0, pageSize: number = 5) => {
+        const res = await axios.get(rootUrl + apiPath + '/recent', {
             params: {
                 page: pageNumber,
                 size: pageSize,
@@ -29,25 +29,5 @@ export default {
         })
         return res.data
     },
-
-    getRecentPriceDates: async (rootUrl: string, pageNumber: number = 0, pageSize: number = 5) => {
-        const res = await axios.get(rootUrl + apiPath + '/recent/dates', {
-            params: {
-                page: pageNumber,
-                size: pageSize,
-            }
-        })
-        return res.data
-    },
-
-    getRecentPriceDescriptions: async (rootUrl: string, pageNumber: number = 0, pageSize: number = 10) => {
-        const res = await axios.get(rootUrl + apiPath + '/recent/descriptions', {
-            params: {
-                page: pageNumber,
-                size: pageSize,
-            }
-        })
-        return res.data
-    }
 
 }

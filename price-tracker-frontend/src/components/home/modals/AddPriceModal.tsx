@@ -1,5 +1,5 @@
 
-import { Button, Center, Collapse, Group, Modal, Scroller, Switch, TextInput } from '@mantine/core'
+import { Button, Center, Collapse, Modal, Switch, TextInput } from '@mantine/core'
 import type { ProductType } from '@/utils/Types'
 import { useDisclosure } from '@mantine/hooks'
 import { useAddPrice } from '@/hooks/price/useAddPrice'
@@ -10,10 +10,9 @@ import { FiCalendar } from 'react-icons/fi'
 import { useState } from 'react'
 import PriceCalculator from '../price/PriceCalculator'
 import PriceNumberInput from '../price/PriceNumberInput'
-import { useRecentPriceDates } from '@/hooks/price/recent/useRecentPriceDates'
-import { useRecentPriceCurrencies } from '@/hooks/price/recent/useRecentPriceCurrencies'
-import { useRecentPriceDescriptions } from '@/hooks/price/recent/useRecentPriceDescriptions'
 import dayjs from 'dayjs'
+import { useRecentPriceData } from '@/hooks/price/useRecentPriceData'
+import { RecentDataScroller } from '@/components/common/RecentDataScroller'
 
 type AddPriceModalProps = {
     product: ProductType
@@ -34,11 +33,31 @@ const AddPriceModal = ({ product, setDateToday }: AddPriceModalProps) => {
     // Hook for adding prices
     const { priceDTO, mutation: multiMutation, singleMutation } = useAddPrice(product, getHighestPrice(product?.prices), useEndDateDesc)
     // Hook for recent price currencies
-    const { query: recentCurrenciesQuery } = useRecentPriceCurrencies()
-    // Hook for recent price dates
-    const { query: recentPriceAddedQuery } = useRecentPriceDates()
-    // Hook for recent price descriptions
-    const { query: recentDescriptionQuery } = useRecentPriceDescriptions()
+    const { query: recentPriceData } = useRecentPriceData()
+
+    const recentDescriptions = recentPriceData.data?.descriptions.map((description: string, idx: number) => (
+        <Button key={idx} onClick={() => priceDTO.setPriceDTO(prev => ({ ...prev, description: description }))}>
+            {description}
+        </Button>
+    ))
+    
+    const recentCurrencies = recentPriceData.data?.currencies.map((currency: string, idx: number) => (
+        <Button key={idx} onClick={() => priceDTO.setPriceDTO(prev => ({ ...prev, currency: currency }))}>
+            {currency}
+        </Button>
+    ))
+
+    const recentPricesStarted = recentPriceData.data?.pricesStarted.map((priceStarted: string, idx: number) => (
+        <Button key={idx} onClick={() => priceDTO.setPriceDTO(prev => ({ ...prev, priceStarted: priceStarted }))}>
+            {getFormattedDateString(priceStarted)}
+        </Button>
+    ))
+
+    const recentPricesEnded = recentPriceData.data?.pricesEnded.map((priceEnded: string, idx: number) => (
+        <Button key={idx} onClick={() => priceDTO.setPriceDTO(prev => ({ ...prev, priceEnded: priceEnded }))}>
+            {getFormattedDateString(priceEnded)}
+        </Button>
+    ))
 
 
     // Automatically set price started with current time when opening
@@ -94,19 +113,7 @@ const AddPriceModal = ({ product, setDateToday }: AddPriceModalProps) => {
                     value={priceDTO.value.description}
                     className="mb-2"
                 />
-                <Scroller className='mb-2'>
-                    <Group gap="xs" wrap="nowrap">
-                        {recentDescriptionQuery.isSuccess && recentDescriptionQuery.data
-                            .map((description: string, idx: number) => {
-                                return (
-                                    <Button key={idx} onClick={() => priceDTO.setPriceDTO(prev => ({ ...prev, description: description }))}>
-                                        {description}
-                                    </Button>
-                                )
-                            })
-                        }
-                    </Group>
-                </Scroller>
+                {recentDescriptions && <RecentDataScroller className='mb-2'>{recentDescriptions}</RecentDataScroller>}
 
                 <TextInput
                     label="Currency"
@@ -116,19 +123,7 @@ const AddPriceModal = ({ product, setDateToday }: AddPriceModalProps) => {
                     value={priceDTO.value.currency}
                     className="mb-2"
                 />
-                <Scroller className='mb-2'>
-                    <Group gap="xs" wrap="nowrap">
-                        {recentCurrenciesQuery.isSuccess && recentCurrenciesQuery.data
-                            .map((currency: string, idx: number) => {
-                                return (
-                                    <Button key={idx} onClick={() => priceDTO.setPriceDTO(prev => ({ ...prev, currency: currency }))}>
-                                        {currency}
-                                    </Button>
-                                )
-                            })
-                        }
-                    </Group>
-                </Scroller>
+                {recentCurrencies && <RecentDataScroller className='mb-2'>{recentCurrencies}</RecentDataScroller>}
 
                 <Center>
                     <Button.Group>
@@ -166,19 +161,7 @@ const AddPriceModal = ({ product, setDateToday }: AddPriceModalProps) => {
                     ]}
                     className="mb-2"
                 />
-                <Scroller>
-                    <Group gap="xs" wrap="nowrap">
-                        {recentPriceAddedQuery.isSuccess && recentPriceAddedQuery.data
-                            .map((priceStarted: string, idx: number) => {
-                                return (
-                                    <Button key={idx} onClick={() => priceDTO.setPriceDTO(prev => ({ ...prev, priceStarted: priceStarted }))}>
-                                        {getFormattedDateString(priceStarted)}
-                                    </Button>
-                                )
-                            })
-                        }
-                    </Group>
-                </Scroller>
+                {recentPricesStarted && <RecentDataScroller className='mb-2'>{recentPricesStarted}</RecentDataScroller>}
 
                 <Collapse expanded={expandEndDate}>
                     <DateTimePicker
@@ -196,19 +179,7 @@ const AddPriceModal = ({ product, setDateToday }: AddPriceModalProps) => {
                         valueFormat="MMM DD, YYYY hh:mm A"
                         className="mb-2"
                     />
-                    <Scroller className='mb-2'>
-                        <Group gap="xs" wrap="nowrap">
-                            {recentPriceAddedQuery.isSuccess && recentPriceAddedQuery.data
-                                .map((priceStarted: string, idx: number) => {
-                                    return (
-                                        <Button key={idx} onClick={() => priceDTO.setPriceDTO(prev => ({ ...prev, priceEnded: priceStarted }))}>
-                                            {getFormattedDateString(priceStarted)}
-                                        </Button>
-                                    )
-                                })
-                            }
-                        </Group>
-                    </Scroller>
+                    {recentPricesEnded && <RecentDataScroller className='mb-2'>{recentPricesEnded}</RecentDataScroller>}
 
                     <Switch
                         label='Use same description for end date'
