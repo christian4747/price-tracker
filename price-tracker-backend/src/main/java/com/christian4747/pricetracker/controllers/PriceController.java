@@ -2,6 +2,7 @@ package com.christian4747.pricetracker.controllers;
 
 import com.christian4747.pricetracker.models.Price;
 import com.christian4747.pricetracker.models.dtos.IncomingPriceDTO;
+import com.christian4747.pricetracker.models.dtos.RecentPriceData;
 import com.christian4747.pricetracker.services.PriceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
@@ -61,6 +62,16 @@ public class PriceController {
     @GetMapping("/{priceId}")
     public ResponseEntity<Price> getPriceById(@PathVariable Integer priceId) {
         return ResponseEntity.ok(priceService.getPriceById(priceId));
+    }
+
+    /**
+     * Gets a distinct list of recently added Price currencies, descriptions, pricesStarted and pricesEnded.
+     * @param pageable Pagination settings
+     * @return A distinct list of recently added Price currencies, descriptions, pricesStarted and pricesEnded (default 20)
+     */
+    @GetMapping("/recent")
+    public ResponseEntity<RecentPriceData> getRecentData(Pageable pageable) {
+        return ResponseEntity.ok(priceService.getRecentData(pageable));
     }
 
     /**

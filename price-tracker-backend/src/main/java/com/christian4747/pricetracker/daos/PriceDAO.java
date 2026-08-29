@@ -33,6 +33,14 @@ public interface PriceDAO extends JpaRepository<Price, Integer> {
      * @param pageable Pagination settings
      * @return A distinct list of recently added Price priceStarted time stamps (default 20)
      */
+    @Query(value = "SELECT p.priceEnded FROM Price p WHERE p.priceId IN (SELECT MAX(p.priceId) FROM Price p WHERE p.priceEnded IS NOT NULL GROUP BY p.priceEnded) ORDER BY p.createdAt DESC")
+    Page<Timestamp> findDistinctPriceEndedOrderByCreatedAtDesc(Pageable pageable);
+
+    /**
+     * Gets a distinct list of recently added Price priceStarted time stamps.
+     * @param pageable Pagination settings
+     * @return A distinct list of recently added Price priceStarted time stamps (default 20)
+     */
     @Query(value = "SELECT p.priceStarted FROM Price p WHERE p.priceId IN (SELECT MAX(p.priceId) FROM Price p GROUP BY p.priceStarted) ORDER BY p.createdAt DESC")
     Page<Timestamp> findDistinctPriceStartedOrderByCreatedAtDesc(Pageable pageable);
 }

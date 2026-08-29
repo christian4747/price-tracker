@@ -5,6 +5,7 @@ import com.christian4747.pricetracker.daos.ProductDAO;
 import com.christian4747.pricetracker.models.Price;
 import com.christian4747.pricetracker.models.Product;
 import com.christian4747.pricetracker.models.dtos.IncomingPriceDTO;
+import com.christian4747.pricetracker.models.dtos.RecentPriceData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -115,6 +116,20 @@ public class PriceService {
     }
 
     /**
+     * Gets a distinct list of recently added Price currencies, descriptions, pricesStarted and pricesEnded.
+     * @param pageable Pagination settings
+     * @return A distinct list of recently added Price currencies, descriptions, pricesStarted and pricesEnded (default 20)
+     */
+    public RecentPriceData getRecentData(Pageable pageable) {
+        return new RecentPriceData(
+                getRecentCurrencies(pageable),
+                getRecentDescriptions(pageable),
+                getRecentPricesStarted(pageable),
+                getRecentPricesEnded(pageable)
+        );
+    }
+
+    /**
      * Gets a distinct list of recently added Price descriptions.
      * @param pageable Pagination settings
      * @return A distinct list of recently added Price descriptions (default 20)
@@ -124,7 +139,16 @@ public class PriceService {
     }
 
     /**
-     * Gets a list of recently added Price priceStarted time stamps.
+     * Gets a distinct list of recently added Price priceEnded time stamps.
+     * @param pageable Pagination settings
+     * @return A distinct list of recently added Price priceEnded time stamps (default 20)
+     */
+    public List<Timestamp> getRecentPricesEnded(Pageable pageable) {
+        return priceDAO.findDistinctPriceEndedOrderByCreatedAtDesc(pageable).getContent();
+    }
+
+    /**
+     * Gets a distinct list of recently added Price priceStarted time stamps.
      * @param pageable Pagination settings
      * @return A distinct list of recently added Price priceStarted time stamps (default 20)
      */
