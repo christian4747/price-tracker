@@ -1,14 +1,14 @@
 import { sortPricesByDateAscending } from "@/utils/PriceUtilities"
 import type { ProductType } from "../../../utils/Types"
-import AddPriceModal from "../modals/AddPriceModal"
+import { AddPriceModal } from "../modals/AddPriceModal"
 import Price from "./Price"
 
-type Props = {
+interface PriceList {
     product: ProductType
     setDateToday: (newVal: Date) => void
 }
 
-const PriceList = ({product, setDateToday}: Props) => {
+export const PriceList = ({product, setDateToday}: PriceList) => {
 
     const sortedPrices = sortPricesByDateAscending(product.prices)
 
@@ -34,5 +34,3 @@ const PriceList = ({product, setDateToday}: Props) => {
         </>
     )
 }
-
-export default PriceList

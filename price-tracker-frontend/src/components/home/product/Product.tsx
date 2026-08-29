@@ -1,6 +1,6 @@
 import { type ProductType } from "@/utils/Types"
 import PriceHistoryChart from "../price/PriceHistoryChart"
-import PriceList from "../price/PriceList"
+import { PriceList } from "../price/PriceList"
 import { Accordion } from "@mantine/core"
 import { ProductTitleBar } from "./ProductTitleBar"
 

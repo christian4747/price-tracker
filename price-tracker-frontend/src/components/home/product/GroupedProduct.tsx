@@ -1,6 +1,6 @@
 import { type ProductType } from "@/utils/Types"
 import PriceHistoryChart from "../price/PriceHistoryChart"
-import PriceList from "../price/PriceList"
+import { PriceList } from "../price/PriceList"
 import { Accordion, Box, Combobox, Input, InputBase, Tooltip, useCombobox } from "@mantine/core"
 import { FaLink } from "react-icons/fa6"
 import DeleteProductModal from "../modals/DeleteProductModal"
@@ -21,7 +21,7 @@ export const GroupedProduct = ({ products, dateToday, setDateToday }: GroupedPro
         return <></>
     }
 
-    // Track state of selected store
+    // Track state of selected store // TODO: Show store with cheapest price
     const [selectedStore, setSelectedStore] = useState<string>(products[0].store)
     // Use mantine combobox
     const combobox = useCombobox({

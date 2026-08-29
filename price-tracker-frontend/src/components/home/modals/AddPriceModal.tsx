@@ -14,12 +14,12 @@ import dayjs from 'dayjs'
 import { useRecentPriceData } from '@/hooks/price/useRecentPriceData'
 import { RecentDataScroller } from '@/components/common/RecentDataScroller'
 
-type AddPriceModalProps = {
+interface AddPriceModal {
     product: ProductType
     setDateToday: (newVal: Date) => void
 }
 
-const AddPriceModal = ({ product, setDateToday }: AddPriceModalProps) => {
+export const AddPriceModal = ({ product, setDateToday }: AddPriceModal) => {
 
     // Track state of modal open/close
     const [opened, { open, close }] = useDisclosure(false)
@@ -206,5 +206,3 @@ const AddPriceModal = ({ product, setDateToday }: AddPriceModalProps) => {
         </>
     )
 }
-
-export default AddPriceModal
