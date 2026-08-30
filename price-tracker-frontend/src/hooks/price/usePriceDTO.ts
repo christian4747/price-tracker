@@ -1,28 +1,49 @@
-import { useState } from 'react'
+import { useReducer, useRef } from 'react'
 import type { PriceDTO } from '../../utils/Types'
 
-export function usePriceDTO(initialState: PriceDTO) {
-    const [value, setPriceDTO] = useState<PriceDTO>(initialState)
+interface ReducerAction {
+    type: 'set_field' | 'reset'
+    key?: string
+    value: number | string | PriceDTO
+}
 
-    // Reset PriceDTO after adding a Price
-    const resetPriceDTO = () => {
-        setPriceDTO(
-            {
-                amount: 0.00,
-                currency: '',
-                description: '',
-                priceStarted: '',
-                priceEnded: '',
-                productId: initialState.productId,
-                returnAmount: 0
+const reducer = (state: PriceDTO, action: ReducerAction) => {
+    switch (action.type) {
+        case 'set_field': {
+            const { key, value } = action
+            if (!key || !value) return state
+
+            return {
+                ...state,
+                [key]: value
             }
-        )
+        }
+
+        case 'reset':
+            return action.value as PriceDTO
+
+        default:
+            return state
+    }
+}
+
+export function usePriceDTO(initialPriceDTO: PriceDTO) {
+
+    const initialPriceDTOState = useRef(initialPriceDTO)
+    const [state, dispatch] = useReducer(reducer, initialPriceDTOState.current)
+
+    const setField = (key: string, value: number | string) => {
+        dispatch({type: 'set_field', key, value})
+    }
+
+    const reset = () => {
+        dispatch({ type: 'reset', value: initialPriceDTOState.current })
     }
 
     const priceDTOProps = {
-        value: value,
-        setPriceDTO: setPriceDTO,
-        resetPriceDTO: resetPriceDTO
+        value: state,
+        setField: setField,
+        reset: reset
     }
 
     return priceDTOProps

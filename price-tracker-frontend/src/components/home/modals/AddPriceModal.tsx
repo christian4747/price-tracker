@@ -32,25 +32,25 @@ export const AddPriceModal = ({ product, setDateToday, recentPriceData }: AddPri
     const { priceDTO, mutation: multiMutation, singleMutation } = useAddPrice(product, getHighestPrice(product?.prices), useEndDateDesc)
 
     const recentDescriptions = recentPriceData?.descriptions.map((description: string, idx: number) => (
-        <Button key={idx} onClick={() => priceDTO.setPriceDTO(prev => ({ ...prev, description: description }))}>
+        <Button key={idx} onClick={() => priceDTO.setField('description', description)}>
             {description}
         </Button>
     ))
     
     const recentCurrencies = recentPriceData?.currencies.map((currency: string, idx: number) => (
-        <Button key={idx} onClick={() => priceDTO.setPriceDTO(prev => ({ ...prev, currency: currency }))}>
+        <Button key={idx} onClick={() => priceDTO.setField('currency', currency)}>
             {currency}
         </Button>
     ))
 
     const recentPricesStarted = recentPriceData?.pricesStarted.map((priceStarted: string, idx: number) => (
-        <Button key={idx} onClick={() => priceDTO.setPriceDTO(prev => ({ ...prev, priceStarted: priceStarted }))}>
+        <Button key={idx} onClick={() => priceDTO.setField('priceStarted', priceStarted)}>
             {getFormattedDateString(priceStarted)}
         </Button>
     ))
 
     const recentPricesEnded = recentPriceData?.pricesEnded.map((priceEnded: string, idx: number) => (
-        <Button key={idx} onClick={() => priceDTO.setPriceDTO(prev => ({ ...prev, priceEnded: priceEnded }))}>
+        <Button key={idx} onClick={() => priceDTO.setField('priceEnded', priceEnded)}>
             {getFormattedDateString(priceEnded)}
         </Button>
     ))
@@ -58,8 +58,18 @@ export const AddPriceModal = ({ product, setDateToday, recentPriceData }: AddPri
 
     // Automatically set price started with current time when opening
     const openAddPriceModal = () => {
-        priceDTO.setPriceDTO(prev => ({...prev, priceStarted: getLocalDateFromUTC(new Date()).format()}))
+        priceDTO.setField('priceStarted', getLocalDateFromUTC(new Date()).format())
         open()
+    }
+
+    const setAmount = (amount: number) => {
+        if (!amount) {
+            priceDTO.setField('amount', 0)
+            priceDTO.setField('returnAmount', 0)
+        } else {
+            priceDTO.setField('amount', amount)
+            priceDTO.setField('returnAmount', Math.min(amount, priceDTO.value.returnAmount))
+        }
     }
 
     return (
@@ -75,15 +85,7 @@ export const AddPriceModal = ({ product, setDateToday, recentPriceData }: AddPri
                     className="mb-2 min-w-75"
                     withAsterisk
                     value={priceDTO.value.amount}
-                    onChange={(val) => {
-                            if (val) {
-                                priceDTO.setPriceDTO(prev => ({...prev, amount: val as number}))
-                            } else {
-                                priceDTO.setPriceDTO(prev => ({...prev, amount: 0.00}))
-                                priceDTO.setPriceDTO(prev => ({...prev, returnAmount: 0.00}))
-                            }
-                        }
-                    }
+                    onChange={(amount) => setAmount(amount as number)}
                 />
                 
                 <PriceNumberInput
@@ -91,21 +93,14 @@ export const AddPriceModal = ({ product, setDateToday, recentPriceData }: AddPri
                     className="mb-2"
                     value={priceDTO.value.returnAmount}
                     max={priceDTO.value.amount}
-                    onChange={(val) => {
-                            if (val && priceDTO.value.amount > 0) {
-                                priceDTO.setPriceDTO(prev => ({...prev, returnAmount: val as number}))
-                            } else {
-                                priceDTO.setPriceDTO(prev => ({...prev, returnAmount: 0.00}))
-                            }
-                        }
-                    }
+                    onChange={(returnAmount) => priceDTO.setField('returnAmount', returnAmount)}
                 />
 
                 <TextInput
                     label="Description"
                     radius='xl'
                     placeholder="Description"
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {priceDTO.setPriceDTO(prev => ({...prev, description: e.target.value}))}}
+                    onChange={(e) => priceDTO.setField('description', e.target.value)}
                     value={priceDTO.value.description}
                     className="mb-2"
                 />
@@ -115,7 +110,7 @@ export const AddPriceModal = ({ product, setDateToday, recentPriceData }: AddPri
                     label="Currency"
                     radius='xl'
                     placeholder="ex. USD"
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {priceDTO.setPriceDTO(prev => ({...prev, currency: e.target.value}))}}
+                    onChange={(e) => priceDTO.setField('currency', e.target.value)}
                     value={priceDTO.value.currency}
                     className="mb-2"
                 />
@@ -141,7 +136,7 @@ export const AddPriceModal = ({ product, setDateToday, recentPriceData }: AddPri
                 <PriceDateTimePicker
                     label='Start Date'
                     withAsterisk
-                    onChange={(val) => {val ? priceDTO.setPriceDTO(prev => ({...prev, priceStarted: val})) : priceDTO.setPriceDTO(prev => ({...prev, priceStarted: ''}))}}
+                    onChange={(priceStarted) => priceStarted ? priceDTO.setField('priceStarted', priceStarted) : ''}
                     value={priceDTO.value.priceStarted}
                     priceDate={priceDTO.value.priceStarted}
                 />
@@ -151,7 +146,7 @@ export const AddPriceModal = ({ product, setDateToday, recentPriceData }: AddPri
                     <PriceDateTimePicker
                         label='End Date'
                         placeholder='Date price ends'
-                        onChange={(val) => {val ? priceDTO.setPriceDTO(prev => ({...prev, priceEnded: val})) : priceDTO.setPriceDTO(prev => ({...prev, priceEnded: ''}))}}
+                        onChange={(priceEnded) => priceEnded ? priceDTO.setField('priceEnded', priceEnded) : ''}
                         value={priceDTO.value.priceEnded}
                         priceDate={priceDTO.value.priceEnded}
                     />

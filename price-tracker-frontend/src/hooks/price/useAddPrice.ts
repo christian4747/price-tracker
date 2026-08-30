@@ -7,6 +7,7 @@ import { sendSuccessNotification } from '@/utils/NotificationUtilities'
 import { getFormattedDateString } from '@/utils/DateUtilities'
 
 export function useAddPrice(product: ProductType, highestPrice: number, useEndDateDesc: boolean) {
+
     // State for PriceDTO when adding Prices
     const priceDTO = usePriceDTO(
         {
@@ -31,7 +32,7 @@ export function useAddPrice(product: ProductType, highestPrice: number, useEndDa
             return api.addPrice(priceDTO.value)
         },
         onSuccess: (newPrice: PriceType) => {
-            priceDTO.resetPriceDTO()
+            priceDTO.reset()
             queryClient.invalidateQueries()
             sendSuccessNotification(`Successfully added price ${getFormattedDateString(newPrice.priceStarted)}`)
         },
@@ -57,7 +58,7 @@ export function useAddPrice(product: ProductType, highestPrice: number, useEndDa
                 addEndPriceMutation.mutate()
             }
 
-            priceDTO.resetPriceDTO()
+            priceDTO.reset()
             queryClient.invalidateQueries()
             sendSuccessNotification(`Successfully added price ${getFormattedDateString(newPrice.priceStarted)}`)
         },
