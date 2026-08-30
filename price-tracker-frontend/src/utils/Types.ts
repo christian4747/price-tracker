@@ -38,10 +38,3 @@ export interface PriceDTO {
     description: string
     returnAmount: number
 }
-
-export interface RecentPriceData {
-    currencies: string[]
-    descriptions: string[]
-    pricesEnded: string[]
-    pricesStarted: string[]
-}
