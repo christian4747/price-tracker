@@ -1,4 +1,4 @@
-type ProductType = {
+export interface ProductType {
     active: boolean
     productId: number
     name: string
@@ -9,7 +9,7 @@ type ProductType = {
     prices: PriceType[]
 }
 
-type PriceType = {
+export interface PriceType {
     priceId: number
     amount: number
     currency: string
@@ -22,27 +22,14 @@ type PriceType = {
     returnAmount: number
 }
 
-type ModalProps = {
-    hidden: boolean
-    toggleHidden: () => void
-}
-
-type ProductModalProps = ModalProps & {
-    product: ProductType
-}
-
-type PriceModalProps = ModalProps & {
-    price: PriceType
-}
-
-type ProductDTO = {
+export interface ProductDTO {
     name: string
     store: string
     link: string
     active: boolean
 }
 
-type PriceDTO = {
+export interface PriceDTO {
     amount: number
     currency: string
     priceStarted: string
@@ -58,5 +45,3 @@ export interface RecentPriceData {
     pricesEnded: string[]
     pricesStarted: string[]
 }
-
-export type {ModalProps, ProductModalProps, PriceModalProps, ProductDTO, PriceDTO, PriceType, ProductType}
