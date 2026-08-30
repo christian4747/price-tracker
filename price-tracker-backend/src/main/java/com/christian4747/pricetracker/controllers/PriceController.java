@@ -2,12 +2,14 @@ package com.christian4747.pricetracker.controllers;
 
 import com.christian4747.pricetracker.models.Price;
 import com.christian4747.pricetracker.models.dtos.IncomingPriceDTO;
+import com.christian4747.pricetracker.models.dtos.RecentPriceData;
 import com.christian4747.pricetracker.services.PriceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.sql.Timestamp;
 import java.util.List;
 
 @RestController
@@ -60,6 +62,46 @@ public class PriceController {
     @GetMapping("/{priceId}")
     public ResponseEntity<Price> getPriceById(@PathVariable Integer priceId) {
         return ResponseEntity.ok(priceService.getPriceById(priceId));
+    }
+
+    /**
+     * Gets a distinct list of recently added Price currencies, descriptions, pricesStarted and pricesEnded.
+     * @param pageable Pagination settings
+     * @return A distinct list of recently added Price currencies, descriptions, pricesStarted and pricesEnded (default 20)
+     */
+    @GetMapping("/recent")
+    public ResponseEntity<RecentPriceData> getRecentData(Pageable pageable) {
+        return ResponseEntity.ok(priceService.getRecentData(pageable));
+    }
+
+    /**
+     * Gets a distinct list of recently added Price currencies.
+     * @param pageable Pagination settings
+     * @return A distinct list of recently added Price currencies (default 20)
+     */
+    @GetMapping("/recent/currencies")
+    public ResponseEntity<List<String>> getRecentCurrencies(Pageable pageable) {
+        return ResponseEntity.ok(priceService.getRecentCurrencies(pageable));
+    }
+
+    /**
+     * Gets a distinct list of recently added Price priceStarted time stamps.
+     * @param pageable Pagination settings
+     * @return A distinct list of recently added Price priceStarted time stamps (default 20)
+     */
+    @GetMapping("/recent/dates")
+    public ResponseEntity<List<Timestamp>> getRecentPrices(Pageable pageable) {
+        return ResponseEntity.ok(priceService.getRecentPricesStarted(pageable));
+    }
+
+    /**
+     * Gets a distinct list of recently added Price descriptions.
+     * @param pageable Pagination settings
+     * @return A distinct list of recently added Price descriptions (default 20)
+     */
+    @GetMapping("/recent/descriptions")
+    public ResponseEntity<List<String>> getRecentDescriptions(Pageable pageable) {
+        return ResponseEntity.ok(priceService.getRecentDescriptions(pageable));
     }
 
     /**

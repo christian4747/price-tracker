@@ -3,20 +3,21 @@ import { Button, Center, Collapse, Modal, Switch, TextInput } from '@mantine/cor
 import type { ProductType } from '@/utils/Types'
 import { useDisclosure } from '@mantine/hooks'
 import { useAddPrice } from '@/hooks/price/useAddPrice'
-import { getLocalDateFromUTC } from '@/utils/DateUtilities'
+import { getFormattedDateString, getLocalDateFromUTC } from '@/utils/DateUtilities'
 import { getHighestPrice } from '@/utils/PriceUtilities'
-import { DateTimePicker } from '@mantine/dates'
-import { FiCalendar } from 'react-icons/fi'
 import { useState } from 'react'
 import PriceCalculator from '../price/PriceCalculator'
 import PriceNumberInput from '../price/PriceNumberInput'
+import { RecentDataScroller } from '@/components/common/RecentDataScroller'
+import { PriceDateTimePicker } from '../price/PriceDateTimePicker'
+import { useRecentPriceData } from '@/hooks/price/useRecentPriceData'
 
-type AddPriceModalProps = {
+interface AddPriceModal {
     product: ProductType
     setDateToday: (newVal: Date) => void
 }
 
-const AddPriceModal = ({ product, setDateToday }: AddPriceModalProps) => {
+export const AddPriceModal = ({ product, setDateToday }: AddPriceModal) => {
 
     // Track state of modal open/close
     const [opened, { open, close }] = useDisclosure(false)
@@ -29,11 +30,50 @@ const AddPriceModal = ({ product, setDateToday }: AddPriceModalProps) => {
 
     // Hook for adding prices
     const { priceDTO, mutation: multiMutation, singleMutation } = useAddPrice(product, getHighestPrice(product?.prices), useEndDateDesc)
+    // Hook for recent price data
+    const { query: recentPriceQuery } = useRecentPriceData()
+
+
+    const recentDescriptions = recentPriceQuery.data?.descriptions.map((description: string, idx: number) => (
+        <Button key={idx} onClick={() => priceDTO.setField('description', description)}>
+            {description}
+        </Button>
+    ))
+    
+    const recentCurrencies = recentPriceQuery.data?.currencies.map((currency: string, idx: number) => (
+        <Button key={idx} onClick={() => priceDTO.setField('currency', currency)}>
+            {currency}
+        </Button>
+    ))
+
+    const recentPricesStarted = recentPriceQuery.data?.pricesStarted.map((priceStarted: string, idx: number) => (
+        <Button key={idx} onClick={() => priceDTO.setField('priceStarted', priceStarted)}>
+            {getFormattedDateString(priceStarted)}
+        </Button>
+    ))
+
+    const recentPricesEnded = recentPriceQuery.data?.pricesEnded.map((priceEnded: string, idx: number) => (
+        <Button key={idx} onClick={() => priceDTO.setField('priceEnded', priceEnded)}>
+            {getFormattedDateString(priceEnded)}
+        </Button>
+    ))
+
 
     // Automatically set price started with current time when opening
     const openAddPriceModal = () => {
-        priceDTO.setPriceDTO(prev => ({...prev, priceStarted: getLocalDateFromUTC(new Date()).format()}))
+        priceDTO.setField('priceStarted', getLocalDateFromUTC(new Date()).format())
+        priceDTO.setField('priceEnded', getLocalDateFromUTC(new Date()).format())
         open()
+    }
+
+    const setAmount = (amount: number) => {
+        if (!amount) {
+            priceDTO.setField('amount', 0)
+            priceDTO.setField('returnAmount', 0)
+        } else {
+            priceDTO.setField('amount', amount)
+            priceDTO.setField('returnAmount', Math.min(amount, priceDTO.value.returnAmount))
+        }
     }
 
     return (
@@ -49,15 +89,7 @@ const AddPriceModal = ({ product, setDateToday }: AddPriceModalProps) => {
                     className="mb-2 min-w-75"
                     withAsterisk
                     value={priceDTO.value.amount}
-                    onChange={(val) => {
-                            if (val) {
-                                priceDTO.setPriceDTO(prev => ({...prev, amount: val as number}))
-                            } else {
-                                priceDTO.setPriceDTO(prev => ({...prev, amount: 0.00}))
-                                priceDTO.setPriceDTO(prev => ({...prev, returnAmount: 0.00}))
-                            }
-                        }
-                    }
+                    onChange={(amount) => setAmount(amount as number)}
                 />
                 
                 <PriceNumberInput
@@ -65,32 +97,28 @@ const AddPriceModal = ({ product, setDateToday }: AddPriceModalProps) => {
                     className="mb-2"
                     value={priceDTO.value.returnAmount}
                     max={priceDTO.value.amount}
-                    onChange={(val) => {
-                            if (val && priceDTO.value.amount > 0) {
-                                priceDTO.setPriceDTO(prev => ({...prev, returnAmount: val as number}))
-                            } else {
-                                priceDTO.setPriceDTO(prev => ({...prev, returnAmount: 0.00}))
-                            }
-                        }
-                    }
+                    onChange={(returnAmount) => priceDTO.setField('returnAmount', returnAmount)}
                 />
 
                 <TextInput
                     label="Description"
                     radius='xl'
                     placeholder="Description"
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {priceDTO.setPriceDTO(prev => ({...prev, description: e.target.value}))}}
+                    onChange={(e) => priceDTO.setField('description', e.target.value)}
                     value={priceDTO.value.description}
                     className="mb-2"
                 />
+                {recentDescriptions?.length > 0 && <RecentDataScroller className='mb-2'>{recentDescriptions}</RecentDataScroller>}
+
                 <TextInput
                     label="Currency"
                     radius='xl'
                     placeholder="ex. USD"
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {priceDTO.setPriceDTO(prev => ({...prev, currency: e.target.value}))}}
+                    onChange={(e) => priceDTO.setField('currency', e.target.value)}
                     value={priceDTO.value.currency}
                     className="mb-2"
                 />
+                {recentCurrencies?.length > 0 && <RecentDataScroller className='mb-2'>{recentCurrencies}</RecentDataScroller>}
 
                 <Center>
                     <Button.Group>
@@ -108,36 +136,23 @@ const AddPriceModal = ({ product, setDateToday }: AddPriceModalProps) => {
                         </Button>
                     </Button.Group>
                 </Center>
-                <DateTimePicker
-                    label="Start Date"
+
+                <PriceDateTimePicker
+                    label='Start Date'
                     withAsterisk
-                    radius='xl'
-                    onChange={(val) => {val ? priceDTO.setPriceDTO(prev => ({...prev, priceStarted: val})) : priceDTO.setPriceDTO(prev => ({...prev, priceStarted: ''}))}}
+                    onChange={(priceStarted) => priceStarted ? priceDTO.setField('priceStarted', priceStarted) : ''}
                     value={priceDTO.value.priceStarted}
-                    rightSectionPointerEvents="none"
-                    rightSection={
-                        <div className='pr-2'>
-                            <FiCalendar size={24} />
-                        </div>
-                    }
-                    className="mb-2"
                 />
+                {recentPricesStarted?.length > 0 && <RecentDataScroller className='mb-2'>{recentPricesStarted}</RecentDataScroller>}
 
                 <Collapse expanded={expandEndDate}>
-                    <DateTimePicker
-                        label="End Date"
-                        placeholder="Date price ends"
-                        radius='xl'
-                        onChange={(val) => {val ? priceDTO.setPriceDTO(prev => ({...prev, priceEnded: val})) : priceDTO.setPriceDTO(prev => ({...prev, priceEnded: ''}))}}
+                    <PriceDateTimePicker
+                        label='End Date'
+                        onChange={(priceEnded) => priceEnded ? priceDTO.setField('priceEnded', priceEnded) : ''}
                         value={priceDTO.value.priceEnded}
-                        rightSectionPointerEvents="none"
-                        rightSection={
-                            <div className='pr-2'>
-                                <FiCalendar size={24} />
-                            </div>
-                        }
-                        className="mb-2"
                     />
+                    {recentPricesEnded?.length > 0 && <RecentDataScroller className='mb-2'>{recentPricesEnded}</RecentDataScroller>}
+
                     <Switch
                         label='Use same description for end date'
                         checked={useEndDateDesc}
@@ -150,7 +165,7 @@ const AddPriceModal = ({ product, setDateToday }: AddPriceModalProps) => {
                     fullWidth
                     onClick={
                         () => {
-                            useEndDate || priceDTO.value.priceEnded?.length === 0 ? multiMutation.mutate() : singleMutation.mutate()
+                            useEndDate ? multiMutation.mutate() : singleMutation.mutate()
                             close()
                             setDateToday(new Date())
                         }
@@ -163,5 +178,3 @@ const AddPriceModal = ({ product, setDateToday }: AddPriceModalProps) => {
         </>
     )
 }
-
-export default AddPriceModal

@@ -1,24 +1,46 @@
 import type { PriceType } from "../../../utils/Types"
 import { Button, Modal, TextInput, Tooltip } from "@mantine/core"
 import { useDisclosure } from "@mantine/hooks"
-import { DateTimePicker } from "@mantine/dates"
 import { useEditPrice } from "@/hooks/price/useEditPrice"
-import { FiCalendar } from "react-icons/fi"
 import { MdEdit } from "react-icons/md"
 import PriceNumberInput from "../price/PriceNumberInput"
 import PriceCalculator from "../price/PriceCalculator"
+import { getFormattedDateString } from "@/utils/DateUtilities"
+import { RecentDataScroller } from "@/components/common/RecentDataScroller"
+import { PriceDateTimePicker } from "../price/PriceDateTimePicker"
+import { useRecentPriceData } from "@/hooks/price/useRecentPriceData"
 
-type EditPriceModalProps = {
+interface EditPriceModal {
     price: PriceType
 }
 
-const EditPriceModal = ({price}: EditPriceModalProps) => {
+export const EditPriceModal = ({ price }: EditPriceModal) => {
 
     // Track state of modal open/close
     const [opened, { open, close }] = useDisclosure(false)
 
     // Hook for editing prices
     const { priceDTO, mutation } = useEditPrice(price)
+    // Hook for recent price data
+    const { query: recentPriceQuery } = useRecentPriceData()
+
+    const recentDescriptions = recentPriceQuery.data?.descriptions.map((description: string, idx: number) => (
+        <Button key={idx} onClick={() => priceDTO.setField('description', description)}>
+            {description}
+        </Button>
+    ))
+
+    const recentCurrencies = recentPriceQuery.data?.currencies.map((currency: string, idx: number) => (
+        <Button key={idx} onClick={() => priceDTO.setField('currency', currency)}>
+            {currency}
+        </Button>
+    ))
+
+    const recentPricesStarted = recentPriceQuery.data?.pricesStarted.map((priceStarted: string, idx: number) => (
+        <Button key={idx} onClick={() => priceDTO.setField('priceStarted', priceStarted)}>
+            {getFormattedDateString(priceStarted)}
+        </Button>
+    ))
 
     return (
         <>
@@ -33,15 +55,9 @@ const EditPriceModal = ({price}: EditPriceModalProps) => {
                     className="mb-2 min-w-75"
                     withAsterisk
                     value={priceDTO.value.amount}
-                    onChange={(val) => {
-                            if (val) {
-                                priceDTO.setPriceDTO(prev => ({...prev, amount: val as number}))
-                            } else {
-                                priceDTO.setPriceDTO(prev => ({...prev, amount: 0.00}))
-                                priceDTO.setPriceDTO(prev => ({...prev, returnAmount: 0.00}))
-                            }
-                        }
-                    }
+                    onChange={(amount) => {
+                        amount ? priceDTO.setField('amount', amount) : priceDTO.setField('amount', 0); priceDTO.setField('returnAmount', 0)
+                    }}
                 />
                 
                 <PriceNumberInput
@@ -49,48 +65,37 @@ const EditPriceModal = ({price}: EditPriceModalProps) => {
                     className="mb-2"
                     value={priceDTO.value.returnAmount}
                     max={priceDTO.value.amount}
-                    onChange={(val) => {
-                            if (val && priceDTO.value.amount > 0) {
-                                priceDTO.setPriceDTO(prev => ({...prev, returnAmount: val as number}))
-                            } else {
-                                priceDTO.setPriceDTO(prev => ({...prev, returnAmount: 0.00}))
-                            }
-                        }
-                    }
+                    onChange={(returnAmount) => priceDTO.setField('returnAmount', returnAmount)}
                 />
 
                 <TextInput
                     label="Description"
                     radius='xl'
                     placeholder="Description"
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {priceDTO.setPriceDTO(prev => ({...prev, description: e.target.value}))}}
+                    onChange={(e) => priceDTO.setField('description', e.target.value)}
                     value={priceDTO.value.description}
                     className="mb-2"
                 />
+                {recentDescriptions?.length > 0 && <RecentDataScroller className='mb-2'>{recentDescriptions}</RecentDataScroller>}
+
                 <TextInput
                     label="Currency"
                     radius='xl'
                     placeholder="ex. USD"
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {priceDTO.setPriceDTO(prev => ({...prev, currency: e.target.value}))}}
+                    onChange={(e) => priceDTO.setField('currency', e.target.value)}
                     value={priceDTO.value.currency}
                     className="mb-2"
                 />
+                {recentCurrencies?.length > 0 && <RecentDataScroller className='mb-2'>{recentCurrencies}</RecentDataScroller>}
 
-                <DateTimePicker
-                    label="Start Date"
+                <PriceDateTimePicker
+                    label='Start Date'
                     withAsterisk
-                    radius='xl'
-                    onChange={(val) => {val ? priceDTO.setPriceDTO(prev => ({...prev, priceStarted: val})) : priceDTO.setPriceDTO(prev => ({...prev, priceStarted: ''}))}}
+                    onChange={(priceStarted) => priceStarted ? priceDTO.setField('priceStarted', priceStarted) : ''}
                     value={priceDTO.value.priceStarted}
-                    rightSectionPointerEvents="none"
-                    rightSection={
-                        <div className='pr-2'>
-                            <FiCalendar size={24} />
-                        </div>
-                    }
-                    className="mb-2"
                 />
-
+                {recentPricesStarted?.length > 0 && <RecentDataScroller className='mb-2'>{recentPricesStarted}</RecentDataScroller>}
+                {/* Race condition exists with closing modal, sometimes leaves overlay */}
                 <Button fullWidth className="mt-5" onClick={(e) => {mutation.mutate();close();e.stopPropagation()}}>Edit Price</Button>
             </Modal>
             <div
@@ -105,5 +110,3 @@ const EditPriceModal = ({price}: EditPriceModalProps) => {
         </>
     )
 }
-
-export default EditPriceModal

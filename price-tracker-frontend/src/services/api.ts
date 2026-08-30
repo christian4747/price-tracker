@@ -38,6 +38,10 @@ export default {
         return productService.getProductsGrouped(rootUrl, pageNumber, pageSize)
     },
 
+    getRecentPriceData: async () => {
+        return priceService.getRecentPriceData(rootUrl, 0, 5)
+    },
+
     addProduct: async (productToAdd: ProductDTO) => {
         return productService.addProduct(rootUrl, productToAdd)
     },
