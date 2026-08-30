@@ -107,7 +107,7 @@ export const AddPriceModal = ({ product, setDateToday }: AddPriceModal) => {
                     value={priceDTO.value.description}
                     className="mb-2"
                 />
-                {recentDescriptions && <RecentDataScroller className='mb-2'>{recentDescriptions}</RecentDataScroller>}
+                {recentDescriptions?.length > 0 && <RecentDataScroller className='mb-2'>{recentDescriptions}</RecentDataScroller>}
 
                 <TextInput
                     label="Currency"
@@ -117,7 +117,7 @@ export const AddPriceModal = ({ product, setDateToday }: AddPriceModal) => {
                     value={priceDTO.value.currency}
                     className="mb-2"
                 />
-                {recentCurrencies && <RecentDataScroller className='mb-2'>{recentCurrencies}</RecentDataScroller>}
+                {recentCurrencies?.length > 0 && <RecentDataScroller className='mb-2'>{recentCurrencies}</RecentDataScroller>}
 
                 <Center>
                     <Button.Group>
@@ -141,9 +141,8 @@ export const AddPriceModal = ({ product, setDateToday }: AddPriceModal) => {
                     withAsterisk
                     onChange={(priceStarted) => priceStarted ? priceDTO.setField('priceStarted', priceStarted) : ''}
                     value={priceDTO.value.priceStarted}
-                    priceDate={priceDTO.value.priceStarted}
                 />
-                {recentPricesStarted && <RecentDataScroller className='mb-2'>{recentPricesStarted}</RecentDataScroller>}
+                {recentPricesStarted?.length > 0 && <RecentDataScroller className='mb-2'>{recentPricesStarted}</RecentDataScroller>}
 
                 <Collapse expanded={expandEndDate}>
                     <PriceDateTimePicker
@@ -151,9 +150,8 @@ export const AddPriceModal = ({ product, setDateToday }: AddPriceModal) => {
                         placeholder='Date price ends'
                         onChange={(priceEnded) => priceEnded ? priceDTO.setField('priceEnded', priceEnded) : ''}
                         value={priceDTO.value.priceEnded}
-                        priceDate={priceDTO.value.priceEnded}
                     />
-                    {recentPricesEnded && <RecentDataScroller className='mb-2'>{recentPricesEnded}</RecentDataScroller>}
+                    {recentPricesEnded?.length > 0 && <RecentDataScroller className='mb-2'>{recentPricesEnded}</RecentDataScroller>}
 
                     <Switch
                         label='Use same description for end date'

@@ -76,7 +76,7 @@ export const EditPriceModal = ({ price }: EditPriceModal) => {
                     value={priceDTO.value.description}
                     className="mb-2"
                 />
-                {recentDescriptions && <RecentDataScroller className='mb-2'>{recentDescriptions}</RecentDataScroller>}
+                {recentDescriptions?.length > 0 && <RecentDataScroller className='mb-2'>{recentDescriptions}</RecentDataScroller>}
 
                 <TextInput
                     label="Currency"
@@ -86,17 +86,16 @@ export const EditPriceModal = ({ price }: EditPriceModal) => {
                     value={priceDTO.value.currency}
                     className="mb-2"
                 />
-                {recentCurrencies && <RecentDataScroller className='mb-2'>{recentCurrencies}</RecentDataScroller>}
+                {recentCurrencies?.length > 0 && <RecentDataScroller className='mb-2'>{recentCurrencies}</RecentDataScroller>}
 
                 <PriceDateTimePicker
                     label='Start Date'
                     withAsterisk
                     onChange={(priceStarted) => priceStarted ? priceDTO.setField('priceStarted', priceStarted) : ''}
                     value={priceDTO.value.priceStarted}
-                    priceDate={priceDTO.value.priceStarted}
                 />
-                {recentPricesStarted && <RecentDataScroller className='mb-2'>{recentPricesStarted}</RecentDataScroller>}
-
+                {recentPricesStarted?.length > 0 && <RecentDataScroller className='mb-2'>{recentPricesStarted}</RecentDataScroller>}
+                {/* Race condition exists with closing modal, sometimes leaves overlay */}
                 <Button fullWidth className="mt-5" onClick={(e) => {mutation.mutate();close();e.stopPropagation()}}>Edit Price</Button>
             </Modal>
             <div
