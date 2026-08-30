@@ -1,8 +1,6 @@
 import type { PriceType } from "../../../utils/Types"
-import { Button, Modal, TextInput, Tooltip } from "@mantine/core"
-import { useDisclosure } from "@mantine/hooks"
+import { Button, Modal, TextInput } from "@mantine/core"
 import { useEditPrice } from "@/hooks/price/useEditPrice"
-import { MdEdit } from "react-icons/md"
 import PriceNumberInput from "../price/PriceNumberInput"
 import PriceCalculator from "../price/PriceCalculator"
 import { getFormattedDateString } from "@/utils/DateUtilities"
@@ -12,12 +10,11 @@ import { useRecentPriceData } from "@/hooks/price/useRecentPriceData"
 
 interface EditPriceModal {
     price: PriceType
+    closeEditPrice: () => void
+    opened: boolean
 }
 
-export const EditPriceModal = ({ price }: EditPriceModal) => {
-
-    // Track state of modal open/close
-    const [opened, { open, close }] = useDisclosure(false)
+export const EditPriceModal = ({ price, closeEditPrice, opened }: EditPriceModal) => {
 
     // Hook for editing prices
     const { priceDTO, mutation } = useEditPrice(price)
@@ -46,7 +43,7 @@ export const EditPriceModal = ({ price }: EditPriceModal) => {
         <>
             <Modal
                 opened={opened}
-                onClose={close}
+                onClose={closeEditPrice}
                 title="Edit Price"
             >
                 <PriceCalculator />
@@ -96,17 +93,8 @@ export const EditPriceModal = ({ price }: EditPriceModal) => {
                 />
                 {recentPricesStarted?.length > 0 && <RecentDataScroller className='mb-2'>{recentPricesStarted}</RecentDataScroller>}
                 {/* Race condition exists with closing modal, sometimes leaves overlay */}
-                <Button fullWidth className="mt-5" onClick={(e) => {mutation.mutate();close();e.stopPropagation()}}>Edit Price</Button>
+                <Button fullWidth className="mt-5" onClick={(e) => { mutation.mutate(); closeEditPrice(); e.stopPropagation() }}>Edit Price</Button>
             </Modal>
-            <div
-                className="hidden group-hover/product:block cursor-pointer"
-                onClick={(e) => {
-                    open()
-                    e.stopPropagation()
-                }}
-            >
-                <Tooltip withArrow label="Edit Price"><MdEdit /></Tooltip>
-            </div>
         </>
     )
 }
