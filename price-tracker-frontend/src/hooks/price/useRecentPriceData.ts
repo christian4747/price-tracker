@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query"
 
 export function useRecentPriceData() {
 
-    // Query for getting a product page
+    // Query for getting recent price data
     const recentPricesQuery = useQuery({
         queryKey: ['recentPriceData'],
         queryFn: () => {

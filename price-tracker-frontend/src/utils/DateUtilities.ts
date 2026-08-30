@@ -22,7 +22,7 @@ const localizeFormatDayjs = (toFormat: dayjs.Dayjs, stringFormat: string) => {
 }
 
 /**
- * Returns the UTC time stamp string formatted in [MMM D, YYYY h:mm A] format (ex. Aug 16, 2018 8:02 PM)
+ * Returns the UTC time stamp string formatted in [MMM D, YYYY H:mm A] format (ex. Aug 16, 2018 20:02 PM)
  * @param timeStamp Time stamp string to convert to a formatted string
  * @returns The given UTC time stamp string converted to a formatted string
  */
