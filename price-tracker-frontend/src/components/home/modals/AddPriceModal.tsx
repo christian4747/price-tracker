@@ -1,6 +1,6 @@
 
 import { Button, Center, Collapse, Modal, Switch, TextInput } from '@mantine/core'
-import type { ProductType, RecentPriceData } from '@/utils/Types'
+import type { ProductType } from '@/utils/Types'
 import { useDisclosure } from '@mantine/hooks'
 import { useAddPrice } from '@/hooks/price/useAddPrice'
 import { getFormattedDateString, getLocalDateFromUTC } from '@/utils/DateUtilities'
@@ -10,14 +10,14 @@ import PriceCalculator from '../price/PriceCalculator'
 import PriceNumberInput from '../price/PriceNumberInput'
 import { RecentDataScroller } from '@/components/common/RecentDataScroller'
 import { PriceDateTimePicker } from '../price/PriceDateTimePicker'
+import { useRecentPriceData } from '@/hooks/price/useRecentPriceData'
 
 interface AddPriceModal {
     product: ProductType
     setDateToday: (newVal: Date) => void
-    recentPriceData: RecentPriceData
 }
 
-export const AddPriceModal = ({ product, setDateToday, recentPriceData }: AddPriceModal) => {
+export const AddPriceModal = ({ product, setDateToday }: AddPriceModal) => {
 
     // Track state of modal open/close
     const [opened, { open, close }] = useDisclosure(false)
@@ -30,26 +30,29 @@ export const AddPriceModal = ({ product, setDateToday, recentPriceData }: AddPri
 
     // Hook for adding prices
     const { priceDTO, mutation: multiMutation, singleMutation } = useAddPrice(product, getHighestPrice(product?.prices), useEndDateDesc)
+    // Hook for recent price data
+    const { query: recentPriceQuery } = useRecentPriceData()
 
-    const recentDescriptions = recentPriceData?.descriptions.map((description: string, idx: number) => (
+
+    const recentDescriptions = recentPriceQuery.data?.descriptions.map((description: string, idx: number) => (
         <Button key={idx} onClick={() => priceDTO.setField('description', description)}>
             {description}
         </Button>
     ))
     
-    const recentCurrencies = recentPriceData?.currencies.map((currency: string, idx: number) => (
+    const recentCurrencies = recentPriceQuery.data?.currencies.map((currency: string, idx: number) => (
         <Button key={idx} onClick={() => priceDTO.setField('currency', currency)}>
             {currency}
         </Button>
     ))
 
-    const recentPricesStarted = recentPriceData?.pricesStarted.map((priceStarted: string, idx: number) => (
+    const recentPricesStarted = recentPriceQuery.data?.pricesStarted.map((priceStarted: string, idx: number) => (
         <Button key={idx} onClick={() => priceDTO.setField('priceStarted', priceStarted)}>
             {getFormattedDateString(priceStarted)}
         </Button>
     ))
 
-    const recentPricesEnded = recentPriceData?.pricesEnded.map((priceEnded: string, idx: number) => (
+    const recentPricesEnded = recentPriceQuery.data?.pricesEnded.map((priceEnded: string, idx: number) => (
         <Button key={idx} onClick={() => priceDTO.setField('priceEnded', priceEnded)}>
             {getFormattedDateString(priceEnded)}
         </Button>

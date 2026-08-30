@@ -1,4 +1,4 @@
-import type { PriceType, RecentPriceData } from '../../../utils/Types'
+import type { PriceType } from '../../../utils/Types'
 import { EditPriceModal } from '../modals/EditPriceModal'
 import DeletePriceModal from '../modals/DeletePriceModal'
 import { getUSDateStringFromTimestamp } from '@/utils/DateUtilities'
@@ -6,10 +6,9 @@ import { getPriceString } from '@/utils/PriceUtilities'
 
 interface Price {
     price: PriceType
-    recentPriceData: RecentPriceData
 }
 
-export const Price = ({ price, recentPriceData }: Price) => {
+export const Price = ({ price }: Price) => {
 
     // Constructing the string to show the date on the PriceList
     const priceStartedDateString = getUSDateStringFromTimestamp(price.priceStarted)
@@ -21,7 +20,7 @@ export const Price = ({ price, recentPriceData }: Price) => {
             </div>
             <div className="pr-2 flex items-center gap-1">
                 <div>{getPriceString(price)}</div>
-                <EditPriceModal price={price} recentPriceData={recentPriceData} />
+                <EditPriceModal price={price} />
                 <DeletePriceModal price={price} />
             </div>
         </div>
