@@ -62,6 +62,7 @@ export const AddPriceModal = ({ product, setDateToday }: AddPriceModal) => {
     // Automatically set price started with current time when opening
     const openAddPriceModal = () => {
         priceDTO.setField('priceStarted', getLocalDateFromUTC(new Date()).format())
+        priceDTO.setField('priceEnded', getLocalDateFromUTC(new Date()).format())
         open()
     }
 
@@ -147,7 +148,6 @@ export const AddPriceModal = ({ product, setDateToday }: AddPriceModal) => {
                 <Collapse expanded={expandEndDate}>
                     <PriceDateTimePicker
                         label='End Date'
-                        placeholder='Date price ends'
                         onChange={(priceEnded) => priceEnded ? priceDTO.setField('priceEnded', priceEnded) : ''}
                         value={priceDTO.value.priceEnded}
                     />
@@ -165,7 +165,7 @@ export const AddPriceModal = ({ product, setDateToday }: AddPriceModal) => {
                     fullWidth
                     onClick={
                         () => {
-                            useEndDate || priceDTO.value.priceEnded?.length === 0 ? multiMutation.mutate() : singleMutation.mutate()
+                            useEndDate ? multiMutation.mutate() : singleMutation.mutate()
                             close()
                             setDateToday(new Date())
                         }
