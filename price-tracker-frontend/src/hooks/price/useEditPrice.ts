@@ -1,25 +1,15 @@
-import type { PriceType } from '../../utils/Types'
+import type { PriceDTO, PriceType } from '../../utils/Types'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import api from '../../services/api'
 import { usePriceDTO } from './usePriceDTO'
-import { getFormattedDateString, getLocalDateFromUTC } from '../../utils/DateUtilities'
+import { getFormattedDateString } from '../../utils/DateUtilities'
 import dayjs from 'dayjs'
 import { sendSuccessNotification } from '@/utils/NotificationUtilities'
 
 export function useEditPrice(price: PriceType) {
 
     // PriceDTO for editing
-    const priceDTO = usePriceDTO(
-        {
-            amount: price.amount,
-            currency: price.currency || '',
-            priceStarted: price.priceStarted ? getLocalDateFromUTC(new Date(price.priceStarted)).format() : '',
-            priceEnded: price.priceEnded ? getLocalDateFromUTC(new Date(price.priceEnded)).format() : '',
-            productId: price.productId,
-            description: price.description,
-            returnAmount: price.returnAmount
-        }
-    )
+    const priceDTO = usePriceDTO(price as PriceDTO)
 
     // Get the query client
     const queryClient = useQueryClient()

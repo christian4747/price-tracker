@@ -5,21 +5,23 @@ import type { PriceType, ProductType } from '../../utils/Types'
 import dayjs from 'dayjs'
 import { sendSuccessNotification } from '@/utils/NotificationUtilities'
 import { getFormattedDateString } from '@/utils/DateUtilities'
+import { useState } from 'react'
 
 export function useAddPrice(product: ProductType, highestPrice: number, useEndDateDesc: boolean) {
 
+    // Use state fixes this value (prevents useEffect refreshes)
+    const [emptyPriceDTO,] = useState({
+        amount: 0.00,
+        currency: '',
+        priceStarted: '',
+        priceEnded: '',
+        productId: product.productId,
+        description: '',
+        returnAmount: 0
+    })
+
     // State for PriceDTO when adding Prices
-    const priceDTO = usePriceDTO(
-        {
-            amount: 0.00,
-            currency: '',
-            priceStarted: '',
-            priceEnded: '',
-            productId: product.productId,
-            description: '',
-            returnAmount: 0
-        }
-    )
+    const priceDTO = usePriceDTO(emptyPriceDTO)
 
     // Get the query client
     const queryClient = useQueryClient()

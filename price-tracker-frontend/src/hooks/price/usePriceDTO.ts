@@ -1,4 +1,4 @@
-import { useReducer, useRef } from 'react'
+import { useEffect, useReducer } from 'react'
 import type { PriceDTO } from '../../utils/Types'
 
 interface ReducerAction {
@@ -29,15 +29,18 @@ const reducer = (state: PriceDTO, action: ReducerAction) => {
 
 export function usePriceDTO(initialPriceDTO: PriceDTO) {
 
-    const initialPriceDTOState = useRef(initialPriceDTO)
-    const [state, dispatch] = useReducer(reducer, initialPriceDTOState.current)
+    const [state, dispatch] = useReducer(reducer, initialPriceDTO)
+
+    useEffect(() => {
+        dispatch({ type: 'reset', value: initialPriceDTO })
+    }, [initialPriceDTO])
 
     const setField = (key: string, value: number | string) => {
         dispatch({type: 'set_field', key, value})
     }
 
     const reset = () => {
-        dispatch({ type: 'reset', value: initialPriceDTOState.current })
+        dispatch({ type: 'reset', value: initialPriceDTO })
     }
 
     const priceDTOProps = {
