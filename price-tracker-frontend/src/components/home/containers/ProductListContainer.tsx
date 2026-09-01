@@ -15,7 +15,7 @@ const ProductListFallback = ({error, resetErrorBoundary}: FallbackProps) => {
     )
 }
 
-const ProductListContainer = () => {
+export const ProductListContainer = () => {
 
     // State for tracking current searched term
     const [searchedTerm, setSearchedTerm] = useState('')
@@ -54,5 +54,3 @@ const ProductListContainer = () => {
         </>
     )
 }
-
-export default ProductListContainer
