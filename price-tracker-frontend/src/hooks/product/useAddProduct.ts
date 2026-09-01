@@ -3,18 +3,19 @@ import api from '../../services/api'
 import { useProductDTO } from './useProductDTO'
 import { sendSuccessNotification } from '@/utils/NotificationUtilities'
 import type { ProductType } from '@/utils/Types'
+import { useState } from 'react'
 
 export function useAddProduct() {
 
     // State for ProductDTO used in adding products
-    const productDTO = useProductDTO(
-        {
-            name: '',
-            link: '',
-            store: '',
-            active: true
-        }
-    )
+    const [emptyProductDTO,] = useState({
+        name: '',
+        link: '',
+        store: '',
+        active: true
+    })
+
+    const productDTO = useProductDTO(emptyProductDTO)
 
     // Get the query client
     const queryClient = useQueryClient()
