@@ -14,8 +14,6 @@ interface PriceList {
 
 export const PriceList = ({product, setDateToday}: PriceList) => {
 
-    if (!product.prices || product.prices.length < 1) return <></>
-
     const sortedPrices = sortPricesByDateAscending(product.prices)
 
     // Track state for currently selected price
@@ -33,6 +31,8 @@ export const PriceList = ({product, setDateToday}: PriceList) => {
         setCurrentPrice(price)
         openDeletePrice()
     }
+
+    if (!product.prices || product.prices.length < 1) return <></>
 
     return (
         <>
