@@ -15,6 +15,13 @@ const DeleteProductModal = ({ product, onDelete, closeDeleteProduct, opened }: D
     // Hook for deleting products
     const { mutation } = useDeleteProduct(product)
 
+    const finalizeDeleteProduct = (e: React.MouseEvent) => {
+        mutation.mutate()
+        onDelete && onDelete()
+        closeDeleteProduct()
+        e.stopPropagation()
+    }
+
     return (
         <>
             <Modal
@@ -33,7 +40,7 @@ const DeleteProductModal = ({ product, onDelete, closeDeleteProduct, opened }: D
                     </div>
                 </Center>
 
-                <Button fullWidth className="mt-5" onClick={(e) => { mutation.mutate(); onDelete && onDelete(); closeDeleteProduct(); e.stopPropagation() }}>Delete Product</Button>
+                <Button fullWidth className="mt-5" onClick={finalizeDeleteProduct}>Delete Product</Button>
             </Modal>
         </>
     )

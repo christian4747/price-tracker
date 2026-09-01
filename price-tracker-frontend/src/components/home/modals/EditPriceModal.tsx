@@ -39,6 +39,12 @@ export const EditPriceModal = ({ price, closeEditPrice, opened }: EditPriceModal
         </Button>
     ))
 
+    const finalizeEditPrice = (e: React.MouseEvent) => {
+        mutation.mutate()
+        closeEditPrice()
+        e.stopPropagation()
+    }
+
     return (
         <>
             <Modal
@@ -93,7 +99,7 @@ export const EditPriceModal = ({ price, closeEditPrice, opened }: EditPriceModal
                 />
                 {recentPricesStarted?.length > 0 && <RecentDataScroller className='mb-2'>{recentPricesStarted}</RecentDataScroller>}
                 {/* Race condition exists with closing modal, sometimes leaves overlay */}
-                <Button fullWidth className="mt-5" onClick={(e) => { mutation.mutate(); closeEditPrice(); e.stopPropagation() }}>Edit Price</Button>
+                <Button fullWidth className="mt-5" onClick={finalizeEditPrice}>Edit Price</Button>
             </Modal>
         </>
     )

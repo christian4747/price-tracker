@@ -16,6 +16,13 @@ export const EditProductModal = ({ product, onEdit, closeEditProduct, opened }: 
     // Hook for editing products
     const { productDTO, mutation } = useEditProduct(product)
 
+    const finalizeEditProduct = (e: React.MouseEvent) => {
+        mutation.mutate()
+        onEdit && onEdit()
+        closeEditProduct()
+        e.stopPropagation()
+    }
+
     return (
         <>
             <Modal
@@ -52,7 +59,7 @@ export const EditProductModal = ({ product, onEdit, closeEditProduct, opened }: 
                 />
 
                 {/* <Input className="hidden" placeholder="Initial Price"></Input> */}
-                <Button fullWidth className="mt-5" onClick={(e) => { mutation.mutate(); onEdit && onEdit(); closeEditProduct(); e.stopPropagation() }}>Edit Product</Button>
+                <Button fullWidth className="mt-5" onClick={finalizeEditProduct}>Edit Product</Button>
             </Modal>
         </>
     )

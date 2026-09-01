@@ -15,6 +15,12 @@ export const DeletePriceModal = ({ price, closeDeletePrice, opened }: DeletePric
     // Hook for deleting prices
     const { mutation } = useDeletePrice(price)
 
+    const finalizeDeletePrice = (e: React.MouseEvent) => {
+        mutation.mutate()
+        closeDeletePrice()
+        e.stopPropagation()
+    }
+
     return (
         <>
             <Modal
@@ -31,7 +37,7 @@ export const DeletePriceModal = ({ price, closeDeletePrice, opened }: DeletePric
                     <div className="text-xl text-red-600 font-bold mb-2">This cannot be undone.</div>
                 </Center>
 
-                <Button fullWidth className="mt-5" onClick={(e) => { mutation.mutate(); closeDeletePrice(); e.stopPropagation() }}>Delete Price</Button>
+                <Button fullWidth className="mt-5" onClick={finalizeDeletePrice}>Delete Price</Button>
             </Modal>
         </>
     )

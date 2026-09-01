@@ -33,7 +33,6 @@ export const AddPriceModal = ({ product, setDateToday }: AddPriceModal) => {
     // Hook for recent price data
     const { query: recentPriceQuery } = useRecentPriceData()
 
-
     const recentDescriptions = recentPriceQuery.data?.descriptions.map((description: string, idx: number) => (
         <Button key={idx} onClick={() => priceDTO.setField('description', description)}>
             {description}
@@ -58,7 +57,6 @@ export const AddPriceModal = ({ product, setDateToday }: AddPriceModal) => {
         </Button>
     ))
 
-
     // Automatically set price started with current time when opening
     const openAddPriceModal = () => {
         priceDTO.setField('priceStarted', getLocalDateFromUTC(new Date()).format())
@@ -74,6 +72,12 @@ export const AddPriceModal = ({ product, setDateToday }: AddPriceModal) => {
             priceDTO.setField('amount', amount)
             priceDTO.setField('returnAmount', Math.min(amount, priceDTO.value.returnAmount))
         }
+    }
+
+    const finalizeAddPrice = () => {
+        useEndDate ? multiMutation.mutate() : singleMutation.mutate()
+        close()
+        setDateToday(new Date())
     }
 
     return (
@@ -160,17 +164,7 @@ export const AddPriceModal = ({ product, setDateToday }: AddPriceModal) => {
                     />
                 </Collapse>
 
-                <Button
-                    className="mt-5"
-                    fullWidth
-                    onClick={
-                        () => {
-                            useEndDate ? multiMutation.mutate() : singleMutation.mutate()
-                            close()
-                            setDateToday(new Date())
-                        }
-                    }
-                >
+                <Button className="mt-5" fullWidth onClick={finalizeAddPrice}>
                     Add Price
                 </Button>
             </Modal>
