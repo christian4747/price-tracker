@@ -6,19 +6,17 @@ import { useEditProduct } from "@/hooks/product/useEditProduct";
 interface EditProductModal {
     product: ProductType
     showOnHover?: boolean
-    onEdit?: () => void
     closeEditProduct: () => void
     opened: boolean
 }
 
-export const EditProductModal = ({ product, onEdit, closeEditProduct, opened }: EditProductModal) => {
+export const EditProductModal = ({ product, closeEditProduct, opened }: EditProductModal) => {
 
     // Hook for editing products
     const { productDTO, mutation } = useEditProduct(product)
 
     const finalizeEditProduct = (e: React.MouseEvent) => {
         mutation.mutate()
-        onEdit && onEdit()
         closeEditProduct()
         e.stopPropagation()
     }
@@ -58,7 +56,6 @@ export const EditProductModal = ({ product, onEdit, closeEditProduct, opened }: 
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => { productDTO.setField('active', e.target.checked) }}
                 />
 
-                {/* <Input className="hidden" placeholder="Initial Price"></Input> */}
                 <Button fullWidth className="mt-5" onClick={finalizeEditProduct}>Edit Product</Button>
             </Modal>
         </>
