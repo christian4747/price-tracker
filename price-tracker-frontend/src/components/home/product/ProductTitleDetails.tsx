@@ -1,8 +1,9 @@
+import { DeleteProductContext, EditProductContext } from '@/context/ProductContext'
 import type { ProductType } from '@/utils/Types'
 import { CopyButton, Tooltip } from '@mantine/core'
+import { useContext } from 'react'
 import { FaLink, FaCheck, FaCopy } from 'react-icons/fa6'
-import DeleteProductModal from '../modals/DeleteProductModal'
-import EditProductModal from '../modals/EditProductModal'
+import { MdDelete, MdEdit } from 'react-icons/md'
 
 export interface ProductTitleDetails {
     product: ProductType
@@ -10,6 +11,10 @@ export interface ProductTitleDetails {
 }
 
 export const ProductTitleDetails = ({ product, storeString }: ProductTitleDetails) => {
+
+    const openEditProductModal = useContext(EditProductContext)
+    const openDeleteProductModal = useContext(DeleteProductContext)
+
     return (
         <div className='flex gap-3 items-baseline-last'>
             <div title={product.name} className="text-lg max-w-100 truncate">
@@ -24,9 +29,25 @@ export const ProductTitleDetails = ({ product, storeString }: ProductTitleDetail
                 <Tooltip withArrow label={product.link}><FaLink /></Tooltip>
             </a>
 
-            <EditProductModal product={product} />
+            <div
+                className='cursor-pointer'
+                onClick={(e) => {
+                    openEditProductModal(product)
+                    e.stopPropagation()
+                }}
+            >
+                <Tooltip withArrow label="Edit Product"><MdEdit /></Tooltip>
+            </div>
 
-            <DeleteProductModal product={product} />
+            <div
+                className='cursor-pointer'
+                onClick={(e) => {
+                    openDeleteProductModal(product)
+                    e.stopPropagation()
+                }}
+            >
+                <Tooltip withArrow label="Delete Product"><MdDelete /></Tooltip>
+            </div>
 
             <CopyButton value={product.name} timeout={1000}>
                 {({ copied, copy }) => (

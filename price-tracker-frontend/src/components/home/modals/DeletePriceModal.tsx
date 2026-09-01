@@ -1,29 +1,32 @@
 
 import type { PriceType } from "../../../utils/Types";
 import { getUSDateStringFromTimestamp } from "../../../utils/DateUtilities";
-import { Button, Center, Modal, Tooltip } from "@mantine/core";
-import { useDisclosure } from "@mantine/hooks";
-import { MdDelete } from "react-icons/md";
+import { Button, Center, Modal } from "@mantine/core";
 import { useDeletePrice } from "@/hooks/price/useDeletePrice";
 
-type DeletePriceModalProps =  {
+interface DeletePriceModal {
     price: PriceType
+    closeDeletePrice: () => void
+    opened: boolean
 }
 
-const DeletePriceModal = ({price}: DeletePriceModalProps) => {
-
-    // Track state of modal open/close
-    const [opened, { open, close }] = useDisclosure(false)
+export const DeletePriceModal = ({ price, closeDeletePrice, opened }: DeletePriceModal) => {
 
     // Hook for deleting prices
     const { mutation } = useDeletePrice(price)
+
+    const finalizeDeletePrice = (e: React.MouseEvent) => {
+        mutation.mutate()
+        closeDeletePrice()
+        e.stopPropagation()
+    }
 
     return (
         <>
             <Modal
                 title="Delete Price"
                 opened={opened}
-                onClose={close}
+                onClose={closeDeletePrice}
                 onClick={(e) => e.stopPropagation()}
             >
                 <Center className="flex flex-col">
@@ -34,19 +37,8 @@ const DeletePriceModal = ({price}: DeletePriceModalProps) => {
                     <div className="text-xl text-red-600 font-bold mb-2">This cannot be undone.</div>
                 </Center>
 
-                <Button fullWidth className="mt-5" onClick={(e) => {mutation.mutate();close();e.stopPropagation()}}>Delete Price</Button>
+                <Button fullWidth className="mt-5" onClick={finalizeDeletePrice}>Delete Price</Button>
             </Modal>
-            <div
-                className="hidden group-hover/product:block cursor-pointer"
-                onClick={(e) => {
-                    open()
-                    e.stopPropagation()
-                }}
-            >
-                <Tooltip withArrow label="Delete Price"><MdDelete /></Tooltip>
-            </div>
         </>
     )
 }
-
-export default DeletePriceModal

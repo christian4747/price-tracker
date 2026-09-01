@@ -3,11 +3,11 @@ import PriceHistoryChart from "../price/PriceHistoryChart"
 import { PriceList } from "../price/PriceList"
 import { Accordion, Box, Combobox, Input, InputBase, Tooltip, useCombobox } from "@mantine/core"
 import { FaLink } from "react-icons/fa6"
-import DeleteProductModal from "../modals/DeleteProductModal"
-import EditProductModal from "../modals/EditProductModal"
-import { useState } from "react"
+import { useContext, useEffect, useState } from "react"
 import { ProductTitleBar } from "./ProductTitleBar"
 import { PriceBanner } from "../price/PriceBanner"
+import { MdEdit, MdDelete } from "react-icons/md"
+import { DeleteProductContext, EditProductContext } from "@/context/ProductContext"
 
 export interface GroupedProduct {
     products: ProductType[]
@@ -17,10 +17,6 @@ export interface GroupedProduct {
 
 export const GroupedProduct = ({ products, dateToday, setDateToday }: GroupedProduct) => {
 
-    if (!products || products.length === 0) {
-        return <></>
-    }
-
     // Track state of selected store // TODO: Show store with cheapest price
     const [selectedStore, setSelectedStore] = useState<string>(products[0].store)
     // Use mantine combobox
@@ -28,6 +24,18 @@ export const GroupedProduct = ({ products, dateToday, setDateToday }: GroupedPro
         onDropdownClose: () => combobox.resetSelectedOption()
     })
     
+    const openEditProductModal = useContext(EditProductContext)
+    const openDeleteProductModal = useContext(DeleteProductContext)
+
+    // Reset to first product when list changes
+    useEffect(() => {
+        setSelectedStore(products[0].store)
+    }, [products])
+
+    if (!products || products.length === 0) {
+        return <></>
+    }
+
     // Store options for the combobox
     const storeOptions = products.map((product) => (
         <Combobox.Option value={product.store} key={product.store} className="flex items-center gap-2">
@@ -85,8 +93,25 @@ export const GroupedProduct = ({ products, dateToday, setDateToday }: GroupedPro
                     <a className="cursor-pointer" href={product.link} target="_blank">
                         <Tooltip withArrow label={product.link}><FaLink /></Tooltip>
                     </a>
-                    <EditProductModal product={product} showOnHover={false} onEdit={() => onProductDeleteEdit(product.store)} />
-                    <DeleteProductModal product={product} showOnHover={false} onDelete={() => onProductDeleteEdit(product.store)} />
+                    <div
+                        className='cursor-pointer'
+                        onClick={(e) => {
+                            openEditProductModal(product)
+                            e.stopPropagation()
+                        }}
+                    >
+                        <Tooltip withArrow label="Edit Product"><MdEdit /></Tooltip>
+                    </div>
+        
+                    <div
+                        className='cursor-pointer'
+                        onClick={(e) => {
+                            openDeleteProductModal(product)
+                            e.stopPropagation()
+                        }}
+                    >
+                        <Tooltip withArrow label="Delete Product"><MdDelete /></Tooltip>
+                    </div>
                 </>
             )
         }
@@ -103,13 +128,6 @@ export const GroupedProduct = ({ products, dateToday, setDateToday }: GroupedPro
             )
         }
     })
-
-    // Reset to first product if editing/deleting the currently selected product
-    const onProductDeleteEdit = (prevStore: string) => {
-        if (selectedStore === prevStore) {
-            setSelectedStore(products[0].store)
-        }
-    }
 
     return (
         <div className='h-full w-full border-b border-smoke flex flex-col gap-2 group'>

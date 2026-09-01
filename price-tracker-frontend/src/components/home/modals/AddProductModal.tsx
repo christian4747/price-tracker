@@ -10,6 +10,13 @@ const AddProductModal = () => {
     // Hook for adding products
     const { productDTO, mutation } = useAddProduct()
 
+    const finalizeAddProduct = (e: React.MouseEvent) => {
+        mutation.mutate()
+        close()
+        e.stopPropagation()
+        productDTO.reset()
+    }
+
     return (
         <>
             <Modal
@@ -20,35 +27,35 @@ const AddProductModal = () => {
                 <TextInput
                     label="Name"
                     placeholder="Name"
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {productDTO.setProductDTO(prev => ({...prev, name: e.target.value}))}}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => { productDTO.setField('name', e.target.value) }}
                     value={productDTO.value.name}
                     className="mb-2"
                 />
                 <TextInput
                     label="Store"
                     placeholder="Store"
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {productDTO.setProductDTO(prev => ({...prev, store: e.target.value}))}}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => { productDTO.setField('store', e.target.value) }}
                     value={productDTO.value.store}
                     className="mb-2"
                 />
                 <TextInput
                     label="Link"
                     placeholder="Link"
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {productDTO.setProductDTO(prev => ({...prev, link: e.target.value}))}}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => { productDTO.setField('link', e.target.value) }}
                     value={productDTO.value.link}
                     className="mb-2"
                 />
                 <Switch
                     label='Active'
                     checked={productDTO.value.active}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {productDTO.setProductDTO(prev => ({...prev, active: e.target.checked}))}}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => { productDTO.setField('active', e.target.checked) }}
                 />
 
                 {/* <Input
                     className="hidden"
                     placeholder="Initial Price"
                 /> */}
-                <Button fullWidth className="mt-5" onClick={(e) => {mutation.mutate();close();e.stopPropagation();productDTO.resetProductDTO()}}>Add Product</Button>
+                <Button fullWidth className="mt-5" onClick={finalizeAddProduct}>Add Product</Button>
             </Modal>
             <Button className="m-2" onClick={open}>Add Product</Button>
         </>

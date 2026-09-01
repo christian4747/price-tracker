@@ -1,10 +1,15 @@
 import { Accordion } from "@mantine/core"
 import type { ProductType } from "../../../utils/Types"
 import { useDebounce } from "@/hooks/common/useDebounce"
-import { ProductListFooter } from "./ProductListFooter"
 import { GroupedProduct } from "./GroupedProduct"
-import ProductListSkeleton from "./ProductListSkeleton"
+import { useState } from "react"
+import { useDisclosure } from "@mantine/hooks"
+import DeleteProductModal from "../modals/DeleteProductModal"
+import { EditProductModal } from "../modals/EditProductModal"
+import { ProductListFooter } from "./ProductListFooter"
 import { useProductPageGrouped } from "@/hooks/product/useProductPageGrouped"
+import { DeleteProductContext, EditProductContext } from "@/context/ProductContext"
+import ProductListSkeleton from "./ProductListSkeleton"
 
 interface GroupedProductData {
     name: string
@@ -19,51 +24,78 @@ export interface GroupedProductList {
 // TODO: Look into memoizing
 export const GroupedProductList = ({}: GroupedProductList) => {
 
-    // Debounce for setting list's today's date state
-    const {value: dateToday, setValueWithDebounce: setDateToday} = useDebounce(new Date())
     // Hook for getting products grouped
-    const getProductsGrouped = useProductPageGrouped()
+    const {
+        changePageNumber,
+        currentlyOpened,
+        currentPageNumber,
+        query,
+        setCurrentlyOpened
+    } = useProductPageGrouped()
 
-    if (getProductsGrouped.query.isPending) {
-        return (
-            <ProductListSkeleton />
-        )
+    // Debounce for setting list's today's date state
+    const { value: dateToday, setValueWithDebounce: setDateToday } = useDebounce(new Date())
+    
+    // Track state for currently selected product
+    const [currentProduct, setCurrentProduct] = useState<ProductType>(query.data?.content[0]?.products[0])
+    // Track state of modal open/close
+    const [editProductOpened, { open: openEditProduct, close: closeEditProduct }] = useDisclosure(false)
+    const [deleteProductOpened, { open: openDeleteProduct, close: closeDeleteProduct }] = useDisclosure(false)
+
+    const openEditProductModal = (product: ProductType) => {
+        setCurrentProduct(product)
+        openEditProduct()
     }
+
+    const openDeleteProductModal = (product: ProductType) => {
+        setCurrentProduct(product)
+        openDeleteProduct()
+    }
+
+    if (query.isLoading) return <ProductListSkeleton />
+    if (!query.isSuccess) return <></>
 
     return (
         <>
-            {getProductsGrouped.query.isSuccess && (
-                <div className="flex pb-5 flex-col mb-15">
-                    <Accordion
-                        multiple
-                        variant="unstyled"
-                        styles={{
-                            control: { cursor: 'default' },
-                            chevron: { cursor: 'pointer' },
-                        }}
-                        chevronIconSize={24}
-                        value={getProductsGrouped.currentlyOpened}
-                        onChange={getProductsGrouped.setCurrentlyOpened}
-                    >
-                        {getProductsGrouped.query.data.content.map((groupedProduct: GroupedProductData, idx: number) => {
-                            return (
-                                <Accordion.Item value={`item-${idx}`} key={groupedProduct.name}>
-                                    <GroupedProduct
-                                        products={groupedProduct.products}
-                                        dateToday={dateToday}
-                                        setDateToday={setDateToday}
-                                    />
-                                </Accordion.Item>
-                            )
-                        })}
-                        <ProductListFooter
-                            total={Math.ceil(getProductsGrouped.query.data.count)}
-                            value={getProductsGrouped.currentPageNumber}
-                            onChange={getProductsGrouped.setCurrentPageNumber}
-                        />
-                    </Accordion>
-                </div>
-            )}
+            <div className="flex pb-5 flex-col mb-15">
+                <Accordion
+                    multiple
+                    variant="unstyled"
+                    styles={{
+                        control: { cursor: 'default' },
+                        chevron: { cursor: 'pointer' },
+                    }}
+                    chevronIconSize={24}
+                    value={currentlyOpened}
+                    onChange={setCurrentlyOpened}
+                >
+                    {query.data.content.map((groupedProduct: GroupedProductData, idx: number) => {
+                        return (
+                            <EditProductContext value={openEditProductModal}>
+                                <DeleteProductContext value={openDeleteProductModal}>
+                                    <Accordion.Item value={`item-${idx}`} key={groupedProduct.name}>
+                                        <GroupedProduct
+                                            products={groupedProduct.products}
+                                            dateToday={dateToday}
+                                            setDateToday={setDateToday}
+                                        />
+                                    </Accordion.Item>
+                                </DeleteProductContext>
+                            </EditProductContext>
+                        )
+                    })}
+                </Accordion>
+
+                <ProductListFooter
+                    total={query.data.count}
+                    value={currentPageNumber}
+                    onChange={changePageNumber}
+                />
+
+                {/* Modal Zone */}
+                <EditProductModal product={currentProduct} closeEditProduct={closeEditProduct} opened={editProductOpened} />
+                <DeleteProductModal product={currentProduct} closeDeleteProduct={closeDeleteProduct} opened={deleteProductOpened} />
+            </div>
         </>
     )
 }

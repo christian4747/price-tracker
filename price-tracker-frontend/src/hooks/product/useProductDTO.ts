@@ -1,26 +1,66 @@
-import { useState } from 'react'
+import { useEffect, useReducer } from 'react'
 import type { ProductDTO } from '../../utils/Types'
 
-export function useProductDTO(initialState: ProductDTO) {
-    const [value, setProductDTO] = useState<ProductDTO>(initialState)
+interface ReducerAction {
+    type: 'set_field' | 'reset'
+    key?: string
+    value: boolean | string | ProductDTO
+}
 
-    // Reset PriceDTO after adding a Price
-    const resetProductDTO = () => {
-        setProductDTO(
-            {
-                name: '',
-                link: '',
-                store: '',
-                active: true
+const createInitialProductDTO = (initialProductDTO: ProductDTO | undefined) => {
+    if (initialProductDTO) {
+        return initialProductDTO
+    } else {
+        return {
+            name: '',
+            link: '',
+            store: '',
+            active: true
+        }
+    }
+}
+
+const reducer = (state: ProductDTO, action: ReducerAction) => {
+    switch (action.type) {
+        case 'set_field': {
+            const { key, value } = action
+            if (!key || !value) return state
+
+            return {
+                ...state,
+                [key]: value
             }
-        )
+        }
+
+        case 'reset':
+            return action.value as ProductDTO
+
+        default:
+            return state
+    }
+}
+
+export function useProductDTO(initialProductDTO: ProductDTO | undefined) {
+
+    const [state, dispatch] = useReducer(reducer, initialProductDTO, createInitialProductDTO)
+
+    useEffect(() => {
+        dispatch({ type: 'reset', value: createInitialProductDTO(initialProductDTO) })
+    }, [initialProductDTO])
+
+    const setField = (key: string, value: boolean | string) => {
+        dispatch({type: 'set_field', key, value})
     }
 
-    const productDTOProps = {
-        value: value,
-        setProductDTO: setProductDTO,
-        resetProductDTO: resetProductDTO
+    const reset = () => {
+        dispatch({ type: 'reset', value: createInitialProductDTO(initialProductDTO) })
     }
 
-    return productDTOProps
+    const useProductDTOProps = {
+        value: state,
+        setField: setField,
+        reset: reset
+    }
+
+    return useProductDTOProps
 }

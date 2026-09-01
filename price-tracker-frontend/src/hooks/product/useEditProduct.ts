@@ -1,4 +1,4 @@
-import type { ProductType } from '../../utils/Types'
+import type { ProductDTO, ProductType } from '../../utils/Types'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import api from '../../services/api'
 import { useProductDTO } from './useProductDTO'
@@ -7,14 +7,7 @@ import { sendSuccessNotification } from '@/utils/NotificationUtilities'
 export function useEditProduct(product: ProductType) {
 
     // State for ProductDTO when editing Products
-    const productDTO = useProductDTO(
-        {
-            name: product.name,
-            store: product.store,
-            link: product.link,
-            active: product.active
-        }
-    )
+    const productDTO = useProductDTO(product as ProductDTO)
 
     // Get the query client
     const queryClient = useQueryClient()

@@ -40,7 +40,11 @@ const PriceHistoryChart = ({product, dateToday}: PriceHistoryChartProps) => {
     return (
         <div className='w-7/10 border border-smoke rounded-sm p-5'>
             <LineChart
-                h={200}
+                attributes={{
+                    container: {
+                        height: 230
+                    }
+                }}
                 data={priceData}
                 dataKey="priceStarted"
                 series={[
