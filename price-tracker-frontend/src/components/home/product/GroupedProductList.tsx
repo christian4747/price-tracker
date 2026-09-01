@@ -22,7 +22,7 @@ export interface GroupedProductList {
 
 // TODO: Add a formatter
 // TODO: Look into memoizing
-export const GroupedProductList = ({ }: GroupedProductList) => {
+export const GroupedProductList = ({}: GroupedProductList) => {
 
     // Hook for getting products grouped
     const {

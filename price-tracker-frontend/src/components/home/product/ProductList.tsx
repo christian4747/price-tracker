@@ -17,7 +17,7 @@ export interface ProductList {
 }
 
 // TODO: Use productStatusFilter and searchedTerm for product list
-export const ProductList = ({  }: ProductList) => {
+export const ProductList = ({}: ProductList) => {
 
     // Hook for getting products grouped
     const {

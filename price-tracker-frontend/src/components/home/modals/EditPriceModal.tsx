@@ -98,7 +98,7 @@ export const EditPriceModal = ({ price, closeEditPrice, opened }: EditPriceModal
                     value={priceDTO.value.priceStarted}
                 />
                 {recentPricesStarted?.length > 0 && <RecentDataScroller className='mb-2'>{recentPricesStarted}</RecentDataScroller>}
-                {/* Race condition exists with closing modal, sometimes leaves overlay */}
+
                 <Button fullWidth className="mt-5" onClick={finalizeEditPrice}>Edit Price</Button>
             </Modal>
         </>
