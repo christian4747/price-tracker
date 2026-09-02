@@ -1,15 +1,10 @@
-/// <reference types="vitest/config" />
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import tailwindcss from '@tailwindcss/vite'
-import path from 'path'
+import { defineConfig } from 'vitest/config'
 import { playwright } from '@vitest/browser-playwright'
+import react from '@vitejs/plugin-react'
+import path from 'path'
 
 export default defineConfig({
-    plugins: [
-        react(),
-        tailwindcss(),
-    ],
+    plugins: [react()],
     resolve: {
         alias: {
             '@': path.resolve(import.meta.dirname, './src'),
@@ -18,15 +13,13 @@ export default defineConfig({
     },
     test: {
         globals: true,
-        environment: 'jsdom',
         setupFiles: './vitest.setup.mjs',
         browser: {
             enabled: true,
             provider: playwright(),
-            headless: true,
             instances: [
                 { browser: 'chromium' }
             ],
-        }
+        },
     },
 })
