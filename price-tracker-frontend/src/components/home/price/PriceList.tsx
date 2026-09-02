@@ -32,8 +32,6 @@ export const PriceList = ({product, setDateToday}: PriceList) => {
         openDeletePrice()
     }
 
-    if (!product.prices || product.prices.length < 1) return <></>
-
     return (
         <>
             <div className='flex flex-col h-full border border-smoke rounded-sm overflow-hidden justify-between'>

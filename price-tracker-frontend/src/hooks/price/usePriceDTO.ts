@@ -4,7 +4,23 @@ import type { PriceDTO } from '../../utils/Types'
 interface ReducerAction {
     type: 'set_field' | 'reset'
     key?: string
-    value: number | string | PriceDTO
+    value: number | string | PriceDTO | undefined
+}
+
+const createInitialPriceDTO = (initialPriceDTO: PriceDTO | undefined) => {
+    if (initialPriceDTO) {
+        return initialPriceDTO
+    } else {
+        return {
+            amount: 0.00,
+            currency: '',
+            priceStarted: '',
+            priceEnded: '',
+            productId: -1,
+            description: '',
+            returnAmount: 0
+        }
+    }
 }
 
 const reducer = (state: PriceDTO, action: ReducerAction) => {
@@ -27,12 +43,12 @@ const reducer = (state: PriceDTO, action: ReducerAction) => {
     }
 }
 
-export function usePriceDTO(initialPriceDTO: PriceDTO) {
+export function usePriceDTO(initialPriceDTO: PriceDTO | undefined) {
 
-    const [state, dispatch] = useReducer(reducer, initialPriceDTO)
+    const [state, dispatch] = useReducer(reducer, initialPriceDTO, createInitialPriceDTO)
 
     useEffect(() => {
-        dispatch({ type: 'reset', value: initialPriceDTO })
+        dispatch({ type: 'reset', value: createInitialPriceDTO(initialPriceDTO) })
     }, [initialPriceDTO])
 
     const setField = (key: string, value: number | string) => {
@@ -40,7 +56,7 @@ export function usePriceDTO(initialPriceDTO: PriceDTO) {
     }
 
     const reset = () => {
-        dispatch({ type: 'reset', value: initialPriceDTO })
+        dispatch({ type: 'reset', value: createInitialPriceDTO(initialPriceDTO) })
     }
 
     const priceDTOProps = {
