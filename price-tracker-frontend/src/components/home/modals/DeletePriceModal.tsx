@@ -21,6 +21,9 @@ export const DeletePriceModal = ({ price, closeDeletePrice, opened }: DeletePric
         e.stopPropagation()
     }
 
+    const priceStartedString = price?.priceStarted ? getUSDateStringFromTimestamp(price.priceStarted) : ''
+    const priceAmountString = price?.amount ? price.amount : 0
+
     return (
         <>
             <Modal
@@ -31,7 +34,7 @@ export const DeletePriceModal = ({ price, closeDeletePrice, opened }: DeletePric
             >
                 <Center className="flex flex-col">
                     <div className="text-xl mb-2 text-center">
-                        Are you sure you want to delete Price {getUSDateStringFromTimestamp(price.priceStarted)} (${price.amount})?
+                        Are you sure you want to delete Price {priceStartedString} (${priceAmountString})?
                     </div>
 
                     <div className="text-xl text-red-600 font-bold mb-2">This cannot be undone.</div>

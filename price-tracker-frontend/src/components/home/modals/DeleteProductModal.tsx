@@ -30,7 +30,7 @@ const DeleteProductModal = ({ product, closeDeleteProduct, opened }: DeleteProdu
             >
                 <Center className="flex flex-col">
                     <div className="text-xl mb-2 text-center">
-                        Are you sure you want to delete Product {product.name}?
+                        Are you sure you want to delete Product {product?.name ? product.name : ''}?
                     </div>
 
                     <div className="text-xl text-red-600 font-bold mb-2">
