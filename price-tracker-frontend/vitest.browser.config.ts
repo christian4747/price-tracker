@@ -5,19 +5,18 @@ import path from 'path'
 
 export default defineConfig({
     plugins: [react()],
-        resolve: {
-            alias: {
-                '@': path.resolve(import.meta.dirname, './src'),
-                "components": path.resolve(import.meta.dirname, './src/components'),
-            },
+    resolve: {
+        alias: {
+            '@': path.resolve(import.meta.dirname, './src'),
+            "components": path.resolve(import.meta.dirname, './src/components'),
         },
+    },
     test: {
         globals: true,
         setupFiles: './vitest.setup.mjs',
         browser: {
             enabled: true,
             provider: playwright(),
-            // https://vitest.dev/config/browser/playwright
             instances: [
                 { browser: 'chromium' }
             ],

@@ -7,13 +7,18 @@ export function renderWithClient(ui: React.ReactElement) {
     const queryClient = new QueryClient({
         defaultOptions: {
             queries: {
-                // ✅ turns retries off
                 retry: false,
             },
         },
     })
 
-    return render(
-        <MantineProvider theme={theme} env="test"><QueryClientProvider client={queryClient}>{ui}</QueryClientProvider></MantineProvider>
+    return render(<>{ui}</>, {
+        wrapper: ({ children }: { children: React.ReactNode }) => (
+            <MantineProvider theme={theme} env="test">
+                <QueryClientProvider client={queryClient}>
+                    {children}
+                </QueryClientProvider>
+            </MantineProvider>)
+        },
     )
 }
