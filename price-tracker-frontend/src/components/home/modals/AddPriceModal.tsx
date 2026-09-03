@@ -89,20 +89,46 @@ export const AddPriceModal = ({ product, setDateToday }: AddPriceModal) => {
             >
                 <PriceCalculator />
                 <PriceNumberInput
-                    label="Price"
+                    label="Base Price"
                     className="mb-2 min-w-75"
                     withAsterisk
                     value={priceDTO.value.amount}
                     onChange={(amount) => setAmount(amount as number)}
                 />
                 
-                <PriceNumberInput
-                    label="Return Amount"
-                    className="mb-2"
-                    value={priceDTO.value.returnAmount}
-                    max={priceDTO.value.amount}
-                    onChange={(returnAmount) => priceDTO.setField('returnAmount', returnAmount)}
-                />
+                <div className='flex gap-1 mb-2'>
+                    <PriceNumberInput
+                        label="Discount Amount"
+                        className="mb-2 w-75"
+                        value={priceDTO.value.discountAmount}
+                        max={priceDTO.value.amount}
+                        onChange={(discountAmount) => priceDTO.setField('discountAmount', discountAmount)}
+                    />
+                    <PriceNumberInput
+                        label='Discount %'
+                        className='max-w-25'
+                        value={priceDTO.value.discountPercentage}
+                        max={100}
+                        onChange={(discountPercentage) => priceDTO.setField('discountPercentage', discountPercentage)}
+                    />
+                </div>
+
+                <div className='flex gap-1 mb-2'>
+                    <PriceNumberInput
+                        label="Return Amount"
+                        className="mb-2 w-75"
+                        value={priceDTO.value.returnAmount}
+                        max={priceDTO.value.amount - priceDTO.value.discountAmount}
+                        onChange={(returnAmount) => priceDTO.setField('returnAmount', returnAmount)}
+                    />
+                    <PriceNumberInput
+                        label='Return %'
+                        className='max-w-25'
+                        value={priceDTO.value.returnPercentage}
+                        max={100}
+                        onChange={(returnPercentage) => priceDTO.setField('returnPercentage', returnPercentage)}
+                    />
+                </div>
 
                 <TextInput
                     label="Description"
