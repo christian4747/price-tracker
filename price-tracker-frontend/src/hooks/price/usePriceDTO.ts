@@ -12,13 +12,16 @@ const createInitialPriceDTO = (initialPriceDTO: PriceDTO | undefined) => {
         return initialPriceDTO
     } else {
         return {
-            amount: 0.00,
+            amount: 0,
             currency: '',
-            priceStarted: '',
-            priceEnded: '',
-            productId: -1,
             description: '',
-            returnAmount: 0
+            discountAmount: 0,
+            discountPercentage: 0,
+            priceEnded: '',
+            priceStarted: '',
+            productId: -1,
+            returnAmount: 0,
+            returnPercentage: 0
         }
     }
 }

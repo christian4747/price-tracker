@@ -13,13 +13,16 @@ export interface PriceType {
     priceId: number
     amount: number
     currency: string
-    priceStarted: string
-    priceEnded: string
     createdAt: string
-    updatedAt: string
-    productId: number
     description: string
+    discountAmount: number
+    discountPercentage: number
+    priceEnded: string
+    priceStarted: string
+    productId: number
     returnAmount: number
+    returnPercentage: number
+    updatedAt: string
 }
 
 export interface ProductDTO {
@@ -32,9 +35,12 @@ export interface ProductDTO {
 export interface PriceDTO {
     amount: number
     currency: string
-    priceStarted: string
-    priceEnded: string
-    productId: number
     description: string
+    discountAmount: number
+    discountPercentage: number
+    priceEnded: string
+    priceStarted: string
+    productId: number
     returnAmount: number
+    returnPercentage: number
 }

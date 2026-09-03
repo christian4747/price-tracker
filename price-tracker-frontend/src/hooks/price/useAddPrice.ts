@@ -11,13 +11,16 @@ export function useAddPrice(product: ProductType, highestPrice: number, useEndDa
 
     // Use state fixes this value (prevents useEffect refreshes)
     const [emptyPriceDTO,] = useState({
-        amount: 0.00,
+        amount: 0,
         currency: '',
-        priceStarted: '',
-        priceEnded: '',
-        productId: product.productId,
         description: '',
-        returnAmount: 0
+        discountAmount: 0,
+        discountPercentage: 0,
+        priceEnded: '',
+        priceStarted: '',
+        productId: product.productId,
+        returnAmount: 0,
+        returnPercentage: 0
     })
 
     // State for PriceDTO when adding Prices
