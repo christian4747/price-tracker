@@ -24,12 +24,21 @@ public class Price {
 
     private String description;
 
+    @Column(nullable = false)
+    private double discountAmount;
+
+    @Column(nullable = false)
+    private double discountPercentage;
+
     private Timestamp priceStarted;
 
     private Timestamp priceEnded;
 
     @Column(nullable = false)
-    private double returnAmount = 0.0;
+    private double returnAmount;
+
+    @Column(nullable = false)
+    private double returnPercentage;
 
     @CreationTimestamp
     private Timestamp createdAt;
@@ -45,14 +54,17 @@ public class Price {
     public Price() {
     }
 
-    public Price(int priceId, double amount, String currency, String description, Timestamp priceStarted, Timestamp priceEnded, double returnAmount, Timestamp createdAt, Timestamp updatedAt, Product product) {
+    public Price(int priceId, double amount, String currency, String description, double discountAmount, double discountPercentage, Timestamp priceStarted, Timestamp priceEnded, double returnAmount, double returnPercentage, Timestamp createdAt, Timestamp updatedAt, Product product) {
         this.priceId = priceId;
         this.amount = amount;
         this.currency = currency;
         this.description = description;
+        this.discountAmount = discountAmount;
+        this.discountPercentage = discountPercentage;
         this.priceStarted = priceStarted;
         this.priceEnded = priceEnded;
         this.returnAmount = returnAmount;
+        this.returnPercentage = returnPercentage;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
         this.product = product;
@@ -90,12 +102,36 @@ public class Price {
         this.description = description;
     }
 
+    public double getDiscountAmount() {
+        return discountAmount;
+    }
+
+    public void setDiscountAmount(double discountAmount) {
+        this.discountAmount = discountAmount;
+    }
+
+    public double getDiscountPercentage() {
+        return discountPercentage;
+    }
+
+    public void setDiscountPercentage(double discountPercentage) {
+        this.discountPercentage = discountPercentage;
+    }
+
     public Timestamp getPriceStarted() {
         return priceStarted;
     }
 
     public void setPriceStarted(Timestamp priceStarted) {
         this.priceStarted = priceStarted;
+    }
+
+    public Timestamp getPriceEnded() {
+        return priceEnded;
+    }
+
+    public void setPriceEnded(Timestamp priceEnded) {
+        this.priceEnded = priceEnded;
     }
 
     public double getReturnAmount() {
@@ -106,12 +142,12 @@ public class Price {
         this.returnAmount = returnAmount;
     }
 
-    public Timestamp getPriceEnded() {
-        return priceEnded;
+    public double getReturnPercentage() {
+        return returnPercentage;
     }
 
-    public void setPriceEnded(Timestamp priceEnded) {
-        this.priceEnded = priceEnded;
+    public void setReturnPercentage(double returnPercentage) {
+        this.returnPercentage = returnPercentage;
     }
 
     public Timestamp getCreatedAt() {
@@ -145,9 +181,12 @@ public class Price {
                 ", amount=" + amount +
                 ", currency='" + currency + '\'' +
                 ", description='" + description + '\'' +
+                ", discountAmount=" + discountAmount +
+                ", discountPercentage=" + discountPercentage +
                 ", priceStarted=" + priceStarted +
                 ", priceEnded=" + priceEnded +
                 ", returnAmount=" + returnAmount +
+                ", returnPercentage=" + returnPercentage +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
                 ", product=" + product +
