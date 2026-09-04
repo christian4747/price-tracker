@@ -1,45 +1,41 @@
 import { describe, expect } from 'vitest'
 import { renderWithClient, screen, userEvent, test } from '../../test-utils'
-import { AddPriceModal } from '../../src/components/home/modals/AddPriceModal'
-import { ProductType } from '../../src/utils/Types'
+import { EditPriceModal } from '../../src/components/home/modals/EditPriceModal'
+import { PriceType } from '../../src/utils/Types'
 
-const product: ProductType = {
-    active: false,
-    productId: 0,
-    name: '',
-    link: '',
-    store: '',
-    createdAt: '',
-    updatedAt: '',
-    prices: []
+const price: PriceType = {
+    priceId: 1,
+    amount: 100.0,
+    currency: "",
+    description: "",
+    discountAmount: 0.0,
+    discountPercentage: 0.0,
+    priceStarted: "2026-09-04T00:00:00.000Z",
+    priceEnded: "",
+    returnAmount: 0.0,
+    returnPercentage: 0.0,
+    createdAt: "2026-09-04T00:00:00.000Z",
+    updatedAt: "2026-09-04T00:00:00.000Z",
+    productId: 0
 }
 
-describe('Add Price Component', () => {
+describe('Edit Price Component', () => {
     test('should render input for price', async () => {
-        renderWithClient(<AddPriceModal product={product} setDateToday={() => { }} />)
-
-        const openAddPrice = screen.getByRole('button')
-        await userEvent.click(openAddPrice)
+        renderWithClient(<EditPriceModal price={price} closeEditPrice={() => { }} opened={true} />)
 
         const discountAmountInput = screen.getByText('Base Price', { selector: 'label' })
         await expect.element(discountAmountInput).toBeInTheDocument()
     })
 
     test('should render input for discount amount', async () => {
-        renderWithClient(<AddPriceModal product={product} setDateToday={() => { }} />)
-
-        const openAddPrice = screen.getByRole('button')
-        await userEvent.click(openAddPrice)
+        renderWithClient(<EditPriceModal price={price} closeEditPrice={() => { }} opened={true} />)
 
         const discountAmountInput = screen.getByText('Discount Amount', { selector: 'label' })
         await expect.element(discountAmountInput).toBeInTheDocument()
     })
 
     test('should render input for discount percentage', async () => {
-        renderWithClient(<AddPriceModal product={product} setDateToday={() => { }} />)
-
-        const openAddPrice = screen.getByRole('button')
-        await userEvent.click(openAddPrice)
+        renderWithClient(<EditPriceModal price={price} closeEditPrice={() => { }} opened={true} />)
 
         const discountPercentLabels = screen.getAllByText('Discount %', { selector: 'label' })
         
@@ -50,10 +46,7 @@ describe('Add Price Component', () => {
     })
 
     test('should render input for return percentage', async () => {
-        renderWithClient(<AddPriceModal product={product} setDateToday={() => { }} />)
-
-        const openAddPrice = screen.getByRole('button')
-        await userEvent.click(openAddPrice)
+        renderWithClient(<EditPriceModal price={price} closeEditPrice={() => { }} opened={true} />)
 
         const returnPercentageLabels = screen.getAllByText('Return %', { selector: 'label' })
 
