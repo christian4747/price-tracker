@@ -4,7 +4,7 @@ import { usePriceDTO } from './usePriceDTO'
 import type { PriceType, ProductType } from '../../utils/Types'
 import dayjs from 'dayjs'
 import { sendSuccessNotification } from '@/utils/NotificationUtilities'
-import { getFormattedDateString } from '@/utils/DateUtilities'
+import { getFormattedDateString, getLocalDateFromUTC } from '@/utils/DateUtilities'
 import { useState } from 'react'
 
 export function useAddPrice(product: ProductType, highestPrice: number, useEndDateDesc: boolean) {
@@ -16,8 +16,8 @@ export function useAddPrice(product: ProductType, highestPrice: number, useEndDa
         description: '',
         discountAmount: 0,
         discountPercentage: 0,
-        priceEnded: '',
-        priceStarted: '',
+        priceEnded: getLocalDateFromUTC(new Date()).format(),
+        priceStarted: getLocalDateFromUTC(new Date()).format(),
         productId: product.productId,
         returnAmount: 0,
         returnPercentage: 0

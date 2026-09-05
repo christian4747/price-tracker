@@ -70,6 +70,40 @@ export const AddPriceForm = ({ product, setDateToday }: AddPriceForm) => {
         setDateToday(new Date())
     }
 
+    const changeBasePrice = (amount: number) => {
+        priceDTO.setField('amount', amount)
+    }
+
+    const changeDiscountAmount = (discountAmount: number) => {
+        priceDTO.setField('discountAmount', discountAmount)
+        priceDTO.setField('discountPercentage', (priceDTO.value.amount - discountAmount) / priceDTO.value.amount * 100)
+    }
+
+    const changeDiscountPercentage = (discountPercentage: number) => {
+        priceDTO.setField('discountPercentage', discountPercentage)
+        priceDTO.setField('discountAmount', priceDTO.value.amount - priceDTO.value.amount * (discountPercentage / 100))
+    }
+
+    const changeReturnAmount = (returnAmount: number) => {
+        priceDTO.setField('returnAmount', returnAmount)
+
+        if (priceDTO.value.discountAmount > 0) {
+            priceDTO.setField('returnPercentage', returnAmount / priceDTO.value.discountAmount * 100)
+        } else {
+            priceDTO.setField('returnPercentage', returnAmount / priceDTO.value.amount * 100)
+        }
+    }
+
+    const changeReturnPercentage = (returnPercentage: number) => {
+        priceDTO.setField('returnPercentage', returnPercentage)
+
+        if (priceDTO.value.discountAmount > 0) {
+            priceDTO.setField('returnAmount',  priceDTO.value.discountAmount * (returnPercentage / 100))
+        } else {
+            priceDTO.setField('returnAmount', priceDTO.value.amount * (returnPercentage / 100))
+        }
+    }
+
     return (
         <>
             <PriceNumberInput
@@ -77,7 +111,7 @@ export const AddPriceForm = ({ product, setDateToday }: AddPriceForm) => {
                 className="mb-2 min-w-75"
                 withAsterisk
                 value={priceDTO.value.amount}
-                onChange={(amount) => setAmount(amount as number)}
+                onChange={(amount) => changeBasePrice(amount as number)}
             />
 
             <div className='flex gap-1 mb-2'>
@@ -86,14 +120,14 @@ export const AddPriceForm = ({ product, setDateToday }: AddPriceForm) => {
                     className="mb-2 w-75"
                     value={priceDTO.value.discountAmount}
                     max={priceDTO.value.amount}
-                    onChange={(discountAmount) => priceDTO.setField('discountAmount', discountAmount)}
+                    onChange={(discountAmount) => changeDiscountAmount(discountAmount as number)}
                 />
                 <PriceNumberInput
                     label='Discount %'
                     className='max-w-25'
                     value={priceDTO.value.discountPercentage}
                     max={100}
-                    onChange={(discountPercentage) => priceDTO.setField('discountPercentage', discountPercentage)}
+                    onChange={(discountPercentage) => changeDiscountPercentage(discountPercentage as number)}
                 />
             </div>
 
@@ -103,14 +137,14 @@ export const AddPriceForm = ({ product, setDateToday }: AddPriceForm) => {
                     className="mb-2 w-75"
                     value={priceDTO.value.returnAmount}
                     max={priceDTO.value.amount - priceDTO.value.discountAmount}
-                    onChange={(returnAmount) => priceDTO.setField('returnAmount', returnAmount)}
+                    onChange={(returnAmount) => changeReturnAmount(returnAmount as number)}
                 />
                 <PriceNumberInput
                     label='Return %'
                     className='max-w-25'
                     value={priceDTO.value.returnPercentage}
                     max={100}
-                    onChange={(returnPercentage) => priceDTO.setField('returnPercentage', returnPercentage)}
+                    onChange={(returnPercentage) => changeReturnPercentage(returnPercentage as number)}
                 />
             </div>
 
