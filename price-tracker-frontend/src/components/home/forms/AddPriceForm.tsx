@@ -4,7 +4,7 @@ import type { ProductType } from '@/utils/Types'
 import PriceNumberInput from '../price/PriceNumberInput'
 import { RecentDataScroller } from '@/components/common/RecentDataScroller'
 import { PriceDateTimePicker } from '../price/PriceDateTimePicker'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { getFormattedDateString } from '@/utils/DateUtilities'
 import { useDisclosure } from '@mantine/hooks'
 import { getHighestPrice } from '@/utils/PriceUtilities'
@@ -54,16 +54,6 @@ export const AddPriceForm = ({ product, setDateToday }: AddPriceForm) => {
         </Button>
     ))
 
-    const setAmount = (amount: number) => {
-        if (!amount) {
-            priceDTO.setField('amount', 0)
-            priceDTO.setField('returnAmount', 0)
-        } else {
-            priceDTO.setField('amount', amount)
-            priceDTO.setField('returnAmount', Math.min(amount, priceDTO.value.returnAmount))
-        }
-    }
-
     const finalizeAddPrice = () => {
         useEndDate ? multiMutation.mutate() : singleMutation.mutate()
         close()
@@ -86,23 +76,21 @@ export const AddPriceForm = ({ product, setDateToday }: AddPriceForm) => {
 
     const changeReturnAmount = (returnAmount: number) => {
         priceDTO.setField('returnAmount', returnAmount)
-
-        if (priceDTO.value.discountAmount > 0) {
-            priceDTO.setField('returnPercentage', returnAmount / priceDTO.value.discountAmount * 100)
-        } else {
-            priceDTO.setField('returnPercentage', returnAmount / priceDTO.value.amount * 100)
-        }
+        priceDTO.setField('returnPercentage', returnAmount / Math.min(priceDTO.value.discountAmount, priceDTO.value.amount) * 100)
     }
 
     const changeReturnPercentage = (returnPercentage: number) => {
         priceDTO.setField('returnPercentage', returnPercentage)
-
-        if (priceDTO.value.discountAmount > 0) {
-            priceDTO.setField('returnAmount',  priceDTO.value.discountAmount * (returnPercentage / 100))
-        } else {
-            priceDTO.setField('returnAmount', priceDTO.value.amount * (returnPercentage / 100))
-        }
+        priceDTO.setField('returnAmount',  Math.min(priceDTO.value.discountAmount, priceDTO.value.amount) * (returnPercentage / 100))
     }
+
+    useEffect(() => {
+        changeDiscountPercentage(priceDTO.value.discountPercentage)
+    }, [priceDTO.value.amount])
+
+    useEffect(() => {
+        changeReturnPercentage(priceDTO.value.returnPercentage)
+    }, [priceDTO.value.discountAmount])
 
     return (
         <>
@@ -136,7 +124,7 @@ export const AddPriceForm = ({ product, setDateToday }: AddPriceForm) => {
                     label="Return Amount"
                     className="mb-2 w-75"
                     value={priceDTO.value.returnAmount}
-                    max={priceDTO.value.amount - priceDTO.value.discountAmount}
+                    max={priceDTO.value.discountAmount}
                     onChange={(returnAmount) => changeReturnAmount(returnAmount as number)}
                 />
                 <PriceNumberInput
