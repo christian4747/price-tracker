@@ -14,9 +14,10 @@ import { useRecentPriceData } from '@/hooks/price/useRecentPriceData'
 interface AddPriceForm {
     product: ProductType
     setDateToday: (newVal: Date) => void
+    close: () => void
 }
 
-export const AddPriceForm = ({ product, setDateToday }: AddPriceForm) => {
+export const AddPriceForm = ({ product, setDateToday, close }: AddPriceForm) => {
 
     // Track state of expanding the end date input
     const [expandEndDate, { open: openEndDate, close: closeEndDate }] = useDisclosure(false)

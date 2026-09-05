@@ -23,7 +23,7 @@ export const AddPriceModal = ({ product, setDateToday }: AddPriceModal) => {
                 title="Add Price"
             >
                 <PriceCalculator />
-                <AddPriceForm product={product} setDateToday={setDateToday} />
+                <AddPriceForm product={product} setDateToday={setDateToday} close={close} />
             </Modal>
             <Button className="m-2" onClick={open}>Add Price</Button>
         </>

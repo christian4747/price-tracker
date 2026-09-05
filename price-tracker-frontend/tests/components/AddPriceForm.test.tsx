@@ -16,28 +16,28 @@ const product: ProductType = {
 
 describe('Add Price Form Component', () => {
     test('should render input for price', async () => {
-        renderWithClient(<AddPriceForm product={product} setDateToday={() => { }} />)
+        renderWithClient(<AddPriceForm product={product} setDateToday={() => { }} close={() => { }} />)
 
         const discountAmountInput = screen.getByText('Base Price', { selector: 'label' })
         await expect.element(discountAmountInput).toBeInTheDocument()
     })
 
     test('should render input for discount amount', async () => {
-        renderWithClient(<AddPriceForm product={product} setDateToday={() => { }} />)
+        renderWithClient(<AddPriceForm product={product} setDateToday={() => { }} close={() => { }} />)
 
         const discountAmountInput = screen.getByText('Discount Amount', { selector: 'label' })
         await expect.element(discountAmountInput).toBeInTheDocument()
     })
 
     test('should render input for discount percentage', async () => {
-        renderWithClient(<AddPriceForm product={product} setDateToday={() => { }} />)
+        renderWithClient(<AddPriceForm product={product} setDateToday={() => { }} close={() => { }} />)
 
         const discountPercentLabel = screen.getByText('Discount %', { selector: 'label' })
         await expect.element(discountPercentLabel).toBeInTheDocument()
     })
 
     test('should render input for return percentage', async () => {
-        renderWithClient(<AddPriceForm product={product} setDateToday={() => { }} />)
+        renderWithClient(<AddPriceForm product={product} setDateToday={() => { }} close={() => { }} />)
 
         const returnPercentageLabel = screen.getByText('Return %', { selector: 'label' })
         await expect.element(returnPercentageLabel).toBeInTheDocument()
@@ -45,7 +45,7 @@ describe('Add Price Form Component', () => {
 
     test('should match discount amount with discount percentage', async () => {
         const user = userEvent.setup()
-        renderWithClient(<AddPriceForm product={product} setDateToday={() => { }} />)
+        renderWithClient(<AddPriceForm product={product} setDateToday={() => { }} close={() => { }} />)
 
         const basePriceInput = screen.getByRole('textbox', { name: /base price/i }) as HTMLInputElement
         await user.clear(basePriceInput)
@@ -62,7 +62,7 @@ describe('Add Price Form Component', () => {
 
     test('should match discount percentage with discount amount', async () => {
         const user = userEvent.setup()
-        renderWithClient(<AddPriceForm product={product} setDateToday={() => { }} />)
+        renderWithClient(<AddPriceForm product={product} setDateToday={() => { }} close={() => { }} />)
 
         const basePriceInput = screen.getByRole('textbox', { name: /base price/i }) as HTMLInputElement
         await user.clear(basePriceInput)
@@ -78,7 +78,7 @@ describe('Add Price Form Component', () => {
 
     test('should match return amount with return percentage', async () => {
         const user = userEvent.setup()
-        renderWithClient(<AddPriceForm product={product} setDateToday={() => { }} />)
+        renderWithClient(<AddPriceForm product={product} setDateToday={() => { }} close={() => { }} />)
 
         const basePriceInput = screen.getByRole('textbox', { name: /base price/i }) as HTMLInputElement
         await user.clear(basePriceInput)
@@ -94,7 +94,7 @@ describe('Add Price Form Component', () => {
 
     test('should match return percentage with return amount', async () => {
         const user = userEvent.setup()
-        renderWithClient(<AddPriceForm product={product} setDateToday={() => { }} />)
+        renderWithClient(<AddPriceForm product={product} setDateToday={() => { }} close={() => { }} />)
 
         const basePriceInput = screen.getByRole('textbox', { name: /base price/i }) as HTMLInputElement
         await user.clear(basePriceInput)
@@ -110,7 +110,7 @@ describe('Add Price Form Component', () => {
 
     test('should use (base - discount) amount for return amount', async () => {
         const user = userEvent.setup()
-        renderWithClient(<AddPriceForm product={product} setDateToday={() => { }} />)
+        renderWithClient(<AddPriceForm product={product} setDateToday={() => { }} close={() => { }} />)
 
         const basePriceInput = screen.getByRole('textbox', { name: /base price/i }) as HTMLInputElement
         await user.clear(basePriceInput)
@@ -130,7 +130,7 @@ describe('Add Price Form Component', () => {
 
     test('should use (base - discount) amount for return percentage', async () => {
         const user = userEvent.setup()
-        renderWithClient(<AddPriceForm product={product} setDateToday={() => { }} />)
+        renderWithClient(<AddPriceForm product={product} setDateToday={() => { }} close={() => { }} />)
 
         const basePriceInput = screen.getByRole('textbox', { name: /base price/i }) as HTMLInputElement
         await user.clear(basePriceInput)
@@ -150,7 +150,7 @@ describe('Add Price Form Component', () => {
 
     test('should update discount amount if base price is updated', async () => {
         const user = userEvent.setup()
-        renderWithClient(<AddPriceForm product={product} setDateToday={() => { }} />)
+        renderWithClient(<AddPriceForm product={product} setDateToday={() => { }} close={() => { }} />)
 
         const basePriceInput = screen.getByRole('textbox', { name: /base price/i }) as HTMLInputElement
         await user.clear(basePriceInput)
@@ -168,7 +168,7 @@ describe('Add Price Form Component', () => {
 
     test('should update return amount if base price is updated', async () => {
         const user = userEvent.setup()
-        renderWithClient(<AddPriceForm product={product} setDateToday={() => { }} />)
+        renderWithClient(<AddPriceForm product={product} setDateToday={() => { }} close={() => { }} />)
 
         const basePriceInput = screen.getByRole('textbox', { name: /base price/i }) as HTMLInputElement
         await user.clear(basePriceInput)
@@ -193,7 +193,7 @@ describe('Add Price Form Component', () => {
 
     test('should set discount & return amount to 0 when base amount is set to 0', async () => {
         const user = userEvent.setup()
-        renderWithClient(<AddPriceForm product={product} setDateToday={() => { }} />)
+        renderWithClient(<AddPriceForm product={product} setDateToday={() => { }} close={() => { }} />)
 
         const basePriceInput = screen.getByRole('textbox', { name: /base price/i }) as HTMLInputElement
         await user.clear(basePriceInput)
