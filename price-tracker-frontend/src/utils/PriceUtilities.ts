@@ -155,7 +155,7 @@ const getMostRecentPrice = (prices: PriceType[]) => {
 const getPriceString = (price: PriceType | undefined) => {
     if (!price) return ''
 
-    const amountAfterReturn = price.amount - price.returnAmount
+    const amountAfterReturn = price.discountAmount - price.returnAmount
 
     if (price.currency) {
         return new Intl.NumberFormat(undefined, { style: "currency", currency: price.currency }).format(amountAfterReturn)
