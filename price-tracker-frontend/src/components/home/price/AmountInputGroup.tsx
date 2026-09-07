@@ -55,7 +55,7 @@ export const AmountInputGroup = ({ value, setField }: AmountInputGroup) => {
             <div className='flex gap-1 mb-2'>
                 <PriceNumberInput
                     label="Discount Amount"
-                    className="mb-2 w-75"
+                    className="w-75"
                     value={value.discountAmount}
                     max={value.amount}
                     onChange={(discountAmount) => changeDiscountAmount(discountAmount as number)}
@@ -72,7 +72,7 @@ export const AmountInputGroup = ({ value, setField }: AmountInputGroup) => {
             <div className='flex gap-1 mb-2'>
                 <PriceNumberInput
                     label="Return Amount"
-                    className="mb-2 w-75"
+                    className="w-75"
                     value={value.returnAmount}
                     max={value.discountAmount}
                     onChange={(returnAmount) => changeReturnAmount(returnAmount as number)}
