@@ -4,3 +4,4 @@ export * from '@testing-library/react'
 export { renderWithClient } from './renderWithClient'
 export { userEvent }
 export { test } from './testExtend'
+import "@vitest/browser/matchers"
