@@ -65,159 +65,159 @@ describe('Edit Price Form Component', () => {
             expect(discountAmountInput.value).toBe('20.00')
         })
     
-        test('should match discount percentage with discount amount', async () => {
-            const user = userEvent.setup()
-            renderWithClient(<EditPriceForm price={price} closeEditPrice={() => { }} />)
-    
-            const basePriceInput = screen.getByRole('textbox', { name: /base price/i }) as HTMLInputElement
-            await user.clear(basePriceInput)
-            await user.type(basePriceInput, '100.00')
-    
-            const discountAmountInput = screen.getByRole('textbox', { name: /discount amount/i }) as HTMLInputElement
-            await user.clear(discountAmountInput)
-            await user.type(discountAmountInput, '20.00')
-    
-            const discountPercentageInputs = screen.getByRole('textbox', { name: /discount %/i }) as HTMLInputElement
-            expect(discountPercentageInputs.value).toBe('80.00')
-        })
-    
-        test('should match return amount with return percentage', async () => {
-            const user = userEvent.setup()
-            renderWithClient(<EditPriceForm price={price} closeEditPrice={() => { }} />)
-    
-            const basePriceInput = screen.getByRole('textbox', { name: /base price/i }) as HTMLInputElement
-            await user.clear(basePriceInput)
-            await user.type(basePriceInput, '100.00')
-    
-            const returnPercentageInput = screen.getByRole('textbox', { name: /return %/i }) as HTMLInputElement
-            await user.clear(returnPercentageInput)
-            await user.type(returnPercentageInput, '80.00')
-            
-            const returnAmountInput = screen.getByRole('textbox', { name: /return amount/i }) as HTMLInputElement
-            expect(returnAmountInput.value).toBe('80.00')
-        })
-    
-        test('should match return percentage with return amount', async () => {
-            const user = userEvent.setup()
-            renderWithClient(<EditPriceForm price={price} closeEditPrice={() => { }} />)
-    
-            const basePriceInput = screen.getByRole('textbox', { name: /base price/i }) as HTMLInputElement
-            await user.clear(basePriceInput)
-            await user.type(basePriceInput, '100.00')
-    
-            const returnAmountInput = screen.getByRole('textbox', { name: /return amount/i }) as HTMLInputElement
-            await user.clear(returnAmountInput)
-            await user.type(returnAmountInput, '80.00')
-    
-            const returnPercentageInput = screen.getByRole('textbox', { name: /return %/i }) as HTMLInputElement
-            expect(returnPercentageInput.value).toBe('80.00')
-        })
-    
-        test('should use (base - discount) amount for return amount', async () => {
-            const user = userEvent.setup()
-            renderWithClient(<EditPriceForm price={price} closeEditPrice={() => { }} />)
-    
-            const basePriceInput = screen.getByRole('textbox', { name: /base price/i }) as HTMLInputElement
-            await user.clear(basePriceInput)
-            await user.type(basePriceInput, '100.00')
-    
-            const discountAmountInput = screen.getByRole('textbox', { name: /discount amount/i }) as HTMLInputElement
-            await user.clear(discountAmountInput)
-            await user.type(discountAmountInput, '80.00')
-    
-            const returnAmountInput = screen.getByRole('textbox', { name: /return amount/i }) as HTMLInputElement
-            await user.clear(returnAmountInput)
-            await user.type(returnAmountInput, '40.00')
-    
-            const returnPercentageInput = screen.getByRole('textbox', { name: /return %/i }) as HTMLInputElement
-            expect(returnPercentageInput.value).toBe('50.00')
-        })
-    
-        test('should use (base - discount) amount for return percentage', async () => {
-            const user = userEvent.setup()
-            renderWithClient(<EditPriceForm price={price} closeEditPrice={() => { }} />)
-    
-            const basePriceInput = screen.getByRole('textbox', { name: /base price/i }) as HTMLInputElement
-            await user.clear(basePriceInput)
-            await user.type(basePriceInput, '100.00')
-    
-            const discountAmountInput = screen.getByRole('textbox', { name: /discount amount/i }) as HTMLInputElement
-            await user.clear(discountAmountInput)
-            await user.type(discountAmountInput, '80.00')
-    
-            const returnPercentageInput = screen.getByRole('textbox', { name: /return %/i }) as HTMLInputElement
-            await user.clear(returnPercentageInput)
-            await user.type(returnPercentageInput, '50.00')
-    
-            const returnAmountInput = screen.getByRole('textbox', { name: /return amount/i }) as HTMLInputElement
-            expect(returnAmountInput.value).toBe('40.00')
-        })
-    
-        test('should update discount amount if base price is updated', async () => {
-            const user = userEvent.setup()
-            renderWithClient(<EditPriceForm price={price} closeEditPrice={() => { }} />)
-    
-            const basePriceInput = screen.getByRole('textbox', { name: /base price/i }) as HTMLInputElement
-            await user.clear(basePriceInput)
-            await user.type(basePriceInput, '100.00')
-    
-            const discountAmountInput = screen.getByRole('textbox', { name: /discount amount/i }) as HTMLInputElement
-            await user.clear(discountAmountInput)
-            await user.type(discountAmountInput, '80.00') // 20%
-    
-            await user.clear(basePriceInput)
-            await user.type(basePriceInput, '80.00')
-    
-            expect(discountAmountInput.value).toBe('64.00')
-        })
-    
-        test('should update return amount if base price is updated', async () => {
-            const user = userEvent.setup()
-            renderWithClient(<EditPriceForm price={price} closeEditPrice={() => { }} />)
-    
-            const basePriceInput = screen.getByRole('textbox', { name: /base price/i }) as HTMLInputElement
-            await user.clear(basePriceInput)
-            await user.type(basePriceInput, '100.00')
-    
-            const discountAmountInput = screen.getByRole('textbox', { name: /discount amount/i }) as HTMLInputElement
-            await user.clear(discountAmountInput)
-            await user.type(discountAmountInput, '80.00') // 20%
-    
-            const returnPercentageInput = screen.getByRole('textbox', { name: /return %/i }) as HTMLInputElement
-            await user.clear(returnPercentageInput)
-            await user.type(returnPercentageInput, '50.00')
-    
-            await user.clear(basePriceInput)
-            await user.type(basePriceInput, '80.00')
-    
-            const returnAmountInput = screen.getByRole('textbox', { name: /return amount/i }) as HTMLInputElement
-    
-            expect(discountAmountInput.value).toBe('64.00')
-            expect(returnAmountInput.value).toBe('32.00')
-        })
-    
-        test('should set discount & return amount to 0 when base amount is set to 0', async () => {
-            const user = userEvent.setup()
-            renderWithClient(<EditPriceForm price={price} closeEditPrice={() => { }} />)
-    
-            const basePriceInput = screen.getByRole('textbox', { name: /base price/i }) as HTMLInputElement
-            await user.clear(basePriceInput)
-            await user.type(basePriceInput, '100.00')
-    
-            const discountAmountInput = screen.getByRole('textbox', { name: /discount amount/i }) as HTMLInputElement
-            await user.clear(discountAmountInput)
-            await user.type(discountAmountInput, '80.00')
-    
-            const returnPercentageInput = screen.getByRole('textbox', { name: /return %/i }) as HTMLInputElement
-            await user.clear(returnPercentageInput)
-            await user.type(returnPercentageInput, '50.00')
-    
-            await user.clear(basePriceInput)
-            await user.type(basePriceInput, '0.00')
-    
-            const returnAmountInput = screen.getByRole('textbox', { name: /return amount/i }) as HTMLInputElement
-    
-            expect(discountAmountInput.value).toBe('0.00')
-            expect(returnAmountInput.value).toBe('0.00')
-        })
+    test('should match discount percentage with discount amount', async () => {
+        const user = userEvent.setup()
+        renderWithClient(<EditPriceForm price={price} closeEditPrice={() => { }} />)
+
+        const basePriceInput = screen.getByRole('textbox', { name: /base price/i }) as HTMLInputElement
+        await user.clear(basePriceInput)
+        await user.type(basePriceInput, '100.00')
+
+        const discountAmountInput = screen.getByRole('textbox', { name: /discount amount/i }) as HTMLInputElement
+        await user.clear(discountAmountInput)
+        await user.type(discountAmountInput, '20.00')
+
+        const discountPercentageInputs = screen.getByRole('textbox', { name: /discount %/i }) as HTMLInputElement
+        expect(discountPercentageInputs.value).toBe('80.00')
+    })
+
+    test('should match return amount with return percentage', async () => {
+        const user = userEvent.setup()
+        renderWithClient(<EditPriceForm price={price} closeEditPrice={() => { }} />)
+
+        const basePriceInput = screen.getByRole('textbox', { name: /base price/i }) as HTMLInputElement
+        await user.clear(basePriceInput)
+        await user.type(basePriceInput, '100.00')
+
+        const returnPercentageInput = screen.getByRole('textbox', { name: /return %/i }) as HTMLInputElement
+        await user.clear(returnPercentageInput)
+        await user.type(returnPercentageInput, '80.00')
+        
+        const returnAmountInput = screen.getByRole('textbox', { name: /return amount/i }) as HTMLInputElement
+        expect(returnAmountInput.value).toBe('80.00')
+    })
+
+    test('should match return percentage with return amount', async () => {
+        const user = userEvent.setup()
+        renderWithClient(<EditPriceForm price={price} closeEditPrice={() => { }} />)
+
+        const basePriceInput = screen.getByRole('textbox', { name: /base price/i }) as HTMLInputElement
+        await user.clear(basePriceInput)
+        await user.type(basePriceInput, '100.00')
+
+        const returnAmountInput = screen.getByRole('textbox', { name: /return amount/i }) as HTMLInputElement
+        await user.clear(returnAmountInput)
+        await user.type(returnAmountInput, '80.00')
+
+        const returnPercentageInput = screen.getByRole('textbox', { name: /return %/i }) as HTMLInputElement
+        expect(returnPercentageInput.value).toBe('80.00')
+    })
+
+    test('should use (base - discount) amount for return amount', async () => {
+        const user = userEvent.setup()
+        renderWithClient(<EditPriceForm price={price} closeEditPrice={() => { }} />)
+
+        const basePriceInput = screen.getByRole('textbox', { name: /base price/i }) as HTMLInputElement
+        await user.clear(basePriceInput)
+        await user.type(basePriceInput, '100.00')
+
+        const discountAmountInput = screen.getByRole('textbox', { name: /discount amount/i }) as HTMLInputElement
+        await user.clear(discountAmountInput)
+        await user.type(discountAmountInput, '80.00')
+
+        const returnAmountInput = screen.getByRole('textbox', { name: /return amount/i }) as HTMLInputElement
+        await user.clear(returnAmountInput)
+        await user.type(returnAmountInput, '40.00')
+
+        const returnPercentageInput = screen.getByRole('textbox', { name: /return %/i }) as HTMLInputElement
+        expect(returnPercentageInput.value).toBe('50.00')
+    })
+
+    test('should use (base - discount) amount for return percentage', async () => {
+        const user = userEvent.setup()
+        renderWithClient(<EditPriceForm price={price} closeEditPrice={() => { }} />)
+
+        const basePriceInput = screen.getByRole('textbox', { name: /base price/i }) as HTMLInputElement
+        await user.clear(basePriceInput)
+        await user.type(basePriceInput, '100.00')
+
+        const discountAmountInput = screen.getByRole('textbox', { name: /discount amount/i }) as HTMLInputElement
+        await user.clear(discountAmountInput)
+        await user.type(discountAmountInput, '80.00')
+
+        const returnPercentageInput = screen.getByRole('textbox', { name: /return %/i }) as HTMLInputElement
+        await user.clear(returnPercentageInput)
+        await user.type(returnPercentageInput, '50.00')
+
+        const returnAmountInput = screen.getByRole('textbox', { name: /return amount/i }) as HTMLInputElement
+        expect(returnAmountInput.value).toBe('40.00')
+    })
+
+    test('should update discount amount if base price is updated', async () => {
+        const user = userEvent.setup()
+        renderWithClient(<EditPriceForm price={price} closeEditPrice={() => { }} />)
+
+        const basePriceInput = screen.getByRole('textbox', { name: /base price/i }) as HTMLInputElement
+        await user.clear(basePriceInput)
+        await user.type(basePriceInput, '100.00')
+
+        const discountAmountInput = screen.getByRole('textbox', { name: /discount amount/i }) as HTMLInputElement
+        await user.clear(discountAmountInput)
+        await user.type(discountAmountInput, '80.00') // 20%
+
+        await user.clear(basePriceInput)
+        await user.type(basePriceInput, '80.00')
+
+        expect(discountAmountInput.value).toBe('64.00')
+    })
+
+    test('should update return amount if base price is updated', async () => {
+        const user = userEvent.setup()
+        renderWithClient(<EditPriceForm price={price} closeEditPrice={() => { }} />)
+
+        const basePriceInput = screen.getByRole('textbox', { name: /base price/i }) as HTMLInputElement
+        await user.clear(basePriceInput)
+        await user.type(basePriceInput, '100.00')
+
+        const discountAmountInput = screen.getByRole('textbox', { name: /discount amount/i }) as HTMLInputElement
+        await user.clear(discountAmountInput)
+        await user.type(discountAmountInput, '80.00') // 20%
+
+        const returnPercentageInput = screen.getByRole('textbox', { name: /return %/i }) as HTMLInputElement
+        await user.clear(returnPercentageInput)
+        await user.type(returnPercentageInput, '50.00')
+
+        await user.clear(basePriceInput)
+        await user.type(basePriceInput, '80.00')
+
+        const returnAmountInput = screen.getByRole('textbox', { name: /return amount/i }) as HTMLInputElement
+
+        expect(discountAmountInput.value).toBe('64.00')
+        expect(returnAmountInput.value).toBe('32.00')
+    })
+
+    test('should set discount & return amount to 0 when base amount is set to 0', async () => {
+        const user = userEvent.setup()
+        renderWithClient(<EditPriceForm price={price} closeEditPrice={() => { }} />)
+
+        const basePriceInput = screen.getByRole('textbox', { name: /base price/i }) as HTMLInputElement
+        await user.clear(basePriceInput)
+        await user.type(basePriceInput, '100.00')
+
+        const discountAmountInput = screen.getByRole('textbox', { name: /discount amount/i }) as HTMLInputElement
+        await user.clear(discountAmountInput)
+        await user.type(discountAmountInput, '80.00')
+
+        const returnPercentageInput = screen.getByRole('textbox', { name: /return %/i }) as HTMLInputElement
+        await user.clear(returnPercentageInput)
+        await user.type(returnPercentageInput, '50.00')
+
+        await user.clear(basePriceInput)
+        await user.type(basePriceInput, '0.00')
+
+        const returnAmountInput = screen.getByRole('textbox', { name: /return amount/i }) as HTMLInputElement
+
+        expect(discountAmountInput.value).toBe('0.00')
+        expect(returnAmountInput.value).toBe('0.00')
+    })
 })
