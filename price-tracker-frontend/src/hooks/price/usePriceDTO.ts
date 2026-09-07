@@ -1,13 +1,13 @@
 import { useEffect, useReducer } from 'react'
 import type { PriceDTO } from '../../utils/Types'
 
-interface ReducerAction {
+export interface ReducerAction {
     type: 'set_field' | 'reset'
     key?: string
     value: number | string | PriceDTO | undefined
 }
 
-const createInitialPriceDTO = (initialPriceDTO: PriceDTO | undefined) => {
+export const createInitialPriceDTO = (initialPriceDTO: PriceDTO | undefined) => {
     if (initialPriceDTO) {
         return initialPriceDTO
     } else {
@@ -26,7 +26,7 @@ const createInitialPriceDTO = (initialPriceDTO: PriceDTO | undefined) => {
     }
 }
 
-const reducer = (state: PriceDTO, action: ReducerAction) => {
+export const reducer = (state: PriceDTO, action: ReducerAction) => {
     switch (action.type) {
         case 'set_field': {
             const { key, value } = action
