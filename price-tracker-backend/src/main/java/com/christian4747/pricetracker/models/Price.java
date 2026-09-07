@@ -40,6 +40,12 @@ public class Price {
     @Column(nullable = false)
     private double returnPercentage;
 
+    @Column(nullable = false)
+    private double totalAmount;
+
+    @Column(nullable = false)
+    private double totalPercentage;
+
     @CreationTimestamp
     private Timestamp createdAt;
 
@@ -54,7 +60,7 @@ public class Price {
     public Price() {
     }
 
-    public Price(int priceId, double amount, String currency, String description, double discountAmount, double discountPercentage, Timestamp priceStarted, Timestamp priceEnded, double returnAmount, double returnPercentage, Timestamp createdAt, Timestamp updatedAt, Product product) {
+    public Price(int priceId, double amount, String currency, String description, double discountAmount, double discountPercentage, Timestamp priceStarted, Timestamp priceEnded, double returnAmount, double returnPercentage, double totalAmount, double totalPercentage, Timestamp createdAt, Timestamp updatedAt, Product product) {
         this.priceId = priceId;
         this.amount = amount;
         this.currency = currency;
@@ -65,6 +71,8 @@ public class Price {
         this.priceEnded = priceEnded;
         this.returnAmount = returnAmount;
         this.returnPercentage = returnPercentage;
+        this.totalAmount = totalAmount;
+        this.totalPercentage = totalPercentage;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
         this.product = product;
@@ -150,6 +158,22 @@ public class Price {
         this.returnPercentage = returnPercentage;
     }
 
+    public double getTotalAmount() {
+        return totalAmount;
+    }
+
+    public void setTotalAmount(double totalAmount) {
+        this.totalAmount = totalAmount;
+    }
+
+    public double getTotalPercentage() {
+        return totalPercentage;
+    }
+
+    public void setTotalPercentage(double totalPercentage) {
+        this.totalPercentage = totalPercentage;
+    }
+
     public Timestamp getCreatedAt() {
         return createdAt;
     }
@@ -187,6 +211,8 @@ public class Price {
                 ", priceEnded=" + priceEnded +
                 ", returnAmount=" + returnAmount +
                 ", returnPercentage=" + returnPercentage +
+                ", totalAmount=" + totalAmount +
+                ", totalPercentage=" + totalPercentage +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
                 ", product=" + product +

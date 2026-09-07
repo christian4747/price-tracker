@@ -54,6 +54,8 @@ public class PriceService {
                 priceDTO.getPriceEnded(),
                 priceDTO.getReturnAmount(),
                 priceDTO.getReturnPercentage(),
+                priceDTO.getTotalAmount(),
+                priceDTO.getTotalPercentage(),
                 null,
                 null,
                 existingProduct.get()
@@ -183,6 +185,8 @@ public class PriceService {
         priceToUpdate.setPriceEnded(priceDTO.getPriceEnded());
         priceToUpdate.setReturnAmount(priceDTO.getReturnAmount());
         priceToUpdate.setReturnPercentage(priceDTO.getReturnPercentage());
+        priceToUpdate.setTotalAmount(priceDTO.getTotalAmount());
+        priceToUpdate.setTotalPercentage(priceDTO.getTotalPercentage());
 
         if (priceToUpdate.getProduct().getProductId() != priceDTO.getProductId()) {
             Optional<Product> existingProduct = productDAO.findById(priceDTO.getProductId());
