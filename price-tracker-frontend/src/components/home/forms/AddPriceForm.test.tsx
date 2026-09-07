@@ -1,7 +1,7 @@
 import { describe, expect } from 'vitest'
-import { renderWithClient, screen, userEvent, test } from '../../test-utils'
-import { ProductType } from '../../src/utils/Types'
-import { AddPriceForm } from '../../src/components/home/forms/AddPriceForm'
+import { renderWithClient, screen, userEvent, test } from '@/test-utils'
+import { AddPriceForm } from './AddPriceForm'
+import type { ProductType } from '@/utils/Types'
 
 const product: ProductType = {
     active: false,

@@ -1,5 +1,5 @@
 import { test as testBase } from 'vitest'
-import { worker } from '../src/mocks/browser'
+import { worker } from '../mocks/browser'
 
 export const test = testBase.extend({
     worker: [
