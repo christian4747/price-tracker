@@ -1,15 +1,15 @@
 
 import { Button, Center, Collapse, Switch, TextInput } from '@mantine/core'
 import type { ProductType } from '@/utils/Types'
-import PriceNumberInput from '../price/PriceNumberInput'
 import { RecentDataScroller } from '@/components/common/RecentDataScroller'
 import { PriceDateTimePicker } from '../price/PriceDateTimePicker'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { getFormattedDateString } from '@/utils/DateUtilities'
 import { useDisclosure } from '@mantine/hooks'
 import { getHighestPrice } from '@/utils/PriceUtilities'
 import { useAddPrice } from '@/hooks/price/useAddPrice'
 import { useRecentPriceData } from '@/hooks/price/useRecentPriceData'
+import { AmountInputGroup } from '../price/AmountInputGroup'
 
 interface AddPriceForm {
     product: ProductType
@@ -61,82 +61,9 @@ export const AddPriceForm = ({ product, setDateToday, close }: AddPriceForm) => 
         setDateToday(new Date())
     }
 
-    const changeBasePrice = (amount: number) => {
-        priceDTO.setField('amount', amount)
-    }
-
-    const changeDiscountAmount = (discountAmount: number) => {
-        priceDTO.setField('discountAmount', discountAmount)
-        priceDTO.setField('discountPercentage', (priceDTO.value.amount - discountAmount) / priceDTO.value.amount)
-    }
-
-    const changeDiscountPercentage = (discountPercentage: number) => {
-        priceDTO.setField('discountPercentage', discountPercentage)
-        priceDTO.setField('discountAmount', priceDTO.value.amount - priceDTO.value.amount * (discountPercentage))
-    }
-
-    const changeReturnAmount = (returnAmount: number) => {
-        priceDTO.setField('returnAmount', returnAmount)
-        priceDTO.setField('returnPercentage', returnAmount / Math.min(priceDTO.value.discountAmount, priceDTO.value.amount))
-    }
-
-    const changeReturnPercentage = (returnPercentage: number) => {
-        priceDTO.setField('returnPercentage', returnPercentage)
-        priceDTO.setField('returnAmount', Math.min(priceDTO.value.discountAmount, priceDTO.value.amount) * (returnPercentage))
-    }
-
-
-    useEffect(() => {
-        changeDiscountPercentage(priceDTO.value.discountPercentage)
-    }, [priceDTO.value.amount])
-
-    useEffect(() => {
-        changeReturnPercentage(priceDTO.value.returnPercentage)
-    }, [priceDTO.value.discountAmount])
-
     return (
         <>
-            <PriceNumberInput
-                label="Base Price"
-                className="mb-2 min-w-75"
-                withAsterisk
-                value={priceDTO.value.amount}
-                onChange={(amount) => changeBasePrice(amount as number)}
-            />
-
-            <div className='flex gap-1 mb-2'>
-                <PriceNumberInput
-                    label="Discount Amount"
-                    className="mb-2 w-75"
-                    value={priceDTO.value.discountAmount}
-                    max={priceDTO.value.amount}
-                    onChange={(discountAmount) => changeDiscountAmount(discountAmount as number)}
-                />
-                <PriceNumberInput
-                    label='Discount %'
-                    className='max-w-25'
-                    value={priceDTO.value.discountPercentage * 100}
-                    max={100}
-                    onChange={(discountPercentage) => changeDiscountPercentage(discountPercentage as number / 100)}
-                />
-            </div>
-
-            <div className='flex gap-1 mb-2'>
-                <PriceNumberInput
-                    label="Return Amount"
-                    className="mb-2 w-75"
-                    value={priceDTO.value.returnAmount}
-                    max={priceDTO.value.discountAmount}
-                    onChange={(returnAmount) => changeReturnAmount(returnAmount as number)}
-                />
-                <PriceNumberInput
-                    label='Return %'
-                    className='max-w-25'
-                    value={priceDTO.value.returnPercentage * 100}
-                    max={100}
-                    onChange={(returnPercentage) => changeReturnPercentage(returnPercentage as number / 100)}
-                />
-            </div>
+            <AmountInputGroup value={priceDTO.value} setField={priceDTO.setField} />
 
             <TextInput
                 label="Description"
