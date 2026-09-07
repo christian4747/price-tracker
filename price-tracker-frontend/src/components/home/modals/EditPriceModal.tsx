@@ -1,6 +1,5 @@
 import type { PriceType } from "../../../utils/Types"
 import { Modal } from "@mantine/core"
-import PriceCalculator from "../price/PriceCalculator"
 import { EditPriceForm } from "../forms/EditPriceForm"
 
 interface EditPriceModal {
@@ -17,7 +16,6 @@ export const EditPriceModal = ({ price, closeEditPrice, opened }: EditPriceModal
                 onClose={closeEditPrice}
                 title="Edit Price"
             >
-                <PriceCalculator />
                 <EditPriceForm
                     price={price}
                     closeEditPrice={closeEditPrice}

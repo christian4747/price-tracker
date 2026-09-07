@@ -2,7 +2,6 @@
 import { Button, Modal} from '@mantine/core'
 import type { ProductType } from '@/utils/Types'
 import { useDisclosure } from '@mantine/hooks'
-import PriceCalculator from '../price/PriceCalculator'
 import { AddPriceForm } from '../forms/AddPriceForm'
 
 interface AddPriceModal {
@@ -22,7 +21,6 @@ export const AddPriceModal = ({ product, setDateToday }: AddPriceModal) => {
                 onClose={close}
                 title="Add Price"
             >
-                <PriceCalculator />
                 <AddPriceForm product={product} setDateToday={setDateToday} close={close} />
             </Modal>
             <Button className="m-2" onClick={open}>Add Price</Button>
