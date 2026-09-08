@@ -6,7 +6,6 @@ import { PriceDateTimePicker } from '../price/PriceDateTimePicker'
 import { useState } from 'react'
 import { getFormattedDateString } from '@/utils/DateUtilities'
 import { useDisclosure } from '@mantine/hooks'
-import { getHighestPrice } from '@/utils/PriceUtilities'
 import { useAddPrice } from '@/hooks/price/useAddPrice'
 import { useRecentPriceData } from '@/hooks/price/useRecentPriceData'
 import { AmountInputGroup } from '../price/AmountInputGroup'
@@ -27,7 +26,7 @@ export const AddPriceForm = ({ product, setDateToday, close }: AddPriceForm) => 
     const [useEndDateDesc, setUseEndDateDesc] = useState(false)
 
     // Hook for adding prices
-    const { priceDTO, mutation: multiMutation, singleMutation } = useAddPrice(product, getHighestPrice(product?.prices), useEndDateDesc)
+    const { priceDTO, mutation: multiMutation, singleMutation } = useAddPrice(product, useEndDateDesc)
     // Hook for recent price data
     const { query: recentPriceQuery } = useRecentPriceData()
 

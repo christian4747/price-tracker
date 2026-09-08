@@ -21,7 +21,9 @@ export const createInitialPriceDTO = (initialPriceDTO: PriceDTO | undefined) => 
             priceStarted: '',
             productId: -1,
             returnAmount: 0,
-            returnPercentage: 0
+            returnPercentage: 0,
+            totalAmount: 0,
+            totalPercentage: 0
         }
     }
 }

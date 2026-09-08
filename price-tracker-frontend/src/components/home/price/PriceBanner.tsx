@@ -113,7 +113,7 @@ export const PriceBanner = ({ product, dateToday, setDateToday, mini }: PriceBan
 
     // Calculate discount and price string
     const priceText = getPriceString(latestPrice)
-    const discountPercent = getPriceDiscount(product.prices, latestPrice)
+    const discountPercent = getPriceDiscount(latestPrice)
 
     // Banner style based on banner type & percentage
     const { color, bg, text } = getBannerStyle(priceData.getBannerType(product.prices))
@@ -200,7 +200,7 @@ export const PriceBanner = ({ product, dateToday, setDateToday, mini }: PriceBan
             {/* Price text */}
             <div className={'min-w-17.5 text-right ' + textStyle}>
                 {latestPrice && latestPrice.returnAmount > 0 ?
-                    <Tooltip withArrow label={<>{latestPrice.amount} (base) - {latestPrice.returnAmount} (return)</>}>
+                    <Tooltip withArrow label={<>{latestPrice.discountAmount} (base) - {latestPrice.returnAmount} (return)</>}>
                         <div>{priceText}</div>
                     </Tooltip>
                     :

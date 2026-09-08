@@ -22,6 +22,8 @@ export interface PriceType {
     productId: number
     returnAmount: number
     returnPercentage: number
+    totalAmount: number
+    totalPercentage: number
     updatedAt: string
 }
 
@@ -43,4 +45,6 @@ export interface PriceDTO {
     productId: number
     returnAmount: number
     returnPercentage: number
+    totalAmount: number
+    totalPercentage: number
 }

@@ -14,11 +14,13 @@ public class IncomingPriceDTO {
     private Integer productId;
     private double returnAmount;
     private double returnPercentage;
+    private double totalAmount;
+    private double totalPercentage;
 
     public IncomingPriceDTO() {
     }
 
-    public IncomingPriceDTO(double amount, String currency, String description, double discountAmount, double discountPercentage, Timestamp priceStarted, Timestamp priceEnded, Integer productId, double returnAmount, double returnPercentage) {
+    public IncomingPriceDTO(double amount, String currency, String description, double discountAmount, double discountPercentage, Timestamp priceStarted, Timestamp priceEnded, Integer productId, double returnAmount, double returnPercentage, double totalAmount, double totalPercentage) {
         this.amount = amount;
         this.currency = currency;
         this.description = description;
@@ -29,6 +31,8 @@ public class IncomingPriceDTO {
         this.productId = productId;
         this.returnAmount = returnAmount;
         this.returnPercentage = returnPercentage;
+        this.totalAmount = totalAmount;
+        this.totalPercentage = totalPercentage;
     }
 
     public double getAmount() {
@@ -111,6 +115,22 @@ public class IncomingPriceDTO {
         this.returnPercentage = returnPercentage;
     }
 
+    public double getTotalAmount() {
+        return totalAmount;
+    }
+
+    public void setTotalAmount(double totalAmount) {
+        this.totalAmount = totalAmount;
+    }
+
+    public double getTotalPercentage() {
+        return totalPercentage;
+    }
+
+    public void setTotalPercentage(double totalPercentage) {
+        this.totalPercentage = totalPercentage;
+    }
+
     @Override
     public String toString() {
         return "IncomingPriceDTO{" +
@@ -124,6 +144,8 @@ public class IncomingPriceDTO {
                 ", productId=" + productId +
                 ", returnAmount=" + returnAmount +
                 ", returnPercentage=" + returnPercentage +
+                ", totalAmount=" + totalAmount +
+                ", totalPercentage=" + totalPercentage +
                 '}';
     }
 }
