@@ -7,34 +7,36 @@ public class IncomingPriceDTO {
     private double amount;
     private String currency;
     private String description;
+    private double discountAmount;
+    private double discountPercentage;
     private Timestamp priceStarted;
     private Timestamp priceEnded;
     private Integer productId;
     private double returnAmount;
+    private double returnPercentage;
+    private double totalAmount;
+    private double totalPercentage;
 
     public IncomingPriceDTO() {
     }
 
-    public IncomingPriceDTO(double amount, String currency, String description, Timestamp priceStarted, Timestamp priceEnded, Integer productId, double returnAmount) {
+    public IncomingPriceDTO(double amount, String currency, String description, double discountAmount, double discountPercentage, Timestamp priceStarted, Timestamp priceEnded, Integer productId, double returnAmount, double returnPercentage, double totalAmount, double totalPercentage) {
         this.amount = amount;
         this.currency = currency;
         this.description = description;
+        this.discountAmount = discountAmount;
+        this.discountPercentage = discountPercentage;
         this.priceStarted = priceStarted;
         this.priceEnded = priceEnded;
         this.productId = productId;
         this.returnAmount = returnAmount;
+        this.returnPercentage = returnPercentage;
+        this.totalAmount = totalAmount;
+        this.totalPercentage = totalPercentage;
     }
 
     public double getAmount() {
         return amount;
-    }
-
-    public double getReturnAmount() {
-        return returnAmount;
-    }
-
-    public void setReturnAmount(double returnAmount) {
-        this.returnAmount = returnAmount;
     }
 
     public void setAmount(double amount) {
@@ -55,6 +57,22 @@ public class IncomingPriceDTO {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public double getDiscountAmount() {
+        return discountAmount;
+    }
+
+    public void setDiscountAmount(double discountAmount) {
+        this.discountAmount = discountAmount;
+    }
+
+    public double getDiscountPercentage() {
+        return discountPercentage;
+    }
+
+    public void setDiscountPercentage(double discountPercentage) {
+        this.discountPercentage = discountPercentage;
     }
 
     public Timestamp getPriceStarted() {
@@ -81,16 +99,53 @@ public class IncomingPriceDTO {
         this.productId = productId;
     }
 
+    public double getReturnAmount() {
+        return returnAmount;
+    }
+
+    public void setReturnAmount(double returnAmount) {
+        this.returnAmount = returnAmount;
+    }
+
+    public double getReturnPercentage() {
+        return returnPercentage;
+    }
+
+    public void setReturnPercentage(double returnPercentage) {
+        this.returnPercentage = returnPercentage;
+    }
+
+    public double getTotalAmount() {
+        return totalAmount;
+    }
+
+    public void setTotalAmount(double totalAmount) {
+        this.totalAmount = totalAmount;
+    }
+
+    public double getTotalPercentage() {
+        return totalPercentage;
+    }
+
+    public void setTotalPercentage(double totalPercentage) {
+        this.totalPercentage = totalPercentage;
+    }
+
     @Override
     public String toString() {
         return "IncomingPriceDTO{" +
                 "amount=" + amount +
                 ", currency='" + currency + '\'' +
                 ", description='" + description + '\'' +
+                ", discountAmount=" + discountAmount +
+                ", discountPercentage=" + discountPercentage +
                 ", priceStarted=" + priceStarted +
                 ", priceEnded=" + priceEnded +
                 ", productId=" + productId +
                 ", returnAmount=" + returnAmount +
+                ", returnPercentage=" + returnPercentage +
+                ", totalAmount=" + totalAmount +
+                ", totalPercentage=" + totalPercentage +
                 '}';
     }
 }

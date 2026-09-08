@@ -1,23 +1,28 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import api from '../../services/api'
 import { usePriceDTO } from './usePriceDTO'
-import type { PriceType, ProductType } from '../../utils/Types'
+import type { PriceDTO, PriceType, ProductType } from '../../utils/Types'
 import dayjs from 'dayjs'
 import { sendSuccessNotification } from '@/utils/NotificationUtilities'
-import { getFormattedDateString } from '@/utils/DateUtilities'
+import { getFormattedDateString, getLocalDateFromUTC } from '@/utils/DateUtilities'
 import { useState } from 'react'
 
-export function useAddPrice(product: ProductType, highestPrice: number, useEndDateDesc: boolean) {
+export function useAddPrice(product: ProductType, useEndDateDesc: boolean) {
 
     // Use state fixes this value (prevents useEffect refreshes)
-    const [emptyPriceDTO,] = useState({
-        amount: 0.00,
+    const [emptyPriceDTO,] = useState<PriceDTO>({
+        amount: 0,
         currency: '',
-        priceStarted: '',
-        priceEnded: '',
-        productId: product.productId,
         description: '',
-        returnAmount: 0
+        discountAmount: 0,
+        discountPercentage: 0,
+        priceEnded: getLocalDateFromUTC(new Date()).format(),
+        priceStarted: getLocalDateFromUTC(new Date()).format(),
+        productId: product.productId,
+        returnAmount: 0,
+        returnPercentage: 0,
+        totalAmount: 0,
+        totalPercentage: 0
     })
 
     // State for PriceDTO when adding Prices
@@ -77,8 +82,10 @@ export function useAddPrice(product: ProductType, highestPrice: number, useEndDa
                 priceDTO.value.description = ''
             }
 
-            priceDTO.value.amount = highestPrice
+            priceDTO.value.discountAmount = priceDTO.value.amount
+            priceDTO.value.discountPercentage = 0
             priceDTO.value.returnAmount = 0
+            priceDTO.value.returnPercentage = 0
             return api.addPrice(priceDTO.value)
         },
         onSuccess: (newPrice: PriceType) => {

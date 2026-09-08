@@ -23,7 +23,7 @@ export function usePriceData(dateToday: Date) {
                 return {
                     priceId: price.priceId,
                     priceStarted: localizeFormatDayjs(getLocalDateFromUTC(new Date(price.priceStarted)), 'lll'),
-                    price: price.amount - price.returnAmount,
+                    price: price.totalAmount,
                     description: price.description,
                     currency: price.currency
                 }
@@ -34,7 +34,7 @@ export function usePriceData(dateToday: Date) {
             {
                 priceId: -1,
                 priceStarted: 'Now',
-                price: sortedPricesByDate[todayIndex - 1].amount - sortedPricesByDate[todayIndex - 1].returnAmount,
+                price: sortedPricesByDate[todayIndex - 1].totalAmount,
                 description: sortedPricesByDate[todayIndex - 1].description,
                 currency: sortedPricesByDate[todayIndex - 1].currency
             }
@@ -87,7 +87,7 @@ export function usePriceData(dateToday: Date) {
         const mostRecentPrice = getLatestPriceBeforeToday(prices)
         if (!mostRecentPrice) return ''
     
-        const mostRecentDiscount = getPriceDiscount(prices, mostRecentPrice)
+        const mostRecentDiscount = getPriceDiscount(mostRecentPrice)
     
         const allTimeDiscount = getBestDiscount(sortedPricesByDate)
         const twoYearDiscount = getBestDiscount(getXYearAgoPrices(prices, 2))

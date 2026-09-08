@@ -2,6 +2,7 @@ import '@testing-library/jest-dom/vitest'
 
 import { vi } from 'vitest'
 
+// Mantine
 const { getComputedStyle } = window
 window.getComputedStyle = (elt) => getComputedStyle(elt)
 window.HTMLElement.prototype.scrollIntoView = () => { }

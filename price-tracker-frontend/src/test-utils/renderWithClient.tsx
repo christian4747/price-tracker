@@ -3,7 +3,7 @@ import { MantineProvider } from "@mantine/core"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { render } from "@testing-library/react"
 
-export function renderWithClient(ui: React.ReactElement) {
+export const RenderClientWrapper = ({ children }: { children: React.ReactNode}) => {
     const queryClient = new QueryClient({
         defaultOptions: {
             queries: {
@@ -12,13 +12,19 @@ export function renderWithClient(ui: React.ReactElement) {
         },
     })
 
+    return (
+        <MantineProvider theme={theme} env="test">
+            <QueryClientProvider client={queryClient}>
+                {children}
+            </QueryClientProvider>
+        </MantineProvider>
+    )
+}
+
+export function renderWithClient(ui: React.ReactElement) {
     return render(<>{ui}</>, {
         wrapper: ({ children }: { children: React.ReactNode }) => (
-            <MantineProvider theme={theme} env="test">
-                <QueryClientProvider client={queryClient}>
-                    {children}
-                </QueryClientProvider>
-            </MantineProvider>)
+            <RenderClientWrapper children={children} />)
         },
     )
 }

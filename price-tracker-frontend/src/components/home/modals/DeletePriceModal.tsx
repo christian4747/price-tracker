@@ -3,6 +3,7 @@ import type { PriceType } from "../../../utils/Types";
 import { getUSDateStringFromTimestamp } from "../../../utils/DateUtilities";
 import { Button, Center, Modal } from "@mantine/core";
 import { useDeletePrice } from "@/hooks/price/useDeletePrice";
+import { getPriceString } from "@/utils/PriceUtilities";
 
 interface DeletePriceModal {
     price: PriceType
@@ -22,7 +23,7 @@ export const DeletePriceModal = ({ price, closeDeletePrice, opened }: DeletePric
     }
 
     const priceStartedString = price?.priceStarted ? getUSDateStringFromTimestamp(price.priceStarted) : ''
-    const priceAmountString = price?.amount ? price.amount : 0
+    const priceAmountString = price?.amount ? getPriceString(price) : 0
 
     return (
         <>
@@ -34,7 +35,7 @@ export const DeletePriceModal = ({ price, closeDeletePrice, opened }: DeletePric
             >
                 <Center className="flex flex-col">
                     <div className="text-xl mb-2 text-center">
-                        Are you sure you want to delete Price {priceStartedString} (${priceAmountString})?
+                        Are you sure you want to delete Price {priceStartedString} ({priceAmountString})?
                     </div>
 
                     <div className="text-xl text-red-600 font-bold mb-2">This cannot be undone.</div>
