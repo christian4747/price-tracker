@@ -5,15 +5,18 @@ import com.christian4747.pricetracker.daos.ProductDAO;
 import com.christian4747.pricetracker.models.Price;
 import com.christian4747.pricetracker.models.Product;
 import com.christian4747.pricetracker.models.dtos.IncomingPriceDTO;
+import com.christian4747.pricetracker.models.dtos.OutgoingPriceDTO;
+import com.christian4747.pricetracker.models.dtos.PriceGraphData;
 import com.christian4747.pricetracker.models.dtos.RecentPriceData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -51,6 +54,7 @@ public class PriceService {
                 priceDTO.getDescription(),
                 priceDTO.getDiscountAmount(),
                 priceDTO.getDiscountPercentage(),
+                false,
                 priceDTO.getPriceStarted(),
                 priceDTO.getPriceEnded(),
                 priceDTO.getReturnAmount(),
@@ -119,8 +123,26 @@ public class PriceService {
      * @param productId productId of the Prices to get
      * @return The Prices associated with the given productId
      */
-    public List<Price> getPricesByProductId(Pageable pageable, Integer productId) {
-        return priceDAO.findByProductProductIdOrderByPriceStartedDesc(pageable, productId).getContent();
+    public OutgoingPriceDTO getPricesByProductId(Pageable pageable, Integer productId) {
+
+        List<Price> prices = new ArrayList<>(priceDAO.findByProductProductIdOrderByPriceStartedDesc(pageable, productId).getContent());
+
+        List<PriceGraphData> priceGraphData = new ArrayList<>(prices.stream().map(PriceGraphData::from).toList());
+        Optional<Price> todayPrice = priceDAO.findPriceToday(productId);
+        if (todayPrice.isPresent()) {
+            todayPrice.get().setToday(true);
+            priceGraphData.add(PriceGraphData.from(todayPrice.get()));
+            priceGraphData.sort(Comparator.comparing(
+                    PriceGraphData::priceStarted,
+                    Comparator.nullsLast(Comparator.naturalOrder())
+            ).reversed());
+        } else {
+            Price todayPriceFill = prices.getFirst();
+            todayPriceFill.setToday(true);
+            priceGraphData.addFirst(PriceGraphData.from(todayPriceFill));
+        }
+
+        return new OutgoingPriceDTO(prices, priceGraphData);
     }
 
     /**

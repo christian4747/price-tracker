@@ -30,6 +30,9 @@ public class Price {
     @Column(nullable = false)
     private double discountPercentage;
 
+    @Transient
+    private boolean isToday = false;
+
     private Timestamp priceStarted;
 
     private Timestamp priceEnded;
@@ -60,13 +63,14 @@ public class Price {
     public Price() {
     }
 
-    public Price(int priceId, double amount, String currency, String description, double discountAmount, double discountPercentage, Timestamp priceStarted, Timestamp priceEnded, double returnAmount, double returnPercentage, double totalAmount, double totalPercentage, Timestamp createdAt, Timestamp updatedAt, Product product) {
+    public Price(int priceId, double amount, String currency, String description, double discountAmount, double discountPercentage, boolean isToday, Timestamp priceStarted, Timestamp priceEnded, double returnAmount, double returnPercentage, double totalAmount, double totalPercentage, Timestamp createdAt, Timestamp updatedAt, Product product) {
         this.priceId = priceId;
         this.amount = amount;
         this.currency = currency;
         this.description = description;
         this.discountAmount = discountAmount;
         this.discountPercentage = discountPercentage;
+        this.isToday = isToday;
         this.priceStarted = priceStarted;
         this.priceEnded = priceEnded;
         this.returnAmount = returnAmount;
@@ -124,6 +128,14 @@ public class Price {
 
     public void setDiscountPercentage(double discountPercentage) {
         this.discountPercentage = discountPercentage;
+    }
+
+    public boolean isToday() {
+        return isToday;
+    }
+
+    public void setToday(boolean today) {
+        isToday = today;
     }
 
     public Timestamp getPriceStarted() {
@@ -207,6 +219,7 @@ public class Price {
                 ", description='" + description + '\'' +
                 ", discountAmount=" + discountAmount +
                 ", discountPercentage=" + discountPercentage +
+                ", isToday=" + isToday +
                 ", priceStarted=" + priceStarted +
                 ", priceEnded=" + priceEnded +
                 ", returnAmount=" + returnAmount +

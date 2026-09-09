@@ -1,5 +1,5 @@
 import { usePriceData } from '@/hooks/price/usePriceData'
-import type { ProductType } from '@/utils/Types'
+import type { PriceGraphData, PriceType } from '@/utils/Types'
 import { LineChart, type ChartTooltipProps } from '@mantine/charts'
 import { Paper, Text } from '@mantine/core'
 
@@ -30,12 +30,12 @@ function ChartTooltip({ label, payload }: ChartTooltipProps) {
 }
 
 type PriceHistoryChartProps = {
-    product: ProductType
+    prices: PriceGraphData[]
     dateToday: Date
 }
 
-const PriceHistoryChart = ({product, dateToday}: PriceHistoryChartProps) => {
-    const priceData = usePriceData(dateToday).createPriceData(product.prices)
+const PriceHistoryChart = ({ prices, dateToday }: PriceHistoryChartProps) => {
+    const priceData = usePriceData(dateToday).createPriceData(prices)
 
     return (
         <div className='w-7/10 border border-smoke rounded-sm p-5'>
@@ -48,7 +48,7 @@ const PriceHistoryChart = ({product, dateToday}: PriceHistoryChartProps) => {
                 data={priceData}
                 dataKey="priceStarted"
                 series={[
-                    { name: 'price', color: 'blue.6'}
+                    { name: 'totalAmount', color: 'blue.6'}
                 ]}
                 referenceLines={[
                     { x: 'Now'}

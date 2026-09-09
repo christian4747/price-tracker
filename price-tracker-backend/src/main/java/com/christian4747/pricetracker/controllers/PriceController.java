@@ -2,6 +2,7 @@ package com.christian4747.pricetracker.controllers;
 
 import com.christian4747.pricetracker.models.Price;
 import com.christian4747.pricetracker.models.dtos.IncomingPriceDTO;
+import com.christian4747.pricetracker.models.dtos.OutgoingPriceDTO;
 import com.christian4747.pricetracker.models.dtos.RecentPriceData;
 import com.christian4747.pricetracker.services.PriceService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,7 +73,7 @@ public class PriceController {
      * @return The Prices associated with the given productId
      */
     @GetMapping("/product/{productId}")
-    public ResponseEntity<List<Price>> getPricesByProductId(Pageable pageable, @PathVariable Integer productId) {
+    public ResponseEntity<OutgoingPriceDTO> getPricesByProductId(Pageable pageable, @PathVariable Integer productId) {
         return ResponseEntity.ok(priceService.getPricesByProductId(pageable, productId));
     }
 

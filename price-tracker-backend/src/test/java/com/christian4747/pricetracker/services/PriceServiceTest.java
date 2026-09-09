@@ -127,11 +127,13 @@ public class PriceServiceTest {
     }
 
     @Test
-    public void getPricesByProductId_returnThreePrices() {
+    public void getPricesByProductId_threePrices_returnThreePricesAndToday() {
         when(pricePage.getContent()).thenReturn(priceList);
+        when(priceDAO.findPriceToday(anyInt())).thenReturn(Optional.of(price));
         when(priceDAO.findByProductProductIdOrderByPriceStartedDesc(pageable, 0)).thenReturn(pricePage);
 
-        assertEquals(3, priceService.getPricesByProductId(pageable, 0).size());
+        assertEquals(3, priceService.getPricesByProductId(pageable, 0).prices().size());
+        assertEquals(4, priceService.getPricesByProductId(pageable, 0).priceGraphData().size());
     }
 
     @Test

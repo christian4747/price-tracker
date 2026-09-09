@@ -1,4 +1,3 @@
-import { sortPricesByDateAscending } from "@/utils/PriceUtilities"
 import type { PriceType, ProductType } from "../../../utils/Types"
 import { AddPriceModal } from "../modals/AddPriceModal"
 import { Price } from "./Price"
@@ -37,6 +36,7 @@ export const PriceList = ({product, setDateToday, prices}: PriceList) => {
                 <div className='flex flex-col bg-smoke font-bold max-h-45 overflow-auto'>
                     {prices.map((price) => {
                         price.productId = product.productId
+                        if (price.today === true) return
                         return (
                             <Price
                                 key={price.priceId}

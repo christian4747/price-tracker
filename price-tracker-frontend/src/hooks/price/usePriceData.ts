@@ -1,42 +1,29 @@
 import { getLocalDateFromUTC, localizeFormatDayjs } from "@/utils/DateUtilities"
 import { getBestDiscount, getPriceDiscount, getXYearAgoPrices, sortPricesByDateAscending } from "@/utils/PriceUtilities"
-import type { PriceType } from "@/utils/Types"
+import type { PriceGraphData, PriceType } from "@/utils/Types"
 import dayjs from "dayjs"
 
 export function usePriceData(dateToday: Date) {
 
     // Create Price data for PriceHistoryChart
-    const createPriceData = (prices: PriceType[]) => {
-        const sortedPricesByDate = sortPricesByDateAscending(prices)
-
+    const createPriceData = (prices: PriceGraphData[]) => {
         if (!prices || prices.length <= 0) return []
 
-        let todayFound = false
-        let todayIndex = prices.length
-        const priceData = sortedPricesByDate
+        const priceData = prices
             .map((price, idx) => {
-                if (getLocalDateFromUTC(new Date(price.priceStarted)).toDate().getTime() > dateToday.getTime() && todayFound === false) {
-                    todayFound = true
-                    todayIndex = idx
+                price = prices[prices.length - 1 - idx]
+
+                if (price.today) {
+                    return {
+                        ...price,
+                        priceStarted: "Now"
+                    }
                 }
 
                 return {
-                    priceId: price.priceId,
+                    ...price,
                     priceStarted: localizeFormatDayjs(getLocalDateFromUTC(new Date(price.priceStarted)), 'lll'),
-                    price: price.totalAmount,
-                    description: price.description,
-                    currency: price.currency
                 }
-            }
-        )
-
-        priceData.splice(todayIndex, 0,
-            {
-                priceId: -1,
-                priceStarted: 'Now',
-                price: sortedPricesByDate[todayIndex - 1].totalAmount,
-                description: sortedPricesByDate[todayIndex - 1].description,
-                currency: sortedPricesByDate[todayIndex - 1].currency
             }
         )
 

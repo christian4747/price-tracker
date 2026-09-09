@@ -16,6 +16,7 @@ const price1: PriceType = {
     priceEnded: "",
     returnAmount: 0.0,
     returnPercentage: 0.0,
+    today: false,
     totalAmount: 0.0,
     totalPercentage: 0.0,
     createdAt: "2026-09-04T00:00:00.000Z",
@@ -34,6 +35,7 @@ const price2: PriceType = {
     priceEnded: "",
     returnAmount: 0.0,
     returnPercentage: 0.0,
+    today: false,
     totalAmount: 0.0,
     totalPercentage: 0.0,
     createdAt: "2026-09-05T00:00:00.000Z",
@@ -69,6 +71,8 @@ export const handlers = [
     }),
 
     http.get(pricesApiUrl + '/product/*', () => {
-        return HttpResponse.json([price1, price2])
+        return HttpResponse.json({
+            "prices": [price1, price2]
+        })
     })
 ]

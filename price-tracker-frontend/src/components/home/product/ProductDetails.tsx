@@ -17,9 +17,9 @@ export const ProductDetails = ({ product, dateToday, setDateToday }: ProductDeta
     if (pricesQuery.isLoading) {
         return (
             <div className='w-full h-full flex justify-between gap-2' >
-                <Skeleton className="mt-1" />
+                <Skeleton className="mt-1 max-w-7/10" height={245} />
                 <div className="w-3/10">
-                    <Skeleton className="mt-1" />
+                    <Skeleton className="mt-1" height={245} />
                 </div>
             </div>
         )
@@ -28,13 +28,13 @@ export const ProductDetails = ({ product, dateToday, setDateToday }: ProductDeta
     return (
         <div className = 'w-full h-full flex justify-between gap-2' >
             <PriceHistoryChart
-                product={product}
+                prices={pricesQuery.data.priceGraphData}
                 dateToday={dateToday}
             />
             <div className="w-3/10">
                 <PriceList
                     product={product}
-                    prices={pricesQuery.data}
+                    prices={pricesQuery.data.prices}
                     setDateToday={setDateToday}
                 />
             </div>
