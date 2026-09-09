@@ -13,7 +13,7 @@ export interface Product {
 export const Product = ({ product, dateToday, setDateToday, value }: Product) => {
     return (
         <Accordion.Item value={value}>
-            <div className='h-full w-full border-b border-smoke flex flex-col gap-2 group'>
+            <div className='h-full w-full border-b border-smoke flex flex-col group'>
                 <Accordion.Control>
                     {/* Top content */}
                     <ProductTitleBar

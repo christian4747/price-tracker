@@ -63,6 +63,7 @@ export const ProductList = ({}: ProductList) => {
                     chevronIconSize={24}
                     value={currentlyOpened}
                     onChange={setCurrentlyOpened}
+                    transitionDuration={400}
                 >
                     <EditProductContext value={openEditProductModal}>
                         <DeleteProductContext value={openDeleteProductModal}>
