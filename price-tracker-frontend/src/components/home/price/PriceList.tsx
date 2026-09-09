@@ -9,15 +9,14 @@ import { useState } from "react"
 
 interface PriceList {
     product: ProductType
+    prices: PriceType[]
     setDateToday: (newVal: Date) => void
 }
 
-export const PriceList = ({product, setDateToday}: PriceList) => {
-
-    const sortedPrices = sortPricesByDateAscending(product.prices)
+export const PriceList = ({product, setDateToday, prices}: PriceList) => {
 
     // Track state for currently selected price
-    const [currentPrice, setCurrentPrice] = useState(sortedPrices[0])
+    const [currentPrice, setCurrentPrice] = useState(prices[0])
     // Track state of modal open/close
     const [editPriceOpened, { open: openEditPrice, close: closeEditPrice }] = useDisclosure(false)
     const [deletePriceOpened, { open: openDeletePrice, close: closeDeletePrice }] = useDisclosure(false)
@@ -36,7 +35,7 @@ export const PriceList = ({product, setDateToday}: PriceList) => {
         <>
             <div className='flex flex-col h-full border border-smoke rounded-sm overflow-hidden justify-between'>
                 <div className='flex flex-col bg-smoke font-bold max-h-45 overflow-auto'>
-                    {sortedPrices?.map((price) => {
+                    {prices.map((price) => {
                         price.productId = product.productId
                         return (
                             <Price

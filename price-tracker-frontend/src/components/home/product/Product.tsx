@@ -1,42 +1,37 @@
 import { type ProductType } from "@/utils/Types"
-import PriceHistoryChart from "../price/PriceHistoryChart"
-import { PriceList } from "../price/PriceList"
 import { Accordion } from "@mantine/core"
 import { ProductTitleBar } from "./ProductTitleBar"
+import { ProductDetails } from "./ProductDetails"
 
 export interface Product {
     dateToday: Date
     product: ProductType
     setDateToday: (newVal: Date) => void
+    value: string
 }
 
-export const Product = ({ product, dateToday, setDateToday }: Product) => {
+export const Product = ({ product, dateToday, setDateToday, value }: Product) => {
     return (
-        <div className='h-full w-full border-b border-smoke flex flex-col gap-2 group'>
-            <Accordion.Control>
-                {/* Top content */}
-                <ProductTitleBar
-                    product={product}
-                    dateToday={dateToday}
-                    setDateToday={setDateToday}
-                />
-            </Accordion.Control>
-
-            <Accordion.Panel>
-                {/* Lower content */}
-                <div className='w-full h-full flex justify-between gap-2'>
-                    <PriceHistoryChart
+        <Accordion.Item value={value}>
+            <div className='h-full w-full border-b border-smoke flex flex-col gap-2 group'>
+                <Accordion.Control>
+                    {/* Top content */}
+                    <ProductTitleBar
                         product={product}
                         dateToday={dateToday}
+                        setDateToday={setDateToday}
                     />
-                    <div className="w-3/10">
-                        <PriceList
-                            product={product}
-                            setDateToday={setDateToday}
-                        />
-                    </div>
-                </div>
-            </Accordion.Panel>
-        </div>
+                </Accordion.Control>
+
+                <Accordion.Panel>
+                    {/* Lower content */}
+                    <ProductDetails
+                        dateToday={dateToday}
+                        product={product}
+                        setDateToday={setDateToday}
+                    />
+                </Accordion.Panel>
+            </div>
+        </Accordion.Item>
     )
 }

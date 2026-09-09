@@ -68,13 +68,13 @@ export const ProductList = ({}: ProductList) => {
                         <DeleteProductContext value={openDeleteProductModal}>
                             {query.data.content.map((product: ProductType, idx: number) => {
                                 return (
-                                    <Accordion.Item value={`item-${idx}`} key={product.name + product.store}>
-                                        <Product
-                                            product={product}
-                                            dateToday={dateToday}
-                                            setDateToday={setDateToday}
-                                        />
-                                    </Accordion.Item>
+                                    <Product
+                                        product={product}
+                                        dateToday={dateToday}
+                                        setDateToday={setDateToday}
+                                        value={`item-${idx}`}
+                                        key={product.name + product.store}
+                                    />
                                 )
                             })}
                         </DeleteProductContext>
