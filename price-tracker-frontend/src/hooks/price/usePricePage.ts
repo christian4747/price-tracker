@@ -1,5 +1,5 @@
 import api from "@/services/api"
-import { useQuery } from "@tanstack/react-query"
+import { keepPreviousData, useQuery } from "@tanstack/react-query"
 
 export function usePricePage(productId: number) {
 
@@ -9,7 +9,8 @@ export function usePricePage(productId: number) {
         queryFn: () => {
             return api.getPrices(productId)
         },
-        throwOnError: true
+        throwOnError: true,
+        placeholderData: keepPreviousData
     })
 
     const useProductPageProps = {
