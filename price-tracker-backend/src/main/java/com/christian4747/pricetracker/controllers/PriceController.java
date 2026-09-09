@@ -65,6 +65,18 @@ public class PriceController {
     }
 
     /**
+     * Gets a list of Prices in the 'prices' database table with the given productId ordered by descending price started
+     * timestamp.
+     * @param pageable Pagination settings
+     * @param productId productId of the Prices to get
+     * @return The Prices associated with the given productId
+     */
+    @GetMapping("/product/{productId}")
+    public ResponseEntity<List<Price>> getPricesByProductId(Pageable pageable, @PathVariable Integer productId) {
+        return ResponseEntity.ok(priceService.getPricesByProductId(pageable, productId));
+    }
+
+    /**
      * Gets a distinct list of recently added Price currencies, descriptions, pricesStarted and pricesEnded.
      * @param pageable Pagination settings
      * @return A distinct list of recently added Price currencies, descriptions, pricesStarted and pricesEnded (default 20)

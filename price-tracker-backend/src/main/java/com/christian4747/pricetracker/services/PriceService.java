@@ -9,6 +9,7 @@ import com.christian4747.pricetracker.models.dtos.RecentPriceData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -109,6 +110,17 @@ public class PriceService {
         }
 
         return existingPrice.get();
+    }
+
+    /**
+     * Gets a list of Prices in the 'prices' database table with the given productId ordered by descending price started
+     * timestamp.
+     * @param pageable Pagination settings
+     * @param productId productId of the Prices to get
+     * @return The Prices associated with the given productId
+     */
+    public List<Price> getPricesByProductId(Pageable pageable, Integer productId) {
+        return priceDAO.findByProductProductIdOrderByPriceStartedDesc(pageable, productId).getContent();
     }
 
     /**

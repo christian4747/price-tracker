@@ -43,4 +43,14 @@ public interface PriceDAO extends JpaRepository<Price, Integer> {
      */
     @Query(value = "SELECT p.priceStarted FROM Price p WHERE p.priceId IN (SELECT MAX(p.priceId) FROM Price p GROUP BY p.priceStarted) ORDER BY p.createdAt DESC")
     Page<Timestamp> findDistinctPriceStartedOrderByCreatedAtDesc(Pageable pageable);
+
+    /**
+     * Gets a list of Prices in the 'prices' database table with the given productId ordered by descending price started
+     * timestamp.
+     * @param pageable Pagination settings
+     * @param productId productId of the Prices to get
+     * @return The Prices associated with the given productId
+     */
+    @Query
+    Page<Price> findByProductProductIdOrderByPriceStartedDesc(Pageable pageable, Integer productId);
 }
