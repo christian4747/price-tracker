@@ -5,9 +5,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.sql.Timestamp;
+import java.util.Optional;
 
 @Repository
 public interface PriceDAO extends JpaRepository<Price, Integer> {
@@ -53,4 +55,12 @@ public interface PriceDAO extends JpaRepository<Price, Integer> {
      */
     @Query
     Page<Price> findByProductProductIdOrderByPriceStartedDesc(Pageable pageable, Integer productId);
+
+    /**
+     * Gets the closest Price before today with the given productId.
+     * @param productId productId of the Price to get
+     * @return The closest Price before today with the given productId
+     */
+    @Query(value = "SELECT p FROM Price p WHERE p.priceStarted <= CURRENT_TIMESTAMP AND p.product.productId = :productId ORDER BY p.priceStarted DESC LIMIT 1")
+    Optional<Price> findPriceToday(@Param("productId") Integer productId);
 }
