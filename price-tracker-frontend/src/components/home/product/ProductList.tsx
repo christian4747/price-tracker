@@ -63,18 +63,19 @@ export const ProductList = ({}: ProductList) => {
                     chevronIconSize={24}
                     value={currentlyOpened}
                     onChange={setCurrentlyOpened}
+                    transitionDuration={400}
                 >
                     <EditProductContext value={openEditProductModal}>
                         <DeleteProductContext value={openDeleteProductModal}>
                             {query.data.content.map((product: ProductType, idx: number) => {
                                 return (
-                                    <Accordion.Item value={`item-${idx}`} key={product.name + product.store}>
-                                        <Product
-                                            product={product}
-                                            dateToday={dateToday}
-                                            setDateToday={setDateToday}
-                                        />
-                                    </Accordion.Item>
+                                    <Product
+                                        product={product}
+                                        dateToday={dateToday}
+                                        setDateToday={setDateToday}
+                                        value={`item-${idx}`}
+                                        key={product.name + product.store}
+                                    />
                                 )
                             })}
                         </DeleteProductContext>

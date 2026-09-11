@@ -8,11 +8,15 @@ import com.christian4747.pricetracker.models.dtos.IncomingPriceDTO;
 import com.christian4747.pricetracker.models.dtos.RecentPriceData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -50,6 +54,7 @@ public class PriceService {
                 priceDTO.getDescription(),
                 priceDTO.getDiscountAmount(),
                 priceDTO.getDiscountPercentage(),
+                false,
                 priceDTO.getPriceStarted(),
                 priceDTO.getPriceEnded(),
                 priceDTO.getReturnAmount(),
@@ -109,6 +114,40 @@ public class PriceService {
         }
 
         return existingPrice.get();
+    }
+
+    /**
+     * Gets a list of Prices in the 'prices' database table with the given productId ordered by descending price started
+     * timestamp.
+     * @param pageable Pagination settings
+     * @param productId productId of the Prices to get
+     * @return The Prices associated with the given productId
+     */
+    public List<Price> getPricesByProductId(Pageable pageable, Integer productId) {
+        List<Price> prices = new ArrayList<>(priceDAO.findByProductProductIdOrderByPriceStartedDesc(pageable, productId).getContent());
+        if (prices.isEmpty()) return List.of();
+
+        Optional<Price> todayPrice = priceDAO.findPriceToday(productId);
+        Timestamp now = Timestamp.from(Instant.now());
+        Price priceToAdd;
+
+        if (todayPrice.isPresent()) {
+            priceToAdd = todayPrice.get();
+        } else {
+            priceToAdd = new Price();
+            BeanUtils.copyProperties(prices.getFirst(), priceToAdd);
+        }
+
+        priceToAdd.setToday(true);
+        priceToAdd.setPriceStarted(now);
+        prices.add(priceToAdd);
+
+        prices.sort(Comparator.comparing(
+                Price::getPriceStarted,
+                Comparator.nullsLast(Comparator.naturalOrder())
+        ).reversed());
+
+        return prices;
     }
 
     /**

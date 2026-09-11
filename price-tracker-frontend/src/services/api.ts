@@ -26,6 +26,10 @@ export default {
         return productService.getAllProducts(rootUrl)
     },
 
+    getPrices: async (productId: number, pageNumber: number = 0, pageSize: number = 20) => {
+        return priceService.getPrices(rootUrl, productId, pageNumber, pageSize)
+    },
+
     getProductCount: async () => {
         return productService.getProductCount(rootUrl)
     },

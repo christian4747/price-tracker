@@ -7,36 +7,31 @@ export function usePriceData(dateToday: Date) {
 
     // Create Price data for PriceHistoryChart
     const createPriceData = (prices: PriceType[]) => {
-        const sortedPricesByDate = sortPricesByDateAscending(prices)
-
         if (!prices || prices.length <= 0) return []
 
-        let todayFound = false
-        let todayIndex = prices.length
-        const priceData = sortedPricesByDate
+        const priceData = prices
             .map((price, idx) => {
-                if (getLocalDateFromUTC(new Date(price.priceStarted)).toDate().getTime() > dateToday.getTime() && todayFound === false) {
-                    todayFound = true
-                    todayIndex = idx
+                price = prices[prices.length - 1 - idx]
+
+                if (price.today) {
+                    return {
+                        priceId: price.priceId,
+                        totalAmount: price.totalAmount,
+                        description: price.description,
+                        currency: price.currency,
+                        today: price.today,
+                        priceStarted: "Now"
+                    }
                 }
 
                 return {
                     priceId: price.priceId,
-                    priceStarted: localizeFormatDayjs(getLocalDateFromUTC(new Date(price.priceStarted)), 'lll'),
-                    price: price.totalAmount,
+                    totalAmount: price.totalAmount,
                     description: price.description,
-                    currency: price.currency
+                    currency: price.currency,
+                    today: price.today,
+                    priceStarted: localizeFormatDayjs(getLocalDateFromUTC(new Date(price.priceStarted)), 'lll'),
                 }
-            }
-        )
-
-        priceData.splice(todayIndex, 0,
-            {
-                priceId: -1,
-                priceStarted: 'Now',
-                price: sortedPricesByDate[todayIndex - 1].totalAmount,
-                description: sortedPricesByDate[todayIndex - 1].description,
-                currency: sortedPricesByDate[todayIndex - 1].currency
             }
         )
 

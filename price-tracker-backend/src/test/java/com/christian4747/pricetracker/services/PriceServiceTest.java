@@ -127,6 +127,15 @@ public class PriceServiceTest {
     }
 
     @Test
+    public void getPricesByProductId_threePrices_returnThreePricesAndToday() {
+        when(pricePage.getContent()).thenReturn(priceList);
+        when(priceDAO.findPriceToday(anyInt())).thenReturn(Optional.of(price));
+        when(priceDAO.findByProductProductIdOrderByPriceStartedDesc(pageable, 0)).thenReturn(pricePage);
+
+        assertEquals(4, priceService.getPricesByProductId(pageable, 0).size());
+    }
+
+    @Test
     public void updatePrice_nonExistentPrice_throwException() {
         when(priceDAO.findById(anyInt())).thenReturn(Optional.empty());
 

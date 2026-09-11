@@ -22,6 +22,7 @@ export interface PriceType {
     productId: number
     returnAmount: number
     returnPercentage: number
+    today: boolean
     totalAmount: number
     totalPercentage: number
     updatedAt: string
