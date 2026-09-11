@@ -28,13 +28,13 @@ export const ProductDetails = ({ product, dateToday, setDateToday }: ProductDeta
     return (
         <div className = 'w-full h-full flex justify-between gap-2' >
             <PriceHistoryChart
-                prices={pricesQuery.data.priceGraphData}
+                prices={pricesQuery.data}
                 dateToday={dateToday}
             />
             <div className="w-3/10">
                 <PriceList
                     product={product}
-                    prices={pricesQuery.data.prices}
+                    prices={pricesQuery.data}
                     setDateToday={setDateToday}
                 />
             </div>

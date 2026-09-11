@@ -1,12 +1,12 @@
 import { getLocalDateFromUTC, localizeFormatDayjs } from "@/utils/DateUtilities"
 import { getBestDiscount, getPriceDiscount, getXYearAgoPrices, sortPricesByDateAscending } from "@/utils/PriceUtilities"
-import type { PriceGraphData, PriceType } from "@/utils/Types"
+import type { PriceType } from "@/utils/Types"
 import dayjs from "dayjs"
 
 export function usePriceData(dateToday: Date) {
 
     // Create Price data for PriceHistoryChart
-    const createPriceData = (prices: PriceGraphData[]) => {
+    const createPriceData = (prices: PriceType[]) => {
         if (!prices || prices.length <= 0) return []
 
         const priceData = prices
@@ -15,13 +15,21 @@ export function usePriceData(dateToday: Date) {
 
                 if (price.today) {
                     return {
-                        ...price,
+                        priceId: price.priceId,
+                        totalAmount: price.totalAmount,
+                        description: price.description,
+                        currency: price.currency,
+                        today: price.today,
                         priceStarted: "Now"
                     }
                 }
 
                 return {
-                    ...price,
+                    priceId: price.priceId,
+                    totalAmount: price.totalAmount,
+                    description: price.description,
+                    currency: price.currency,
+                    today: price.today,
                     priceStarted: localizeFormatDayjs(getLocalDateFromUTC(new Date(price.priceStarted)), 'lll'),
                 }
             }

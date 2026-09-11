@@ -132,8 +132,7 @@ public class PriceServiceTest {
         when(priceDAO.findPriceToday(anyInt())).thenReturn(Optional.of(price));
         when(priceDAO.findByProductProductIdOrderByPriceStartedDesc(pageable, 0)).thenReturn(pricePage);
 
-        assertEquals(3, priceService.getPricesByProductId(pageable, 0).prices().size());
-        assertEquals(4, priceService.getPricesByProductId(pageable, 0).priceGraphData().size());
+        assertEquals(4, priceService.getPricesByProductId(pageable, 0).size());
     }
 
     @Test

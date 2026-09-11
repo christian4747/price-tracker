@@ -49,12 +49,3 @@ export interface PriceDTO {
     totalAmount: number
     totalPercentage: number
 }
-
-export interface PriceGraphData {
-    priceId: number
-    priceStarted: string
-    totalAmount: number
-    description: string
-    currency: string
-    today: true
-}
