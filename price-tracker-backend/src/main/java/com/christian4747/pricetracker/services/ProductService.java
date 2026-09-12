@@ -1,10 +1,15 @@
 package com.christian4747.pricetracker.services;
 
+import com.christian4747.pricetracker.daos.PriceDAO;
 import com.christian4747.pricetracker.daos.ProductDAO;
+import com.christian4747.pricetracker.models.Price;
+import com.christian4747.pricetracker.models.PriceTotalPercentages;
 import com.christian4747.pricetracker.models.Product;
 import com.christian4747.pricetracker.models.dtos.IncomingProductDTO;
+import com.christian4747.pricetracker.models.dtos.OutgoingProductDTO;
 import com.christian4747.pricetracker.models.dtos.ProductNameGroupDTO;
 import com.christian4747.pricetracker.models.dtos.ResponseAndCount;
+import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +17,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -23,10 +31,12 @@ public class ProductService {
     private static final Logger logger = LoggerFactory.getLogger(ProductService.class);
 
     private final ProductDAO productDAO;
+    private final PriceDAO priceDAO;
 
     @Autowired
-    public ProductService(ProductDAO productDAO) {
+    public ProductService(ProductDAO productDAO, PriceDAO priceDAO) {
         this.productDAO = productDAO;
+        this.priceDAO = priceDAO;
     }
 
     /**
@@ -89,10 +99,14 @@ public class ProductService {
      * @param pageable Pagination settings
      * @return A list of Products (default 20)
      */
-    public ResponseAndCount<Product> getAllProducts(Pageable pageable) {
+    public ResponseAndCount<OutgoingProductDTO> getAllProducts(Pageable pageable) {
         Page<Product> productPage = productDAO.findAllByOrderByNameAsc(pageable);
+        List<Product> productList = productPage.getContent();
+
+        List<OutgoingProductDTO> productsWithDateToday =
+                productList.stream().map(this::getProductWithPriceToday).toList();
         
-        return new ResponseAndCount<>(productPage.getContent(), productPage.getTotalElements());
+        return new ResponseAndCount<>(productsWithDateToday, productPage.getTotalElements());
     }
 
     /**
@@ -106,9 +120,11 @@ public class ProductService {
     public ResponseAndCount<ProductNameGroupDTO> getProductsGroupedByName(Pageable pageable) {
         Page<String> namesPage = productDAO.findDistinctNames(pageable);
         List<Product> productsInNamesPage = productDAO.findByNameIn(namesPage.getContent());
+        List<OutgoingProductDTO> outgoingProductDTOS =
+                productsInNamesPage.stream().map(this::getProductWithPriceToday).toList();
 
-        Map<String, List<Product>> groupedByName = productsInNamesPage.stream()
-                .collect(Collectors.groupingBy(Product :: getName));
+        Map<String, List<OutgoingProductDTO>> groupedByName = outgoingProductDTOS.stream()
+                .collect(Collectors.groupingBy(outgoingProductDTO -> outgoingProductDTO.product().getName()));
 
         return new ResponseAndCount<>(
                 namesPage.getContent().stream()
@@ -123,7 +139,7 @@ public class ProductService {
      * @param productId ID of the Product to get
      * @return The Product associated with the given ID
      */
-    public Product getProductById(Integer productId) {
+    public OutgoingProductDTO getProductById(Integer productId) {
         Optional<Product> existingProduct = productDAO.findById(productId);
 
         if (existingProduct.isEmpty()) {
@@ -131,7 +147,7 @@ public class ProductService {
             throw new IllegalArgumentException("Product with ID " + productId + " does not exist!");
         }
 
-        return existingProduct.get();
+        return getProductWithPriceToday(existingProduct.get());
     }
 
     /**
@@ -140,6 +156,58 @@ public class ProductService {
      */
     public Long getProductCount() {
         return productDAO.count();
+    }
+
+    /**
+     * Returns a product containing the product information, today's price, and price category if applicable.
+     * @param product The product to return with today's price and price category
+     * @return A product containing the product information, today's price, and price category if applicable
+     */
+    public OutgoingProductDTO getProductWithPriceToday(Product product) {
+        Price priceToday = priceDAO.findPriceToday(product.getProductId()).orElse(null);
+        Price nextPrice = priceDAO.findNextPriceAfterToday(product.getProductId()).orElse(null);
+        Integer priceCount = priceDAO.findPriceCount(product.getProductId());
+        Timestamp lastUpdated = priceDAO.findLastUpdated(product.getProductId()).orElse(null);
+        PriceTotalPercentages priceTotalPercentages = getPriceTotalPercentages(product.getProductId(), priceToday);
+        return new OutgoingProductDTO(product, priceToday, nextPrice, lastUpdated, getPriceCategory(priceTotalPercentages, priceToday, priceCount));
+    }
+
+    private PriceTotalPercentages getPriceTotalPercentages(Integer productId, Price priceToday) {
+        if (priceToday == null) {
+            return null;
+        }
+
+        Timestamp oneYearAgo = Timestamp.from(Instant.now()
+                .atZone(ZoneId.systemDefault())
+                .minusYears(1)
+                .toInstant());
+        Timestamp twoYearsAgo = Timestamp.from(Instant.now()
+                .atZone(ZoneId.systemDefault())
+                .minusYears(2)
+                .toInstant());
+
+        return priceDAO.findPriceTotalPercentages(productId, oneYearAgo, twoYearsAgo).orElse(null);
+    }
+
+    /**
+     * Gets the price category of the given price.
+     * @param percentages The highest price total percentages one year ago, two years ago, and of all time
+     * @param price The price to get the category for
+     * @return A string representing the price category the price belongs to
+     */
+    private static @NonNull String getPriceCategory(PriceTotalPercentages percentages, Price price, Integer priceCount) {
+        if (percentages == null || price == null || priceCount <= 1) return "";
+
+        String priceCategory = "";
+
+        if (price.getTotalPercentage() >= percentages.allTimeLow()) {
+            priceCategory = "all-time";
+        } else if (price.getTotalPercentage() >= percentages.twoYearLow()) {
+            priceCategory = "two-year";
+        } else if (price.getTotalPercentage() >= percentages.oneYearLow()) {
+            priceCategory = "one-year";
+        }
+        return priceCategory;
     }
 
     /**

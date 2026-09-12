@@ -60,7 +60,7 @@ public class PriceService {
                 priceDTO.getReturnAmount(),
                 priceDTO.getReturnPercentage(),
                 priceDTO.getDiscountAmount() - priceDTO.getReturnAmount(),
-                1 - ((priceDTO.getDiscountAmount() - priceDTO.getReturnAmount()) / priceDTO.getAmount()),
+                calculateTotalPercentage(priceDTO.getDiscountAmount(), priceDTO.getReturnAmount(), priceDTO.getAmount()),
                 null,
                 null,
                 existingProduct.get()
@@ -70,6 +70,14 @@ public class PriceService {
         logger.info("Created new Price with ID: {}", savedPrice.getPriceId());
 
         return savedPrice;
+    }
+
+    private double calculateTotalPercentage(double discountAmount, double returnAmount, double amount) {
+        double totalPercentage = 1.0;
+        if (amount > 0) {
+            totalPercentage = 1 - ((discountAmount - returnAmount) / amount);
+        }
+        return totalPercentage;
     }
 
     /**
@@ -118,10 +126,10 @@ public class PriceService {
 
     /**
      * Gets a list of Prices in the 'prices' database table with the given productId ordered by descending price started
-     * timestamp.
+     * timestamp. Adds an extra Price to the list signifying today's price.
      * @param pageable Pagination settings
      * @param productId productId of the Prices to get
-     * @return The Prices associated with the given productId
+     * @return The Prices associated with the given productId descending by priceStarted
      */
     public List<Price> getPricesByProductId(Pageable pageable, Integer productId) {
         List<Price> prices = new ArrayList<>(priceDAO.findByProductProductIdOrderByPriceStartedDesc(pageable, productId).getContent());
@@ -225,7 +233,7 @@ public class PriceService {
         priceToUpdate.setReturnAmount(priceDTO.getReturnAmount());
         priceToUpdate.setReturnPercentage(priceDTO.getReturnPercentage());
         priceToUpdate.setTotalAmount(priceDTO.getDiscountAmount() - priceDTO.getReturnAmount());
-        priceToUpdate.setTotalPercentage(1 - ((priceDTO.getDiscountAmount() - priceDTO.getReturnAmount()) / priceDTO.getAmount()));
+        priceToUpdate.setTotalPercentage(calculateTotalPercentage(priceDTO.getDiscountAmount(), priceDTO.getReturnAmount(), priceDTO.getAmount()));
 
         if (priceToUpdate.getProduct().getProductId() != priceDTO.getProductId()) {
             Optional<Product> existingProduct = productDAO.findById(priceDTO.getProductId());

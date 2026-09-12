@@ -22,8 +22,11 @@ const filterPricesBeforeDate = (prices: PriceType[], date: Date) => {
     })
 }
 
-// Calculates the percentage from the given float
-// Percentages below 1 percent include 2 decimal points
+/**
+ * Calculates the percentage from the given float. Percentages below 1 percent include 2 decimal points.
+ * @param float The float to convert to a percentage.
+ * @returns The calculated percentage from the given float
+ */
 const getPercentage = (float: number) => {
     const percentage = parseFloat((float * 100).toFixed(2))
     return percentage > 1 ? Math.round(percentage) : percentage
@@ -149,7 +152,11 @@ const getMostRecentPrice = (prices: PriceType[]) => {
     return sortedPricesByDate ? sortedPricesByDate[sortedPricesByDate.length - 1]?.totalAmount : ''
 }
 
-// Get the given amount in the given currency format, default to USD
+/**
+ * Get the Price's total amount in the given currency format, default to USD.
+ * @param price The price to format with currency
+ * @returns The Price's total amount in the given currency format or an empty string
+ */
 const getPriceString = (price: PriceType | undefined) => {
     if (!price) return ''
 

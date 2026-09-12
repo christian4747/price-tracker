@@ -1,5 +1,5 @@
 import { Accordion } from "@mantine/core"
-import type { ProductType } from "../../../utils/Types"
+import type { ProductBody, ProductType } from "../../../utils/Types"
 import { useDebounce } from "@/hooks/common/useDebounce"
 import { Product } from "./Product"
 import DeleteProductModal from "../modals/DeleteProductModal"
@@ -67,14 +67,14 @@ export const ProductList = ({}: ProductList) => {
                 >
                     <EditProductContext value={openEditProductModal}>
                         <DeleteProductContext value={openDeleteProductModal}>
-                            {query.data.content.map((product: ProductType, idx: number) => {
+                            {query.data.content.map((productBody: ProductBody, idx: number) => {
                                 return (
                                     <Product
-                                        product={product}
+                                        productBody={productBody}
                                         dateToday={dateToday}
                                         setDateToday={setDateToday}
                                         value={`item-${idx}`}
-                                        key={product.name + product.store}
+                                        key={productBody.product.name + productBody.product.store}
                                     />
                                 )
                             })}

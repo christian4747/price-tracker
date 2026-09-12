@@ -3,6 +3,8 @@ spring:
     url: ${PROD_DATABASE_URL}
     username: ${PROD_DATABASE_USERNAME}
     password: ${PROD_DATABASE_PASSWORD}
+    hikari:
+      connection-init-sql: "SET TIME ZONE 'UTC'"
   jpa:
     hibernate:
       ddl-auto: validate

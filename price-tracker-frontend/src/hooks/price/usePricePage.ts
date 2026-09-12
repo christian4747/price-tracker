@@ -3,7 +3,7 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query"
 
 export function usePricePage(productId: number) {
 
-    // Query for getting a product page
+    // Query for getting a price page
     const productPageQuery = useQuery({
         queryKey: ['prices', productId],
         queryFn: () => {

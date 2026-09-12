@@ -49,3 +49,11 @@ export interface PriceDTO {
     totalAmount: number
     totalPercentage: number
 }
+
+export interface ProductBody {
+    product: ProductType
+    priceToday?: PriceType
+    nextPrice?: PriceType
+    lastUpdated: string
+    priceCategory: string
+}

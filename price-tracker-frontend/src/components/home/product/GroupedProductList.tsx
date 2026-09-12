@@ -1,7 +1,6 @@
 import { Accordion } from "@mantine/core"
-import type { ProductType } from "../../../utils/Types"
+import type { ProductBody, ProductType } from "../../../utils/Types"
 import { useDebounce } from "@/hooks/common/useDebounce"
-import { GroupedProduct } from "./GroupedProduct"
 import { useState } from "react"
 import { useDisclosure } from "@mantine/hooks"
 import DeleteProductModal from "../modals/DeleteProductModal"
@@ -10,10 +9,11 @@ import { ProductListFooter } from "./ProductListFooter"
 import { useProductPageGrouped } from "@/hooks/product/useProductPageGrouped"
 import { DeleteProductContext, EditProductContext } from "@/context/ProductContext"
 import ProductListSkeleton from "./ProductListSkeleton"
+import { GroupedProduct } from "./GroupedProduct"
 
 interface GroupedProductData {
     name: string
-    products: ProductType[]
+    products: ProductBody[]
 }
 
 export interface GroupedProductList {
@@ -68,6 +68,7 @@ export const GroupedProductList = ({}: GroupedProductList) => {
                     chevronIconSize={24}
                     value={currentlyOpened}
                     onChange={setCurrentlyOpened}
+                    transitionDuration={400}
                 >
                     {query.data.content.map((groupedProduct: GroupedProductData, idx: number) => {
                         return (
@@ -75,7 +76,7 @@ export const GroupedProductList = ({}: GroupedProductList) => {
                                 <DeleteProductContext value={openDeleteProductModal}>
                                     <Accordion.Item value={`item-${idx}`} key={groupedProduct.name}>
                                         <GroupedProduct
-                                            products={groupedProduct.products}
+                                            productBodies={groupedProduct.products}
                                             dateToday={dateToday}
                                             setDateToday={setDateToday}
                                         />

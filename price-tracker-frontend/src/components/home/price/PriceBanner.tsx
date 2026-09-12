@@ -1,11 +1,10 @@
-import type { PriceType, ProductType } from '@/utils/Types'
+import type { ProductBody } from '@/utils/Types'
 import '@/styles/PriceBanner.css'
 import { Box, Tooltip } from '@mantine/core'
 import { getPriceDiscount, getPriceString } from '@/utils/PriceUtilities'
 import dayjs from 'dayjs'
 import { usePriceTimer } from '@/hooks/price/usePriceTimer'
 import { MdTimer, MdUpdate } from 'react-icons/md'
-import { usePriceData } from '@/hooks/price/usePriceData'
 import { LuClockAlert } from 'react-icons/lu'
 
 interface BannerStyle {
@@ -26,21 +25,6 @@ const getBannerStyle = (bannerType: string): BannerStyle => {
         default:
             return { color: '', bg: '', text: '' }
     }
-}
-
-const getMostRecentlyUpdatedPrice = (prices: PriceType[]) => {
-    if (!prices) return
-    if (prices.length === 1) return prices[0]
-
-    let mostRecent = prices[0]
-
-    for (const price of prices) {
-        if (price.updatedAt > mostRecent.updatedAt) {
-            mostRecent = price
-        }
-    }
-
-    return mostRecent
 }
 
 interface TimeTooltip {
@@ -75,28 +59,20 @@ const TimeTooltip = ({timeLeft, tooltipText}: TimeTooltip) => {
 }
 
 export interface PriceBanner {
-    product: ProductType
+    productBody: ProductBody
     dateToday: Date
     setDateToday: (newVal: Date) => void
     mini?: boolean
 }
 
-export const PriceBanner = ({ product, dateToday, setDateToday, mini }: PriceBanner) => {
+export const PriceBanner = ({ productBody, dateToday, setDateToday, mini }: PriceBanner) => {
 
-    if (!product.prices || product.prices.length === 0) {
+    if (!productBody.priceToday) {
         return <></>
     }
 
-    // Use priceData hook
-    const priceData = usePriceData(dateToday)
-
-    // Latest price PriceType before today
-    const latestPrice = priceData.getLatestPriceBeforeToday(product.prices)
-
-    // Date stored in latest price
-    const mostRecentUpdatedPrice = dayjs(getMostRecentlyUpdatedPrice(product.prices)?.updatedAt)
     // Number of days since last recorded price
-    const priceListLastUpdated = dayjs().diff(mostRecentUpdatedPrice, 'day')
+    const priceListLastUpdated = dayjs(dateToday).diff(productBody.lastUpdated, 'day')
     let lastUpdatedIndicator = undefined
     if (priceListLastUpdated > 7) {
         lastUpdatedIndicator = (
@@ -112,37 +88,34 @@ export const PriceBanner = ({ product, dateToday, setDateToday, mini }: PriceBan
     }
 
     // Calculate discount and price string
-    const priceText = getPriceString(latestPrice)
-    const discountPercent = getPriceDiscount(latestPrice)
+    const priceText = getPriceString(productBody.priceToday)
+    const discountPercent = getPriceDiscount(productBody.priceToday)
 
     // Banner style based on banner type & percentage
-    const { color, bg, text } = getBannerStyle(priceData.getBannerType(product.prices))
+    const { color, bg, text } = getBannerStyle(productBody.priceCategory)
     const textStyle: string = color ? color : discountPercent >= 50 ? 'good-deal' : ''
 
     // Calculate time since last price before today
     let recentPriceChange = undefined
-    if (latestPrice) {
-        const recentPriceChangeDays = dayjs().diff(latestPrice.priceStarted, 'day')
-        if (recentPriceChangeDays <= 6) {
-            recentPriceChange = (
-                <div>
-                    <Tooltip
-                        withArrow
-                        label={recentPriceChangeDays === 1 ? `Price change ${recentPriceChangeDays} day ago` : `Price change ${recentPriceChangeDays} days ago`}
-                    >
-                        <MdUpdate />
-                    </Tooltip>
-                </div>
-            )
-        }
+    const recentPriceChangeDays = dayjs(dateToday).diff(productBody.priceToday.priceStarted, 'day')
+    if (recentPriceChangeDays <= 6) {
+        recentPriceChange = (
+            <div>
+                <Tooltip
+                    withArrow
+                    label={recentPriceChangeDays === 1 ? `Price change ${recentPriceChangeDays} day ago` : `Price change ${recentPriceChangeDays} days ago`}
+                >
+                    <MdUpdate />
+                </Tooltip>
+            </div>
+        )
     }
 
     // Calculate the time left for timer
-    const lastPrice = priceData.getLatestPriceAfterToday(product.prices)
-    let timerText = usePriceTimer(dayjs(lastPrice?.priceStarted).valueOf() / 1000, setDateToday)
+    let timerText = usePriceTimer(dayjs(productBody.nextPrice?.priceStarted).valueOf() / 1000, setDateToday)
     let timeTooltip = undefined
-    if (latestPrice && lastPrice && lastPrice !== latestPrice) {
-        const timeLeft = dayjs(lastPrice.priceStarted).diff(dayjs(), 'day')
+    if (productBody.priceToday && productBody.nextPrice && productBody.nextPrice !== productBody.priceToday) {
+        const timeLeft = dayjs(productBody.nextPrice.priceStarted).diff(dayjs(), 'day')
         if (timeLeft <= 6) {
             timeTooltip = <TimeTooltip timeLeft={timeLeft} tooltipText={timerText} />
         }
@@ -199,8 +172,8 @@ export const PriceBanner = ({ product, dateToday, setDateToday, mini }: PriceBan
 
             {/* Price text */}
             <div className={'min-w-17.5 text-right ' + textStyle}>
-                {latestPrice && latestPrice.returnAmount > 0 ?
-                    <Tooltip withArrow label={<>{latestPrice.discountAmount} (base) - {latestPrice.returnAmount} (return)</>}>
+                {productBody.priceToday && productBody.priceToday.returnAmount > 0 ?
+                    <Tooltip withArrow label={<>{productBody.priceToday.discountAmount} (base) - {productBody.priceToday.returnAmount} (return)</>}>
                         <div>{priceText}</div>
                     </Tooltip>
                     :
