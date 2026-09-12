@@ -73,7 +73,7 @@ public class PriceService {
     }
 
     private double calculateTotalPercentage(double discountAmount, double returnAmount, double amount) {
-        double totalPercentage = 0.0;
+        double totalPercentage = 1.0;
         if (amount > 0) {
             totalPercentage = 1 - ((discountAmount - returnAmount) / amount);
         }
