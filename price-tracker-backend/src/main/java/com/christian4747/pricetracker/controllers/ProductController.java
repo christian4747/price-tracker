@@ -2,6 +2,7 @@ package com.christian4747.pricetracker.controllers;
 
 import com.christian4747.pricetracker.models.Product;
 import com.christian4747.pricetracker.models.dtos.IncomingProductDTO;
+import com.christian4747.pricetracker.models.dtos.OutgoingProductDTO;
 import com.christian4747.pricetracker.models.dtos.ProductNameGroupDTO;
 import com.christian4747.pricetracker.models.dtos.ResponseAndCount;
 import com.christian4747.pricetracker.services.ProductService;
@@ -46,7 +47,7 @@ public class ProductController {
      * @return A list of Products (default 20)
      */
     @GetMapping
-    public ResponseEntity<ResponseAndCount<Product>> getAllProducts(Pageable pageable) {
+    public ResponseEntity<ResponseAndCount<OutgoingProductDTO>> getAllProducts(Pageable pageable) {
         return ResponseEntity.ok(productService.getAllProducts(pageable));
     }
 
@@ -71,7 +72,7 @@ public class ProductController {
      * @return The Product associated with the given ID
      */
     @GetMapping("/{productId}")
-    public ResponseEntity<Product> getProductById(@PathVariable Integer productId) {
+    public ResponseEntity<OutgoingProductDTO> getProductById(@PathVariable Integer productId) {
         return ResponseEntity.ok(productService.getProductById(productId));
     }
 

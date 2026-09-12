@@ -1,5 +1,6 @@
 package com.christian4747.pricetracker.services;
 
+import com.christian4747.pricetracker.daos.PriceDAO;
 import com.christian4747.pricetracker.daos.ProductDAO;
 import com.christian4747.pricetracker.models.Product;
 import com.christian4747.pricetracker.models.dtos.IncomingProductDTO;
@@ -28,6 +29,9 @@ public class ProductServiceTest {
 
     @Mock
     private ProductDAO productDAO;
+
+    @Mock
+    private PriceDAO priceDAO;
 
     @Mock
     private Page<Product> productPage;
@@ -120,8 +124,9 @@ public class ProductServiceTest {
     @Test
     public void getProductById_productExists_returnProduct() {
         when(productDAO.findById(anyInt())).thenReturn(Optional.of(addedProduct));
+        when(priceDAO.findPriceToday(anyInt())).thenReturn(Optional.empty());
 
-        assertEquals("Product", productService.getProductById(1).getName());
+        assertEquals("Product", productService.getProductById(1).product().getName());
     }
 
     @Test

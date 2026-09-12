@@ -71,8 +71,8 @@ export const handlers = [
     }),
 
     http.get(pricesApiUrl + '/product/*', () => {
-        return HttpResponse.json({
-            "prices": [price1, price2]
-        })
+        return HttpResponse.json(
+            [price1, price2]
+        )
     })
 ]
