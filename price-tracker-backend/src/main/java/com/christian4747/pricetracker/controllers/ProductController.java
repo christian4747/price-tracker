@@ -47,8 +47,9 @@ public class ProductController {
      * @return A list of Products (default 20)
      */
     @GetMapping
-    public ResponseEntity<ResponseAndCount<OutgoingProductDTO>> getAllProducts(Pageable pageable) {
-        return ResponseEntity.ok(productService.getAllProducts(pageable));
+    public ResponseEntity<ResponseAndCount<OutgoingProductDTO>> getAllProducts(
+            Pageable pageable, @RequestParam(defaultValue = "false") Boolean showDeleted) {
+        return ResponseEntity.ok(productService.getAllProducts(pageable, showDeleted));
     }
 
     /**
@@ -62,8 +63,9 @@ public class ProductController {
      */
     @GetMapping("/grouped")
     public ResponseEntity<ResponseAndCount<ProductNameGroupDTO>>getAllProductsByGroup(
-            Pageable pageable, @RequestParam(defaultValue = "name") String groupBy) {
-        return ResponseEntity.ok(productService.getProductsGroupedByName(pageable));
+            Pageable pageable, @RequestParam(defaultValue = "name") String groupBy,
+            @RequestParam(defaultValue = "false") Boolean showDeleted) {
+        return ResponseEntity.ok(productService.getProductsGroupedByName(pageable, showDeleted));
     }
 
     /**

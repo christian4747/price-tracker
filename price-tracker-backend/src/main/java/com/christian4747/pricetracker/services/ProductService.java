@@ -100,14 +100,22 @@ public class ProductService {
      * @param pageable Pagination settings
      * @return A list of Products (default 20)
      */
-    public ResponseAndCount<OutgoingProductDTO> getAllProducts(Pageable pageable) {
-        Page<Product> productPage = productDAO.findAllByOrderByNameAsc(pageable);
+    public ResponseAndCount<OutgoingProductDTO> getAllProducts(Pageable pageable, Boolean showDeleted) {
+        Page<Product> productPage = findAllProducts(pageable, showDeleted);
         List<Product> productList = productPage.getContent();
 
         List<OutgoingProductDTO> productsWithDateToday =
                 productList.stream().map(this::getProductWithPriceToday).toList();
         
         return new ResponseAndCount<>(productsWithDateToday, productPage.getTotalElements());
+    }
+
+    private Page<Product> findAllProducts(Pageable pageable, boolean showDeleted) {
+        if (showDeleted) {
+            return productDAO.findAllByOrderByNameAsc(pageable);
+        } else {
+            return productDAO.findAllByDeletedAtNullOrderByNameAsc(pageable);
+        }
     }
 
     /**
@@ -118,8 +126,8 @@ public class ProductService {
      * @param pageable Pagination settings
      * @return A list of ProductNameGroupDTO
      */
-    public ResponseAndCount<ProductNameGroupDTO> getProductsGroupedByName(Pageable pageable) {
-        Page<String> namesPage = productDAO.findDistinctNames(pageable);
+    public ResponseAndCount<ProductNameGroupDTO> getProductsGroupedByName(Pageable pageable, Boolean showDeleted) {
+        Page<String> namesPage = findDistinctNames(pageable, showDeleted);
         List<Product> productsInNamesPage = productDAO.findByNameIn(namesPage.getContent());
         List<OutgoingProductDTO> outgoingProductDTOS =
                 productsInNamesPage.stream().map(this::getProductWithPriceToday).toList();
@@ -133,6 +141,14 @@ public class ProductService {
                         .toList(),
                 namesPage.getTotalElements()
         );
+    }
+
+    private Page<String> findDistinctNames(Pageable pageable, Boolean showDeleted) {
+        if (showDeleted) {
+            return productDAO.findDistinctNames(pageable);
+        } else {
+            return productDAO.findDistinctNamesDeletedAtNull(pageable);
+        }
     }
 
     /**
