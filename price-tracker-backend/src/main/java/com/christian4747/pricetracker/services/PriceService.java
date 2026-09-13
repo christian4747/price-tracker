@@ -63,6 +63,7 @@ public class PriceService {
                 calculateTotalPercentage(priceDTO.getDiscountAmount(), priceDTO.getReturnAmount(), priceDTO.getAmount()),
                 null,
                 null,
+                null,
                 existingProduct.get()
         );
 

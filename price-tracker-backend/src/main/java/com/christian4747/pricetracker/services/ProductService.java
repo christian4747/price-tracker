@@ -67,6 +67,7 @@ public class ProductService {
                 true,
                 null,
                 null,
+                null,
                 null
         );
 
