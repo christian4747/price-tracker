@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -105,8 +106,16 @@ public class PriceService {
      * @param pageable Pagination settings
      * @return A list of Prices (default 20)
      */
-    public List<Price> getAllPrices(Pageable pageable) {
-        return priceDAO.findAll(pageable).getContent();
+    public List<Price> getAllPrices(Pageable pageable, Boolean showDeleted) {
+        return findAllPrices(pageable, showDeleted).getContent();
+    }
+
+    private Page<Price> findAllPrices(Pageable pageable, Boolean showDeleted) {
+        if (showDeleted) {
+            return priceDAO.findAll(pageable);
+        } else {
+            return priceDAO.findByDeletedAtNull(pageable);
+        }
     }
 
     /**
@@ -132,8 +141,8 @@ public class PriceService {
      * @param productId productId of the Prices to get
      * @return The Prices associated with the given productId descending by priceStarted
      */
-    public List<Price> getPricesByProductId(Pageable pageable, Integer productId) {
-        List<Price> prices = new ArrayList<>(priceDAO.findByProductProductIdOrderByPriceStartedDesc(pageable, productId).getContent());
+    public List<Price> getPricesByProductId(Pageable pageable, Integer productId, Boolean showDeleted) {
+        List<Price> prices = new ArrayList<>(findPricesByProductId(pageable, productId, showDeleted).getContent());
         if (prices.isEmpty()) return List.of();
 
         Optional<Price> todayPrice = priceDAO.findPriceToday(productId);
@@ -157,6 +166,14 @@ public class PriceService {
         ).reversed());
 
         return prices;
+    }
+
+    private Page<Price> findPricesByProductId(Pageable pageable, Integer productId, Boolean showDeleted) {
+        if (showDeleted) {
+            return priceDAO.findByProductProductIdOrderByPriceStartedDescDeleted(pageable, productId);
+        } else {
+            return priceDAO.findByProductProductIdOrderByPriceStartedDesc(pageable, productId);
+        }
     }
 
     /**
