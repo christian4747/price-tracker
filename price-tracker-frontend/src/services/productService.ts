@@ -15,22 +15,24 @@ export default {
         return res.data
     },
 
-    getProductPage: async (rootUrl: string, pageNumber: number = 0, pageSize: number = 10) => {
+    getProductPage: async (rootUrl: string, pageNumber: number = 0, pageSize: number = 10, showDeleted: boolean) => {
         const res = await axios.get(rootUrl + apiPath, {
             params: {
                 page: pageNumber,
                 size: pageSize,
+                showDeleted: showDeleted,
             }
         })
         return res.data
     },
 
-    getProductsGrouped: async (rootUrl: string, pageNumber: number, pageSize: number, groupBy: string = 'name') => {
+    getProductsGrouped: async (rootUrl: string, pageNumber: number, pageSize: number, groupBy: string = 'name', showDeleted: boolean) => {
         const res = await axios.get(rootUrl + apiPath + '/grouped', {
             params: {
                 page: pageNumber,
                 size: pageSize,
-                groupBy: groupBy
+                groupBy: groupBy,
+                showDeleted: showDeleted,
             }
         })
         return res.data

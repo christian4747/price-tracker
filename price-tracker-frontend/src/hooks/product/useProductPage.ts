@@ -1,8 +1,10 @@
 import api from "@/services/api"
-import { useQuery } from "@tanstack/react-query"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { useListWithPagination } from "../common/useListWithPagination"
 
-export function useProductPage(pageNumber: number = 1, pageSize: number = 10) {
+export function useProductPage(pageNumber: number = 1, pageSize: number = 10, showDeleted: string) {
+
+    const queryClient = useQueryClient()
 
     const {
         changePageNumber,
@@ -17,10 +19,14 @@ export function useProductPage(pageNumber: number = 1, pageSize: number = 10) {
     const productPageQuery = useQuery({
         queryKey: ['products', currentPageNumber - 1],
         queryFn: () => {
-            return api.getProductPage(currentPageNumber - 1, currentPageSize)
+            return api.getProductPage(currentPageNumber - 1, currentPageSize, showDeleted === 'Show')
         },
         throwOnError: true
     })
+
+    const refresh = () => {
+        queryClient.invalidateQueries()
+    }
 
     const useProductPageProps = {
         changePageNumber: changePageNumber,
@@ -28,7 +34,8 @@ export function useProductPage(pageNumber: number = 1, pageSize: number = 10) {
         currentPageNumber: currentPageNumber,
         query: productPageQuery,
         setCurrentlyOpened: setCurrentlyOpened,
-        setCurrentPageNumber: setCurrentPageNumber
+        setCurrentPageNumber: setCurrentPageNumber,
+        refresh
     }
 
     return useProductPageProps

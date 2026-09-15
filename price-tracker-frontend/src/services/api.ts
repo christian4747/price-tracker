@@ -34,12 +34,12 @@ export default {
         return productService.getProductCount(rootUrl)
     },
 
-    getProductPage: async (pageNumber: number = 0, pageSize: number = 10) => {
-        return productService.getProductPage(rootUrl, pageNumber, pageSize)
+    getProductPage: async (pageNumber: number = 0, pageSize: number = 10, showDeleted: boolean) => {
+        return productService.getProductPage(rootUrl, pageNumber, pageSize, showDeleted)
     },
 
-    getProductsGrouped: async (pageNumber: number = 0, pageSize: number = 10) => {
-        return productService.getProductsGrouped(rootUrl, pageNumber, pageSize)
+    getProductsGrouped: async (pageNumber: number = 0, pageSize: number = 10, showDeleted: boolean) => {
+        return productService.getProductsGrouped(rootUrl, pageNumber, pageSize, undefined, showDeleted)
     },
 
     getRecentPriceData: async () => {

@@ -47,11 +47,13 @@ export const ProductListContainer = () => {
                 {productsGroupBy !== '' ?
                     <GroupedProductList
                         searchedTerm={searchedTerm}
+                        showDeleted={showDeleted}
                     />
                     :
                     <ProductList
                         searchedTerm={searchedTerm}
                         productStatusFilter={productStatusFilter}
+                        showDeleted={showDeleted}
                     />
                 }
             </ErrorBoundary>
