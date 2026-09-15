@@ -18,7 +18,8 @@ const price: PriceType = {
     totalPercentage: 0.0,
     createdAt: "2026-09-04T00:00:00.000Z",
     updatedAt: "2026-09-04T00:00:00.000Z",
-    productId: 0
+    productId: 0,
+    today: false
 }
 
 describe('Edit Price Form Component', () => {

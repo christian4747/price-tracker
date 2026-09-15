@@ -5,6 +5,7 @@ export interface ProductType {
     link: string
     store: string
     createdAt: string
+    deletedAt: string | null
     updatedAt: string
     prices: PriceType[]
 }

@@ -10,6 +10,7 @@ const product: ProductType = {
     link: '',
     store: '',
     createdAt: '',
+    deletedAt: null,
     updatedAt: '',
     prices: []
 }

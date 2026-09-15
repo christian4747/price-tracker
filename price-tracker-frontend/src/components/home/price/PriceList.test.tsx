@@ -48,6 +48,7 @@ const product: ProductType = {
     link: '',
     store: '',
     createdAt: '',
+    deletedAt: null,
     updatedAt: '',
     prices: [price1, price2]
 }
