@@ -16,7 +16,7 @@ const renderProductListHeader = (showDeleted: string) => {
     )
 }
 
-describe('Product Details Component', () => {
+describe('Product List Header Component', () => {
     test('should render hide deleted menu button', async () => {
         renderProductListHeader('Hide')
 
