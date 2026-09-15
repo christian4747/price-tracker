@@ -3,15 +3,17 @@ import { useState } from 'react'
 import { Button, Input, Menu } from '@mantine/core'
 import AddProductModal from '../modals/AddProductModal'
 
-type Props = {
+interface ProductListHeader {
     searchSearchTerm: (searchTerm: string) => void
     productStatusFilter: string
     setProductStatusFilter: React.Dispatch<React.SetStateAction<string>>
     productsGroupBy: string
     setProductsGroupBy: React.Dispatch<React.SetStateAction<string>>
+    showDeleted: string
+    setShowDeleted: React.Dispatch<React.SetStateAction<string>>
 }
 
-const ProductListHeader = ({searchSearchTerm, productStatusFilter, setProductStatusFilter, productsGroupBy, setProductsGroupBy}: Props) => {
+export const ProductListHeader = ({ searchSearchTerm, productStatusFilter, setProductStatusFilter, productsGroupBy, setProductsGroupBy, showDeleted, setShowDeleted }: ProductListHeader) => {
 
     // State for tracking current input value
     const [currentSearchTerm, setCurrentSearchTerm] = useState('')
@@ -55,6 +57,22 @@ const ProductListHeader = ({searchSearchTerm, productStatusFilter, setProductSta
                                     <Menu.RadioGroup value={productsGroupBy} onChange={setProductsGroupBy}>
                                         <Menu.RadioItem value=''>None</Menu.RadioItem>
                                         <Menu.RadioItem value='Name'>Name</Menu.RadioItem>
+                                    </Menu.RadioGroup>
+                                </Menu.Dropdown>
+                            </Menu>
+
+                            <Menu>
+                                <Menu.Target>
+                                    <Button className='flex gap-2 min-w-30'>
+                                        {showDeleted === 'Hide' ? 'Hide Deleted' : 'Show Deleted'}
+                                    </Button>
+                                </Menu.Target>
+
+                                <Menu.Dropdown>
+                                    <Menu.Label>Deleted Product Visibility</Menu.Label>
+                                    <Menu.RadioGroup value={showDeleted} onChange={setShowDeleted}>
+                                        <Menu.RadioItem value='Hide'>Hide</Menu.RadioItem>
+                                        <Menu.RadioItem value='Show'>Show</Menu.RadioItem>
                                     </Menu.RadioGroup>
                                 </Menu.Dropdown>
                             </Menu>
@@ -112,5 +130,3 @@ const ProductListHeader = ({searchSearchTerm, productStatusFilter, setProductSta
         </>
     )
 }
-
-export default ProductListHeader
