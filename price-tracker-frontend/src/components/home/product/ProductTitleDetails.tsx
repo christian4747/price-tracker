@@ -39,15 +39,19 @@ export const ProductTitleDetails = ({ product, storeString }: ProductTitleDetail
                 <Tooltip withArrow label="Edit Product"><MdEdit /></Tooltip>
             </div>
 
-            <div
-                className='cursor-pointer'
-                onClick={(e) => {
-                    openDeleteProductModal(product)
-                    e.stopPropagation()
-                }}
-            >
-                <Tooltip withArrow label="Delete Product"><MdDelete /></Tooltip>
-            </div>
+            {product.deletedAt === null &&
+                <div
+                    className='cursor-pointer'
+                    role='img'
+                    aria-label='Delete product'
+                    onClick={(e) => {
+                        openDeleteProductModal(product)
+                        e.stopPropagation()
+                    }}
+                >
+                    <Tooltip withArrow label="Delete Product"><MdDelete /></Tooltip>
+                </div>
+            }
 
             <CopyButton value={product.name} timeout={1000}>
                 {({ copied, copy }) => (
