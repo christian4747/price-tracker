@@ -44,6 +44,7 @@ const price1: PriceType = {
     totalAmount: 0.0,
     totalPercentage: 0.0,
     createdAt: "2026-09-04T00:00:00.000Z",
+    deletedAt: null,
     updatedAt: "2026-09-04T00:00:00.000Z",
     productId: 0
 }

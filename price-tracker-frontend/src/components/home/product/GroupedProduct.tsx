@@ -6,7 +6,7 @@ import { ProductTitleBar } from "./ProductTitleBar"
 import { PriceBanner } from "../price/PriceBanner"
 import { MdEdit, MdDelete } from "react-icons/md"
 import { DeleteProductContext, EditProductContext } from "@/context/ProductContext"
-import { GroupedProductDescription } from "./GroupedProductDescription"
+import { ProductDetails } from "./ProductDetails"
 
 export interface GroupedProduct {
     productBodies: ProductBody[]
@@ -112,8 +112,8 @@ export const GroupedProduct = ({ productBodies, dateToday, setDateToday }: Group
     const productDescriptions = productBodies.map((productBody) => {
         if (productBody.product.store === selectedStore) {
             return (
-                <GroupedProductDescription
-                    productBody={productBody}
+                <ProductDetails
+                    product={productBody.product}
                     dateToday={dateToday}
                     setDateToday={setDateToday}
                 >
@@ -146,7 +146,7 @@ export const GroupedProduct = ({ productBodies, dateToday, setDateToday }: Group
                         </Box>
                         {productActionBars}
                     </div>
-                </GroupedProductDescription>
+                </ProductDetails>
             )
         }
     })

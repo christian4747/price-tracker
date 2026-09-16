@@ -15,6 +15,7 @@ export interface PriceType {
     amount: number
     currency: string
     createdAt: string
+    deletedAt: string | null
     description: string
     discountAmount: number
     discountPercentage: number

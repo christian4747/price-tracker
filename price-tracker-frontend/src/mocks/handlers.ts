@@ -21,7 +21,8 @@ const price1: PriceType = {
     totalPercentage: 0.0,
     createdAt: "2026-09-04T00:00:00.000Z",
     updatedAt: "2026-09-04T00:00:00.000Z",
-    productId: 0
+    productId: 0,
+    deletedAt: null
 }
 
 const price2: PriceType = {
@@ -40,7 +41,8 @@ const price2: PriceType = {
     totalPercentage: 0.0,
     createdAt: "2026-09-05T00:00:00.000Z",
     updatedAt: "2026-09-05T00:00:00.000Z",
-    productId: 0
+    productId: 0,
+    deletedAt: null
 }
 
 

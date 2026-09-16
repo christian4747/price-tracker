@@ -20,12 +20,12 @@ export default {
         return res.data
     },
 
-    getPrices: async (rootUrl: string, productId: number, pageNumber: number = 0, pageSize: number = 20) => {
+    getPrices: async (rootUrl: string, productId: number, pageNumber: number = 0, pageSize: number = 20, showDeleted: boolean = false) => {
         const res = await axios.get(rootUrl + apiPath + '/product/' + productId, {
             params: {
                 page: pageNumber,
                 size: pageSize,
-                showDeleted: false,
+                showDeleted: showDeleted,
             }
         })
         return res.data
