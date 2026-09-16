@@ -90,15 +90,19 @@ export const GroupedProduct = ({ productBodies, dateToday, setDateToday }: Group
                         <Tooltip withArrow label="Edit Product"><MdEdit /></Tooltip>
                     </div>
 
-                    <div
-                        className='cursor-pointer'
-                        onClick={(e) => {
-                            openDeleteProductModal(productBody.product)
-                            e.stopPropagation()
-                        }}
-                    >
-                        <Tooltip withArrow label="Delete Product"><MdDelete /></Tooltip>
-                    </div>
+                    {productBody.product.deletedAt === null &&
+                        <div
+                            className='cursor-pointer'
+                            role='img'
+                            aria-label='Delete product'
+                            onClick={(e) => {
+                                openDeleteProductModal(productBody.product)
+                                e.stopPropagation()
+                            }}
+                        >
+                            <Tooltip withArrow label="Delete Product"><MdDelete /></Tooltip>
+                        </div>
+                    }
                 </>
             )
         }
