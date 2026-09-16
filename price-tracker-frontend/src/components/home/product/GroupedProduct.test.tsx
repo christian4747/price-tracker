@@ -93,7 +93,7 @@ const renderWithAccordion = (ui: React.ReactNode) => {
     )
 }
 
-describe('Product List Header Component', () => {
+describe('Grouped Product Component', () => {
     test('should render grouped product', async () => {
         renderWithAccordion(
             <Accordion.Item value='item-1'>
