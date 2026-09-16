@@ -28,12 +28,17 @@ export const Price = ({ price, openEditPriceModal, openDeletePriceModal }: Price
                 >
                     <Tooltip withArrow label="Edit Price"><MdEdit /></Tooltip>
                 </div>
-                <div
-                    className='cursor-pointer'
-                    onClick={(e) => { openDeletePriceModal(price); e.stopPropagation() }}
-                >
-                    <Tooltip withArrow label="Delete Price"><MdDelete /></Tooltip>
-                </div>
+
+                {price.deletedAt === null &&
+                    <div
+                        className='cursor-pointer'
+                        role='img'
+                        aria-label='Delete price'
+                        onClick={(e) => { openDeletePriceModal(price); e.stopPropagation() }}
+                    >
+                        <Tooltip withArrow label="Delete Price"><MdDelete /></Tooltip>
+                    </div>
+                }
             </div>
         </div>
     )
