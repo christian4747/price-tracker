@@ -1,7 +1,7 @@
 import { Accordion } from "@mantine/core"
 import type { ProductBody, ProductType } from "../../../utils/Types"
 import { useDebounce } from "@/hooks/common/useDebounce"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useDisclosure } from "@mantine/hooks"
 import DeleteProductModal from "../modals/DeleteProductModal"
 import { EditProductModal } from "../modals/EditProductModal"
@@ -18,11 +18,12 @@ interface GroupedProductData {
 
 export interface GroupedProductList {
     searchedTerm: string
+    showDeleted: string
 }
 
 // TODO: Add a formatter
 // TODO: Look into memoizing
-export const GroupedProductList = ({}: GroupedProductList) => {
+export const GroupedProductList = ({ showDeleted }: GroupedProductList) => {
 
     // Hook for getting products grouped
     const {
@@ -30,8 +31,9 @@ export const GroupedProductList = ({}: GroupedProductList) => {
         currentlyOpened,
         currentPageNumber,
         query,
-        setCurrentlyOpened
-    } = useProductPageGrouped()
+        setCurrentlyOpened,
+        refresh
+    } = useProductPageGrouped(undefined, undefined, showDeleted)
 
     // Debounce for setting list's today's date state
     const { value: dateToday, setValueWithDebounce: setDateToday } = useDebounce(new Date())
@@ -51,6 +53,10 @@ export const GroupedProductList = ({}: GroupedProductList) => {
         setCurrentProduct(product)
         openDeleteProduct()
     }
+
+    useEffect(() => {
+        refresh()
+    }, [showDeleted])
 
     if (query.isLoading) return <ProductListSkeleton />
     if (!query.isSuccess) return <></>

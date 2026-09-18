@@ -4,7 +4,7 @@ import { useDebounce } from "@/hooks/common/useDebounce"
 import { Product } from "./Product"
 import DeleteProductModal from "../modals/DeleteProductModal"
 import { EditProductModal } from "../modals/EditProductModal"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useDisclosure } from "@mantine/hooks"
 import { useProductPage } from "@/hooks/product/useProductPage"
 import { ProductListFooter } from "./ProductListFooter"
@@ -14,10 +14,11 @@ import ProductListSkeleton from "./ProductListSkeleton"
 export interface ProductList {
     productStatusFilter: string
     searchedTerm: string
+    showDeleted: string
 }
 
 // TODO: Use productStatusFilter and searchedTerm for product list
-export const ProductList = ({}: ProductList) => {
+export const ProductList = ({ showDeleted }: ProductList) => {
 
     // Hook for getting products grouped
     const {
@@ -25,8 +26,9 @@ export const ProductList = ({}: ProductList) => {
         currentlyOpened,
         currentPageNumber,
         query,
-        setCurrentlyOpened
-    } = useProductPage()
+        setCurrentlyOpened,
+        refresh
+    } = useProductPage(undefined, undefined, showDeleted)
 
     // Debounce for setting list's today's date state
     const { value: dateToday, setValueWithDebounce: setDateToday } = useDebounce(new Date())
@@ -46,6 +48,10 @@ export const ProductList = ({}: ProductList) => {
         setCurrentProduct(product)
         openDeleteProduct()
     }
+
+    useEffect(() => {
+        refresh()
+    }, [showDeleted])
 
     if (query.isLoading) return <ProductListSkeleton />
     if (!query.isSuccess) return <></>

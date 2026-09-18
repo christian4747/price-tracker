@@ -1,8 +1,10 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import api from '../../services/api'
 import { useListWithPagination } from '../common/useListWithPagination'
 
-export function useProductPageGrouped(pageNumber: number = 1, pageSize: number = 10) {
+export function useProductPageGrouped(pageNumber: number = 1, pageSize: number = 10, showDeleted: string) {
+
+    const queryClient = useQueryClient()
 
     const {
         changePageNumber,
@@ -17,10 +19,14 @@ export function useProductPageGrouped(pageNumber: number = 1, pageSize: number =
     const getProductsGroupedQuery = useQuery({
         queryKey: ['productsGrouped', currentPageNumber - 1],
         queryFn: () => {
-            return api.getProductsGrouped(currentPageNumber - 1, currentPageSize)
+            return api.getProductsGrouped(currentPageNumber - 1, currentPageSize, showDeleted === 'Show')
         },
         throwOnError: true
     })
+
+    const refresh = () => {
+        queryClient.invalidateQueries()
+    }
 
     const useProductPageGroupedProps = {
         changePageNumber: changePageNumber,
@@ -28,7 +34,8 @@ export function useProductPageGrouped(pageNumber: number = 1, pageSize: number =
         currentPageNumber: currentPageNumber,
         query: getProductsGroupedQuery,
         setCurrentlyOpened: setCurrentlyOpened,
-        setCurrentPageNumber: setCurrentPageNumber
+        setCurrentPageNumber: setCurrentPageNumber,
+        refresh
     }
 
     return useProductPageGroupedProps

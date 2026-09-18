@@ -107,9 +107,17 @@ public class PriceServiceTest {
     @Test
     public void getAllPrices_threePrices_returnThreePrices() {
         when(pricePage.getContent()).thenReturn(priceList);
+        when(priceDAO.findByDeletedAtNull(any(Pageable.class))).thenReturn(pricePage);
+
+        assertEquals(3, priceService.getAllPrices(pageable, false).size());
+    }
+
+    @Test
+    public void getAllPrices_threePrices_returnThreePricesShowDeleted() {
+        when(pricePage.getContent()).thenReturn(priceList);
         when(priceDAO.findAll(any(Pageable.class))).thenReturn(pricePage);
 
-        assertEquals(3, priceService.getAllPrices(pageable).size());
+        assertEquals(3, priceService.getAllPrices(pageable, true).size());
     }
 
     @Test
@@ -132,7 +140,16 @@ public class PriceServiceTest {
         when(priceDAO.findPriceToday(anyInt())).thenReturn(Optional.of(price));
         when(priceDAO.findByProductProductIdOrderByPriceStartedDesc(pageable, 0)).thenReturn(pricePage);
 
-        assertEquals(4, priceService.getPricesByProductId(pageable, 0).size());
+        assertEquals(4, priceService.getPricesByProductId(pageable, 0, false).size());
+    }
+
+    @Test
+    public void getPricesByProductId_threePrices_returnThreePricesAndTodayWithDeleted() {
+        when(pricePage.getContent()).thenReturn(priceList);
+        when(priceDAO.findPriceToday(anyInt())).thenReturn(Optional.of(price));
+        when(priceDAO.findByProductProductIdOrderByPriceStartedDescDeleted(pageable, 0)).thenReturn(pricePage);
+
+        assertEquals(4, priceService.getPricesByProductId(pageable, 0, true).size());
     }
 
     @Test

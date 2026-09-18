@@ -24,7 +24,7 @@ const reducer = (state: ProductDTO, action: ReducerAction) => {
     switch (action.type) {
         case 'set_field': {
             const { key, value } = action
-            if (!key || !value) return state
+            if (!key || !value && value !== '') return state
 
             return {
                 ...state,

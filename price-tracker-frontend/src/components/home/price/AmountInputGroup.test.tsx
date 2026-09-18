@@ -23,7 +23,7 @@ function renderWithPriceDTO(uiFunction: (state: PriceDTO, setField: (key: string
     )
 }
 
-describe('Price Input Group Component', () => {
+describe('Amount Input Group Component', () => {
 
     test('should match discount amount with discount percentage', async () => {
         const user = userEvent.setup()

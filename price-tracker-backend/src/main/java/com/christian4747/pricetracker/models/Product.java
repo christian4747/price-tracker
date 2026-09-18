@@ -3,6 +3,7 @@ package com.christian4747.pricetracker.models;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.stereotype.Component;
 
@@ -12,6 +13,7 @@ import java.util.List;
 @Component
 @Entity
 @Table(name="products")
+@SQLDelete(sql = "UPDATE {h-schema}products SET deleted_at = NOW() WHERE product_id=?")
 public class Product {
 
     @Id
@@ -33,6 +35,8 @@ public class Product {
     @CreationTimestamp
     private Timestamp createdAt;
 
+    private Timestamp deletedAt;
+
     @UpdateTimestamp
     private Timestamp updatedAt;
 
@@ -44,7 +48,7 @@ public class Product {
     public Product() {
     }
 
-    public Product(int productId, String brand, String name, String link, String store, boolean active, Timestamp createdAt, Timestamp updatedAt, List<Price> prices) {
+    public Product(int productId, String brand, String name, String link, String store, boolean active, Timestamp createdAt, Timestamp deletedAt, Timestamp updatedAt, List<Price> prices) {
         this.productId = productId;
         this.brand = brand;
         this.name = name;
@@ -52,6 +56,7 @@ public class Product {
         this.store = store;
         this.active = active;
         this.createdAt = createdAt;
+        this.deletedAt = deletedAt;
         this.updatedAt = updatedAt;
         this.prices = prices;
     }
@@ -112,6 +117,14 @@ public class Product {
         this.createdAt = createdAt;
     }
 
+    public Timestamp getDeletedAt() {
+        return deletedAt;
+    }
+
+    public void setDeletedAt(Timestamp deletedAt) {
+        this.deletedAt = deletedAt;
+    }
+
     public Timestamp getUpdatedAt() {
         return updatedAt;
     }
@@ -138,6 +151,7 @@ public class Product {
                 ", store='" + store + '\'' +
                 ", active=" + active +
                 ", createdAt=" + createdAt +
+                ", deletedAt=" + deletedAt +
                 ", updatedAt=" + updatedAt +
                 ", prices=" + prices +
                 '}';

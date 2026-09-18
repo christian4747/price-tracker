@@ -5,6 +5,7 @@ export interface ProductType {
     link: string
     store: string
     createdAt: string
+    deletedAt: string | null
     updatedAt: string
     prices: PriceType[]
 }
@@ -14,6 +15,7 @@ export interface PriceType {
     amount: number
     currency: string
     createdAt: string
+    deletedAt: string | null
     description: string
     discountAmount: number
     discountPercentage: number

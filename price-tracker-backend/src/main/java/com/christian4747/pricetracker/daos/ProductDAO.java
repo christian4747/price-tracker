@@ -13,6 +13,13 @@ import java.util.List;
 public interface ProductDAO extends JpaRepository<Product, Integer> {
 
     /**
+     * Finds products whose deletedAt is not null (not deleted). Orders by name ascending.
+     * @param pageable Pagination settings
+     * @return Products whose deletedAt is not null (not deleted)
+     */
+    Page<Product> findAllByDeletedAtNullOrderByNameAsc(Pageable pageable);
+
+    /**
      * Finds all Products with the same name as the given name
      * @param name Name of the Product to find
      * @return A list of all the Products with the given name
@@ -33,6 +40,14 @@ public interface ProductDAO extends JpaRepository<Product, Integer> {
      */
     @Query("SELECT DISTINCT p.name from Product p ORDER BY p.name")
     Page<String> findDistinctNames(Pageable page);
+
+    /**
+     * Finds distinct Product names in the database's 'products' table that are not deleted.
+     * @param page Pagination settings
+     * @return The list of Product names that are not deleted ordered by name ascending
+     */
+    @Query("SELECT DISTINCT p.name from Product p WHERE p.deletedAt IS NULL ORDER BY p.name")
+    Page<String> findDistinctNamesDeletedAtNull(Pageable page);
 
     /**
      * Finds Products contained within the list of given names.

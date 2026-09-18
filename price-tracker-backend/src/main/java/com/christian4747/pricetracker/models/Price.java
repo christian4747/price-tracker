@@ -3,6 +3,7 @@ package com.christian4747.pricetracker.models;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.stereotype.Component;
 
@@ -11,6 +12,7 @@ import java.sql.Timestamp;
 @Component
 @Entity
 @Table(name="prices")
+@SQLDelete(sql = "UPDATE {h-schema}prices SET deleted_at = NOW() WHERE price_id=?")
 public class Price {
 
     @Id
@@ -52,6 +54,8 @@ public class Price {
     @CreationTimestamp
     private Timestamp createdAt;
 
+    private Timestamp deletedAt;
+
     @UpdateTimestamp
     private Timestamp updatedAt;
 
@@ -63,7 +67,7 @@ public class Price {
     public Price() {
     }
 
-    public Price(int priceId, double amount, String currency, String description, double discountAmount, double discountPercentage, boolean isToday, Timestamp priceStarted, Timestamp priceEnded, double returnAmount, double returnPercentage, double totalAmount, double totalPercentage, Timestamp createdAt, Timestamp updatedAt, Product product) {
+    public Price(int priceId, double amount, String currency, String description, double discountAmount, double discountPercentage, boolean isToday, Timestamp priceStarted, Timestamp priceEnded, double returnAmount, double returnPercentage, double totalAmount, double totalPercentage, Timestamp createdAt, Timestamp deletedAt, Timestamp updatedAt, Product product) {
         this.priceId = priceId;
         this.amount = amount;
         this.currency = currency;
@@ -78,6 +82,7 @@ public class Price {
         this.totalAmount = totalAmount;
         this.totalPercentage = totalPercentage;
         this.createdAt = createdAt;
+        this.deletedAt = deletedAt;
         this.updatedAt = updatedAt;
         this.product = product;
     }
@@ -194,6 +199,14 @@ public class Price {
         this.createdAt = createdAt;
     }
 
+    public Timestamp getDeletedAt() {
+        return deletedAt;
+    }
+
+    public void setDeletedAt(Timestamp deletedAt) {
+        this.deletedAt = deletedAt;
+    }
+
     public Timestamp getUpdatedAt() {
         return updatedAt;
     }
@@ -227,6 +240,7 @@ public class Price {
                 ", totalAmount=" + totalAmount +
                 ", totalPercentage=" + totalPercentage +
                 ", createdAt=" + createdAt +
+                ", deletedAt=" + deletedAt +
                 ", updatedAt=" + updatedAt +
                 ", product=" + product +
                 '}';

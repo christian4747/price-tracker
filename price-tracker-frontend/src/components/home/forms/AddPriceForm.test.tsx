@@ -11,7 +11,8 @@ const product: ProductType = {
     store: '',
     createdAt: '',
     updatedAt: '',
-    prices: []
+    prices: [],
+    deletedAt: null
 }
 
 describe('Add Price Form Component', () => {

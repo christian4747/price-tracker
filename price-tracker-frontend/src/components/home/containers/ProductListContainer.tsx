@@ -1,7 +1,7 @@
 import { Box, Button, Center } from '@mantine/core'
 import { GroupedProductList } from '../product/GroupedProductList'
 import { ProductList } from '../product/ProductList'
-import ProductListHeader from '../product/ProductListHeader'
+import { ProductListHeader } from '../product/ProductListHeader'
 import { useState } from 'react'
 import { ErrorBoundary, getErrorMessage, type FallbackProps } from 'react-error-boundary'
 
@@ -23,6 +23,8 @@ export const ProductListContainer = () => {
     const [productStatusFilter, setProductStatusFilter] = useState('Active')
     // State for tracking group by
     const [productsGroupBy, setProductsGroupBy] = useState('')
+    // State for showing and hiding deleted products
+    const [showDeleted, setShowDeleted] = useState('Hide')
 
     // Sets the search term, triggering a filter and refresh
     const searchSearchTerm = (searchTerm: string) => {
@@ -37,17 +39,21 @@ export const ProductListContainer = () => {
                 setProductStatusFilter={setProductStatusFilter}
                 productsGroupBy={productsGroupBy}
                 setProductsGroupBy={setProductsGroupBy}
+                showDeleted={showDeleted}
+                setShowDeleted={setShowDeleted}
             />
 
             <ErrorBoundary FallbackComponent={ProductListFallback}>
                 {productsGroupBy !== '' ?
                     <GroupedProductList
                         searchedTerm={searchedTerm}
+                        showDeleted={showDeleted}
                     />
                     :
                     <ProductList
                         searchedTerm={searchedTerm}
                         productStatusFilter={productStatusFilter}
+                        showDeleted={showDeleted}
                     />
                 }
             </ErrorBoundary>

@@ -50,8 +50,9 @@ public class PriceController {
      * @return A list of Prices (default 20)
      */
     @GetMapping
-    public ResponseEntity<List<Price>> getAllPrices(Pageable pageable) {
-        return ResponseEntity.ok(priceService.getAllPrices(pageable));
+    public ResponseEntity<List<Price>> getAllPrices(
+            Pageable pageable, @RequestParam(defaultValue = "false") Boolean showDeleted) {
+        return ResponseEntity.ok(priceService.getAllPrices(pageable, showDeleted));
     }
 
     /**
@@ -72,8 +73,10 @@ public class PriceController {
      * @return The Prices associated with the given productId
      */
     @GetMapping("/product/{productId}")
-    public ResponseEntity<List<Price>> getPricesByProductId(Pageable pageable, @PathVariable Integer productId) {
-        return ResponseEntity.ok(priceService.getPricesByProductId(pageable, productId));
+    public ResponseEntity<List<Price>> getPricesByProductId(
+            Pageable pageable, @PathVariable Integer productId,
+            @RequestParam(defaultValue = "false") Boolean showDeleted) {
+        return ResponseEntity.ok(priceService.getPricesByProductId(pageable, productId, showDeleted));
     }
 
     /**

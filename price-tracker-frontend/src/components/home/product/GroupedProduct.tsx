@@ -6,7 +6,7 @@ import { ProductTitleBar } from "./ProductTitleBar"
 import { PriceBanner } from "../price/PriceBanner"
 import { MdEdit, MdDelete } from "react-icons/md"
 import { DeleteProductContext, EditProductContext } from "@/context/ProductContext"
-import { GroupedProductDescription } from "./GroupedProductDescription"
+import { ProductDetails } from "./ProductDetails"
 
 export interface GroupedProduct {
     productBodies: ProductBody[]
@@ -90,15 +90,19 @@ export const GroupedProduct = ({ productBodies, dateToday, setDateToday }: Group
                         <Tooltip withArrow label="Edit Product"><MdEdit /></Tooltip>
                     </div>
 
-                    <div
-                        className='cursor-pointer'
-                        onClick={(e) => {
-                            openDeleteProductModal(productBody.product)
-                            e.stopPropagation()
-                        }}
-                    >
-                        <Tooltip withArrow label="Delete Product"><MdDelete /></Tooltip>
-                    </div>
+                    {productBody.product.deletedAt === null &&
+                        <div
+                            className='cursor-pointer'
+                            role='img'
+                            aria-label='Delete product'
+                            onClick={(e) => {
+                                openDeleteProductModal(productBody.product)
+                                e.stopPropagation()
+                            }}
+                        >
+                            <Tooltip withArrow label="Delete Product"><MdDelete /></Tooltip>
+                        </div>
+                    }
                 </>
             )
         }
@@ -108,8 +112,8 @@ export const GroupedProduct = ({ productBodies, dateToday, setDateToday }: Group
     const productDescriptions = productBodies.map((productBody) => {
         if (productBody.product.store === selectedStore) {
             return (
-                <GroupedProductDescription
-                    productBody={productBody}
+                <ProductDetails
+                    product={productBody.product}
                     dateToday={dateToday}
                     setDateToday={setDateToday}
                 >
@@ -142,7 +146,7 @@ export const GroupedProduct = ({ productBodies, dateToday, setDateToday }: Group
                         </Box>
                         {productActionBars}
                     </div>
-                </GroupedProductDescription>
+                </ProductDetails>
             )
         }
     })

@@ -26,20 +26,20 @@ export default {
         return productService.getAllProducts(rootUrl)
     },
 
-    getPrices: async (productId: number, pageNumber: number = 0, pageSize: number = 20) => {
-        return priceService.getPrices(rootUrl, productId, pageNumber, pageSize)
+    getPrices: async (productId: number, pageNumber: number = 0, pageSize: number = 20, showDeleted: boolean = false) => {
+        return priceService.getPrices(rootUrl, productId, pageNumber, pageSize, showDeleted)
     },
 
     getProductCount: async () => {
         return productService.getProductCount(rootUrl)
     },
 
-    getProductPage: async (pageNumber: number = 0, pageSize: number = 10) => {
-        return productService.getProductPage(rootUrl, pageNumber, pageSize)
+    getProductPage: async (pageNumber: number = 0, pageSize: number = 10, showDeleted: boolean) => {
+        return productService.getProductPage(rootUrl, pageNumber, pageSize, showDeleted)
     },
 
-    getProductsGrouped: async (pageNumber: number = 0, pageSize: number = 10) => {
-        return productService.getProductsGrouped(rootUrl, pageNumber, pageSize)
+    getProductsGrouped: async (pageNumber: number = 0, pageSize: number = 10, showDeleted: boolean) => {
+        return productService.getProductsGrouped(rootUrl, pageNumber, pageSize, undefined, showDeleted)
     },
 
     getRecentPriceData: async () => {

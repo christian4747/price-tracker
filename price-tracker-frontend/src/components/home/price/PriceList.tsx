@@ -5,14 +5,17 @@ import { EditPriceModal } from "../modals/EditPriceModal"
 import { DeletePriceModal } from "../modals/DeletePriceModal"
 import { useDisclosure } from "@mantine/hooks"
 import { useState } from "react"
+import { Checkbox } from "@mantine/core"
 
 interface PriceList {
     product: ProductType
     prices: PriceType[]
     setDateToday: (newVal: Date) => void
+    showDeleted: boolean
+    setShowDeleted: React.Dispatch<React.SetStateAction<boolean>>
 }
 
-export const PriceList = ({product, setDateToday, prices}: PriceList) => {
+export const PriceList = ({ product, setDateToday, prices, showDeleted, setShowDeleted }: PriceList) => {
 
     // Track state for currently selected price
     const [currentPrice, setCurrentPrice] = useState(prices[0])
@@ -48,11 +51,21 @@ export const PriceList = ({product, setDateToday, prices}: PriceList) => {
                     })}
                 </div>
 
+                <div className='flex flex-col'>
+                    <Checkbox
+                        className="px-2"
+                        label="Show deleted prices"
+                        checked={showDeleted}
+                        onChange={(e) => setShowDeleted(e.currentTarget.checked)}
+                    />
+                    <AddPriceModal
+                        product={product}
+                        setDateToday={setDateToday}
+                    />
+                </div>
+                
+
                 {/* Modal Zone */}
-                <AddPriceModal
-                    product={product}
-                    setDateToday={setDateToday}
-                />
                 <EditPriceModal
                     price={currentPrice}
                     closeEditPrice={closeEditPrice}

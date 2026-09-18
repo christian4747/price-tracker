@@ -45,6 +45,7 @@ public class ProductServiceTest {
     private Product addedProduct;
     private IncomingProductDTO productDTO;
     private List<Product> productList;
+    private List<Product> productList2;
 
     @BeforeEach
     public void setUp() {
@@ -65,6 +66,7 @@ public class ProductServiceTest {
         productDTO.setStore("Store");
 
         productList = List.of(addedProduct, addedProduct2, addedProduct3);
+        productList2 = List.of(addedProduct, addedProduct2);
     }
 
     @Test
@@ -106,12 +108,21 @@ public class ProductServiceTest {
     }
 
     @Test
-    public void getAllProducts_threeProducts_returnThreeProducts() {
-        when(productPage.getContent()).thenReturn(productList);
-        when(productDAO.findAllByOrderByNameAsc(any(Pageable.class))).thenReturn(productPage);
-        when(productPage.getTotalElements()).thenReturn((long) 3);
+    public void getAllProducts_threeProductsOneDeleted_returnTwoProducts() {
+        when(productPage.getContent()).thenReturn(productList2);
+        when(productPage.getTotalElements()).thenReturn((long) 2);
+        when(productDAO.findAllByDeletedAtNullOrderByNameAsc(any(Pageable.class))).thenReturn(productPage);
 
-        assertEquals(3, productService.getAllProducts(pageable).count());
+        assertEquals(2, productService.getAllProducts(pageable, false).content().size());
+    }
+
+    @Test
+    public void getAllProducts_threeProductsOneDeleted_returnThreeProducts() {
+        when(productPage.getContent()).thenReturn(productList);
+        when(productPage.getTotalElements()).thenReturn((long) 3);
+        when(productDAO.findAllByOrderByNameAsc(any(Pageable.class))).thenReturn(productPage);
+
+        assertEquals(3, productService.getAllProducts(pageable, true).content().size());
     }
 
     @Test
@@ -131,12 +142,22 @@ public class ProductServiceTest {
 
     @Test
     public void getProductsGroupedByName_twoUniqueNames_returnTwoLists() {
-        when(productDAO.findDistinctNames(any())).thenReturn(namePage);
+        when(productDAO.findDistinctNamesDeletedAtNull(any())).thenReturn(namePage);
         when(productDAO.findByNameIn(any())).thenReturn(productList);
         when(namePage.getContent()).thenReturn(List.of("Product", "Product2"));
         when(namePage.getTotalElements()).thenReturn((long) 2);
 
-        assertEquals(2, productService.getProductsGroupedByName(pageable).count());
+        assertEquals(2, productService.getProductsGroupedByName(pageable, false).count());
+    }
+
+    @Test
+    public void getProductsGroupedByName_twoUniqueNames_showDeletedReturnTwoLists() {
+        when(productDAO.findDistinctNames(any())).thenReturn(namePage);
+        when(productDAO.findByNameIn(any())).thenReturn(productList);
+        when(namePage.getContent()).thenReturn(List.of("Product"));
+        when(namePage.getTotalElements()).thenReturn((long) 1);
+
+        assertEquals(1, productService.getProductsGroupedByName(pageable, true).count());
     }
 
     @Test
