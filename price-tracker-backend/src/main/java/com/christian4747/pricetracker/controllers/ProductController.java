@@ -67,12 +67,20 @@ public class ProductController {
         return ResponseEntity.ok(productService.getProductsGroupedByName(pageable, showDeleted));
     }
 
+    /**
+     * Gets all the products with the given pagination settings, product filter DTO, and price filter DTO.
+     * @param productFilterDTO Product filter details
+     * @param priceFilterDTO Current price filter details
+     * @param pageable Pagination settings
+     * @return All products with applied pagination and filter details
+     */
     @GetMapping("/filter")
     public ResponseEntity<ResponseAndCount<OutgoingProductDTO>> getAllProductsFiltered(
-            @ModelAttribute("productFilterDTO") ProductFilterDTO productFilterDTO,
-            @PageableDefault(size = 10, sort = {"name"}, direction = Sort.Direction.ASC) Pageable pageable
+            ProductFilterDTO productFilterDTO,
+            PriceFilterDTO priceFilterDTO,
+            @PageableDefault(sort = {"name"}, direction = Sort.Direction.ASC) Pageable pageable
     ) {
-        return ResponseEntity.ok(productService.getAllProductsFiltered(productFilterDTO, pageable));
+        return ResponseEntity.ok(productService.getAllProductsFiltered(productFilterDTO, priceFilterDTO, pageable));
     }
 
     /**

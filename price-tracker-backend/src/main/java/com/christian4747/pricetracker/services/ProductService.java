@@ -118,14 +118,17 @@ public class ProductService {
     }
 
     /**
-     * Gets all the products with the given pagination settings and product filter DTO.
+     * Gets all the products with the given pagination settings, product filter DTO, and price filter DTO.
      * @param productFilterDTO Product filter details
+     * @param priceFilterDTO Current price filter details
      * @param pageable Pagination settings
      * @return All products with applied pagination and filter details
      */
-    public ResponseAndCount<OutgoingProductDTO> getAllProductsFiltered(ProductFilterDTO productFilterDTO, Pageable pageable) {
+    public ResponseAndCount<OutgoingProductDTO> getAllProductsFiltered(ProductFilterDTO productFilterDTO, PriceFilterDTO priceFilterDTO, Pageable pageable) {
         logger.info(productFilterDTO.toString());
-        Specification<Product> productSpecification = ProductSpecification.filterBy(productFilterDTO);
+        Specification<Product> productSpecification = ProductSpecification
+                .filterProductBy(productFilterDTO)
+                .and(ProductSpecification.filterProductPriceBy(priceFilterDTO));
         Page<Product> productPage = productDAO.findAll(productSpecification, pageable);
         List<Product> productList = productPage.getContent();
 

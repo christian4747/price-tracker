@@ -1,8 +1,13 @@
 package com.christian4747.pricetracker.daos.specification;
 
+import com.christian4747.pricetracker.models.Price;
 import com.christian4747.pricetracker.models.Product;
+import com.christian4747.pricetracker.models.dtos.PriceFilterDTO;
 import com.christian4747.pricetracker.models.dtos.ProductFilterDTO;
+import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Subquery;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.sql.Timestamp;
@@ -11,7 +16,7 @@ import java.util.List;
 
 public class ProductSpecification {
 
-    public static Specification<Product> filterBy(ProductFilterDTO filter) {
+    public static Specification<Product> filterProductBy(ProductFilterDTO filter) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
 
@@ -82,4 +87,63 @@ public class ProductSpecification {
         };
     }
 
+    public static Specification<Product> filterProductPriceBy(PriceFilterDTO filter) {
+        return (root, query, criteriaBuilder) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            List<Predicate> subqueryPredicates = new ArrayList<>();
+
+            // First find the Price with current timestamp
+            Expression<Timestamp> currentTimestamp = criteriaBuilder.currentTimestamp();
+            Subquery<Timestamp> priceSubquery = query.subquery(Timestamp.class);
+            Root<Price> priceRoot = priceSubquery.from(Price.class);
+            priceSubquery.select(criteriaBuilder.greatest(priceRoot.<Timestamp>get("priceStarted")))
+                    .where(
+                            criteriaBuilder.lessThanOrEqualTo(priceRoot.get("priceStarted"), currentTimestamp),
+                            criteriaBuilder.equal(priceRoot.get("product"), root)
+                    );
+
+            // MAX Timestamp only gives Timestamp so use another subquery
+            Subquery<Integer> currentPriceSubquery = query.subquery(Integer.class);
+            Root<Price> currentPriceRoot = currentPriceSubquery.from(Price.class);
+            currentPriceSubquery.select(currentPriceRoot.get("priceId"));
+
+            // Filter by minimum price
+            if (filter.minPrice() != null) {
+                subqueryPredicates.add(criteriaBuilder.greaterThanOrEqualTo(currentPriceRoot.get("totalAmount"), filter.minPrice()));
+            }
+
+            // Filter by maximum price
+            if (filter.maxPrice() != null) {
+                subqueryPredicates.add(criteriaBuilder.lessThan(currentPriceRoot.get("totalAmount"), filter.maxPrice()));
+            }
+
+            // Filter by minimum discount (total) percentage
+            if (filter.minDiscountPercent() != null) {
+                subqueryPredicates.add(criteriaBuilder.greaterThanOrEqualTo(currentPriceRoot.get("totalPercentage"), filter.minDiscountPercent()));
+            }
+
+            // Filter by maximum discount (total) percentage
+            if (filter.maxDiscountPercent() != null) {
+                subqueryPredicates.add(criteriaBuilder.lessThan(currentPriceRoot.get("totalPercentage"), filter.maxDiscountPercent()));
+            }
+
+            // Filter by start date
+            if (filter.startDate() != null) {
+                subqueryPredicates.add(criteriaBuilder.greaterThanOrEqualTo(currentPriceRoot.get("priceStarted"), Timestamp.valueOf(filter.startDate())));
+            }
+
+            // Filter by end date
+            if (filter.endDate() != null) {
+                subqueryPredicates.add(criteriaBuilder.lessThan(currentPriceRoot.get("priceStarted"), Timestamp.valueOf(filter.endDate())));
+            }
+
+            // Only use price filter predicates if price filter exists
+            if (!subqueryPredicates.isEmpty()) {
+                subqueryPredicates.add(criteriaBuilder.equal(currentPriceRoot.get("priceStarted"), priceSubquery));
+                predicates.add(criteriaBuilder.exists(currentPriceSubquery.where(criteriaBuilder.and(subqueryPredicates.toArray(new Predicate[0])))));
+            }
+
+            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+        };
+    }
 }
