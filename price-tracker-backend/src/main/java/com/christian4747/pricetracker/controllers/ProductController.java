@@ -1,12 +1,11 @@
 package com.christian4747.pricetracker.controllers;
 
 import com.christian4747.pricetracker.models.Product;
-import com.christian4747.pricetracker.models.dtos.IncomingProductDTO;
-import com.christian4747.pricetracker.models.dtos.OutgoingProductDTO;
-import com.christian4747.pricetracker.models.dtos.ProductNameGroupDTO;
-import com.christian4747.pricetracker.models.dtos.ResponseAndCount;
+import com.christian4747.pricetracker.models.dtos.*;
 import com.christian4747.pricetracker.services.ProductService;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -66,6 +65,14 @@ public class ProductController {
             Pageable pageable, @RequestParam(defaultValue = "name") String groupBy,
             @RequestParam(defaultValue = "false") Boolean showDeleted) {
         return ResponseEntity.ok(productService.getProductsGroupedByName(pageable, showDeleted));
+    }
+
+    @GetMapping("/filter")
+    public ResponseEntity<ResponseAndCount<OutgoingProductDTO>> getAllProductsFiltered(
+            @ModelAttribute("productFilterDTO") ProductFilterDTO productFilterDTO,
+            @PageableDefault(size = 10, sort = {"name"}, direction = Sort.Direction.ASC) Pageable pageable
+    ) {
+        return ResponseEntity.ok(productService.getAllProductsFiltered(productFilterDTO, pageable));
     }
 
     /**

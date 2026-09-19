@@ -2,19 +2,18 @@ package com.christian4747.pricetracker.services;
 
 import com.christian4747.pricetracker.daos.PriceDAO;
 import com.christian4747.pricetracker.daos.ProductDAO;
+import com.christian4747.pricetracker.daos.specification.ProductSpecification;
 import com.christian4747.pricetracker.models.Price;
 import com.christian4747.pricetracker.models.PriceTotalPercentages;
 import com.christian4747.pricetracker.models.Product;
-import com.christian4747.pricetracker.models.dtos.IncomingProductDTO;
-import com.christian4747.pricetracker.models.dtos.OutgoingProductDTO;
-import com.christian4747.pricetracker.models.dtos.ProductNameGroupDTO;
-import com.christian4747.pricetracker.models.dtos.ResponseAndCount;
+import com.christian4747.pricetracker.models.dtos.*;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
@@ -116,6 +115,24 @@ public class ProductService {
         } else {
             return productDAO.findAllByDeletedAtNullOrderByNameAsc(pageable);
         }
+    }
+
+    /**
+     * Gets all the products with the given pagination settings and product filter DTO.
+     * @param productFilterDTO Product filter details
+     * @param pageable Pagination settings
+     * @return All products with applied pagination and filter details
+     */
+    public ResponseAndCount<OutgoingProductDTO> getAllProductsFiltered(ProductFilterDTO productFilterDTO, Pageable pageable) {
+        logger.info(productFilterDTO.toString());
+        Specification<Product> productSpecification = ProductSpecification.filterBy(productFilterDTO);
+        Page<Product> productPage = productDAO.findAll(productSpecification, pageable);
+        List<Product> productList = productPage.getContent();
+
+        List<OutgoingProductDTO> productsWithDateToday =
+                productList.stream().map(this::getProductWithPriceToday).toList();
+
+        return new ResponseAndCount<>(productsWithDateToday, productPage.getTotalElements());
     }
 
     /**

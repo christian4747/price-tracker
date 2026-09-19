@@ -4,13 +4,14 @@ import com.christian4747.pricetracker.models.Product;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
 @Repository
-public interface ProductDAO extends JpaRepository<Product, Integer> {
+public interface ProductDAO extends JpaRepository<Product, Integer>, JpaSpecificationExecutor<Product> {
 
     /**
      * Finds products whose deletedAt is not null (not deleted). Orders by name ascending.
