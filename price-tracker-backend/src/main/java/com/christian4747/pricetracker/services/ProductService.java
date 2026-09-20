@@ -2,7 +2,7 @@ package com.christian4747.pricetracker.services;
 
 import com.christian4747.pricetracker.daos.PriceDAO;
 import com.christian4747.pricetracker.daos.ProductDAO;
-import com.christian4747.pricetracker.daos.specification.ProductSpecification;
+import com.christian4747.pricetracker.specification.ProductSpecification;
 import com.christian4747.pricetracker.models.Price;
 import com.christian4747.pricetracker.models.PriceTotalPercentages;
 import com.christian4747.pricetracker.models.Product;

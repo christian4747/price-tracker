@@ -1,4 +1,4 @@
-package com.christian4747.pricetracker.daos.specification;
+package com.christian4747.pricetracker.specification;
 
 import com.christian4747.pricetracker.models.Price;
 import com.christian4747.pricetracker.models.Product;
