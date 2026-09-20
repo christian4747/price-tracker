@@ -41,14 +41,19 @@ public class ProductController {
     }
 
     /**
-     * Gets all the Products in 'products' database table. Uses pagination (default 20 per page).
+     * Gets all the products with the given pagination settings, product filter DTO, and price filter DTO.
+     * @param productFilterDTO Product filter details
+     * @param priceFilterDTO Current price filter details
      * @param pageable Pagination settings
-     * @return A list of Products (default 20)
+     * @return All products with applied pagination and filter details
      */
     @GetMapping
     public ResponseEntity<ResponseAndCount<OutgoingProductDTO>> getAllProducts(
-            Pageable pageable, @RequestParam(defaultValue = "false") Boolean showDeleted) {
-        return ResponseEntity.ok(productService.getAllProducts(pageable, showDeleted));
+            ProductFilterDTO productFilterDTO,
+            PriceFilterDTO priceFilterDTO,
+            @PageableDefault(sort = {"name"}, direction = Sort.Direction.ASC) Pageable pageable
+    ) {
+        return ResponseEntity.ok(productService.getAllProductsFiltered(productFilterDTO, priceFilterDTO, pageable));
     }
 
     /**
@@ -65,22 +70,6 @@ public class ProductController {
             Pageable pageable, @RequestParam(defaultValue = "name") String groupBy,
             @RequestParam(defaultValue = "false") Boolean showDeleted) {
         return ResponseEntity.ok(productService.getProductsGroupedByName(pageable, showDeleted));
-    }
-
-    /**
-     * Gets all the products with the given pagination settings, product filter DTO, and price filter DTO.
-     * @param productFilterDTO Product filter details
-     * @param priceFilterDTO Current price filter details
-     * @param pageable Pagination settings
-     * @return All products with applied pagination and filter details
-     */
-    @GetMapping("/filter")
-    public ResponseEntity<ResponseAndCount<OutgoingProductDTO>> getAllProductsFiltered(
-            ProductFilterDTO productFilterDTO,
-            PriceFilterDTO priceFilterDTO,
-            @PageableDefault(sort = {"name"}, direction = Sort.Direction.ASC) Pageable pageable
-    ) {
-        return ResponseEntity.ok(productService.getAllProductsFiltered(productFilterDTO, priceFilterDTO, pageable));
     }
 
     /**

@@ -95,29 +95,6 @@ public class ProductService {
     }
 
     /**
-     * Gets all the Products in the 'products' database table. Uses pagination (default 20 per page).
-     * @param pageable Pagination settings
-     * @return A list of Products (default 20)
-     */
-    public ResponseAndCount<OutgoingProductDTO> getAllProducts(Pageable pageable, Boolean showDeleted) {
-        Page<Product> productPage = findAllProducts(pageable, showDeleted);
-        List<Product> productList = productPage.getContent();
-
-        List<OutgoingProductDTO> productsWithDateToday =
-                productList.stream().map(this::getProductWithPriceToday).toList();
-        
-        return new ResponseAndCount<>(productsWithDateToday, productPage.getTotalElements());
-    }
-
-    private Page<Product> findAllProducts(Pageable pageable, boolean showDeleted) {
-        if (showDeleted) {
-            return productDAO.findAllByOrderByNameAsc(pageable);
-        } else {
-            return productDAO.findAllByDeletedAtNullOrderByNameAsc(pageable);
-        }
-    }
-
-    /**
      * Gets all the products with the given pagination settings, product filter DTO, and price filter DTO.
      * @param productFilterDTO Product filter details
      * @param priceFilterDTO Current price filter details
@@ -125,7 +102,6 @@ public class ProductService {
      * @return All products with applied pagination and filter details
      */
     public ResponseAndCount<OutgoingProductDTO> getAllProductsFiltered(ProductFilterDTO productFilterDTO, PriceFilterDTO priceFilterDTO, Pageable pageable) {
-        logger.info(productFilterDTO.toString());
         Specification<Product> productSpecification = ProductSpecification
                 .filterProductBy(productFilterDTO)
                 .and(ProductSpecification.filterProductPriceBy(priceFilterDTO));

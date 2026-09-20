@@ -4,14 +4,18 @@ import com.christian4747.pricetracker.daos.PriceDAO;
 import com.christian4747.pricetracker.daos.ProductDAO;
 import com.christian4747.pricetracker.models.Product;
 import com.christian4747.pricetracker.models.dtos.IncomingProductDTO;
+import com.christian4747.pricetracker.models.dtos.PriceFilterDTO;
+import com.christian4747.pricetracker.models.dtos.ProductFilterDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.util.List;
 import java.util.Optional;
@@ -38,6 +42,12 @@ public class ProductServiceTest {
 
     @Mock
     private Page<String> namePage;
+
+    @Mock
+    private ProductFilterDTO productFilterDTO;
+
+    @Mock
+    private PriceFilterDTO priceFilterDTO;
 
     @Mock
     private Pageable pageable;
@@ -111,18 +121,18 @@ public class ProductServiceTest {
     public void getAllProducts_threeProductsOneDeleted_returnTwoProducts() {
         when(productPage.getContent()).thenReturn(productList2);
         when(productPage.getTotalElements()).thenReturn((long) 2);
-        when(productDAO.findAllByDeletedAtNullOrderByNameAsc(any(Pageable.class))).thenReturn(productPage);
+        when(productDAO.findAll(ArgumentMatchers.<Specification<Product>>any(), any(Pageable.class))).thenReturn(productPage);
 
-        assertEquals(2, productService.getAllProducts(pageable, false).content().size());
+        assertEquals(2, productService.getAllProductsFiltered(productFilterDTO, priceFilterDTO, pageable).content().size());
     }
 
     @Test
     public void getAllProducts_threeProductsOneDeleted_returnThreeProducts() {
         when(productPage.getContent()).thenReturn(productList);
         when(productPage.getTotalElements()).thenReturn((long) 3);
-        when(productDAO.findAllByOrderByNameAsc(any(Pageable.class))).thenReturn(productPage);
+        when(productDAO.findAll(ArgumentMatchers.<Specification<Product>>any(), any(Pageable.class))).thenReturn(productPage);
 
-        assertEquals(3, productService.getAllProducts(pageable, true).content().size());
+        assertEquals(3, productService.getAllProductsFiltered(productFilterDTO, priceFilterDTO, pageable).content().size());
     }
 
     @Test

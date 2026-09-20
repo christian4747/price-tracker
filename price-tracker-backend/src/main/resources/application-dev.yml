@@ -8,7 +8,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
         default_schema: ${DEV_DATABASE_SCHEMA}

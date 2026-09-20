@@ -14,25 +14,11 @@ import java.util.List;
 public interface ProductDAO extends JpaRepository<Product, Integer>, JpaSpecificationExecutor<Product> {
 
     /**
-     * Finds products whose deletedAt is not null (not deleted). Orders by name ascending.
-     * @param pageable Pagination settings
-     * @return Products whose deletedAt is not null (not deleted)
-     */
-    Page<Product> findAllByDeletedAtNullOrderByNameAsc(Pageable pageable);
-
-    /**
      * Finds all Products with the same name as the given name
      * @param name Name of the Product to find
      * @return A list of all the Products with the given name
      */
     List<Product> findAllByName(String name);
-
-    /**
-     * Find all Products by name ascending in the database's 'products' table.
-     * @param page Pagination settings
-     * @return The list of Products ordered by name ascending
-     */
-    Page<Product> findAllByOrderByNameAsc(Pageable page);
 
     /**
      * Finds distinct Product names in the database's 'products' table.

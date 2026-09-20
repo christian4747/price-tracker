@@ -20,7 +20,7 @@ export default {
             params: {
                 page: pageNumber,
                 size: pageSize,
-                showDeleted: showDeleted,
+                deleted: showDeleted,
             }
         })
         return res.data
