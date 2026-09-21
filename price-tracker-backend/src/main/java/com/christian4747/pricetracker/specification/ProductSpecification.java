@@ -19,10 +19,10 @@ public class ProductSpecification {
     public static Specification<Product> filterProductBy(ProductFilterDTO filter) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
-
+            List<Predicate> stringPredicates = new ArrayList<>();
             // Filter by product brand
             if (filter.brand() != null && !filter.brand().isBlank()) {
-                predicates.add(criteriaBuilder.like(
+                stringPredicates.add(criteriaBuilder.like(
                         criteriaBuilder.lower(root.get("brand")),
                         "%" + filter.brand().toLowerCase() + "%"
                 ));
@@ -30,7 +30,7 @@ public class ProductSpecification {
 
             // Filter by product name
             if (filter.name() != null && !filter.name().isBlank()) {
-                predicates.add(criteriaBuilder.like(
+                stringPredicates.add(criteriaBuilder.like(
                         criteriaBuilder.lower(root.get("name")),
                         "%" + filter.name().toLowerCase() + "%"
                 ));
@@ -38,11 +38,13 @@ public class ProductSpecification {
 
             // Filter by product store
             if (filter.store() != null && !filter.store().isBlank()) {
-                predicates.add(criteriaBuilder.like(
+                stringPredicates.add(criteriaBuilder.like(
                         criteriaBuilder.lower(root.get("store")),
                         "%" + filter.store().toLowerCase() + "%"
                 ));
             }
+
+            predicates.add(criteriaBuilder.or(stringPredicates));
 
             // Filter by product active status
             if (filter.active() != null) {
