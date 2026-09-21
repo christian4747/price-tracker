@@ -70,7 +70,7 @@ public class ProductSpecification {
             }
 
             // Filter by deleted products
-            if (filter.deleted() != null && Boolean.parseBoolean(filter.deleted())) {
+            if (filter.deleted() != null && filter.deleted()) {
                 // Filter by product deletedAt timestamp (start)
                 if (filter.startDeletedAt() != null) {
                     predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("deletedAt"), Timestamp.valueOf(filter.startDeletedAt())));

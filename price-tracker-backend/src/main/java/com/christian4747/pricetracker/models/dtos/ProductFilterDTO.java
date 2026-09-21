@@ -9,7 +9,7 @@ public record ProductFilterDTO(
         String endUpdatedAt,
         String startCreatedAt,
         String endCreatedAt,
-        String deleted,
+        Boolean deleted,
         String startDeletedAt,
         String endDeletedAt
 ) {
