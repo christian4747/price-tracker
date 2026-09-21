@@ -44,6 +44,9 @@ public class ProductSpecification {
                 ));
             }
 
+            if (!stringPredicates.isEmpty()) {
+                predicates.add(criteriaBuilder.or(stringPredicates));
+            }
             predicates.add(criteriaBuilder.or(stringPredicates));
 
             // Filter by product active status
