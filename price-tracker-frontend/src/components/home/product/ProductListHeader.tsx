@@ -2,18 +2,18 @@ import { MdSearch } from 'react-icons/md'
 import { useState } from 'react'
 import { Button, Input, Menu } from '@mantine/core'
 import AddProductModal from '../modals/AddProductModal'
+import type { ProductFilterDTO } from '@/utils/Types'
+import { ACTIVE_INACTIVE_PRODUCTS, ACTIVE_PRODUCTS, INACTIVE_PRODUCTS } from '@/utils/FilterConstants'
 
 interface ProductListHeader {
     searchSearchTerm: (searchTerm: string) => void
-    productStatusFilter: string
-    setProductStatusFilter: React.Dispatch<React.SetStateAction<string>>
     productsGroupBy: string
     setProductsGroupBy: React.Dispatch<React.SetStateAction<string>>
-    showDeleted: string
-    setShowDeleted: React.Dispatch<React.SetStateAction<string>>
+    productFilterDTO: ProductFilterDTO
+    setField: (key: string, value: string | boolean) => void
 }
 
-export const ProductListHeader = ({ searchSearchTerm, productStatusFilter, setProductStatusFilter, productsGroupBy, setProductsGroupBy, showDeleted, setShowDeleted }: ProductListHeader) => {
+export const ProductListHeader = ({ searchSearchTerm, productsGroupBy, setProductsGroupBy, productFilterDTO, setField }: ProductListHeader) => {
 
     // State for tracking current input value
     const [currentSearchTerm, setCurrentSearchTerm] = useState('')
@@ -31,16 +31,16 @@ export const ProductListHeader = ({ searchSearchTerm, productStatusFilter, setPr
                             <Menu>
                                 <Menu.Target>
                                     <Button className='flex gap-2 min-w-30'>
-                                        {productStatusFilter}
+                                        {productFilterDTO.active}
                                     </Button>
                                 </Menu.Target>
 
                                 <Menu.Dropdown>
                                     <Menu.Label>Status</Menu.Label>
-                                    <Menu.RadioGroup value={productStatusFilter} onChange={setProductStatusFilter}>
-                                        <Menu.RadioItem value="All">All</Menu.RadioItem>
-                                        <Menu.RadioItem value="Active">Active</Menu.RadioItem>
-                                        <Menu.RadioItem value="Inactive">Inactive</Menu.RadioItem>
+                                    <Menu.RadioGroup value={productFilterDTO.active} onChange={(val) => setField('active', val)}>
+                                        <Menu.RadioItem value={ACTIVE_INACTIVE_PRODUCTS}>All</Menu.RadioItem>
+                                        <Menu.RadioItem value={ACTIVE_PRODUCTS}>Active</Menu.RadioItem>
+                                        <Menu.RadioItem value={INACTIVE_PRODUCTS}>Inactive</Menu.RadioItem>
                                     </Menu.RadioGroup>
                                 </Menu.Dropdown>
                             </Menu>
@@ -64,15 +64,18 @@ export const ProductListHeader = ({ searchSearchTerm, productStatusFilter, setPr
                             <Menu>
                                 <Menu.Target>
                                     <Button className='flex gap-2 min-w-30'>
-                                        {showDeleted === 'Hide' ? 'Hide Deleted' : 'Show Deleted'}
+                                        {productFilterDTO.deleted === 'true' ? 'Show Deleted' : 'Hide Deleted'}
                                     </Button>
                                 </Menu.Target>
 
                                 <Menu.Dropdown>
                                     <Menu.Label>Deleted Product Visibility</Menu.Label>
-                                    <Menu.RadioGroup value={showDeleted} onChange={setShowDeleted}>
-                                        <Menu.RadioItem value='Hide'>Hide</Menu.RadioItem>
-                                        <Menu.RadioItem value='Show'>Show</Menu.RadioItem>
+                                    <Menu.RadioGroup
+                                        value={productFilterDTO.deleted}
+                                        onChange={(val) => setField('deleted', val)}
+                                    >
+                                        <Menu.RadioItem value='false'>Hide</Menu.RadioItem>
+                                        <Menu.RadioItem value='true'>Show</Menu.RadioItem>
                                     </Menu.RadioGroup>
                                 </Menu.Dropdown>
                             </Menu>
