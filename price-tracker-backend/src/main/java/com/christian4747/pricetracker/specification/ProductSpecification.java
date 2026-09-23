@@ -47,11 +47,18 @@ public class ProductSpecification {
             if (!stringPredicates.isEmpty()) {
                 predicates.add(criteriaBuilder.or(stringPredicates));
             }
-            predicates.add(criteriaBuilder.or(stringPredicates));
 
             // Filter by product active status
             if (filter.active() != null) {
-                predicates.add(criteriaBuilder.equal(root.get("active"), filter.active()));
+                if (filter.active().equalsIgnoreCase("inactive")) {
+                    predicates.add(criteriaBuilder.equal(root.get("active"), false));
+                }
+
+                if (filter.active().equalsIgnoreCase("active")) {
+                    predicates.add(criteriaBuilder.equal(root.get("active"), true));
+                }
+
+                // If active == all, do not add a predicate
             }
 
             // Filter by product updatedAt timestamp (start)

@@ -4,7 +4,7 @@ public record ProductFilterDTO(
         String brand,
         String name,
         String store,
-        Boolean active,
+        String active,
         String startUpdatedAt,
         String endUpdatedAt,
         String startCreatedAt,
