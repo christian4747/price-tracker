@@ -1,9 +1,10 @@
 import { MdSearch } from 'react-icons/md'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Button, Input, Menu } from '@mantine/core'
 import AddProductModal from '../modals/AddProductModal'
 import type { ProductFilterDTO } from '@/utils/Types'
 import { ACTIVE_INACTIVE_PRODUCTS, ACTIVE_PRODUCTS, INACTIVE_PRODUCTS } from '@/utils/FilterConstants'
+import { useDebouncedState } from '@mantine/hooks'
 
 interface ProductListHeader {
     searchSearchTerm: (searchTerm: string) => void
@@ -15,8 +16,24 @@ interface ProductListHeader {
 
 export const ProductListHeader = ({ searchSearchTerm, productsGroupBy, setProductsGroupBy, productFilterDTO, setField }: ProductListHeader) => {
 
-    // State for tracking current input value
-    const [currentSearchTerm, setCurrentSearchTerm] = useState('')
+    // Debounce the search term when entering text
+    const [currentSearchTerm, setCurrentSearchTerm] = useDebouncedState('', 500)
+    // Track the search term locally
+    const [localSearchTerm, setLocalSearchTerm] = useState('')
+
+    const setSearchTerm = (e: React.ChangeEvent<HTMLInputElement, HTMLInputElement>) => {
+        setCurrentSearchTerm(e.target.value)
+        setLocalSearchTerm(e.target.value)
+    }
+
+    const clearSearchTerm = () => {
+        setCurrentSearchTerm('')
+        setLocalSearchTerm('')
+    }
+
+    useEffect(() => {
+        searchSearchTerm(currentSearchTerm)
+    }, [currentSearchTerm])
 
     return (
         <>
@@ -86,8 +103,8 @@ export const ProductListHeader = ({ searchSearchTerm, productsGroupBy, setProduc
                                 <Input
                                     radius='xl'
                                     className='border-none focus-visible:border-none focus-within:outline-none min-h-8'
-                                    onChange={(e) => setCurrentSearchTerm(e.target.value)}
-                                    value={currentSearchTerm}
+                                    onChange={setSearchTerm}
+                                    value={localSearchTerm}
                                     placeholder='Search'
                                     leftSectionPointerEvents="all"
                                     leftSection={
@@ -99,20 +116,11 @@ export const ProductListHeader = ({ searchSearchTerm, productsGroupBy, setProduc
                                     rightSection={
                                         currentSearchTerm ? (
                                             <Input.ClearButton
-                                            aria-label="Clear input"
-                                            onClick={() => {
-                                                setCurrentSearchTerm('')
-                                                searchSearchTerm('')
-                                            }}
+                                                aria-label="Clear input"
+                                                onClick={clearSearchTerm}
                                             />
                                         ) : null
                                     }
-                                    onKeyDown={(event) => {
-                                        if (event.key === 'Enter') {
-                                            setCurrentSearchTerm(currentSearchTerm)
-                                            searchSearchTerm(currentSearchTerm)
-                                        }
-                                    }}
                                 />
                             </div>
 
@@ -120,9 +128,6 @@ export const ProductListHeader = ({ searchSearchTerm, productsGroupBy, setProduc
                                 <AddProductModal />
                             </div>
 
-                            {/* <div className="pr-2 cursor-pointer" onClick={getAllProducts}>
-                                <MdRefresh size={48} />
-                            </div> */}
                         </div>
                         {/* <div className="pr-2">
                             <FaFilter size={24} />

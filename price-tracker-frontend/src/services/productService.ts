@@ -1,5 +1,5 @@
 import axios from "axios"
-import type { ProductDTO } from "../utils/Types"
+import type { ProductDTO, ProductFilterDTO } from "../utils/Types"
 
 const apiPath = "/products"
 
@@ -15,13 +15,11 @@ export default {
         return res.data
     },
 
-    getProductPage: async (rootUrl: string, pageNumber: number = 0, pageSize: number = 10, showDeleted: boolean) => {
+    getProductPage: async (rootUrl: string, pageNumber: number = 0, pageSize: number = 10, productFilterDTO: ProductFilterDTO) => {
+        const params = { ...productFilterDTO, page: pageNumber, size: pageSize}
+
         const res = await axios.get(rootUrl + apiPath, {
-            params: {
-                page: pageNumber,
-                size: pageSize,
-                deleted: showDeleted,
-            }
+            params: params
         })
         return res.data
     },

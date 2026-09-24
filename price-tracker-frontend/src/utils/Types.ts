@@ -65,15 +65,15 @@ export interface ProductBody {
 export type ProductActiveStatus = typeof ACTIVE_INACTIVE_PRODUCTS | typeof ACTIVE_PRODUCTS | typeof INACTIVE_PRODUCTS
 
 export interface ProductFilterDTO {
-    brand: string,
-    name: string,
-    store: string,
+    brand?: string,
+    name?: string,
+    store?: string,
     active: ProductActiveStatus,
-    startUpdatedAt: string,
-    endUpdatedAt: string,
-    startCreatedAt: string,
-    endCreatedAt: string,
-    deleted: string,
-    startDeletedAt: string,
-    endDeletedAt: string
+    startUpdatedAt?: string,
+    endUpdatedAt?: string,
+    startCreatedAt?: string,
+    endCreatedAt?: string,
+    deleted?: string,
+    startDeletedAt?: string,
+    endDeletedAt?: string
 }

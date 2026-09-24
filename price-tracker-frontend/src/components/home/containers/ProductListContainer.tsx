@@ -42,14 +42,11 @@ export const ProductListContainer = () => {
             <ErrorBoundary FallbackComponent={ProductListFallback}>
                 {productsGroupBy !== '' ?
                     <GroupedProductList
-                        searchedTerm={productFilterDTO.name}
-                        showDeleted={productFilterDTO.deleted === 'true' ? 'Show' : 'Hide'}
+                        showDeleted={productFilterDTO?.deleted === 'true' ? 'Show' : 'Hide'}
                     />
                     :
                     <ProductList
-                        searchedTerm={productFilterDTO.name}
-                        productStatusFilter={productFilterDTO.active}
-                        showDeleted={productFilterDTO.deleted === 'true' ? 'Show' : 'Hide'}
+                        filter={productFilterDTO}
                     />
                 }
             </ErrorBoundary>

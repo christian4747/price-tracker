@@ -1,4 +1,4 @@
-import type { PriceDTO, ProductDTO } from "../utils/Types"
+import type { PriceDTO, ProductDTO, ProductFilterDTO } from "../utils/Types"
 import priceService from "./priceService"
 import productService from "./productService"
 
@@ -34,8 +34,8 @@ export default {
         return productService.getProductCount(rootUrl)
     },
 
-    getProductPage: async (pageNumber: number = 0, pageSize: number = 10, showDeleted: boolean) => {
-        return productService.getProductPage(rootUrl, pageNumber, pageSize, showDeleted)
+    getProductPage: async (pageNumber: number = 0, pageSize: number = 10, productFilterDTO: ProductFilterDTO) => {
+        return productService.getProductPage(rootUrl, pageNumber, pageSize, productFilterDTO)
     },
 
     getProductsGrouped: async (pageNumber: number = 0, pageSize: number = 10, showDeleted: boolean) => {

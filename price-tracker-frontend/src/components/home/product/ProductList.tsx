@@ -1,5 +1,5 @@
 import { Accordion } from "@mantine/core"
-import type { ProductBody, ProductType } from "../../../utils/Types"
+import type { ProductBody, ProductFilterDTO, ProductType } from "../../../utils/Types"
 import { useDebounce } from "@/hooks/common/useDebounce"
 import { Product } from "./Product"
 import DeleteProductModal from "../modals/DeleteProductModal"
@@ -12,13 +12,11 @@ import { DeleteProductContext, EditProductContext } from "@/context/ProductConte
 import ProductListSkeleton from "./ProductListSkeleton"
 
 export interface ProductList {
-    productStatusFilter: string
-    searchedTerm: string
-    showDeleted: string
+    filter: ProductFilterDTO
 }
 
 // TODO: Use productStatusFilter and searchedTerm for product list
-export const ProductList = ({ showDeleted }: ProductList) => {
+export const ProductList = ({ filter }: ProductList) => {
 
     // Hook for getting products grouped
     const {
@@ -28,7 +26,7 @@ export const ProductList = ({ showDeleted }: ProductList) => {
         query,
         setCurrentlyOpened,
         refresh
-    } = useProductPage(undefined, undefined, showDeleted)
+    } = useProductPage(undefined, undefined, filter)
 
     // Debounce for setting list's today's date state
     const { value: dateToday, setValueWithDebounce: setDateToday } = useDebounce(new Date())
@@ -51,7 +49,7 @@ export const ProductList = ({ showDeleted }: ProductList) => {
 
     useEffect(() => {
         refresh()
-    }, [showDeleted])
+    }, [filter])
 
     if (query.isLoading) return <ProductListSkeleton />
     if (!query.isSuccess) return <></>

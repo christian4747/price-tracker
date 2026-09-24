@@ -7,17 +7,8 @@ const createInitialProductFilterDTO = (initialProductFilterDTO: ProductFilterDTO
         return initialProductFilterDTO
     } else {
         return {
-            brand: '',
-            name: '',
-            store: '',
             active: ACTIVE_PRODUCTS as ProductActiveStatus,
-            startUpdatedAt: '',
-            endUpdatedAt: '',
-            startCreatedAt: '',
-            endCreatedAt: '',
-            deleted: 'false',
-            startDeletedAt: '',
-            endDeletedAt: ''
+            deleted: 'false'
         }
     }
 }
