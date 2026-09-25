@@ -2,11 +2,11 @@ package com.christian4747.pricetracker.services;
 
 import com.christian4747.pricetracker.daos.PriceDAO;
 import com.christian4747.pricetracker.daos.ProductDAO;
-import com.christian4747.pricetracker.specification.ProductSpecification;
 import com.christian4747.pricetracker.models.Price;
 import com.christian4747.pricetracker.models.PriceTotalPercentages;
 import com.christian4747.pricetracker.models.Product;
 import com.christian4747.pricetracker.models.dtos.*;
+import com.christian4747.pricetracker.specification.ProductSpecification;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -119,32 +119,40 @@ public class ProductService {
      * The returned list is formatted as ProductNameGroupDTO records and contains the following:
      *  - name: name of the Product
      *  - products: list of the Products corresponding to the 'name'
+     * @param productFilterDTO Product filter details
+     * @param priceFilterDTO Current price filter details
      * @param pageable Pagination settings
+     * @param groupBy String to group the Products by
      * @return A list of ProductNameGroupDTO
      */
-    public ResponseAndCount<ProductNameGroupDTO> getProductsGroupedByName(Pageable pageable, Boolean showDeleted) {
-        Page<String> namesPage = findDistinctNames(pageable, showDeleted);
-        List<Product> productsInNamesPage = productDAO.findByNameIn(namesPage.getContent());
+    public ResponseAndCount<ProductNameGroupDTO> getProductsGroupedByName(ProductFilterDTO productFilterDTO, PriceFilterDTO priceFilterDTO, Pageable pageable, String groupBy) {
+
+        // Find all distinct names TODO: Support more sorting operations
+        Page<String> namesPage = productDAO.findDistinctNames(pageable);
+
+        // Find all products in list of names and filter by specification
+        Specification<Product> productSpecification = ProductSpecification
+                .filterProductBy(productFilterDTO)
+                .and(ProductSpecification.filterProductPriceBy(priceFilterDTO))
+                .and(ProductSpecification.inNameList(namesPage.getContent()));
+        List<Product> productsInNamesPage = productDAO.findAll(productSpecification);
+
+        // Construct OutgoingProductDTO
         List<OutgoingProductDTO> outgoingProductDTOS =
                 productsInNamesPage.stream().map(this::getProductWithPriceToday).toList();
 
+        // Group OutgoingProductDTO by name in a map
         Map<String, List<OutgoingProductDTO>> groupedByName = outgoingProductDTOS.stream()
                 .collect(Collectors.groupingBy(outgoingProductDTO -> outgoingProductDTO.product().getName()));
 
+        // Construct ProductNameGroupDTO & return it with the count
         return new ResponseAndCount<>(
                 namesPage.getContent().stream()
-                        .map(name -> new ProductNameGroupDTO(name, groupedByName.getOrDefault(name, List.of())))
+                        .filter(name -> !groupedByName.getOrDefault(name, List.of()).isEmpty())
+                        .map(name -> new ProductNameGroupDTO(name, groupedByName.get(name)))
                         .toList(),
-                namesPage.getTotalElements()
+                (long) groupedByName.size()
         );
-    }
-
-    private Page<String> findDistinctNames(Pageable pageable, Boolean showDeleted) {
-        if (showDeleted) {
-            return productDAO.findDistinctNames(pageable);
-        } else {
-            return productDAO.findDistinctNamesDeletedAtNull(pageable);
-        }
     }
 
     /**

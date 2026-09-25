@@ -152,22 +152,11 @@ public class ProductServiceTest {
 
     @Test
     public void getProductsGroupedByName_twoUniqueNames_returnTwoLists() {
-        when(productDAO.findDistinctNamesDeletedAtNull(any())).thenReturn(namePage);
-        when(productDAO.findByNameIn(any())).thenReturn(productList);
-        when(namePage.getContent()).thenReturn(List.of("Product", "Product2"));
-        when(namePage.getTotalElements()).thenReturn((long) 2);
-
-        assertEquals(2, productService.getProductsGroupedByName(pageable, false).count());
-    }
-
-    @Test
-    public void getProductsGroupedByName_twoUniqueNames_showDeletedReturnTwoLists() {
         when(productDAO.findDistinctNames(any())).thenReturn(namePage);
-        when(productDAO.findByNameIn(any())).thenReturn(productList);
-        when(namePage.getContent()).thenReturn(List.of("Product"));
-        when(namePage.getTotalElements()).thenReturn((long) 1);
+        when(productDAO.findAll(ArgumentMatchers.<Specification<Product>>any())).thenReturn(productList);
+        when(namePage.getContent()).thenReturn(List.of("Product", "Product2"));
 
-        assertEquals(1, productService.getProductsGroupedByName(pageable, true).count());
+        assertEquals(2, productService.getProductsGroupedByName(productFilterDTO, priceFilterDTO, pageable, "name").count());
     }
 
     @Test
