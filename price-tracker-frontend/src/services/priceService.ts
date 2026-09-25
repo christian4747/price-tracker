@@ -1,27 +1,27 @@
-import axios from "axios"
 import type { PriceDTO } from "../utils/Types"
+import { apiClient } from "./apiClient"
 
 const apiPath = "/prices"
 
 export default {
 
     addPrice: async (rootUrl: string, priceToAdd: PriceDTO) => {
-        const res = await axios.post(rootUrl + apiPath, priceToAdd)
+        const res = await apiClient.post(rootUrl + apiPath, priceToAdd)
         return res.data
     },
 
     editPrice: async (rootUrl: string, priceId: number, priceToAdd: PriceDTO) => {
-        const res = await axios.put(rootUrl + apiPath + '/' + priceId.toString(), priceToAdd)
+        const res = await apiClient.put(rootUrl + apiPath + '/' + priceId.toString(), priceToAdd)
         return res.data
     },
 
     deletePrice: async (rootUrl: string, priceId: number) => {
-        const res = await axios.delete(rootUrl + apiPath + '/' + priceId.toString())
+        const res = await apiClient.delete(rootUrl + apiPath + '/' + priceId.toString())
         return res.data
     },
 
     getPrices: async (rootUrl: string, productId: number, pageNumber: number = 0, pageSize: number = 20, showDeleted: boolean = false) => {
-        const res = await axios.get(rootUrl + apiPath + '/product/' + productId, {
+        const res = await apiClient.get(rootUrl + apiPath + '/product/' + productId, {
             params: {
                 page: pageNumber,
                 size: pageSize,
@@ -32,7 +32,7 @@ export default {
     },
 
     getRecentPriceData: async (rootUrl: string, pageNumber: number = 0, pageSize: number = 5) => {
-        const res = await axios.get(rootUrl + apiPath + '/recent', {
+        const res = await apiClient.get(rootUrl + apiPath + '/recent', {
             params: {
                 page: pageNumber,
                 size: pageSize,
