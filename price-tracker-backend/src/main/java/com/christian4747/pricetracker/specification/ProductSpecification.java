@@ -20,6 +20,7 @@ public class ProductSpecification {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
             List<Predicate> stringPredicates = new ArrayList<>();
+
             // Filter by product brand
             if (filter.brand() != null && !filter.brand().isBlank()) {
                 stringPredicates.add(criteriaBuilder.like(
@@ -156,6 +157,16 @@ public class ProductSpecification {
             }
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+        };
+    }
+
+    public static Specification<Product> inNameList(List<String> names) {
+        return (root, query, criteriaBuilder) -> {
+            if (names == null || names.isEmpty()) {
+                criteriaBuilder.conjunction();
+            }
+
+            return root.get("name").in(names);
         };
     }
 }
