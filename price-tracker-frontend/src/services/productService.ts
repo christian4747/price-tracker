@@ -24,14 +24,11 @@ export default {
         return res.data
     },
 
-    getProductsGrouped: async (rootUrl: string, pageNumber: number, pageSize: number, groupBy: string = 'name', showDeleted: boolean) => {
+    getProductsGrouped: async (rootUrl: string, pageNumber: number, pageSize: number, groupBy: string = 'name', productFilterDTO: ProductFilterDTO) => {
+        const params = { ...productFilterDTO, page: pageNumber, size: pageSize, groupBy: groupBy }
+
         const res = await axios.get(rootUrl + apiPath + '/grouped', {
-            params: {
-                page: pageNumber,
-                size: pageSize,
-                groupBy: groupBy,
-                showDeleted: showDeleted,
-            }
+            params: params
         })
         return res.data
     },
