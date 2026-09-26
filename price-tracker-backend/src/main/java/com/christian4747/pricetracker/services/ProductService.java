@@ -2,19 +2,18 @@ package com.christian4747.pricetracker.services;
 
 import com.christian4747.pricetracker.daos.PriceDAO;
 import com.christian4747.pricetracker.daos.ProductDAO;
+import com.christian4747.pricetracker.specification.ProductSpecification;
 import com.christian4747.pricetracker.models.Price;
 import com.christian4747.pricetracker.models.PriceTotalPercentages;
 import com.christian4747.pricetracker.models.Product;
-import com.christian4747.pricetracker.models.dtos.IncomingProductDTO;
-import com.christian4747.pricetracker.models.dtos.OutgoingProductDTO;
-import com.christian4747.pricetracker.models.dtos.ProductNameGroupDTO;
-import com.christian4747.pricetracker.models.dtos.ResponseAndCount;
+import com.christian4747.pricetracker.models.dtos.*;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
@@ -96,26 +95,23 @@ public class ProductService {
     }
 
     /**
-     * Gets all the Products in the 'products' database table. Uses pagination (default 20 per page).
+     * Gets all the products with the given pagination settings, product filter DTO, and price filter DTO.
+     * @param productFilterDTO Product filter details
+     * @param priceFilterDTO Current price filter details
      * @param pageable Pagination settings
-     * @return A list of Products (default 20)
+     * @return All products with applied pagination and filter details
      */
-    public ResponseAndCount<OutgoingProductDTO> getAllProducts(Pageable pageable, Boolean showDeleted) {
-        Page<Product> productPage = findAllProducts(pageable, showDeleted);
+    public ResponseAndCount<OutgoingProductDTO> getAllProductsFiltered(ProductFilterDTO productFilterDTO, PriceFilterDTO priceFilterDTO, Pageable pageable) {
+        Specification<Product> productSpecification = ProductSpecification
+                .filterProductBy(productFilterDTO)
+                .and(ProductSpecification.filterProductPriceBy(priceFilterDTO));
+        Page<Product> productPage = productDAO.findAll(productSpecification, pageable);
         List<Product> productList = productPage.getContent();
 
         List<OutgoingProductDTO> productsWithDateToday =
                 productList.stream().map(this::getProductWithPriceToday).toList();
-        
-        return new ResponseAndCount<>(productsWithDateToday, productPage.getTotalElements());
-    }
 
-    private Page<Product> findAllProducts(Pageable pageable, boolean showDeleted) {
-        if (showDeleted) {
-            return productDAO.findAllByOrderByNameAsc(pageable);
-        } else {
-            return productDAO.findAllByDeletedAtNullOrderByNameAsc(pageable);
-        }
+        return new ResponseAndCount<>(productsWithDateToday, productPage.getTotalElements());
     }
 
     /**

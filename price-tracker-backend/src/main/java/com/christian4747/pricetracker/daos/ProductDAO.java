@@ -4,20 +4,14 @@ import com.christian4747.pricetracker.models.Product;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
 @Repository
-public interface ProductDAO extends JpaRepository<Product, Integer> {
-
-    /**
-     * Finds products whose deletedAt is not null (not deleted). Orders by name ascending.
-     * @param pageable Pagination settings
-     * @return Products whose deletedAt is not null (not deleted)
-     */
-    Page<Product> findAllByDeletedAtNullOrderByNameAsc(Pageable pageable);
+public interface ProductDAO extends JpaRepository<Product, Integer>, JpaSpecificationExecutor<Product> {
 
     /**
      * Finds all Products with the same name as the given name
@@ -25,13 +19,6 @@ public interface ProductDAO extends JpaRepository<Product, Integer> {
      * @return A list of all the Products with the given name
      */
     List<Product> findAllByName(String name);
-
-    /**
-     * Find all Products by name ascending in the database's 'products' table.
-     * @param page Pagination settings
-     * @return The list of Products ordered by name ascending
-     */
-    Page<Product> findAllByOrderByNameAsc(Pageable page);
 
     /**
      * Finds distinct Product names in the database's 'products' table.

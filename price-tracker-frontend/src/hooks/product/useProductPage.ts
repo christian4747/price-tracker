@@ -1,8 +1,9 @@
 import api from "@/services/api"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { useListWithPagination } from "../common/useListWithPagination"
+import type { ProductFilterDTO } from "@/utils/Types"
 
-export function useProductPage(pageNumber: number = 1, pageSize: number = 10, showDeleted: string) {
+export function useProductPage(pageNumber: number = 1, pageSize: number = 10, productFilterDTO: ProductFilterDTO) {
 
     const queryClient = useQueryClient()
 
@@ -19,7 +20,7 @@ export function useProductPage(pageNumber: number = 1, pageSize: number = 10, sh
     const productPageQuery = useQuery({
         queryKey: ['products', currentPageNumber - 1],
         queryFn: () => {
-            return api.getProductPage(currentPageNumber - 1, currentPageSize, showDeleted === 'Show')
+            return api.getProductPage(currentPageNumber - 1, currentPageSize, productFilterDTO)
         },
         throwOnError: true
     })

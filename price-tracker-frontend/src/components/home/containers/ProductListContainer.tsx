@@ -4,6 +4,7 @@ import { ProductList } from '../product/ProductList'
 import { ProductListHeader } from '../product/ProductListHeader'
 import { useState } from 'react'
 import { ErrorBoundary, getErrorMessage, type FallbackProps } from 'react-error-boundary'
+import { useProductFilterDTO } from '@/hooks/product/useProductFilterDTO'
 
 const ProductListFallback = ({error, resetErrorBoundary}: FallbackProps) => {
     return (
@@ -17,43 +18,35 @@ const ProductListFallback = ({error, resetErrorBoundary}: FallbackProps) => {
 
 export const ProductListContainer = () => {
 
-    // State for tracking current searched term
-    const [searchedTerm, setSearchedTerm] = useState('')
-    // State for filtering by product status
-    const [productStatusFilter, setProductStatusFilter] = useState('Active')
+    // Hook for using ProductFilterDTO
+    const { value: productFilterDTO, setSearchTerm, setField } = useProductFilterDTO()
+
     // State for tracking group by
     const [productsGroupBy, setProductsGroupBy] = useState('')
-    // State for showing and hiding deleted products
-    const [showDeleted, setShowDeleted] = useState('Hide')
 
     // Sets the search term, triggering a filter and refresh
     const searchSearchTerm = (searchTerm: string) => {
-        setSearchedTerm(searchTerm)
+        setSearchTerm(searchTerm)
     }
 
     return (
         <>
             <ProductListHeader
                 searchSearchTerm={searchSearchTerm}
-                productStatusFilter={productStatusFilter}
-                setProductStatusFilter={setProductStatusFilter}
                 productsGroupBy={productsGroupBy}
                 setProductsGroupBy={setProductsGroupBy}
-                showDeleted={showDeleted}
-                setShowDeleted={setShowDeleted}
+                productFilterDTO={productFilterDTO}
+                setField={setField}
             />
 
             <ErrorBoundary FallbackComponent={ProductListFallback}>
                 {productsGroupBy !== '' ?
                     <GroupedProductList
-                        searchedTerm={searchedTerm}
-                        showDeleted={showDeleted}
+                        showDeleted={productFilterDTO?.deleted === 'true' ? 'Show' : 'Hide'}
                     />
                     :
                     <ProductList
-                        searchedTerm={searchedTerm}
-                        productStatusFilter={productStatusFilter}
-                        showDeleted={showDeleted}
+                        filter={productFilterDTO}
                     />
                 }
             </ErrorBoundary>

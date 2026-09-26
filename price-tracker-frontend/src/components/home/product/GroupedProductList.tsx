@@ -17,7 +17,6 @@ interface GroupedProductData {
 }
 
 export interface GroupedProductList {
-    searchedTerm: string
     showDeleted: string
 }
 
