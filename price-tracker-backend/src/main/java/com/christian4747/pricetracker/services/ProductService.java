@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -126,16 +127,23 @@ public class ProductService {
      * @return A list of ProductNameGroupDTO
      */
     public ResponseAndCount<ProductNameGroupDTO> getProductsGroupedByName(ProductFilterDTO productFilterDTO, PriceFilterDTO priceFilterDTO, Pageable pageable, String groupBy) {
+        // Separate page settings and sort settings
+        PageRequest pageRequest = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
 
-        // Find all distinct names TODO: Support more sorting operations
-        Page<String> namesPage = productDAO.findDistinctNames(pageable);
+        // Find page of distinct names
+        Page<String> uniqueNamesPage = productDAO.findDistinctNames(pageRequest);
 
         // Find all products in list of names and filter by specification
         Specification<Product> productSpecification = ProductSpecification
                 .filterProductBy(productFilterDTO)
                 .and(ProductSpecification.filterProductPriceBy(priceFilterDTO))
-                .and(ProductSpecification.inNameList(namesPage.getContent()));
-        List<Product> productsInNamesPage = productDAO.findAll(productSpecification);
+                .and(ProductSpecification.inNameList(uniqueNamesPage.getContent()));
+
+        // Apply the specification and sort settings
+        List<Product> productsInNamesPage = productDAO.findAll(productSpecification, pageable.getSort());
+
+        // Get the names in the sorted order
+        List<String> namesList = productsInNamesPage.stream().map(Product::getName).toList();
 
         // Construct OutgoingProductDTO
         List<OutgoingProductDTO> outgoingProductDTOS =
@@ -147,7 +155,7 @@ public class ProductService {
 
         // Construct ProductNameGroupDTO & return it with the count
         return new ResponseAndCount<>(
-                namesPage.getContent().stream()
+                namesList.stream()
                         .filter(name -> !groupedByName.getOrDefault(name, List.of()).isEmpty())
                         .map(name -> new ProductNameGroupDTO(name, groupedByName.get(name)))
                         .toList(),
