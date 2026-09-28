@@ -21,14 +21,15 @@ export const ProductListHeader = ({ searchSearchTerm, productsGroupBy, setProduc
     // Track the search term locally
     const [localSearchTerm, setLocalSearchTerm] = useState('')
 
-    // true === ascending
-    const [sortDirection, setSortDirection] = useState(true)
+    // Track whether to sort in ascending order
+    const [isAscending, setIsAscending] = useState(true)
+    // Track the value to sort by internally
     const [sortValue, setSortValue] = useState('Name')
 
-    const setSort = (fieldName: string, direction: boolean) => {
-        const sortDirection = direction === true ? 'asc' : 'desc'
+    const setSort = (fieldName: string, isAscending: boolean) => {
+        const sortDirection = isAscending === true ? 'asc' : 'desc'
         setSortValue(fieldName)
-        setSortDirection(direction)
+        setIsAscending(isAscending)
         setField('sort', `${fieldName},${sortDirection}`)
     }
 
@@ -117,7 +118,7 @@ export const ProductListHeader = ({ searchSearchTerm, productsGroupBy, setProduc
 
                                 <Menu.Dropdown>
                                     <Menu.Label>Sort Value</Menu.Label>
-                                    <Menu.RadioGroup value={sortValue} onChange={(val) => setSort(val, sortDirection)}>
+                                    <Menu.RadioGroup value={sortValue} onChange={(val) => setSort(val, isAscending)}>
                                         <Menu.RadioItem value='Name'>Name</Menu.RadioItem>
                                         <Menu.RadioItem value='Brand'>Brand</Menu.RadioItem>
                                         <Menu.RadioItem value='Store'>Store</Menu.RadioItem>
@@ -125,7 +126,7 @@ export const ProductListHeader = ({ searchSearchTerm, productsGroupBy, setProduc
                                     <Switch
                                         className='p-2'
                                         label='Ascending'
-                                        checked={sortDirection}
+                                        checked={isAscending}
                                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => { setSort(sortValue, e.target.checked) }}
                                     />
                                 </Menu.Dropdown>
