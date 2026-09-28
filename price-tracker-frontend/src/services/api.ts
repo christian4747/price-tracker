@@ -38,8 +38,8 @@ export default {
         return productService.getProductPage(rootUrl, pageNumber, pageSize, productFilterDTO)
     },
 
-    getProductsGrouped: async (pageNumber: number = 0, pageSize: number = 10, showDeleted: boolean) => {
-        return productService.getProductsGrouped(rootUrl, pageNumber, pageSize, undefined, showDeleted)
+    getProductsGrouped: async (pageNumber: number = 0, pageSize: number = 10, productFilterDTO: ProductFilterDTO) => {
+        return productService.getProductsGrouped(rootUrl, pageNumber, pageSize, undefined, productFilterDTO)
     },
 
     getRecentPriceData: async () => {

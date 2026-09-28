@@ -23,23 +23,8 @@ public interface ProductDAO extends JpaRepository<Product, Integer>, JpaSpecific
     /**
      * Finds distinct Product names in the database's 'products' table.
      * @param page Pagination settings
-     * @return The list of Product names ordered by name ascending
+     * @return The list of distinct Product names
      */
-    @Query("SELECT DISTINCT p.name from Product p ORDER BY p.name")
+    @Query("SELECT DISTINCT p.name from Product p")
     Page<String> findDistinctNames(Pageable page);
-
-    /**
-     * Finds distinct Product names in the database's 'products' table that are not deleted.
-     * @param page Pagination settings
-     * @return The list of Product names that are not deleted ordered by name ascending
-     */
-    @Query("SELECT DISTINCT p.name from Product p WHERE p.deletedAt IS NULL ORDER BY p.name")
-    Page<String> findDistinctNamesDeletedAtNull(Pageable page);
-
-    /**
-     * Finds Products contained within the list of given names.
-     * @param names The list of names of Products to find
-     * @return The list of Products which have names in the given name list
-     */
-    List<Product> findByNameIn(List<String> names);
 }

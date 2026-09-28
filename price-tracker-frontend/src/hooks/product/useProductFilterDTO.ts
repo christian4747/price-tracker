@@ -8,7 +8,8 @@ const createInitialProductFilterDTO = (initialProductFilterDTO: ProductFilterDTO
     } else {
         return {
             active: ACTIVE_PRODUCTS as ProductActiveStatus,
-            deleted: 'false'
+            deleted: 'false',
+            sort: ''
         }
     }
 }
