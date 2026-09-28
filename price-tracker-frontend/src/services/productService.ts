@@ -16,7 +16,7 @@ export default {
     },
 
     getProductPage: async (rootUrl: string, pageNumber: number = 0, pageSize: number = 10, productFilterDTO: ProductFilterDTO) => {
-        const params = { ...productFilterDTO, page: pageNumber, size: pageSize, sort: productFilterDTO?.sort !== undefined ? productFilterDTO?.sort?.toLowerCase() : '' }
+        const params = { ...productFilterDTO, page: pageNumber, size: pageSize }
 
         const res = await apiClient.get(rootUrl + apiPath, {
             params: params
@@ -25,7 +25,7 @@ export default {
     },
 
     getProductsGrouped: async (rootUrl: string, pageNumber: number, pageSize: number, groupBy: string = 'name', productFilterDTO: ProductFilterDTO) => {
-        const params = { ...productFilterDTO, page: pageNumber, size: pageSize, groupBy: groupBy, sort: productFilterDTO?.sort !== undefined ? productFilterDTO?.sort?.toLowerCase() : '' }
+        const params = { ...productFilterDTO, page: pageNumber, size: pageSize, groupBy: groupBy }
 
         const res = await apiClient.get(rootUrl + apiPath + '/grouped', {
             params: params
