@@ -15,6 +15,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.util.List;
@@ -51,6 +52,9 @@ public class ProductServiceTest {
 
     @Mock
     private Pageable pageable;
+
+    @Mock
+    private Sort sort;
 
     private Product addedProduct;
     private IncomingProductDTO productDTO;
@@ -153,8 +157,10 @@ public class ProductServiceTest {
     @Test
     public void getProductsGroupedByName_twoUniqueNames_returnTwoLists() {
         when(productDAO.findDistinctNames(any())).thenReturn(namePage);
-        when(productDAO.findAll(ArgumentMatchers.<Specification<Product>>any())).thenReturn(productList);
+        when(productDAO.findAll(ArgumentMatchers.<Specification<Product>>any(), any(Sort.class))).thenReturn(productList);
         when(namePage.getContent()).thenReturn(List.of("Product", "Product2"));
+        when(pageable.getPageSize()).thenReturn(1);
+        when(pageable.getSort()).thenReturn(sort);
 
         assertEquals(2, productService.getProductsGroupedByName(productFilterDTO, priceFilterDTO, pageable, "name").count());
     }
