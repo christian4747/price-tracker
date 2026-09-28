@@ -127,7 +127,7 @@ public class ProductService {
      * @return A list of ProductNameGroupDTO
      */
     public ResponseAndCount<ProductNameGroupDTO> getProductsGroupedByName(ProductFilterDTO productFilterDTO, PriceFilterDTO priceFilterDTO, Pageable pageable, String groupBy) {
-        // Separate page settings and sort settings
+        // Separate page settings from sort settings
         PageRequest pageRequest = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
 
         // Find page of distinct names

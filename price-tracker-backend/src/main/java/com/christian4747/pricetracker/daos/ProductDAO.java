@@ -23,7 +23,7 @@ public interface ProductDAO extends JpaRepository<Product, Integer>, JpaSpecific
     /**
      * Finds distinct Product names in the database's 'products' table.
      * @param page Pagination settings
-     * @return The list of Product names
+     * @return The list of distinct Product names
      */
     @Query("SELECT DISTINCT p.name from Product p")
     Page<String> findDistinctNames(Pageable page);
