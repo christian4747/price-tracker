@@ -24,7 +24,7 @@ export const ProductListHeader = ({ searchSearchTerm, productsGroupBy, setProduc
     // Track whether to sort in ascending order
     const [isAscending, setIsAscending] = useState(true)
     // Track the value to sort by internally
-    const [sortValue, setSortValue] = useState('Name')
+    const [sortValue, setSortValue] = useState('name')
 
     const setSort = (fieldName: string, isAscending: boolean) => {
         const sortDirection = isAscending === true ? 'asc' : 'desc'
