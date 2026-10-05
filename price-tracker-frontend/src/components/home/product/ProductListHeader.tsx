@@ -119,9 +119,10 @@ export const ProductListHeader = ({ searchSearchTerm, productsGroupBy, setProduc
                                 <Menu.Dropdown>
                                     <Menu.Label>Sort Value</Menu.Label>
                                     <Menu.RadioGroup value={sortValue} onChange={(val) => setSort(val, isAscending)}>
-                                        <Menu.RadioItem value='Name'>Name</Menu.RadioItem>
-                                        <Menu.RadioItem value='Brand'>Brand</Menu.RadioItem>
-                                        <Menu.RadioItem value='Store'>Store</Menu.RadioItem>
+                                        <Menu.RadioItem value='name'>Name</Menu.RadioItem>
+                                        <Menu.RadioItem value='brand'>Brand</Menu.RadioItem>
+                                        <Menu.RadioItem value='store'>Store</Menu.RadioItem>
+                                        <Menu.RadioItem value='updatedAt'>Last Updated</Menu.RadioItem>
                                     </Menu.RadioGroup>
                                     <Switch
                                         className='p-2'
