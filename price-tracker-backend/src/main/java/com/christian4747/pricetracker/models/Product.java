@@ -3,6 +3,7 @@ package com.christian4747.pricetracker.models;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.Formula;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.stereotype.Component;
@@ -44,6 +45,17 @@ public class Product {
     @OrderBy("priceStarted ASC")
     @JsonIgnore
     private List<Price> prices;
+
+    /** Formula for allowing sort by current price (total_amount in DB) */
+    @Formula("""
+        (SELECT pr.total_amount FROM {h-schema}prices pr
+        WHERE product_id = pr.product_id
+        AND pr.price_started <= CURRENT_TIMESTAMP
+        AND deleted_at IS NULL
+        ORDER BY pr.price_started DESC
+        LIMIT 1)
+    """)
+    private Double currentPrice;
 
     public Product() {
     }
