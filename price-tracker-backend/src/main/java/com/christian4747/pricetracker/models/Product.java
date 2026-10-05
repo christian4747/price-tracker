@@ -57,6 +57,17 @@ public class Product {
     """)
     private Double currentPrice;
 
+    /** Formula for allowing sort by current discount (total_percentage in DB) */
+    @Formula("""
+        (SELECT pr.total_percentage FROM {h-schema}prices pr
+        WHERE product_id = pr.product_id
+        AND pr.price_started <= CURRENT_TIMESTAMP
+        AND deleted_at IS NULL
+        ORDER BY pr.price_started DESC
+        LIMIT 1)
+    """)
+    private Double currentDiscount;
+
     public Product() {
     }
 

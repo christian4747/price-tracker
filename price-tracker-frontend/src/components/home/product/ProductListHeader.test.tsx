@@ -82,6 +82,9 @@ describe('Product List Header Component', () => {
         const sortByCurrentPrice = await within(sortMenu).findByText(/current price/i)
         await expect.element(sortByCurrentPrice).toBeInTheDocument()
 
+        const sortByCurrentDiscount = await within(sortMenu).findByText(/current discount/i)
+        await expect.element(sortByCurrentDiscount).toBeInTheDocument()
+
         const ascendingSwitch = await within(sortMenu).findByText(/ascending/i)
         await expect.element(ascendingSwitch).toBeInTheDocument()
     })
