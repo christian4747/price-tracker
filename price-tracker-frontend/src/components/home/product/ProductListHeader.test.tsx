@@ -53,8 +53,8 @@ describe('Product List Header Component', () => {
     test('should render sort menu button', async () => {
         renderProductListHeader()
 
-        const hideShowDeletedButton = await screen.findByText(/sort/i)
-        await expect.element(hideShowDeletedButton).toBeInTheDocument()
+        const sortMenuButton = await screen.findByText(/sort/i)
+        await expect.element(sortMenuButton).toBeInTheDocument()
     })
 
     test('should render sort values after clicking menu button', async () => {
