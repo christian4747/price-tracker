@@ -76,6 +76,9 @@ describe('Product List Header Component', () => {
         const sortByStore = await within(sortMenu).findByText(/store/i)
         await expect.element(sortByStore).toBeInTheDocument()
 
+        const sortByCreatedAt = await within(sortMenu).findByText(/date added/i)
+        await expect.element(sortByCreatedAt).toBeInTheDocument()
+
         const sortByUpdatedAt = await within(sortMenu).findByText(/last updated/i)
         await expect.element(sortByUpdatedAt).toBeInTheDocument()
 
