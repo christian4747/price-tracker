@@ -125,6 +125,7 @@ export const ProductListHeader = ({ searchSearchTerm, productsGroupBy, setProduc
                                         <Menu.RadioItem value='currentPrice'>Current Price</Menu.RadioItem>
                                         <Menu.RadioItem value='currentDiscount'>Current Discount</Menu.RadioItem>
                                         <Menu.RadioItem value='updatedAt'>Last Updated</Menu.RadioItem>
+                                        <Menu.RadioItem value='timeRemaining'>Time Remaining</Menu.RadioItem>
                                     </Menu.RadioGroup>
                                     <Switch
                                         className='p-2'

@@ -68,6 +68,16 @@ public class Product {
     """)
     private Double currentDiscount;
 
+    /** Formula for allowing sort by time remaining (sort price_started after current price) */
+    @Formula("""
+        (SELECT pr.price_started FROM {h-schema}prices pr
+        WHERE pr.price_started > CURRENT_TIMESTAMP
+        AND product_id = pr.product_id
+        AND deleted_at IS NULL
+        ORDER BY pr.price_started LIMIT 1)
+    """)
+    private Timestamp timeRemaining;
+
     public Product() {
     }
 
