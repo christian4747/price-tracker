@@ -24,7 +24,7 @@ export const ProductListHeader = ({ searchSearchTerm, productsGroupBy, setProduc
     // Track whether to sort in ascending order
     const [isAscending, setIsAscending] = useState(true)
     // Track the value to sort by internally
-    const [sortValue, setSortValue] = useState('Name')
+    const [sortValue, setSortValue] = useState('name')
 
     const setSort = (fieldName: string, isAscending: boolean) => {
         const sortDirection = isAscending === true ? 'asc' : 'desc'
@@ -119,9 +119,14 @@ export const ProductListHeader = ({ searchSearchTerm, productsGroupBy, setProduc
                                 <Menu.Dropdown>
                                     <Menu.Label>Sort Value</Menu.Label>
                                     <Menu.RadioGroup value={sortValue} onChange={(val) => setSort(val, isAscending)}>
-                                        <Menu.RadioItem value='Name'>Name</Menu.RadioItem>
-                                        <Menu.RadioItem value='Brand'>Brand</Menu.RadioItem>
-                                        <Menu.RadioItem value='Store'>Store</Menu.RadioItem>
+                                        <Menu.RadioItem value='name'>Name</Menu.RadioItem>
+                                        <Menu.RadioItem value='brand'>Brand</Menu.RadioItem>
+                                        <Menu.RadioItem value='store'>Store</Menu.RadioItem>
+                                        <Menu.RadioItem value='currentPrice'>Current Price</Menu.RadioItem>
+                                        <Menu.RadioItem value='currentDiscount'>Current Discount</Menu.RadioItem>
+                                        <Menu.RadioItem value='createdAt'>Date Added</Menu.RadioItem>
+                                        <Menu.RadioItem value='updatedAt'>Last Updated</Menu.RadioItem>
+                                        <Menu.RadioItem value='timeRemaining'>Time Remaining</Menu.RadioItem>
                                     </Menu.RadioGroup>
                                     <Switch
                                         className='p-2'

@@ -3,6 +3,7 @@ package com.christian4747.pricetracker.models;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.Formula;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.stereotype.Component;
@@ -44,6 +45,38 @@ public class Product {
     @OrderBy("priceStarted ASC")
     @JsonIgnore
     private List<Price> prices;
+
+    /** Formula for allowing sort by current price (total_amount in DB) */
+    @Formula("""
+        (SELECT pr.total_amount FROM {h-schema}prices pr
+        WHERE product_id = pr.product_id
+        AND pr.price_started <= CURRENT_TIMESTAMP
+        AND deleted_at IS NULL
+        ORDER BY pr.price_started DESC
+        LIMIT 1)
+    """)
+    private Double currentPrice;
+
+    /** Formula for allowing sort by current discount (total_percentage in DB) */
+    @Formula("""
+        (SELECT pr.total_percentage FROM {h-schema}prices pr
+        WHERE product_id = pr.product_id
+        AND pr.price_started <= CURRENT_TIMESTAMP
+        AND deleted_at IS NULL
+        ORDER BY pr.price_started DESC
+        LIMIT 1)
+    """)
+    private Double currentDiscount;
+
+    /** Formula for allowing sort by time remaining (sort price_started after current price) */
+    @Formula("""
+        (SELECT pr.price_started FROM {h-schema}prices pr
+        WHERE pr.price_started > CURRENT_TIMESTAMP
+        AND product_id = pr.product_id
+        AND deleted_at IS NULL
+        ORDER BY pr.price_started LIMIT 1)
+    """)
+    private Timestamp timeRemaining;
 
     public Product() {
     }

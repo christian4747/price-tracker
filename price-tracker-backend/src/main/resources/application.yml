@@ -11,6 +11,10 @@ spring:
       - "optional:file:.env[.properties]"
   jpa:
     open-in-view: false
+    properties:
+      hibernate:
+        order_by:
+          default_null_ordering: last
 
 logging:
   file:
