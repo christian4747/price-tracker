@@ -80,13 +80,28 @@ public class PriceController {
     }
 
     /**
-     * Gets a distinct list of recently added Price currencies, descriptions, pricesStarted and pricesEnded.
+     * Gets an object with lists of recent & distinct Price currencies, descriptions, discount percentage, pricesStarted,
+     * pricesEnded, and return percentage.
      * @param pageable Pagination settings
-     * @return A distinct list of recently added Price currencies, descriptions, pricesStarted and pricesEnded (default 20)
+     * @return An object with lists of recent & distinct Price currencies, descriptions, discount percentages,
+     * pricesStarted, pricesEnded, and return percentages (default 20)
      */
     @GetMapping("/recent")
     public ResponseEntity<RecentPriceData> getRecentData(Pageable pageable) {
-        return ResponseEntity.ok(priceService.getRecentData(pageable));
+        return ResponseEntity.ok(priceService.getRecentData(pageable, -1));
+    }
+
+    /**
+     * Gets an object with lists of recent & distinct Price base amount, currencies, descriptions, discount percentage,
+     * pricesStarted, pricesEnded, and return percentage for the given product ID.
+     * @param pageable Pagination settings
+     * @param productId Product to find the recent base amounts for
+     * @return An object with lists of recent & distinct Price base amounts, currencies, descriptions,
+     * discount percentages, pricesStarted, pricesEnded, and return percentages for the given product ID (default 20)
+     */
+    @GetMapping("/recent/{productId}")
+    public ResponseEntity<RecentPriceData> getRecentDataForProductId(Pageable pageable, @PathVariable Integer productId) {
+        return ResponseEntity.ok(priceService.getRecentData(pageable, productId));
     }
 
     /**
