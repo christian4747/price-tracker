@@ -4,7 +4,7 @@ import java.sql.Timestamp;
 import java.util.List;
 
 public record RecentPriceData(
-        List<Double> basePrices,
+        List<Double> baseAmounts,
         List<String> currencies,
         List<String> descriptions,
         List<Double> discountPercentages,
