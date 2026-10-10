@@ -42,8 +42,8 @@ export default {
         return productService.getProductsGrouped(rootUrl, pageNumber, pageSize, undefined, productFilterDTO)
     },
 
-    getRecentPriceData: async () => {
-        return priceService.getRecentPriceData(rootUrl, 0, 5)
+    getRecentPriceData: async (productId: number) => {
+        return priceService.getRecentPriceData(rootUrl, 0, 5, productId)
     },
 
     addProduct: async (productToAdd: ProductDTO) => {

@@ -23,6 +23,15 @@ public interface PriceDAO extends JpaRepository<Price, Integer> {
     Page<Price> findByDeletedAtNull(Pageable pageable);
 
     /**
+     * Gets a distinct list of recently added non-deleted Price base amounts for the given product ID.
+     * @param pageable Pagination settings
+     * @param productId Product to fetch base amounts for
+     * @return A distinct list of recently added Price base amounts for the given product ID (default 20)
+     */
+    @Query(value = "SELECT p.amount FROM Price p WHERE p.priceId IN (SELECT MAX(p.priceId) FROM Price p WHERE p.deletedAt IS NULL AND p.product.productId = :productId GROUP BY p.amount)")
+    Page<Double> findDistinctBaseAmounts(Pageable pageable, Integer productId);
+
+    /**
      * Gets a distinct list of recently added non-deleted Price currencies.
      * @param pageable Pagination settings
      * @return A distinct list of recently added Price currencies (default 20)
@@ -39,6 +48,14 @@ public interface PriceDAO extends JpaRepository<Price, Integer> {
     Page<String> findDistinctDescription(Pageable pageable);
 
     /**
+     * Gets a distinct list of recently added non-deleted Price discount percentages.
+     * @param pageable Pagination settings
+     * @return A distinct list of recently added Price discount percentages (default 20)
+     */
+    @Query(value = "SELECT p.discountPercentage FROM Price p WHERE p.priceId IN (SELECT MAX(p.priceId) FROM Price p WHERE p.deletedAt IS NULL GROUP BY p.discountPercentage) ORDER BY p.createdAt DESC")
+    Page<Double> findDistinctDiscountPercentages(Pageable pageable);
+
+    /**
      * Gets a distinct list of recently added non-deleted Price priceEnded time stamps.
      * @param pageable Pagination settings
      * @return A distinct list of recently added Price priceEnded time stamps (default 20)
@@ -53,6 +70,14 @@ public interface PriceDAO extends JpaRepository<Price, Integer> {
      */
     @Query(value = "SELECT p.priceStarted FROM Price p WHERE p.priceId IN (SELECT MAX(p.priceId) FROM Price p WHERE p.deletedAt IS NULL GROUP BY p.priceStarted) ORDER BY p.createdAt DESC")
     Page<Timestamp> findDistinctPriceStartedOrderByCreatedAtDesc(Pageable pageable);
+
+    /**
+     * Gets a distinct list of recently added non-deleted Price return percentages.
+     * @param pageable Pagination settings
+     * @return A distinct list of recently added Price return percentages (default 20)
+     */
+    @Query(value = "SELECT p.returnPercentage FROM Price p WHERE p.priceId IN (SELECT MAX(p.priceId) FROM Price p WHERE p.deletedAt IS NULL GROUP BY p.returnPercentage) ORDER BY p.createdAt DESC")
+    Page<Double> findDistinctReturnPercentages(Pageable pageable);
 
     /**
      * Gets a list of Prices in the 'prices' database table with the given productId ordered by descending price started

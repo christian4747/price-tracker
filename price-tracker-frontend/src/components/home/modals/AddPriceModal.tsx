@@ -7,9 +7,10 @@ import { AddPriceForm } from '../forms/AddPriceForm'
 interface AddPriceModal {
     product: ProductType
     setDateToday: (newVal: Date) => void
+    quickAdd?: boolean
 }
 
-export const AddPriceModal = ({ product, setDateToday }: AddPriceModal) => {
+export const AddPriceModal = ({ product, setDateToday, quickAdd = false }: AddPriceModal) => {
 
     // Track state of modal open/close
     const [opened, { open, close }] = useDisclosure(false)
@@ -21,9 +22,9 @@ export const AddPriceModal = ({ product, setDateToday }: AddPriceModal) => {
                 onClose={close}
                 title="Add Price"
             >
-                <AddPriceForm product={product} setDateToday={setDateToday} close={close} />
+                <AddPriceForm product={product} setDateToday={setDateToday} close={close} quickAdd={quickAdd} />
             </Modal>
-            <Button className="m-2" onClick={open}>Add Price</Button>
+            <Button className="m-2" onClick={open}>{quickAdd ? "Quick Price" : "Add Price"}</Button>
         </>
     )
 }
