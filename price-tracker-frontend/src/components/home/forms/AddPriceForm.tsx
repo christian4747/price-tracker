@@ -3,7 +3,7 @@ import { Button, Center, Collapse, Switch, TextInput } from '@mantine/core'
 import type { ProductType } from '@/utils/Types'
 import { RecentDataScroller } from '@/components/common/RecentDataScroller'
 import { PriceDateTimePicker } from '../price/PriceDateTimePicker'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { getFormattedDateString } from '@/utils/DateUtilities'
 import { useDisclosure } from '@mantine/hooks'
 import { useAddPrice } from '@/hooks/price/useAddPrice'
@@ -14,9 +14,10 @@ interface AddPriceForm {
     product: ProductType
     setDateToday: (newVal: Date) => void
     close: () => void
+    quickAdd?: boolean
 }
 
-export const AddPriceForm = ({ product, setDateToday, close }: AddPriceForm) => {
+export const AddPriceForm = ({ product, setDateToday, close, quickAdd = false }: AddPriceForm) => {
 
     // Track state of expanding the end date input
     const [expandEndDate, { open: openEndDate, close: closeEndDate }] = useDisclosure(false)
@@ -28,7 +29,18 @@ export const AddPriceForm = ({ product, setDateToday, close }: AddPriceForm) => 
     // Hook for adding prices
     const { priceDTO, mutation: multiMutation, singleMutation } = useAddPrice(product, useEndDateDesc)
     // Hook for recent price data
-    const { query: recentPriceQuery } = useRecentPriceData()
+    const { query: recentPriceQuery } = useRecentPriceData(product.productId)
+
+    useEffect(() => {
+        if (quickAdd) {
+            priceDTO.setField('amount', recentPriceQuery.data?.baseAmounts[0])
+            priceDTO.setField('currency', recentPriceQuery.data?.currencies[0])
+            priceDTO.setField('discountPercentage', recentPriceQuery.data?.discountPercentages[0])
+            priceDTO.setField('priceEnded', recentPriceQuery.data?.pricesEnded[0])
+            priceDTO.setField('priceStarted', recentPriceQuery.data?.pricesStarted[0])
+            priceDTO.setField('returnPercentage', recentPriceQuery.data?.returnPercentages[0])
+        }
+    }, [recentPriceQuery.data])
 
     const recentDescriptions = recentPriceQuery.data?.descriptions.map((description: string, idx: number) => (
         <Button key={idx} onClick={() => priceDTO.setField('description', description)}>
@@ -62,7 +74,13 @@ export const AddPriceForm = ({ product, setDateToday, close }: AddPriceForm) => 
 
     return (
         <>
-            <AmountInputGroup value={priceDTO.value} setField={priceDTO.setField} />
+            <AmountInputGroup
+                value={priceDTO.value}
+                setField={priceDTO.setField}
+                baseAmounts={recentPriceQuery.data?.baseAmounts}
+                discountPercentages={recentPriceQuery.data?.discountPercentages}
+                returnPercentages={recentPriceQuery.data?.returnPercentages}
+            />
 
             <TextInput
                 label="Description"

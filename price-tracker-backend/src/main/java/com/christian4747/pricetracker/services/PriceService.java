@@ -177,6 +177,16 @@ public class PriceService {
     }
 
     /**
+     * Gets a distinct list of recently added non-deleted Price base amounts for the given product ID.
+     * @param pageable Pagination settings
+     * @param productId Product to fetch base amounts for
+     * @return A distinct list of recently added Price base amounts for the given product ID (default 20)
+     */
+    private List<Double> getRecentBaseAmounts(Pageable pageable, Integer productId) {
+        return priceDAO.findDistinctBaseAmounts(pageable, productId).getContent();
+    }
+
+    /**
      * Gets a distinct list of recently added Price currencies.
      * @param pageable Pagination settings
      * @return A distinct list of recently added Price currencies (default 20)
@@ -186,16 +196,22 @@ public class PriceService {
     }
 
     /**
-     * Gets a distinct list of recently added Price currencies, descriptions, pricesStarted and pricesEnded.
+     * Gets an object with lists of recent & distinct Price base amount, currencies, descriptions, discount percentage,
+     * pricesStarted, pricesEnded, and return percentage for the given product ID.
      * @param pageable Pagination settings
-     * @return A distinct list of recently added Price currencies, descriptions, pricesStarted and pricesEnded (default 20)
+     * @param productId Product to find the recent base amounts for
+     * @return An object with lists of recent & distinct Price base amounts, currencies, descriptions,
+     * discount percentages, pricesStarted, pricesEnded, and return percentages for the given product ID (default 20)
      */
-    public RecentPriceData getRecentData(Pageable pageable) {
+    public RecentPriceData getRecentData(Pageable pageable, Integer productId) {
         return new RecentPriceData(
+                getRecentBaseAmounts(pageable, productId),
                 getRecentCurrencies(pageable),
                 getRecentDescriptions(pageable),
+                getRecentDiscountPercentages(pageable),
                 getRecentPricesStarted(pageable),
-                getRecentPricesEnded(pageable)
+                getRecentPricesEnded(pageable),
+                getRecentReturnPercentages(pageable)
         );
     }
 
@@ -206,6 +222,15 @@ public class PriceService {
      */
     public List<String> getRecentDescriptions(Pageable pageable) {
         return priceDAO.findDistinctDescription(pageable).getContent();
+    }
+
+    /**
+     * Gets a distinct list of recently added non-deleted Price discount percentages.
+     * @param pageable Pagination settings
+     * @return A distinct list of recently added Price discount percentages (default 20)
+     */
+    private List<Double> getRecentDiscountPercentages(Pageable pageable) {
+        return priceDAO.findDistinctDiscountPercentages(pageable).getContent();
     }
 
     /**
@@ -224,6 +249,15 @@ public class PriceService {
      */
     public List<Timestamp> getRecentPricesStarted(Pageable pageable) {
         return priceDAO.findDistinctPriceStartedOrderByCreatedAtDesc(pageable).getContent();
+    }
+
+    /**
+     * Gets a distinct list of recently added non-deleted Price return percentages.
+     * @param pageable Pagination settings
+     * @return A distinct list of recently added Price return percentages (default 20)
+     */
+    private List<Double> getRecentReturnPercentages(Pageable pageable) {
+        return priceDAO.findDistinctReturnPercentages(pageable).getContent();
     }
 
     /**

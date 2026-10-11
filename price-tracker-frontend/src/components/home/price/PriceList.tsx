@@ -58,10 +58,18 @@ export const PriceList = ({ product, setDateToday, prices, showDeleted, setShowD
                         checked={showDeleted}
                         onChange={(e) => setShowDeleted(e.currentTarget.checked)}
                     />
-                    <AddPriceModal
-                        product={product}
-                        setDateToday={setDateToday}
-                    />
+                    <div className='flex gap-1 justify-center'>
+                        <AddPriceModal
+                            product={product}
+                            setDateToday={setDateToday}
+                        />
+                        {prices && prices.length > 0 && <AddPriceModal
+                            product={product}
+                            setDateToday={setDateToday}
+                            quickAdd={true}
+                        />}
+                    </div>
+                    
                 </div>
                 
 

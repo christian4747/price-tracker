@@ -1,13 +1,13 @@
 import api from "@/services/api"
 import { useQuery } from "@tanstack/react-query"
 
-export function useRecentPriceData() {
+export function useRecentPriceData(productId: number = -1) {
 
     // Query for getting recent price data
     const recentPricesQuery = useQuery({
         queryKey: ['recentPriceData'],
         queryFn: () => {
-            return api.getRecentPriceData()
+            return api.getRecentPriceData(productId)
         },
         throwOnError: true
     })

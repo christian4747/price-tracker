@@ -1,14 +1,19 @@
+import { Button } from "@mantine/core"
 import type { PriceDTO } from "../../../utils/Types"
 import PriceNumberInput from "./PriceNumberInput"
 
 import { useEffect } from "react"
+import { RecentDataScroller } from "@/components/common/RecentDataScroller"
 
 interface AmountInputGroup {
     value: PriceDTO
     setField: (key: string, value: number | string) => void
+    baseAmounts?: []
+    discountPercentages?: []
+    returnPercentages?: []
 }
 
-export const AmountInputGroup = ({ value, setField }: AmountInputGroup) => {
+export const AmountInputGroup = ({ value, setField, baseAmounts, discountPercentages, returnPercentages }: AmountInputGroup) => {
 
     const changeBasePrice = (amount: number) => {
         setField('amount', amount)
@@ -42,6 +47,24 @@ export const AmountInputGroup = ({ value, setField }: AmountInputGroup) => {
         changeReturnPercentage(value.returnPercentage)
     }, [value.discountAmount])
 
+    const recentBaseAmounts = baseAmounts?.map((baseAmount: number, idx: number) => (
+        <Button key={idx} onClick={() => changeBasePrice(baseAmount)}>
+            {baseAmount}
+        </Button>
+    ))
+
+    const recentDiscountPercentages = discountPercentages?.map((discountPercentage: number, idx: number) => (
+        <Button key={idx} onClick={() => changeDiscountPercentage(discountPercentage)}>
+            {(discountPercentage * 100).toFixed(2)}%
+        </Button>
+    ))
+
+    const recentReturnPercentages = returnPercentages?.map((returnPercentage: number, idx: number) => (
+        <Button key={idx} onClick={() => changeReturnPercentage(returnPercentage)}>
+            {(returnPercentage * 100).toFixed(2)}%
+        </Button>
+    ))
+
     return (
         <>
             <PriceNumberInput
@@ -51,6 +74,7 @@ export const AmountInputGroup = ({ value, setField }: AmountInputGroup) => {
                 value={value.amount}
                 onChange={(amount) => changeBasePrice(amount as number)}
             />
+            {recentBaseAmounts && recentBaseAmounts.length > 0 && <RecentDataScroller className='mb-2'>{recentBaseAmounts}</RecentDataScroller>}
 
             <div className='flex gap-1 mb-2'>
                 <PriceNumberInput
@@ -68,6 +92,7 @@ export const AmountInputGroup = ({ value, setField }: AmountInputGroup) => {
                     onChange={(discountPercentage) => changeDiscountPercentage(discountPercentage as number / 100)}
                 />
             </div>
+            {recentDiscountPercentages && recentDiscountPercentages.length > 0 && <RecentDataScroller className='mb-2'>{recentDiscountPercentages}</RecentDataScroller>}
 
             <div className='flex gap-1 mb-2'>
                 <PriceNumberInput
@@ -85,6 +110,7 @@ export const AmountInputGroup = ({ value, setField }: AmountInputGroup) => {
                     onChange={(returnPercentage) => changeReturnPercentage(returnPercentage as number / 100)}
                 />
             </div>
+            {recentReturnPercentages && recentReturnPercentages.length > 0 && <RecentDataScroller className='mb-2'>{recentReturnPercentages}</RecentDataScroller>}
         </>
     )
 }

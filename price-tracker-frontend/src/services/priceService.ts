@@ -31,8 +31,8 @@ export default {
         return res.data
     },
 
-    getRecentPriceData: async (rootUrl: string, pageNumber: number = 0, pageSize: number = 5) => {
-        const res = await apiClient.get(rootUrl + apiPath + '/recent', {
+    getRecentPriceData: async (rootUrl: string, pageNumber: number = 0, pageSize: number = 5, productId: number) => {
+        const res = await apiClient.get(rootUrl + apiPath + '/recent/' + productId, {
             params: {
                 page: pageNumber,
                 size: pageSize,
