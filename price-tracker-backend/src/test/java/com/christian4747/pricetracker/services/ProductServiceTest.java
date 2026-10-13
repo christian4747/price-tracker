@@ -159,6 +159,7 @@ public class ProductServiceTest {
         when(productDAO.findDistinctNames(any())).thenReturn(namePage);
         when(productDAO.findAll(ArgumentMatchers.<Specification<Product>>any(), any(Sort.class))).thenReturn(productList);
         when(namePage.getContent()).thenReturn(List.of("Product", "Product2"));
+        when(namePage.getTotalElements()).thenReturn(2L);
         when(pageable.getPageSize()).thenReturn(1);
         when(pageable.getSort()).thenReturn(sort);
 

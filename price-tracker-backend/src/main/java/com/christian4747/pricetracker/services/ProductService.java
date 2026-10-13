@@ -159,7 +159,7 @@ public class ProductService {
                         .filter(name -> !groupedByName.getOrDefault(name, List.of()).isEmpty())
                         .map(name -> new ProductNameGroupDTO(name, groupedByName.get(name)))
                         .toList(),
-                (long) groupedByName.size()
+                uniqueNamesPage.getTotalElements()
         );
     }
 
