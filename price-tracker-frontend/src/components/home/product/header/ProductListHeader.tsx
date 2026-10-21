@@ -1,10 +1,12 @@
 import { MdSearch } from 'react-icons/md'
 import { useEffect, useState } from 'react'
-import { Button, Input, Menu, Switch } from '@mantine/core'
-import AddProductModal from '../modals/AddProductModal'
+import { Button, Input, Menu } from '@mantine/core'
+import AddProductModal from '../../modals/AddProductModal'
 import type { ProductFilterDTO } from '@/utils/Types'
 import { ACTIVE_INACTIVE_PRODUCTS, ACTIVE_PRODUCTS, INACTIVE_PRODUCTS } from '@/utils/FilterConstants'
 import { useDebouncedState } from '@mantine/hooks'
+import { DefaultSortMenu } from './sortmenu/DefaultSortMenu'
+import { GroupByNameMenu } from './sortmenu/GroupByNameMenu'
 
 interface ProductListHeader {
     searchSearchTerm: (searchTerm: string) => void
@@ -31,6 +33,17 @@ export const ProductListHeader = ({ searchSearchTerm, productsGroupBy, setProduc
         setSortValue(fieldName)
         setIsAscending(isAscending)
         setField('sort', `${fieldName},${sortDirection}`)
+    }
+
+    const resetSort = () => {
+        setSortValue('name')
+        setIsAscending(true)
+        setField('sort', 'name,asc')
+    }
+
+    const setGroupedBy = (val: string) => {
+        resetSort()
+        setProductsGroupBy(val)
     }
 
     const setSearchTerm = (e: React.ChangeEvent<HTMLInputElement, HTMLInputElement>) => {
@@ -83,7 +96,7 @@ export const ProductListHeader = ({ searchSearchTerm, productsGroupBy, setProduc
 
                                 <Menu.Dropdown>
                                     <Menu.Label>Group By</Menu.Label>
-                                    <Menu.RadioGroup value={productsGroupBy} onChange={setProductsGroupBy}>
+                                    <Menu.RadioGroup value={productsGroupBy} onChange={setGroupedBy}>
                                         <Menu.RadioItem value=''>None</Menu.RadioItem>
                                         <Menu.RadioItem value='Name'>Name</Menu.RadioItem>
                                     </Menu.RadioGroup>
@@ -109,33 +122,21 @@ export const ProductListHeader = ({ searchSearchTerm, productsGroupBy, setProduc
                                 </Menu.Dropdown>
                             </Menu>
 
-                            <Menu>
-                                <Menu.Target>
-                                    <Button className='flex gap-2 min-w-30'>
-                                        Sort
-                                    </Button>
-                                </Menu.Target>
+                            {productsGroupBy === '' ?
+                                <DefaultSortMenu
+                                    sortValue={sortValue}
+                                    setSort={setSort}
+                                    isAscending={isAscending}
+                                />
+                                :
+                                <GroupByNameMenu
+                                    sortValue={sortValue}
+                                    setSort={setSort}
+                                    isAscending={isAscending}
+                                />
+                            }
 
-                                <Menu.Dropdown>
-                                    <Menu.Label>Sort Value</Menu.Label>
-                                    <Menu.RadioGroup value={sortValue} onChange={(val) => setSort(val, isAscending)}>
-                                        <Menu.RadioItem value='name'>Name</Menu.RadioItem>
-                                        <Menu.RadioItem value='brand'>Brand</Menu.RadioItem>
-                                        <Menu.RadioItem value='store'>Store</Menu.RadioItem>
-                                        <Menu.RadioItem value='currentPrice'>Current Price</Menu.RadioItem>
-                                        <Menu.RadioItem value='currentDiscount'>Current Discount</Menu.RadioItem>
-                                        <Menu.RadioItem value='createdAt'>Date Added</Menu.RadioItem>
-                                        <Menu.RadioItem value='updatedAt'>Last Updated</Menu.RadioItem>
-                                        <Menu.RadioItem value='timeRemaining'>Time Remaining</Menu.RadioItem>
-                                    </Menu.RadioGroup>
-                                    <Switch
-                                        className='p-2'
-                                        label='Ascending'
-                                        checked={isAscending}
-                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => { setSort(sortValue, e.target.checked) }}
-                                    />
-                                </Menu.Dropdown>
-                            </Menu>
+                            
                         </div>
 
                         <div className='flex items-center gap-2'>
