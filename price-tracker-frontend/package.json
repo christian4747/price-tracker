@@ -10,7 +10,8 @@
     "lint:fix": "oxlint --fix",
     "preview": "vite preview",
     "test": "vitest",
-    "test:browser": "vitest --config=vitest.browser.config.ts"
+    "test:browser": "vitest --config=vitest.browser.config.ts",
+    "format": "prettier --write src"
   },
   "dependencies": {
     "@mantine/charts": "^9.5.1",
@@ -49,6 +50,7 @@
     "postcss": "^8.5.25",
     "postcss-preset-mantine": "^1.18.0",
     "postcss-simple-vars": "^7.0.1",
+    "prettier": "3.9.10",
     "typescript": "~6.0.2",
     "vite": "^8.1.1",
     "vitest": "^4.1.11",
