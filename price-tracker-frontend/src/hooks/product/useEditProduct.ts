@@ -1,7 +1,7 @@
-import type { ProductDTO, ProductType } from '../../utils/Types'
+import type { ProductDTO, ProductType } from '@/utils/Types'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import productService from '../../services/productService'
-import { useProductDTO } from './useProductDTO'
+import productService from '@/services/productService'
+import { useProductDTO } from '@/hooks/product/useProductDTO'
 import { sendSuccessNotification } from '@/utils/NotificationUtilities'
 
 export function useEditProduct(product: ProductType) {

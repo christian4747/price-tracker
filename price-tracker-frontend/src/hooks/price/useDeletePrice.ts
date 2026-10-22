@@ -1,6 +1,6 @@
-import type { PriceType } from '../../utils/Types'
+import type { PriceType } from '@/utils/Types'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import priceService from '../../services/priceService'
+import priceService from '@/services/priceService'
 import { sendSuccessNotification } from '@/utils/NotificationUtilities'
 import { getFormattedDateString } from '@/utils/DateUtilities'
 

@@ -1,5 +1,5 @@
-import type { ProductDTO, ProductFilterDTO } from "../utils/Types"
-import { apiClient } from "./apiClient"
+import type { ProductDTO, ProductFilterDTO } from "@/utils/Types"
+import { apiClient } from "@/services/apiClient"
 
 const apiPath = "/products"
 

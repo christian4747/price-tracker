@@ -1,8 +1,8 @@
-import type { PriceDTO, PriceType } from '../../utils/Types'
+import type { PriceDTO, PriceType } from '@/utils/Types'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import priceService from '../../services/priceService'
-import { usePriceDTO } from './usePriceDTO'
-import { getFormattedDateString } from '../../utils/DateUtilities'
+import priceService from '@/services/priceService'
+import { usePriceDTO } from '@/hooks/price/usePriceDTO'
+import { getFormattedDateString } from '@/utils/DateUtilities'
 import dayjs from 'dayjs'
 import { sendSuccessNotification } from '@/utils/NotificationUtilities'
 

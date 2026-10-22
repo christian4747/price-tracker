@@ -1,5 +1,5 @@
-import type { PriceDTO } from "../utils/Types"
-import { apiClient } from "./apiClient"
+import type { PriceDTO } from "@/utils/Types"
+import { apiClient } from "@/services/apiClient"
 
 const apiPath = "/prices"
 

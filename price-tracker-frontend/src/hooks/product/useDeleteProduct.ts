@@ -1,6 +1,6 @@
-import type { ProductType } from '../../utils/Types'
+import type { ProductType } from '@/utils/Types'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import productService from '../../services/productService'
+import productService from '@/services/productService'
 import { sendSuccessNotification } from '@/utils/NotificationUtilities'
 
 export function useDeleteProduct(product: ProductType) {

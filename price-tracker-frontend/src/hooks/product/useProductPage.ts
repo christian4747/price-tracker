@@ -1,6 +1,6 @@
 import productService from "@/services/productService"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
-import { useListWithPagination } from "../common/useListWithPagination"
+import { useListWithPagination } from "@/hooks/common/useListWithPagination"
 import type { ProductFilterDTO } from "@/utils/Types"
 
 export function useProductPage(pageNumber: number = 1, pageSize: number = 10, productFilterDTO: ProductFilterDTO) {
