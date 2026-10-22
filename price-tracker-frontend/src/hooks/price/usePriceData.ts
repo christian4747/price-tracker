@@ -1,39 +1,36 @@
-import { getLocalDateFromUTC, localizeFormatDayjs } from "@/utils/DateUtilities"
-import { getBestDiscount, getPriceDiscount, getXYearAgoPrices, sortPricesByDateAscending } from "@/utils/PriceUtilities"
-import type { PriceType } from "@/utils/Types"
-import dayjs from "dayjs"
+import { getLocalDateFromUTC, localizeFormatDayjs } from '@/utils/DateUtilities'
+import { getBestDiscount, getPriceDiscount, getXYearAgoPrices, sortPricesByDateAscending } from '@/utils/PriceUtilities'
+import type { PriceType } from '@/utils/Types'
+import dayjs from 'dayjs'
 
 export function usePriceData(dateToday: Date) {
-
     // Create Price data for PriceHistoryChart
     const createPriceData = (prices: PriceType[]) => {
         if (!prices || prices.length <= 0) return []
 
-        const priceData = prices
-            .map((price, idx) => {
-                price = prices[prices.length - 1 - idx]
+        const priceData = prices.map((price, idx) => {
+            price = prices[prices.length - 1 - idx]
 
-                if (price.today) {
-                    return {
-                        priceId: price.priceId,
-                        totalAmount: price.totalAmount,
-                        description: price.description,
-                        currency: price.currency,
-                        today: price.today,
-                        priceStarted: "Now"
-                    }
-                }
-
+            if (price.today) {
                 return {
                     priceId: price.priceId,
                     totalAmount: price.totalAmount,
                     description: price.description,
                     currency: price.currency,
                     today: price.today,
-                    priceStarted: localizeFormatDayjs(getLocalDateFromUTC(new Date(price.priceStarted)), 'lll'),
+                    priceStarted: 'Now'
                 }
             }
-        )
+
+            return {
+                priceId: price.priceId,
+                totalAmount: price.totalAmount,
+                description: price.description,
+                currency: price.currency,
+                today: price.today,
+                priceStarted: localizeFormatDayjs(getLocalDateFromUTC(new Date(price.priceStarted)), 'lll')
+            }
+        })
 
         return priceData
     }
@@ -43,7 +40,7 @@ export function usePriceData(dateToday: Date) {
         if (!prices || prices.length <= 0) return
         let latestPrice = prices[0]
         let today = dayjs(dateToday.getTime())
-    
+
         for (const price of prices) {
             const currentPriceStarted = dayjs(price.priceStarted)
             if (currentPriceStarted.isAfter(today)) {
@@ -51,17 +48,17 @@ export function usePriceData(dateToday: Date) {
                 return latestPrice
             }
         }
-    
+
         return undefined
     }
-    
+
     // Get the first price before today
     const getLatestPriceBeforeToday = (prices: PriceType[]) => {
         if (!prices || prices.length <= 0) return
         let latestPrice = prices[0]
         let latest = dayjs(prices[0].priceStarted)
         let today = dayjs(dateToday.getTime())
-    
+
         for (const price of prices) {
             const currentPriceStarted = dayjs(price.priceStarted)
             if (currentPriceStarted.isAfter(latest) && currentPriceStarted.isBefore(today)) {
@@ -69,27 +66,27 @@ export function usePriceData(dateToday: Date) {
                 latestPrice = price
             }
         }
-    
+
         return latestPrice
     }
 
     // Returns the banner type by comparing the best discount and most recent discount
     const getBannerType = (prices: PriceType[]) => {
         if (!prices || prices.length <= 1) return ''
-    
+
         const sortedPricesByDate = sortPricesByDateAscending(prices)
-    
+
         const mostRecentPrice = getLatestPriceBeforeToday(prices)
         if (!mostRecentPrice) return ''
-    
+
         const mostRecentDiscount = getPriceDiscount(mostRecentPrice)
-    
+
         const allTimeDiscount = getBestDiscount(sortedPricesByDate)
         const twoYearDiscount = getBestDiscount(getXYearAgoPrices(prices, 2))
         const oneYearDiscount = getBestDiscount(getXYearAgoPrices(prices, 1))
-    
+
         // console.log(allTimeDiscount, twoYearDiscount, oneYearDiscount, mostRecentDiscount)
-    
+
         if (allTimeDiscount === mostRecentDiscount) {
             return 'all-time'
         } else if (twoYearDiscount === mostRecentDiscount) {

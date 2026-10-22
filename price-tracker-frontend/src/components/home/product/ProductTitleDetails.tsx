@@ -11,47 +11,50 @@ export interface ProductTitleDetails {
 }
 
 export const ProductTitleDetails = ({ product, storeString }: ProductTitleDetails) => {
-
     const openEditProductModal = useContext(EditProductContext)
     const openDeleteProductModal = useContext(DeleteProductContext)
 
     return (
-        <div className='flex gap-3 items-baseline-last'>
+        <div className="flex gap-3 items-baseline-last">
             <div title={product.name} className="text-lg max-w-100 truncate">
                 {product.name}
             </div>
 
-            <div className="text-raincloud">
-                {storeString ? storeString : product.store}
-            </div>
+            <div className="text-raincloud">{storeString ? storeString : product.store}</div>
 
             <a className="cursor-pointer" href={product.link} target="_blank">
-                <Tooltip withArrow label={product.link}><FaLink /></Tooltip>
+                <Tooltip withArrow label={product.link}>
+                    <FaLink />
+                </Tooltip>
             </a>
 
             <div
-                className='cursor-pointer'
+                className="cursor-pointer"
                 onClick={(e) => {
                     openEditProductModal(product)
                     e.stopPropagation()
                 }}
             >
-                <Tooltip withArrow label="Edit Product"><MdEdit /></Tooltip>
+                <Tooltip withArrow label="Edit Product">
+                    <MdEdit />
+                </Tooltip>
             </div>
 
-            {product.deletedAt === null &&
+            {product.deletedAt === null && (
                 <div
-                    className='cursor-pointer'
-                    role='img'
-                    aria-label='Delete product'
+                    className="cursor-pointer"
+                    role="img"
+                    aria-label="Delete product"
                     onClick={(e) => {
                         openDeleteProductModal(product)
                         e.stopPropagation()
                     }}
                 >
-                    <Tooltip withArrow label="Delete Product"><MdDelete /></Tooltip>
+                    <Tooltip withArrow label="Delete Product">
+                        <MdDelete />
+                    </Tooltip>
                 </div>
-            }
+            )}
 
             <CopyButton value={product.name} timeout={1000}>
                 {({ copied, copy }) => (
@@ -62,10 +65,7 @@ export const ProductTitleDetails = ({ product, storeString }: ProductTitleDetail
                             e.stopPropagation()
                         }}
                     >
-                        <Tooltip
-                            label={copied ? 'Copied!' : 'Copy Product Name'}
-                            withArrow
-                        >
+                        <Tooltip label={copied ? 'Copied!' : 'Copy Product Name'} withArrow>
                             {copied ? <FaCheck /> : <FaCopy />}
                         </Tooltip>
                     </div>

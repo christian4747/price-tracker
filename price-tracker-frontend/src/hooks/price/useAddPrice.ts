@@ -8,9 +8,8 @@ import { getFormattedDateString, getLocalDateFromUTC } from '@/utils/DateUtiliti
 import { useState } from 'react'
 
 export function useAddPrice(product: ProductType, useEndDateDesc: boolean) {
-
     // Use state fixes this value (prevents useEffect refreshes)
-    const [emptyPriceDTO,] = useState<PriceDTO>({
+    const [emptyPriceDTO] = useState<PriceDTO>({
         amount: 0,
         currency: '',
         description: '',
@@ -46,7 +45,7 @@ export function useAddPrice(product: ProductType, useEndDateDesc: boolean) {
         onError: (error) => {
             console.log(`Error occurred while adding ${priceDTO} (${error.message})`)
         }
-    }) 
+    })
 
     // Mutation for adding start date and end date
     const addPriceMutation = useMutation({
@@ -61,7 +60,7 @@ export function useAddPrice(product: ProductType, useEndDateDesc: boolean) {
         onSuccess: (newPrice: PriceType) => {
             if (priceDTO.value.priceEnded && priceDTO.value.priceEnded.length > 0) {
                 priceDTO.value.priceStarted = priceDTO.value.priceEnded
-                priceDTO.value.priceEnded = ""
+                priceDTO.value.priceEnded = ''
                 addEndPriceMutation.mutate()
             }
 

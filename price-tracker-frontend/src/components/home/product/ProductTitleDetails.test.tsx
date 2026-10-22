@@ -27,12 +27,11 @@ const deletedProduct: ProductType = {
     prices: []
 }
 
-
 describe('Product Title Details Component', () => {
     test('should render product delete button', async () => {
         renderWithClient(<ProductTitleDetails product={product} />)
 
-        const deleteProductButton = screen.getByRole('img', { name: /delete product/i})
+        const deleteProductButton = screen.getByRole('img', { name: /delete product/i })
         await expect.element(deleteProductButton).toBeInTheDocument()
     })
 

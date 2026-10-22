@@ -1,4 +1,4 @@
-import type { ACTIVE_INACTIVE_PRODUCTS, ACTIVE_PRODUCTS, INACTIVE_PRODUCTS } from "./FilterConstants"
+import type { ACTIVE_INACTIVE_PRODUCTS, ACTIVE_PRODUCTS, INACTIVE_PRODUCTS } from './FilterConstants'
 
 export interface ProductType {
     active: boolean

@@ -5,7 +5,6 @@ import { useProductDTO } from '@/hooks/product/useProductDTO'
 import { sendSuccessNotification } from '@/utils/NotificationUtilities'
 
 export function useEditProduct(product: ProductType) {
-
     // State for ProductDTO when editing Products
     const productDTO = useProductDTO(product as ProductDTO)
 

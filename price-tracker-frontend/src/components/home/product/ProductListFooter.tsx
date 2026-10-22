@@ -6,15 +6,11 @@ export interface ProductListFooter {
     onChange?: ((value: number) => void) | undefined
 }
 
-export const ProductListFooter = ({total, value, onChange}: ProductListFooter) => {
+export const ProductListFooter = ({ total, value, onChange }: ProductListFooter) => {
     return (
         <footer className="fixed bottom-5 left-0 z-50 w-full">
             <Center>
-                <Pagination
-                    total={Math.ceil(total / 10)}
-                    value={value}
-                    onChange={onChange}
-                />
+                <Pagination total={Math.ceil(total / 10)} value={value} onChange={onChange} />
             </Center>
         </footer>
     )

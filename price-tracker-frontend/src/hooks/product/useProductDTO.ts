@@ -24,7 +24,7 @@ const reducer = (state: ProductDTO, action: ReducerAction) => {
     switch (action.type) {
         case 'set_field': {
             const { key, value } = action
-            if (!key || (!value === undefined) && value !== '') return state
+            if (!key || (!value === undefined && value !== '')) return state
 
             return {
                 ...state,
@@ -41,7 +41,6 @@ const reducer = (state: ProductDTO, action: ReducerAction) => {
 }
 
 export function useProductDTO(initialProductDTO: ProductDTO | undefined) {
-
     const [state, dispatch] = useReducer(reducer, initialProductDTO, createInitialProductDTO)
 
     useEffect(() => {
@@ -49,7 +48,7 @@ export function useProductDTO(initialProductDTO: ProductDTO | undefined) {
     }, [initialProductDTO])
 
     const setField = (key: string, value: boolean | string) => {
-        dispatch({type: 'set_field', key, value})
+        dispatch({ type: 'set_field', key, value })
     }
 
     const reset = () => {

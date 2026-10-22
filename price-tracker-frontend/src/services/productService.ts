@@ -1,10 +1,9 @@
-import type { ProductDTO, ProductFilterDTO } from "@/utils/Types"
-import { apiClient } from "@/services/apiClient"
+import type { ProductDTO, ProductFilterDTO } from '@/utils/Types'
+import { apiClient } from '@/services/apiClient'
 
-const apiPath = "/products"
+const apiPath = '/products'
 
 export default {
-
     getAllProducts: async () => {
         const res = await apiClient.get(apiPath)
         return res.data
@@ -24,7 +23,12 @@ export default {
         return res.data
     },
 
-    getProductsGrouped: async (pageNumber: number = 0, pageSize: number = 10, productFilterDTO: ProductFilterDTO, groupBy: string = 'name') => {
+    getProductsGrouped: async (
+        pageNumber: number = 0,
+        pageSize: number = 10,
+        productFilterDTO: ProductFilterDTO,
+        groupBy: string = 'name'
+    ) => {
         const params = { ...productFilterDTO, page: pageNumber, size: pageSize, groupBy: groupBy }
 
         const res = await apiClient.get(apiPath + '/grouped', {
@@ -47,5 +51,4 @@ export default {
         const res = await apiClient.delete(apiPath + '/' + productId.toString())
         return res.data
     }
-
 }

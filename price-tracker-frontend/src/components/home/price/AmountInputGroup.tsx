@@ -1,9 +1,9 @@
-import { Button } from "@mantine/core"
-import type { PriceDTO } from "../../../utils/Types"
-import PriceNumberInput from "./PriceNumberInput"
+import { Button } from '@mantine/core'
+import type { PriceDTO } from '../../../utils/Types'
+import PriceNumberInput from './PriceNumberInput'
 
-import { useEffect } from "react"
-import { RecentDataScroller } from "@/components/common/RecentDataScroller"
+import { useEffect } from 'react'
+import { RecentDataScroller } from '@/components/common/RecentDataScroller'
 
 interface AmountInputGroup {
     value: PriceDTO
@@ -13,8 +13,13 @@ interface AmountInputGroup {
     returnPercentages?: []
 }
 
-export const AmountInputGroup = ({ value, setField, baseAmounts, discountPercentages, returnPercentages }: AmountInputGroup) => {
-
+export const AmountInputGroup = ({
+    value,
+    setField,
+    baseAmounts,
+    discountPercentages,
+    returnPercentages
+}: AmountInputGroup) => {
     const changeBasePrice = (amount: number) => {
         setField('amount', amount)
     }
@@ -26,7 +31,7 @@ export const AmountInputGroup = ({ value, setField, baseAmounts, discountPercent
 
     const changeDiscountPercentage = (discountPercentage: number) => {
         setField('discountPercentage', discountPercentage)
-        setField('discountAmount', value.amount - value.amount * (discountPercentage))
+        setField('discountAmount', value.amount - value.amount * discountPercentage)
     }
 
     const changeReturnAmount = (returnAmount: number) => {
@@ -36,7 +41,7 @@ export const AmountInputGroup = ({ value, setField, baseAmounts, discountPercent
 
     const changeReturnPercentage = (returnPercentage: number) => {
         setField('returnPercentage', returnPercentage)
-        setField('returnAmount', Math.min(value.discountAmount, value.amount) * (returnPercentage))
+        setField('returnAmount', Math.min(value.discountAmount, value.amount) * returnPercentage)
     }
 
     useEffect(() => {
@@ -74,9 +79,11 @@ export const AmountInputGroup = ({ value, setField, baseAmounts, discountPercent
                 value={value.amount}
                 onChange={(amount) => changeBasePrice(amount as number)}
             />
-            {recentBaseAmounts && recentBaseAmounts.length > 0 && <RecentDataScroller className='mb-2'>{recentBaseAmounts}</RecentDataScroller>}
+            {recentBaseAmounts && recentBaseAmounts.length > 0 && (
+                <RecentDataScroller className="mb-2">{recentBaseAmounts}</RecentDataScroller>
+            )}
 
-            <div className='flex gap-1 mb-2'>
+            <div className="flex gap-1 mb-2">
                 <PriceNumberInput
                     label="Discount Amount"
                     className="w-75"
@@ -85,16 +92,18 @@ export const AmountInputGroup = ({ value, setField, baseAmounts, discountPercent
                     onChange={(discountAmount) => changeDiscountAmount(discountAmount as number)}
                 />
                 <PriceNumberInput
-                    label='Discount %'
-                    className='max-w-25'
+                    label="Discount %"
+                    className="max-w-25"
                     value={value.discountPercentage * 100}
                     max={100}
-                    onChange={(discountPercentage) => changeDiscountPercentage(discountPercentage as number / 100)}
+                    onChange={(discountPercentage) => changeDiscountPercentage((discountPercentage as number) / 100)}
                 />
             </div>
-            {recentDiscountPercentages && recentDiscountPercentages.length > 0 && <RecentDataScroller className='mb-2'>{recentDiscountPercentages}</RecentDataScroller>}
+            {recentDiscountPercentages && recentDiscountPercentages.length > 0 && (
+                <RecentDataScroller className="mb-2">{recentDiscountPercentages}</RecentDataScroller>
+            )}
 
-            <div className='flex gap-1 mb-2'>
+            <div className="flex gap-1 mb-2">
                 <PriceNumberInput
                     label="Return Amount"
                     className="w-75"
@@ -103,14 +112,16 @@ export const AmountInputGroup = ({ value, setField, baseAmounts, discountPercent
                     onChange={(returnAmount) => changeReturnAmount(returnAmount as number)}
                 />
                 <PriceNumberInput
-                    label='Return %'
-                    className='max-w-25'
+                    label="Return %"
+                    className="max-w-25"
                     value={value.returnPercentage * 100}
                     max={100}
-                    onChange={(returnPercentage) => changeReturnPercentage(returnPercentage as number / 100)}
+                    onChange={(returnPercentage) => changeReturnPercentage((returnPercentage as number) / 100)}
                 />
             </div>
-            {recentReturnPercentages && recentReturnPercentages.length > 0 && <RecentDataScroller className='mb-2'>{recentReturnPercentages}</RecentDataScroller>}
+            {recentReturnPercentages && recentReturnPercentages.length > 0 && (
+                <RecentDataScroller className="mb-2">{recentReturnPercentages}</RecentDataScroller>
+            )}
         </>
     )
 }

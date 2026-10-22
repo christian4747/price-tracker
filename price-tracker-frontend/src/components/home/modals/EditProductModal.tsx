@@ -1,7 +1,6 @@
-
-import type { ProductType } from "../../../utils/Types";
-import { Button, Modal, Switch, TextInput } from "@mantine/core";
-import { useEditProduct } from "@/hooks/product/useEditProduct";
+import type { ProductType } from '../../../utils/Types'
+import { Button, Modal, Switch, TextInput } from '@mantine/core'
+import { useEditProduct } from '@/hooks/product/useEditProduct'
 
 interface EditProductModal {
     product: ProductType
@@ -11,7 +10,6 @@ interface EditProductModal {
 }
 
 export const EditProductModal = ({ product, closeEditProduct, opened }: EditProductModal) => {
-
     // Hook for editing products
     const { productDTO, mutation } = useEditProduct(product)
 
@@ -23,40 +21,45 @@ export const EditProductModal = ({ product, closeEditProduct, opened }: EditProd
 
     return (
         <>
-            <Modal
-                title="Edit Product"
-                opened={opened}
-                onClose={closeEditProduct}
-                onClick={(e) => e.stopPropagation()}
-            >
+            <Modal title="Edit Product" opened={opened} onClose={closeEditProduct} onClick={(e) => e.stopPropagation()}>
                 <TextInput
                     label="Name"
                     placeholder="Name"
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => { productDTO.setField('name', e.target.value) }}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                        productDTO.setField('name', e.target.value)
+                    }}
                     value={productDTO.value.name}
                     className="mb-2"
                 />
                 <TextInput
                     label="Store"
                     placeholder="Store"
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => { productDTO.setField('store', e.target.value) }}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                        productDTO.setField('store', e.target.value)
+                    }}
                     value={productDTO.value.store}
                     className="mb-2"
                 />
                 <TextInput
                     label="Link"
                     placeholder="Link"
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => { productDTO.setField('link', e.target.value) }}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                        productDTO.setField('link', e.target.value)
+                    }}
                     value={productDTO.value.link}
                     className="mb-2"
                 />
                 <Switch
-                    label='Active'
+                    label="Active"
                     checked={productDTO.value.active}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => { productDTO.setField('active', e.target.checked) }}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                        productDTO.setField('active', e.target.checked)
+                    }}
                 />
 
-                <Button fullWidth className="mt-5" onClick={finalizeEditProduct}>Edit Product</Button>
+                <Button fullWidth className="mt-5" onClick={finalizeEditProduct}>
+                    Edit Product
+                </Button>
             </Modal>
         </>
     )

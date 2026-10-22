@@ -3,8 +3,11 @@ import productService from '@/services/productService'
 import { useListWithPagination } from '@/hooks/common/useListWithPagination'
 import type { ProductFilterDTO } from '@/utils/Types'
 
-export function useProductPageGrouped(pageNumber: number = 1, pageSize: number = 10, productFilterDTO: ProductFilterDTO) {
-
+export function useProductPageGrouped(
+    pageNumber: number = 1,
+    pageSize: number = 10,
+    productFilterDTO: ProductFilterDTO
+) {
     const queryClient = useQueryClient()
 
     const {

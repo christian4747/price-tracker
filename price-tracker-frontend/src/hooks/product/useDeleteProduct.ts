@@ -20,7 +20,7 @@ export function useDeleteProduct(product: ProductType) {
             console.log(`Error occurred while deleting ${product.productId}: ${product.name} (${error.message})`)
         }
     })
-    
+
     const useDeleteProductProps = {
         mutation: deleteProductMutation
     }

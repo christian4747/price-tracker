@@ -1,15 +1,15 @@
-import { Accordion } from "@mantine/core"
-import type { ProductBody, ProductFilterDTO, ProductType } from "../../../utils/Types"
-import { useDebounce } from "@/hooks/common/useDebounce"
-import { Product } from "./Product"
-import DeleteProductModal from "../modals/DeleteProductModal"
-import { EditProductModal } from "../modals/EditProductModal"
-import { useEffect, useState } from "react"
-import { useDisclosure } from "@mantine/hooks"
-import { useProductPage } from "@/hooks/product/useProductPage"
-import { ProductListFooter } from "./ProductListFooter"
-import { DeleteProductContext, EditProductContext } from "@/context/ProductContext"
-import ProductListSkeleton from "./ProductListSkeleton"
+import { Accordion } from '@mantine/core'
+import type { ProductBody, ProductFilterDTO, ProductType } from '../../../utils/Types'
+import { useDebounce } from '@/hooks/common/useDebounce'
+import { Product } from './Product'
+import DeleteProductModal from '../modals/DeleteProductModal'
+import { EditProductModal } from '../modals/EditProductModal'
+import { useEffect, useState } from 'react'
+import { useDisclosure } from '@mantine/hooks'
+import { useProductPage } from '@/hooks/product/useProductPage'
+import { ProductListFooter } from './ProductListFooter'
+import { DeleteProductContext, EditProductContext } from '@/context/ProductContext'
+import ProductListSkeleton from './ProductListSkeleton'
 
 export interface ProductList {
     filter: ProductFilterDTO
@@ -17,16 +17,12 @@ export interface ProductList {
 
 // TODO: Use productStatusFilter and searchedTerm for product list
 export const ProductList = ({ filter }: ProductList) => {
-
     // Hook for getting products grouped
-    const {
-        changePageNumber,
-        currentlyOpened,
-        currentPageNumber,
-        query,
-        setCurrentlyOpened,
-        refresh
-    } = useProductPage(undefined, undefined, filter)
+    const { changePageNumber, currentlyOpened, currentPageNumber, query, setCurrentlyOpened, refresh } = useProductPage(
+        undefined,
+        undefined,
+        filter
+    )
 
     // Debounce for setting list's today's date state
     const { value: dateToday, setValueWithDebounce: setDateToday } = useDebounce(new Date())
@@ -62,7 +58,7 @@ export const ProductList = ({ filter }: ProductList) => {
                     variant="unstyled"
                     styles={{
                         control: { cursor: 'default' },
-                        chevron: { cursor: 'pointer' },
+                        chevron: { cursor: 'pointer' }
                     }}
                     chevronIconSize={24}
                     value={currentlyOpened}
@@ -86,15 +82,19 @@ export const ProductList = ({ filter }: ProductList) => {
                     </EditProductContext>
                 </Accordion>
 
-                <ProductListFooter
-                    total={query.data.count}
-                    value={currentPageNumber}
-                    onChange={changePageNumber}
-                />
+                <ProductListFooter total={query.data.count} value={currentPageNumber} onChange={changePageNumber} />
 
                 {/* Modal Zone */}
-                <EditProductModal product={currentProduct} closeEditProduct={closeEditProduct} opened={editProductOpened} />
-                <DeleteProductModal product={currentProduct} closeDeleteProduct={closeDeleteProduct} opened={deleteProductOpened} />
+                <EditProductModal
+                    product={currentProduct}
+                    closeEditProduct={closeEditProduct}
+                    opened={editProductOpened}
+                />
+                <DeleteProductModal
+                    product={currentProduct}
+                    closeDeleteProduct={closeDeleteProduct}
+                    opened={deleteProductOpened}
+                />
             </div>
         </>
     )

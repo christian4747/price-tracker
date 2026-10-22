@@ -1,4 +1,3 @@
-
 import { Button, Center, Collapse, Switch, TextInput } from '@mantine/core'
 import type { ProductType } from '@/utils/Types'
 import { RecentDataScroller } from '@/components/common/RecentDataScroller'
@@ -18,7 +17,6 @@ interface AddPriceForm {
 }
 
 export const AddPriceForm = ({ product, setDateToday, close, quickAdd = false }: AddPriceForm) => {
-
     // Track state of expanding the end date input
     const [expandEndDate, { open: openEndDate, close: closeEndDate }] = useDisclosure(false)
     // Track button group state for selecting start date or start + end date
@@ -84,35 +82,45 @@ export const AddPriceForm = ({ product, setDateToday, close, quickAdd = false }:
 
             <TextInput
                 label="Description"
-                radius='xl'
+                radius="xl"
                 placeholder="Description"
                 onChange={(e) => priceDTO.setField('description', e.target.value)}
                 value={priceDTO.value.description}
                 className="mb-2"
             />
-            {recentDescriptions?.length > 0 && <RecentDataScroller className='mb-2'>{recentDescriptions}</RecentDataScroller>}
+            {recentDescriptions?.length > 0 && (
+                <RecentDataScroller className="mb-2">{recentDescriptions}</RecentDataScroller>
+            )}
 
             <TextInput
                 label="Currency"
-                radius='xl'
+                radius="xl"
                 placeholder="ex. USD"
                 onChange={(e) => priceDTO.setField('currency', e.target.value)}
                 value={priceDTO.value.currency}
                 className="mb-2"
             />
-            {recentCurrencies?.length > 0 && <RecentDataScroller className='mb-2'>{recentCurrencies}</RecentDataScroller>}
+            {recentCurrencies?.length > 0 && (
+                <RecentDataScroller className="mb-2">{recentCurrencies}</RecentDataScroller>
+            )}
 
             <Center>
                 <Button.Group>
                     <Button
-                        variant={useEndDate ? "default" : "filled"}
-                        onClick={() => { setUseEndDate(false); closeEndDate() }}
+                        variant={useEndDate ? 'default' : 'filled'}
+                        onClick={() => {
+                            setUseEndDate(false)
+                            closeEndDate()
+                        }}
                     >
                         Start Date Only
                     </Button>
                     <Button
-                        variant={useEndDate ? "filled" : "default"}
-                        onClick={() => { setUseEndDate(true); openEndDate() }}
+                        variant={useEndDate ? 'filled' : 'default'}
+                        onClick={() => {
+                            setUseEndDate(true)
+                            openEndDate()
+                        }}
                     >
                         Start and End Date
                     </Button>
@@ -120,25 +128,31 @@ export const AddPriceForm = ({ product, setDateToday, close, quickAdd = false }:
             </Center>
 
             <PriceDateTimePicker
-                label='Start Date'
+                label="Start Date"
                 withAsterisk
-                onChange={(priceStarted) => priceStarted ? priceDTO.setField('priceStarted', priceStarted) : ''}
+                onChange={(priceStarted) => (priceStarted ? priceDTO.setField('priceStarted', priceStarted) : '')}
                 value={priceDTO.value.priceStarted}
             />
-            {recentPricesStarted?.length > 0 && <RecentDataScroller className='mb-2'>{recentPricesStarted}</RecentDataScroller>}
+            {recentPricesStarted?.length > 0 && (
+                <RecentDataScroller className="mb-2">{recentPricesStarted}</RecentDataScroller>
+            )}
 
             <Collapse expanded={expandEndDate}>
                 <PriceDateTimePicker
-                    label='End Date'
-                    onChange={(priceEnded) => priceEnded ? priceDTO.setField('priceEnded', priceEnded) : ''}
+                    label="End Date"
+                    onChange={(priceEnded) => (priceEnded ? priceDTO.setField('priceEnded', priceEnded) : '')}
                     value={priceDTO.value.priceEnded}
                 />
-                {recentPricesEnded?.length > 0 && <RecentDataScroller className='mb-2'>{recentPricesEnded}</RecentDataScroller>}
+                {recentPricesEnded?.length > 0 && (
+                    <RecentDataScroller className="mb-2">{recentPricesEnded}</RecentDataScroller>
+                )}
 
                 <Switch
-                    label='Use same description for end date'
+                    label="Use same description for end date"
                     checked={useEndDateDesc}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => { setUseEndDateDesc(e.target.checked) }}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                        setUseEndDateDesc(e.target.checked)
+                    }}
                 />
             </Collapse>
 

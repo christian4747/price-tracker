@@ -6,9 +6,8 @@ import type { ProductType } from '@/utils/Types'
 import { useState } from 'react'
 
 export function useAddProduct() {
-
     // State for ProductDTO used in adding products
-    const [emptyProductDTO,] = useState({
+    const [emptyProductDTO] = useState({
         name: '',
         link: '',
         store: '',

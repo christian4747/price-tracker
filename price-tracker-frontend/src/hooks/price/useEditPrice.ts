@@ -7,7 +7,6 @@ import dayjs from 'dayjs'
 import { sendSuccessNotification } from '@/utils/NotificationUtilities'
 
 export function useEditPrice(price: PriceType) {
-
     // PriceDTO for editing
     const priceDTO = usePriceDTO(price as PriceDTO)
 

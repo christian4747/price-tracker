@@ -15,7 +15,6 @@ const createInitialProductFilterDTO = (initialProductFilterDTO: ProductFilterDTO
 }
 
 export function useProductFilterDTO(initialProductFilterDTO?: ProductFilterDTO | undefined) {
-
     const { state, dispatch, setField, reset } = useDTOReducer(initialProductFilterDTO, createInitialProductFilterDTO)
 
     const setSearchTerm = (searchTerm: string) => {

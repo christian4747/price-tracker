@@ -32,7 +32,7 @@ export const reducer = (state: PriceDTO, action: ReducerAction) => {
     switch (action.type) {
         case 'set_field': {
             const { key, value } = action
-            if (!key || !value && value !== 0) return state
+            if (!key || (!value && value !== 0)) return state
 
             return {
                 ...state,
@@ -49,7 +49,6 @@ export const reducer = (state: PriceDTO, action: ReducerAction) => {
 }
 
 export function usePriceDTO(initialPriceDTO: PriceDTO | undefined) {
-
     const [state, dispatch] = useReducer(reducer, initialPriceDTO, createInitialPriceDTO)
 
     useEffect(() => {
@@ -57,7 +56,7 @@ export function usePriceDTO(initialPriceDTO: PriceDTO | undefined) {
     }, [initialPriceDTO])
 
     const setField = (key: string, value: number | string) => {
-        dispatch({type: 'set_field', key, value})
+        dispatch({ type: 'set_field', key, value })
     }
 
     const reset = () => {

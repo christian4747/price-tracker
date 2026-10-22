@@ -6,18 +6,17 @@ import { useState } from 'react'
 import { ErrorBoundary, getErrorMessage, type FallbackProps } from 'react-error-boundary'
 import { useProductFilterDTO } from '@/hooks/product/useProductFilterDTO'
 
-const ProductListFallback = ({error, resetErrorBoundary}: FallbackProps) => {
+const ProductListFallback = ({ error, resetErrorBoundary }: FallbackProps) => {
     return (
-        <Box className='flex flex-col p-2 gap-2 items-center'>
+        <Box className="flex flex-col p-2 gap-2 items-center">
             <Center>Something went wrong: {getErrorMessage(error)}</Center>
-            
+
             <Button onClick={resetErrorBoundary}>Retry</Button>
         </Box>
     )
 }
 
 export const ProductListContainer = () => {
-
     // Hook for using ProductFilterDTO
     const { value: productFilterDTO, setSearchTerm, setField } = useProductFilterDTO()
 
@@ -40,15 +39,11 @@ export const ProductListContainer = () => {
             />
 
             <ErrorBoundary FallbackComponent={ProductListFallback}>
-                {productsGroupBy !== '' ?
-                    <GroupedProductList
-                        filter={productFilterDTO}
-                    />
-                    :
-                    <ProductList
-                        filter={productFilterDTO}
-                    />
-                }
+                {productsGroupBy !== '' ? (
+                    <GroupedProductList filter={productFilterDTO} />
+                ) : (
+                    <ProductList filter={productFilterDTO} />
+                )}
             </ErrorBoundary>
         </>
     )

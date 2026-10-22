@@ -1,10 +1,9 @@
-import type { PriceDTO } from "@/utils/Types"
-import { apiClient } from "@/services/apiClient"
+import type { PriceDTO } from '@/utils/Types'
+import { apiClient } from '@/services/apiClient'
 
-const apiPath = "/prices"
+const apiPath = '/prices'
 
 export default {
-
     addPrice: async (priceToAdd: PriceDTO) => {
         const res = await apiClient.post(apiPath, priceToAdd)
         return res.data
@@ -20,12 +19,17 @@ export default {
         return res.data
     },
 
-    getPrices: async (productId: number, pageNumber: number = 0, pageSize: number = 20, showDeleted: boolean = false) => {
+    getPrices: async (
+        productId: number,
+        pageNumber: number = 0,
+        pageSize: number = 20,
+        showDeleted: boolean = false
+    ) => {
         const res = await apiClient.get(apiPath + '/product/' + productId, {
             params: {
                 page: pageNumber,
                 size: pageSize,
-                showDeleted: showDeleted,
+                showDeleted: showDeleted
             }
         })
         return res.data
@@ -35,10 +39,9 @@ export default {
         const res = await apiClient.get(apiPath + '/recent/' + productId, {
             params: {
                 page: pageNumber,
-                size: pageSize,
+                size: pageSize
             }
         })
         return res.data
-    },
-
+    }
 }

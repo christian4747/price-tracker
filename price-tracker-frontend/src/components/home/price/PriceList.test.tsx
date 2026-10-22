@@ -7,19 +7,19 @@ import { useState } from 'react'
 const price1: PriceType = {
     priceId: 1,
     amount: 100.0,
-    currency: "",
-    description: "",
+    currency: '',
+    description: '',
     discountAmount: 0.0,
     discountPercentage: 0.0,
-    priceStarted: "2026-09-04T00:00:00.000Z",
-    priceEnded: "",
+    priceStarted: '2026-09-04T00:00:00.000Z',
+    priceEnded: '',
     returnAmount: 0.0,
     returnPercentage: 0.0,
     totalAmount: 0.0,
     totalPercentage: 0.0,
-    createdAt: "2026-09-04T00:00:00.000Z",
+    createdAt: '2026-09-04T00:00:00.000Z',
     deletedAt: null,
-    updatedAt: "2026-09-04T00:00:00.000Z",
+    updatedAt: '2026-09-04T00:00:00.000Z',
     productId: 0,
     today: false
 }
@@ -27,19 +27,19 @@ const price1: PriceType = {
 const price2: PriceType = {
     priceId: 2,
     amount: 150.0,
-    currency: "",
-    description: "",
+    currency: '',
+    description: '',
     discountAmount: 0.0,
     discountPercentage: 0.0,
-    priceStarted: "2026-09-05T00:00:00.000Z",
-    priceEnded: "",
+    priceStarted: '2026-09-05T00:00:00.000Z',
+    priceEnded: '',
     returnAmount: 0.0,
     returnPercentage: 0.0,
     totalAmount: 0.0,
     totalPercentage: 0.0,
-    createdAt: "2026-09-05T00:00:00.000Z",
+    createdAt: '2026-09-05T00:00:00.000Z',
     deletedAt: null,
-    updatedAt: "2026-09-05T00:00:00.000Z",
+    updatedAt: '2026-09-05T00:00:00.000Z',
     productId: 0,
     today: false
 }
@@ -64,16 +64,14 @@ const renderPriceList = () => {
             <PriceList
                 product={product}
                 prices={product.prices}
-                setDateToday={() => { }}
+                setDateToday={() => {}}
                 showDeleted={checked}
                 setShowDeleted={setChecked}
             />
         )
     }
 
-    return renderWithClient(
-        <PriceListWithState />
-    )
+    return renderWithClient(<PriceListWithState />)
 }
 
 describe('Price List Component', () => {

@@ -5,7 +5,6 @@ import { sendSuccessNotification } from '@/utils/NotificationUtilities'
 import { getFormattedDateString } from '@/utils/DateUtilities'
 
 export function useDeletePrice(price: PriceType) {
-
     // Get the query client
     const queryClient = useQueryClient()
 
@@ -19,7 +18,9 @@ export function useDeletePrice(price: PriceType) {
             sendSuccessNotification(`Successfully deleted price ${getFormattedDateString(oldPrice.priceStarted)}`)
         },
         onError: (error) => {
-            console.log(`Error occurred while deleting ${price.priceId}: ${price.amount} ${price.priceStarted} (${error.message})`)
+            console.log(
+                `Error occurred while deleting ${price.priceId}: ${price.amount} ${price.priceStarted} (${error.message})`
+            )
         }
     })
 
