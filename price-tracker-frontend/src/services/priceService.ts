@@ -5,23 +5,23 @@ const apiPath = "/prices"
 
 export default {
 
-    addPrice: async (rootUrl: string, priceToAdd: PriceDTO) => {
-        const res = await apiClient.post(rootUrl + apiPath, priceToAdd)
+    addPrice: async (priceToAdd: PriceDTO) => {
+        const res = await apiClient.post(apiPath, priceToAdd)
         return res.data
     },
 
-    editPrice: async (rootUrl: string, priceId: number, priceToAdd: PriceDTO) => {
-        const res = await apiClient.put(rootUrl + apiPath + '/' + priceId.toString(), priceToAdd)
+    editPrice: async (priceId: number, priceToAdd: PriceDTO) => {
+        const res = await apiClient.put(apiPath + '/' + priceId.toString(), priceToAdd)
         return res.data
     },
 
-    deletePrice: async (rootUrl: string, priceId: number) => {
-        const res = await apiClient.delete(rootUrl + apiPath + '/' + priceId.toString())
+    deletePrice: async (priceId: number) => {
+        const res = await apiClient.delete(apiPath + '/' + priceId.toString())
         return res.data
     },
 
-    getPrices: async (rootUrl: string, productId: number, pageNumber: number = 0, pageSize: number = 20, showDeleted: boolean = false) => {
-        const res = await apiClient.get(rootUrl + apiPath + '/product/' + productId, {
+    getPrices: async (productId: number, pageNumber: number = 0, pageSize: number = 20, showDeleted: boolean = false) => {
+        const res = await apiClient.get(apiPath + '/product/' + productId, {
             params: {
                 page: pageNumber,
                 size: pageSize,
@@ -31,8 +31,8 @@ export default {
         return res.data
     },
 
-    getRecentPriceData: async (rootUrl: string, pageNumber: number = 0, pageSize: number = 5, productId: number) => {
-        const res = await apiClient.get(rootUrl + apiPath + '/recent/' + productId, {
+    getRecentPriceData: async (productId: number, pageNumber: number = 0, pageSize: number = 5) => {
+        const res = await apiClient.get(apiPath + '/recent/' + productId, {
             params: {
                 page: pageNumber,
                 size: pageSize,

@@ -1,6 +1,6 @@
 import type { PriceDTO, PriceType } from '../../utils/Types'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import api from '../../services/api'
+import priceService from '../../services/priceService'
 import { usePriceDTO } from './usePriceDTO'
 import { getFormattedDateString } from '../../utils/DateUtilities'
 import dayjs from 'dayjs'
@@ -18,7 +18,7 @@ export function useEditPrice(price: PriceType) {
     const editPriceMutation = useMutation({
         mutationFn: () => {
             priceDTO.value.priceStarted = dayjs(priceDTO.value.priceStarted).format()
-            return api.editPrice(price.priceId, priceDTO.value)
+            return priceService.editPrice(price.priceId, priceDTO.value)
         },
         onSuccess: (newPrice: PriceType) => {
             queryClient.invalidateQueries()

@@ -1,6 +1,6 @@
 import type { ProductDTO, ProductType } from '../../utils/Types'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import api from '../../services/api'
+import productService from '../../services/productService'
 import { useProductDTO } from './useProductDTO'
 import { sendSuccessNotification } from '@/utils/NotificationUtilities'
 
@@ -15,7 +15,7 @@ export function useEditProduct(product: ProductType) {
     // Mutation for editing products
     const editProductMutation = useMutation({
         mutationFn: () => {
-            return api.editProduct(product.productId, productDTO.value)
+            return productService.editProduct(product.productId, productDTO.value)
         },
         onSuccess: (newProduct: ProductType) => {
             queryClient.invalidateQueries()

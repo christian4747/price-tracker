@@ -1,4 +1,4 @@
-import api from "@/services/api"
+import priceService from "@/services/priceService"
 import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query"
 
 export function usePricePage(productId: number, showDeleted: boolean = false) {
@@ -9,7 +9,7 @@ export function usePricePage(productId: number, showDeleted: boolean = false) {
     const productPageQuery = useQuery({
         queryKey: ['prices', productId],
         queryFn: () => {
-            return api.getPrices(productId, undefined, undefined, showDeleted)
+            return priceService.getPrices(productId, undefined, undefined, showDeleted)
         },
         throwOnError: true,
         placeholderData: keepPreviousData

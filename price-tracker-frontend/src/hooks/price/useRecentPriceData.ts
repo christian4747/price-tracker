@@ -1,4 +1,4 @@
-import api from "@/services/api"
+import priceService from "@/services/priceService"
 import { useQuery } from "@tanstack/react-query"
 
 export function useRecentPriceData(productId: number = -1) {
@@ -7,7 +7,7 @@ export function useRecentPriceData(productId: number = -1) {
     const recentPricesQuery = useQuery({
         queryKey: ['recentPriceData'],
         queryFn: () => {
-            return api.getRecentPriceData(productId)
+            return priceService.getRecentPriceData(productId)
         },
         throwOnError: true
     })
