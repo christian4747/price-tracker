@@ -1,7 +1,7 @@
 import { Box, Button, Center } from '@mantine/core'
 import { GroupedProductList } from '../product/GroupedProductList'
 import { ProductList } from '../product/ProductList'
-import { ProductListHeader } from '../product/ProductListHeader'
+import { ProductListHeader } from '../product/header/ProductListHeader'
 import { useState } from 'react'
 import { ErrorBoundary, getErrorMessage, type FallbackProps } from 'react-error-boundary'
 import { useProductFilterDTO } from '@/hooks/product/useProductFilterDTO'

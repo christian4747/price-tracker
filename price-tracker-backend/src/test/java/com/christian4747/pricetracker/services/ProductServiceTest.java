@@ -53,9 +53,6 @@ public class ProductServiceTest {
     @Mock
     private Pageable pageable;
 
-    @Mock
-    private Sort sort;
-
     private Product addedProduct;
     private IncomingProductDTO productDTO;
     private List<Product> productList;
@@ -125,6 +122,9 @@ public class ProductServiceTest {
     public void getAllProducts_threeProductsOneDeleted_returnTwoProducts() {
         when(productPage.getContent()).thenReturn(productList2);
         when(productPage.getTotalElements()).thenReturn((long) 2);
+        when(pageable.getPageNumber()).thenReturn(0);
+        when(pageable.getPageSize()).thenReturn(10);
+        when(pageable.getSort()).thenReturn(Sort.by("name"));
         when(productDAO.findAll(ArgumentMatchers.<Specification<Product>>any(), any(Pageable.class))).thenReturn(productPage);
 
         assertEquals(2, productService.getAllProductsFiltered(productFilterDTO, priceFilterDTO, pageable).content().size());
@@ -134,6 +134,9 @@ public class ProductServiceTest {
     public void getAllProducts_threeProductsOneDeleted_returnThreeProducts() {
         when(productPage.getContent()).thenReturn(productList);
         when(productPage.getTotalElements()).thenReturn((long) 3);
+        when(pageable.getPageNumber()).thenReturn(0);
+        when(pageable.getPageSize()).thenReturn(10);
+        when(pageable.getSort()).thenReturn(Sort.by("name"));
         when(productDAO.findAll(ArgumentMatchers.<Specification<Product>>any(), any(Pageable.class))).thenReturn(productPage);
 
         assertEquals(3, productService.getAllProductsFiltered(productFilterDTO, priceFilterDTO, pageable).content().size());
@@ -160,8 +163,9 @@ public class ProductServiceTest {
         when(productDAO.findAll(ArgumentMatchers.<Specification<Product>>any(), any(Sort.class))).thenReturn(productList);
         when(namePage.getContent()).thenReturn(List.of("Product", "Product2"));
         when(namePage.getTotalElements()).thenReturn(2L);
-        when(pageable.getPageSize()).thenReturn(1);
-        when(pageable.getSort()).thenReturn(sort);
+        when(pageable.getPageNumber()).thenReturn(0);
+        when(pageable.getPageSize()).thenReturn(10);
+        when(pageable.getSort()).thenReturn(Sort.by("name"));
 
         assertEquals(2, productService.getProductsGroupedByName(productFilterDTO, priceFilterDTO, pageable, "name").count());
     }
