@@ -5,7 +5,7 @@ import { useContext, useEffect, useState } from 'react'
 import { ProductTitleBar } from './ProductTitleBar'
 import { PriceBanner } from '@/components/price/PriceBanner'
 import { MdEdit, MdDelete } from 'react-icons/md'
-import { DeleteProductContext, EditProductContext } from '@/context/ProductContext'
+import { DeleteProductContext, EditProductContext } from './ProductContext'
 import { ProductDetails } from './ProductDetails'
 
 export interface GroupedProduct {

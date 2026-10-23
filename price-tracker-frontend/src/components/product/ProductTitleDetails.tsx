@@ -1,4 +1,4 @@
-import { DeleteProductContext, EditProductContext } from '@/context/ProductContext'
+import { DeleteProductContext, EditProductContext } from './ProductContext'
 import type { ProductType } from '@/types/product'
 import { CopyButton, Tooltip } from '@mantine/core'
 import { useContext } from 'react'

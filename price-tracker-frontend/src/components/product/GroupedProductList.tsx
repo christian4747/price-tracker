@@ -7,7 +7,7 @@ import DeleteProductModal from './modals/DeleteProductModal'
 import { EditProductModal } from './modals/EditProductModal'
 import { ProductListFooter } from './ProductListFooter'
 import { useProductPageGrouped } from '@/hooks/product/useProductPageGrouped'
-import { DeleteProductContext, EditProductContext } from '@/context/ProductContext'
+import { DeleteProductContext, EditProductContext } from './ProductContext'
 import ProductListSkeleton from './ProductListSkeleton'
 import { GroupedProduct } from './GroupedProduct'
 

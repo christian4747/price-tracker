@@ -8,7 +8,7 @@ import { useEffect, useState } from 'react'
 import { useDisclosure } from '@mantine/hooks'
 import { useProductPage } from '@/hooks/product/useProductPage'
 import { ProductListFooter } from './ProductListFooter'
-import { DeleteProductContext, EditProductContext } from '@/context/ProductContext'
+import { DeleteProductContext, EditProductContext } from './ProductContext'
 import ProductListSkeleton from './ProductListSkeleton'
 
 export interface ProductList {
