@@ -3,7 +3,7 @@ import PriceHistoryChart from '@/components/price/PriceHistoryChart'
 import { PriceList } from '@/components/price/PriceList'
 import { usePricePage } from '@/hooks/price/usePricePage'
 import { Skeleton } from '@mantine/core'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
 export interface ProductDetails {
     dateToday: Date
@@ -14,11 +14,7 @@ export interface ProductDetails {
 
 export const ProductDetails = ({ product, dateToday, setDateToday, children }: ProductDetails) => {
     const [showDeleted, setShowDeleted] = useState(false)
-    const { query: pricesQuery, refresh } = usePricePage(product.productId, showDeleted)
-
-    useEffect(() => {
-        refresh()
-    }, [showDeleted])
+    const { query: pricesQuery } = usePricePage(product.productId, showDeleted)
 
     if (pricesQuery.isLoading) {
         return (
