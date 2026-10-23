@@ -1,7 +1,7 @@
 import type { ProductBody } from '@/types/product'
 import { Accordion, Box, Combobox, Input, InputBase, Tooltip, useCombobox } from '@mantine/core'
 import { FaLink } from 'react-icons/fa6'
-import { useContext, useEffect, useState } from 'react'
+import { Fragment, useContext, useEffect, useState } from 'react'
 import { ProductTitleBar } from './ProductTitleBar'
 import { PriceBanner } from '@/components/price/PriceBanner'
 import { MdEdit, MdDelete } from 'react-icons/md'
@@ -51,6 +51,7 @@ export const GroupedProduct = ({ productBodies, dateToday, setDateToday }: Group
         if (productBody.product.store === selectedStore) {
             return (
                 <ProductTitleBar
+                    key={productBody.product.productId}
                     productBody={productBody}
                     dateToday={dateToday}
                     setDateToday={setDateToday}
@@ -71,7 +72,7 @@ export const GroupedProduct = ({ productBodies, dateToday, setDateToday }: Group
     const productActionBars = productBodies.map((productBody) => {
         if (productBody.product.store === selectedStore) {
             return (
-                <>
+                <Fragment key={productBody.product.productId}>
                     <a className="cursor-pointer" href={productBody.product.link} target="_blank">
                         <Tooltip withArrow label={productBody.product.link}>
                             <FaLink />
@@ -104,7 +105,7 @@ export const GroupedProduct = ({ productBodies, dateToday, setDateToday }: Group
                             </Tooltip>
                         </div>
                     )}
-                </>
+                </Fragment>
             )
         }
     })
@@ -113,7 +114,12 @@ export const GroupedProduct = ({ productBodies, dateToday, setDateToday }: Group
     const productDescriptions = productBodies.map((productBody) => {
         if (productBody.product.store === selectedStore) {
             return (
-                <ProductDetails product={productBody.product} dateToday={dateToday} setDateToday={setDateToday}>
+                <ProductDetails
+                    key={productBody.product.productId}
+                    product={productBody.product}
+                    dateToday={dateToday}
+                    setDateToday={setDateToday}
+                >
                     <div className="flex items-center w-auto gap-2">
                         <Box className="w-full">
                             <Combobox

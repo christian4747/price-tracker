@@ -3,6 +3,8 @@ import { worker } from '../mocks/browser'
 
 export const test = testBase.extend({
     worker: [
+        // Vitest requires fixtures to destructure their first argument, even when unused
+        // oxlint-disable-next-line no-empty-pattern
         async ({}, use) => {
             // Start the worker before the test.
             await worker.start()

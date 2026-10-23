@@ -70,9 +70,9 @@ export const GroupedProductList = ({ filter }: GroupedProductList) => {
                 >
                     {query.data.content.map((groupedProduct: GroupedProductData, idx: number) => {
                         return (
-                            <EditProductContext value={openEditProductModal}>
+                            <EditProductContext value={openEditProductModal} key={groupedProduct.name}>
                                 <DeleteProductContext value={openDeleteProductModal}>
-                                    <Accordion.Item value={`item-${idx}`} key={groupedProduct.name}>
+                                    <Accordion.Item value={`item-${idx}`}>
                                         <GroupedProduct
                                             productBodies={groupedProduct.products}
                                             dateToday={dateToday}

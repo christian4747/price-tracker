@@ -65,7 +65,11 @@ export const AddPriceForm = ({ product, setDateToday, close, quickAdd = false }:
     ))
 
     const finalizeAddPrice = () => {
-        useEndDate ? multiMutation.mutate() : singleMutation.mutate()
+        if (useEndDate) {
+            multiMutation.mutate()
+        } else {
+            singleMutation.mutate()
+        }
         close()
         setDateToday(new Date())
     }
