@@ -1,16 +1,15 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import api from '../../services/api'
-import { usePriceDTO } from './usePriceDTO'
-import type { PriceDTO, PriceType, ProductType } from '../../utils/Types'
+import priceService from '@/services/priceService'
+import { usePriceDTO } from '@/hooks/price/usePriceDTO'
+import type { PriceDTO, PriceType, ProductType } from '@/utils/Types'
 import dayjs from 'dayjs'
 import { sendSuccessNotification } from '@/utils/NotificationUtilities'
 import { getFormattedDateString, getLocalDateFromUTC } from '@/utils/DateUtilities'
 import { useState } from 'react'
 
 export function useAddPrice(product: ProductType, useEndDateDesc: boolean) {
-
     // Use state fixes this value (prevents useEffect refreshes)
-    const [emptyPriceDTO,] = useState<PriceDTO>({
+    const [emptyPriceDTO] = useState<PriceDTO>({
         amount: 0,
         currency: '',
         description: '',
@@ -36,7 +35,7 @@ export function useAddPrice(product: ProductType, useEndDateDesc: boolean) {
         mutationFn: () => {
             priceDTO.value.priceStarted = dayjs(priceDTO.value.priceStarted).format()
             priceDTO.value.priceEnded = ''
-            return api.addPrice(priceDTO.value)
+            return priceService.addPrice(priceDTO.value)
         },
         onSuccess: (newPrice: PriceType) => {
             priceDTO.reset()
@@ -46,7 +45,7 @@ export function useAddPrice(product: ProductType, useEndDateDesc: boolean) {
         onError: (error) => {
             console.log(`Error occurred while adding ${priceDTO} (${error.message})`)
         }
-    }) 
+    })
 
     // Mutation for adding start date and end date
     const addPriceMutation = useMutation({
@@ -56,12 +55,12 @@ export function useAddPrice(product: ProductType, useEndDateDesc: boolean) {
             }
 
             priceDTO.value.priceStarted = dayjs(priceDTO.value.priceStarted).format()
-            return api.addPrice(priceDTO.value)
+            return priceService.addPrice(priceDTO.value)
         },
         onSuccess: (newPrice: PriceType) => {
             if (priceDTO.value.priceEnded && priceDTO.value.priceEnded.length > 0) {
                 priceDTO.value.priceStarted = priceDTO.value.priceEnded
-                priceDTO.value.priceEnded = ""
+                priceDTO.value.priceEnded = ''
                 addEndPriceMutation.mutate()
             }
 
@@ -86,7 +85,7 @@ export function useAddPrice(product: ProductType, useEndDateDesc: boolean) {
             priceDTO.value.discountPercentage = 0
             priceDTO.value.returnAmount = 0
             priceDTO.value.returnPercentage = 0
-            return api.addPrice(priceDTO.value)
+            return priceService.addPrice(priceDTO.value)
         },
         onSuccess: (newPrice: PriceType) => {
             queryClient.invalidateQueries()

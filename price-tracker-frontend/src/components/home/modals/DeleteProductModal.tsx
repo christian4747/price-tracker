@@ -1,7 +1,6 @@
-
-import type { ProductType } from "../../../utils/Types";
-import { Button, Center, Modal } from "@mantine/core";
-import { useDeleteProduct } from "@/hooks/product/useDeleteProduct";
+import type { ProductType } from '../../../utils/Types'
+import { Button, Center, Modal } from '@mantine/core'
+import { useDeleteProduct } from '@/hooks/product/useDeleteProduct'
 
 type DeleteProductModalProps = {
     product: ProductType
@@ -10,7 +9,6 @@ type DeleteProductModalProps = {
 }
 
 const DeleteProductModal = ({ product, closeDeleteProduct, opened }: DeleteProductModalProps) => {
-
     // Hook for deleting products
     const { mutation } = useDeleteProduct(product)
 
@@ -33,12 +31,12 @@ const DeleteProductModal = ({ product, closeDeleteProduct, opened }: DeleteProdu
                         Are you sure you want to delete Product {product?.name ? product.name : ''}?
                     </div>
 
-                    <div className="text-xl text-red-600 font-bold mb-2">
-                        This cannot be undone.
-                    </div>
+                    <div className="text-xl text-red-600 font-bold mb-2">This cannot be undone.</div>
                 </Center>
 
-                <Button fullWidth className="mt-5" onClick={finalizeDeleteProduct}>Delete Product</Button>
+                <Button fullWidth className="mt-5" onClick={finalizeDeleteProduct}>
+                    Delete Product
+                </Button>
             </Modal>
         </>
     )

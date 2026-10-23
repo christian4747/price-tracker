@@ -1,32 +1,31 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @font-face {
     font-family: 'Inter';
-    src: url(./fonts/Inter.ttf)
+    src: url(./fonts/Inter.ttf);
 }
 
 @theme {
     --color-raisin: #332933;
     --color-raisin-hover: #504250;
-    --color-cloud: #F4F4F4;
-    --color-smoke: #BCBBBD;
+    --color-cloud: #f4f4f4;
+    --color-smoke: #bcbbbd;
     --color-raincloud: #757575;
 
-    --font-inter: "Inter", sans-serif;
+    --font-inter: 'Inter', sans-serif;
 }
 
 :root {
     --text: #332933;
     --text-h: #332933;
-    --bg: #FFFFFF;
+    --bg: #ffffff;
     --border: #e5e4e7;
     --code-bg: #f4f3ec;
     --accent: #aa3bff;
     --accent-bg: rgba(170, 59, 255, 0.1);
     --accent-border: rgba(170, 59, 255, 0.5);
     --social-bg: rgba(244, 243, 236, 0.5);
-    --shadow:
-        rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+    --shadow: rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
 
     --color-raisin: #332933;
 
@@ -70,23 +69,23 @@
 } */
 
 #root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  /* border-inline: 1px solid var(--border); */
-  /* min-height: 100svh; */
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
+    width: 1126px;
+    max-width: 100%;
+    margin: 0 auto;
+    /* border-inline: 1px solid var(--border); */
+    /* min-height: 100svh; */
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
 }
 
 html {
-  scrollbar-gutter: stable;
+    scrollbar-gutter: stable;
 }
 
 body {
-  margin: 0;
+    margin: 0;
 }
 p {
-  margin: 0;
+    margin: 0;
 }

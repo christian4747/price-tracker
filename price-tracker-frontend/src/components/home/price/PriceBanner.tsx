@@ -32,27 +32,23 @@ interface TimeTooltip {
     tooltipText: string
 }
 
-const TimeTooltip = ({timeLeft, tooltipText}: TimeTooltip) => {
+const TimeTooltip = ({ timeLeft, tooltipText }: TimeTooltip) => {
     return (
         <Box>
             <Tooltip
                 withArrow
                 label={
-                    <div className='flex flex-col items-center'>
-                        <div>
-                            Ends in
-                        </div>
-                        <div>
-                            {tooltipText}
-                        </div>
+                    <div className="flex flex-col items-center">
+                        <div>Ends in</div>
+                        <div>{tooltipText}</div>
                     </div>
                 }
             >
-                {timeLeft >= 1 ?
-                    <MdTimer size={24} className='text-amber-400' />
-                    :
-                    <MdTimer size={24} className='text-red-400' />
-                }
+                {timeLeft >= 1 ? (
+                    <MdTimer size={24} className="text-amber-400" />
+                ) : (
+                    <MdTimer size={24} className="text-red-400" />
+                )}
             </Tooltip>
         </Box>
     )
@@ -66,7 +62,6 @@ export interface PriceBanner {
 }
 
 export const PriceBanner = ({ productBody, dateToday, setDateToday, mini }: PriceBanner) => {
-
     if (!productBody.priceToday) {
         return <></>
     }
@@ -79,7 +74,11 @@ export const PriceBanner = ({ productBody, dateToday, setDateToday, mini }: Pric
             <div>
                 <Tooltip
                     withArrow
-                    label={priceListLastUpdated === 1 ? `Last updated ${priceListLastUpdated} day ago` : `Last updated ${priceListLastUpdated} days ago`}
+                    label={
+                        priceListLastUpdated === 1
+                            ? `Last updated ${priceListLastUpdated} day ago`
+                            : `Last updated ${priceListLastUpdated} days ago`
+                    }
                 >
                     <LuClockAlert />
                 </Tooltip>
@@ -103,7 +102,11 @@ export const PriceBanner = ({ productBody, dateToday, setDateToday, mini }: Pric
             <div>
                 <Tooltip
                     withArrow
-                    label={recentPriceChangeDays === 1 ? `Price change ${recentPriceChangeDays} day ago` : `Price change ${recentPriceChangeDays} days ago`}
+                    label={
+                        recentPriceChangeDays === 1
+                            ? `Price change ${recentPriceChangeDays} day ago`
+                            : `Price change ${recentPriceChangeDays} days ago`
+                    }
                 >
                     <MdUpdate />
                 </Tooltip>
@@ -142,11 +145,11 @@ export const PriceBanner = ({ productBody, dateToday, setDateToday, mini }: Pric
                 {priceIndicators}
 
                 {/* Price banner */}
-                {text.length > 0 &&
+                {text.length > 0 && (
                     <div className={'text-cloud rounded-sm p-1 font-bold flex justify-center ' + bg}>
                         -{discountPercent}%
                     </div>
-                }
+                )}
             </>
         )
     }
@@ -157,28 +160,30 @@ export const PriceBanner = ({ productBody, dateToday, setDateToday, mini }: Pric
             {priceIndicators}
 
             {/* Price banner */}
-            {text.length > 0 &&
-                <div className={'text-cloud rounded-sm p-2 font-bold min-w-38 flex justify-center ' + bg}>
-                    {text}
-                </div>
-            }
+            {text.length > 0 && (
+                <div className={'text-cloud rounded-sm p-2 font-bold min-w-38 flex justify-center ' + bg}>{text}</div>
+            )}
 
             {/* Discount percentage */}
-            {discountPercent > 0 && 
-                <div className={'min-w-16.25 text-center ' + textStyle}>
-                    -{discountPercent}%
-                </div>
-            }
+            {discountPercent > 0 && <div className={'min-w-16.25 text-center ' + textStyle}>-{discountPercent}%</div>}
 
             {/* Price text */}
             <div className={'min-w-17.5 text-right ' + textStyle}>
-                {productBody.priceToday && productBody.priceToday.returnAmount > 0 ?
-                    <Tooltip withArrow label={<>{productBody.priceToday.discountAmount} (base) - {productBody.priceToday.returnAmount} (return)</>}>
+                {productBody.priceToday && productBody.priceToday.returnAmount > 0 ? (
+                    <Tooltip
+                        withArrow
+                        label={
+                            <>
+                                {productBody.priceToday.discountAmount} (base) - {productBody.priceToday.returnAmount}{' '}
+                                (return)
+                            </>
+                        }
+                    >
                         <div>{priceText}</div>
                     </Tooltip>
-                    :
+                ) : (
                     <>{priceText}</>
-                }
+                )}
             </div>
         </>
     )

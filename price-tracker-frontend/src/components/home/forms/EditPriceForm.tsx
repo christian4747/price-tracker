@@ -1,11 +1,11 @@
-import type { PriceType } from "../../../utils/Types"
-import { Button, TextInput } from "@mantine/core"
-import { useEditPrice } from "@/hooks/price/useEditPrice"
-import { getFormattedDateString } from "@/utils/DateUtilities"
-import { RecentDataScroller } from "@/components/common/RecentDataScroller"
-import { PriceDateTimePicker } from "../price/PriceDateTimePicker"
-import { useRecentPriceData } from "@/hooks/price/useRecentPriceData"
-import { AmountInputGroup } from "../price/AmountInputGroup"
+import type { PriceType } from '../../../utils/Types'
+import { Button, TextInput } from '@mantine/core'
+import { useEditPrice } from '@/hooks/price/useEditPrice'
+import { getFormattedDateString } from '@/utils/DateUtilities'
+import { RecentDataScroller } from '@/components/common/RecentDataScroller'
+import { PriceDateTimePicker } from '../price/PriceDateTimePicker'
+import { useRecentPriceData } from '@/hooks/price/useRecentPriceData'
+import { AmountInputGroup } from '../price/AmountInputGroup'
 
 interface EditPriceForm {
     price: PriceType
@@ -13,7 +13,6 @@ interface EditPriceForm {
 }
 
 export const EditPriceForm = ({ price, closeEditPrice }: EditPriceForm) => {
-
     // Hook for editing prices
     const { priceDTO, mutation } = useEditPrice(price)
     // Hook for recent price data
@@ -49,33 +48,41 @@ export const EditPriceForm = ({ price, closeEditPrice }: EditPriceForm) => {
 
             <TextInput
                 label="Description"
-                radius='xl'
+                radius="xl"
                 placeholder="Description"
                 onChange={(e) => priceDTO.setField('description', e.target.value)}
                 value={priceDTO.value.description}
                 className="mb-2"
             />
-            {recentDescriptions?.length > 0 && <RecentDataScroller className='mb-2'>{recentDescriptions}</RecentDataScroller>}
+            {recentDescriptions?.length > 0 && (
+                <RecentDataScroller className="mb-2">{recentDescriptions}</RecentDataScroller>
+            )}
 
             <TextInput
                 label="Currency"
-                radius='xl'
+                radius="xl"
                 placeholder="ex. USD"
                 onChange={(e) => priceDTO.setField('currency', e.target.value)}
                 value={priceDTO.value.currency}
                 className="mb-2"
             />
-            {recentCurrencies?.length > 0 && <RecentDataScroller className='mb-2'>{recentCurrencies}</RecentDataScroller>}
+            {recentCurrencies?.length > 0 && (
+                <RecentDataScroller className="mb-2">{recentCurrencies}</RecentDataScroller>
+            )}
 
             <PriceDateTimePicker
-                label='Start Date'
+                label="Start Date"
                 withAsterisk
-                onChange={(priceStarted) => priceStarted ? priceDTO.setField('priceStarted', priceStarted) : ''}
+                onChange={(priceStarted) => (priceStarted ? priceDTO.setField('priceStarted', priceStarted) : '')}
                 value={priceDTO.value.priceStarted}
             />
-            {recentPricesStarted?.length > 0 && <RecentDataScroller className='mb-2'>{recentPricesStarted}</RecentDataScroller>}
+            {recentPricesStarted?.length > 0 && (
+                <RecentDataScroller className="mb-2">{recentPricesStarted}</RecentDataScroller>
+            )}
 
-            <Button fullWidth className="mt-5" onClick={finalizeEditPrice}>Edit Price</Button>
+            <Button fullWidth className="mt-5" onClick={finalizeEditPrice}>
+                Edit Price
+            </Button>
         </>
     )
 }

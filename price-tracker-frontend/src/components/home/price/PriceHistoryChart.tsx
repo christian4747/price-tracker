@@ -5,9 +5,9 @@ import { Paper, Text } from '@mantine/core'
 
 const getPriceWithCurrency = (amount: number, currency: string) => {
     try {
-        return new Intl.NumberFormat(undefined, { style: "currency", currency: currency }).format(amount)
+        return new Intl.NumberFormat(undefined, { style: 'currency', currency: currency }).format(amount)
     } catch {
-        return new Intl.NumberFormat(undefined, { style: "currency", currency: 'USD' }).format(amount)
+        return new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD' }).format(amount)
     }
 }
 
@@ -22,7 +22,11 @@ function ChartTooltip({ label, payload }: ChartTooltipProps) {
             {payload.map((item: any) => (
                 <Text key={item.name} c={item.color} fz="sm">
                     Price: {getPriceWithCurrency(item.value, item.payload.currency)}
-                    {item.payload.description ? <p className='text-raincloud max-w-75 wrap-break-word'>{`${item.payload.description}`}</p> : <></>}
+                    {item.payload.description ? (
+                        <p className="text-raincloud max-w-75 wrap-break-word">{`${item.payload.description}`}</p>
+                    ) : (
+                        <></>
+                    )}
                 </Text>
             ))}
         </Paper>
@@ -38,7 +42,7 @@ const PriceHistoryChart = ({ prices, dateToday }: PriceHistoryChartProps) => {
     const priceData = usePriceData(dateToday).createPriceData(prices)
 
     return (
-        <div className='w-7/10 border border-smoke rounded-sm p-5'>
+        <div className="w-7/10 border border-smoke rounded-sm p-5">
             <LineChart
                 attributes={{
                     container: {
@@ -47,18 +51,14 @@ const PriceHistoryChart = ({ prices, dateToday }: PriceHistoryChartProps) => {
                 }}
                 data={priceData}
                 dataKey="priceStarted"
-                series={[
-                    { name: 'totalAmount', color: 'blue.6'}
-                ]}
-                referenceLines={[
-                    { x: 'Now'}
-                ]}
+                series={[{ name: 'totalAmount', color: 'blue.6' }]}
+                referenceLines={[{ x: 'Now' }]}
                 tooltipProps={{
-                    content: ({ label, payload }) => <ChartTooltip label={label} payload={payload} />,
+                    content: ({ label, payload }) => <ChartTooltip label={label} payload={payload} />
                 }}
-                gridAxis='none'
+                gridAxis="none"
                 withYAxis={false}
-                curveType='stepAfter'
+                curveType="stepAfter"
             />
         </div>
     )

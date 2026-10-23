@@ -1,51 +1,54 @@
-import type { ProductDTO, ProductFilterDTO } from "../utils/Types"
-import { apiClient } from "./apiClient"
+import type { ProductDTO, ProductFilterDTO } from '@/utils/Types'
+import { apiClient } from '@/services/apiClient'
 
-const apiPath = "/products"
+const apiPath = '/products'
 
 export default {
-
-    getAllProducts: async (rootUrl: string) => {
-        const res = await apiClient.get(rootUrl + apiPath)
+    getAllProducts: async () => {
+        const res = await apiClient.get(apiPath)
         return res.data
     },
 
-    getProductCount: async (rootUrl: string) => {
-        const res = await apiClient.get(rootUrl + apiPath + '/count')
+    getProductCount: async () => {
+        const res = await apiClient.get(apiPath + '/count')
         return res.data
     },
 
-    getProductPage: async (rootUrl: string, pageNumber: number = 0, pageSize: number = 10, productFilterDTO: ProductFilterDTO) => {
+    getProductPage: async (pageNumber: number = 0, pageSize: number = 10, productFilterDTO: ProductFilterDTO) => {
         const params = { ...productFilterDTO, page: pageNumber, size: pageSize }
 
-        const res = await apiClient.get(rootUrl + apiPath, {
+        const res = await apiClient.get(apiPath, {
             params: params
         })
         return res.data
     },
 
-    getProductsGrouped: async (rootUrl: string, pageNumber: number, pageSize: number, groupBy: string = 'name', productFilterDTO: ProductFilterDTO) => {
+    getProductsGrouped: async (
+        pageNumber: number = 0,
+        pageSize: number = 10,
+        productFilterDTO: ProductFilterDTO,
+        groupBy: string = 'name'
+    ) => {
         const params = { ...productFilterDTO, page: pageNumber, size: pageSize, groupBy: groupBy }
 
-        const res = await apiClient.get(rootUrl + apiPath + '/grouped', {
+        const res = await apiClient.get(apiPath + '/grouped', {
             params: params
         })
         return res.data
     },
 
-    addProduct: async (rootUrl: string, productToAdd: ProductDTO) => {
-        const res = await apiClient.post(rootUrl + apiPath, productToAdd)
+    addProduct: async (productToAdd: ProductDTO) => {
+        const res = await apiClient.post(apiPath, productToAdd)
         return res.data
     },
 
-    editProduct: async (rootUrl: string, productId: number, productToAdd: ProductDTO) => {
-        const res = await apiClient.put(rootUrl + apiPath + '/' + productId.toString(), productToAdd)
+    editProduct: async (productId: number, productToAdd: ProductDTO) => {
+        const res = await apiClient.put(apiPath + '/' + productId.toString(), productToAdd)
         return res.data
     },
 
-    deleteProduct: async (rootUrl: string, productId: number) => {
-        const res = await apiClient.delete(rootUrl + apiPath + '/' + productId.toString())
+    deleteProduct: async (productId: number) => {
+        const res = await apiClient.delete(apiPath + '/' + productId.toString())
         return res.data
     }
-
 }

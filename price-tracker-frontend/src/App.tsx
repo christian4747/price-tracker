@@ -12,7 +12,7 @@ function App() {
     return (
         <MantineProvider theme={theme}>
             <Notifications />
-            <Home/>
+            <Home />
         </MantineProvider>
     )
 }

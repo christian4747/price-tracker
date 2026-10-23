@@ -6,11 +6,11 @@ interface ReducerAction<T> {
     value: boolean | string | T
 }
 
-const reducer = <T> (state: T, action: ReducerAction<T>) => {
+const reducer = <T>(state: T, action: ReducerAction<T>) => {
     switch (action.type) {
         case 'set_field': {
             const { key, value } = action
-            if (!key || !value && value !== '') return state
+            if (!key || (!value && value !== '')) return state
 
             return {
                 ...state,
@@ -26,8 +26,7 @@ const reducer = <T> (state: T, action: ReducerAction<T>) => {
     }
 }
 
-export function useDTOReducer<T> (initialValue: T | undefined, initFunction: (initialValue: T | undefined) => T) {
-
+export function useDTOReducer<T>(initialValue: T | undefined, initFunction: (initialValue: T | undefined) => T) {
     const [state, dispatch] = useReducer(reducer, initialValue, initFunction)
 
     useEffect(() => {
@@ -35,7 +34,7 @@ export function useDTOReducer<T> (initialValue: T | undefined, initFunction: (in
     }, [initialValue])
 
     const setField = (key: string, value: boolean | string) => {
-        dispatch({type: 'set_field', key, value})
+        dispatch({ type: 'set_field', key, value })
     }
 
     const reset = () => {

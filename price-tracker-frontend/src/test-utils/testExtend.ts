@@ -3,7 +3,7 @@ import { worker } from '../mocks/browser'
 
 export const test = testBase.extend({
     worker: [
-        async ({ }, use) => {
+        async ({}, use) => {
             // Start the worker before the test.
             await worker.start()
 
@@ -16,7 +16,7 @@ export const test = testBase.extend({
         },
         {
             scope: 'worker',
-            auto: true,
-        },
-    ],
+            auto: true
+        }
+    ]
 })

@@ -1,4 +1,4 @@
-import type { PriceType } from "./Types"
+import type { PriceType } from './Types'
 
 // Sorts the given PriceType array ascending by date
 const sortPricesByDateAscending = (prices: PriceType[]) => {
@@ -101,30 +101,26 @@ const createPriceData = (prices: PriceType[]) => {
 
     let todayFound = false
     let todayIndex = prices.length
-    const priceData = sortedPricesByDate
-        .map((price, idx) => {
-            if (Date.parse(price.priceStarted) > Date.now() && todayFound === false) {
-                todayFound = true
-                todayIndex = idx
-            }
-
-            return {
-                priceId: price.priceId,
-                priceStarted: new Date(price.priceStarted).toUTCString(),
-                price: price.totalAmount,
-                description: price.description
-            }
+    const priceData = sortedPricesByDate.map((price, idx) => {
+        if (Date.parse(price.priceStarted) > Date.now() && todayFound === false) {
+            todayFound = true
+            todayIndex = idx
         }
-    )
 
-    priceData.splice(todayIndex, 0,
-        {
-            priceId: -1,
-            priceStarted: 'Now',
-            price: sortedPricesByDate[todayIndex - 1].totalAmount,
-            description: sortedPricesByDate[todayIndex - 1].description
+        return {
+            priceId: price.priceId,
+            priceStarted: new Date(price.priceStarted).toUTCString(),
+            price: price.totalAmount,
+            description: price.description
         }
-    )
+    })
+
+    priceData.splice(todayIndex, 0, {
+        priceId: -1,
+        priceStarted: 'Now',
+        price: sortedPricesByDate[todayIndex - 1].totalAmount,
+        description: sortedPricesByDate[todayIndex - 1].description
+    })
 
     return priceData
 }
@@ -142,7 +138,7 @@ const getMostRecentDiscount = (prices: PriceType[]) => {
     const recent = sortedPricesByDate[sortedPricesByDate.length - 1]
 
     // console.log(highest.amount, recent.amount)
-    return getPercentage(1 - (recent.totalAmount / highest.totalAmount))
+    return getPercentage(1 - recent.totalAmount / highest.totalAmount)
 }
 
 // Get the most recent price from the price list
@@ -161,13 +157,15 @@ const getPriceString = (price: PriceType | undefined) => {
     if (!price) return ''
 
     if (price.currency) {
-        return new Intl.NumberFormat(undefined, { style: "currency", currency: price.currency }).format(price.totalAmount)
+        return new Intl.NumberFormat(undefined, { style: 'currency', currency: price.currency }).format(
+            price.totalAmount
+        )
     } else {
-        return new Intl.NumberFormat(undefined, { style: "currency", currency: "USD" }).format(price.totalAmount)
+        return new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD' }).format(price.totalAmount)
     }
 }
 
-export { 
+export {
     sortPricesByDateAscending,
     filterPricesBeforeDate,
     getHighestPrice,

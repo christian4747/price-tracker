@@ -1,14 +1,13 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import api from '../../services/api'
-import { useProductDTO } from './useProductDTO'
+import productService from '@/services/productService'
+import { useProductDTO } from '@/hooks/product/useProductDTO'
 import { sendSuccessNotification } from '@/utils/NotificationUtilities'
 import type { ProductType } from '@/utils/Types'
 import { useState } from 'react'
 
 export function useAddProduct() {
-
     // State for ProductDTO used in adding products
-    const [emptyProductDTO,] = useState({
+    const [emptyProductDTO] = useState({
         name: '',
         link: '',
         store: '',
@@ -23,7 +22,7 @@ export function useAddProduct() {
     // Mutation for adding new products
     const addProductMutation = useMutation({
         mutationFn: () => {
-            return api.addProduct(productDTO.value)
+            return productService.addProduct(productDTO.value)
         },
         onSuccess: (newProduct: ProductType) => {
             queryClient.invalidateQueries()

@@ -17,7 +17,7 @@ const product: ProductType = {
 
 describe('Product Details Component', () => {
     test('should render product prices', async () => {
-        renderWithClient(<ProductDetails product={product} dateToday={new Date()} setDateToday={() => { }} />)
+        renderWithClient(<ProductDetails product={product} dateToday={new Date()} setDateToday={() => {}} />)
 
         const price1Date = await screen.findByText('9/4/2026')
         await expect.element(price1Date).toBeInTheDocument()

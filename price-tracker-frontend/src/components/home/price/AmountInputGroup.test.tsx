@@ -5,7 +5,9 @@ import { useReducer } from 'react'
 import { createInitialPriceDTO, reducer as priceDTOReducer } from '@/hooks/price/usePriceDTO'
 import type { PriceDTO } from '@/utils/Types'
 
-function renderWithPriceDTO(uiFunction: (state: PriceDTO, setField: (key: string, value: string | number) => void) => React.ReactNode) {
+function renderWithPriceDTO(
+    uiFunction: (state: PriceDTO, setField: (key: string, value: string | number) => void) => React.ReactNode
+) {
     function UIWithPriceDTO() {
         const [state, dispatch] = useReducer(priceDTOReducer, undefined, createInitialPriceDTO)
 
@@ -24,11 +26,10 @@ function renderWithPriceDTO(uiFunction: (state: PriceDTO, setField: (key: string
 }
 
 describe('Amount Input Group Component', () => {
-
     test('should match discount amount with discount percentage', async () => {
         const user = userEvent.setup()
-        
-        renderWithPriceDTO((state, setField) => (<AmountInputGroup value={state} setField={setField} />))
+
+        renderWithPriceDTO((state, setField) => <AmountInputGroup value={state} setField={setField} />)
         const basePriceInput = screen.getByRole('textbox', { name: /base price/i }) as HTMLInputElement
         await user.clear(basePriceInput)
         await user.type(basePriceInput, '100.00')
@@ -44,8 +45,8 @@ describe('Amount Input Group Component', () => {
 
     test('should match discount percentage with discount amount', async () => {
         const user = userEvent.setup()
-        
-        renderWithPriceDTO((state, setField) => (<AmountInputGroup value={state} setField={setField} />))
+
+        renderWithPriceDTO((state, setField) => <AmountInputGroup value={state} setField={setField} />)
         const basePriceInput = screen.getByRole('textbox', { name: /base price/i }) as HTMLInputElement
         await user.clear(basePriceInput)
         await user.type(basePriceInput, '100.00')
@@ -60,8 +61,8 @@ describe('Amount Input Group Component', () => {
 
     test('should match return amount with return percentage', async () => {
         const user = userEvent.setup()
-        
-        renderWithPriceDTO((state, setField) => (<AmountInputGroup value={state} setField={setField} />))
+
+        renderWithPriceDTO((state, setField) => <AmountInputGroup value={state} setField={setField} />)
 
         const basePriceInput = screen.getByRole('textbox', { name: /base price/i }) as HTMLInputElement
         await user.clear(basePriceInput)
@@ -77,8 +78,8 @@ describe('Amount Input Group Component', () => {
 
     test('should match return percentage with return amount', async () => {
         const user = userEvent.setup()
-        
-        renderWithPriceDTO((state, setField) => (<AmountInputGroup value={state} setField={setField} />))
+
+        renderWithPriceDTO((state, setField) => <AmountInputGroup value={state} setField={setField} />)
 
         const basePriceInput = screen.getByRole('textbox', { name: /base price/i }) as HTMLInputElement
         await user.clear(basePriceInput)
@@ -94,8 +95,8 @@ describe('Amount Input Group Component', () => {
 
     test('should use (base - discount) amount for return amount', async () => {
         const user = userEvent.setup()
-        
-        renderWithPriceDTO((state, setField) => (<AmountInputGroup value={state} setField={setField} />))
+
+        renderWithPriceDTO((state, setField) => <AmountInputGroup value={state} setField={setField} />)
 
         const basePriceInput = screen.getByRole('textbox', { name: /base price/i }) as HTMLInputElement
         await user.clear(basePriceInput)
@@ -115,8 +116,8 @@ describe('Amount Input Group Component', () => {
 
     test('should use (base - discount) amount for return percentage', async () => {
         const user = userEvent.setup()
-        
-        renderWithPriceDTO((state, setField) => (<AmountInputGroup value={state} setField={setField} />))
+
+        renderWithPriceDTO((state, setField) => <AmountInputGroup value={state} setField={setField} />)
 
         const basePriceInput = screen.getByRole('textbox', { name: /base price/i }) as HTMLInputElement
         await user.clear(basePriceInput)
@@ -136,8 +137,8 @@ describe('Amount Input Group Component', () => {
 
     test('should update discount amount if base price is updated', async () => {
         const user = userEvent.setup()
-        
-        renderWithPriceDTO((state, setField) => (<AmountInputGroup value={state} setField={setField} />))
+
+        renderWithPriceDTO((state, setField) => <AmountInputGroup value={state} setField={setField} />)
 
         const basePriceInput = screen.getByRole('textbox', { name: /base price/i }) as HTMLInputElement
         await user.clear(basePriceInput)
@@ -155,8 +156,8 @@ describe('Amount Input Group Component', () => {
 
     test('should update return amount if base price is updated', async () => {
         const user = userEvent.setup()
-        
-        renderWithPriceDTO((state, setField) => (<AmountInputGroup value={state} setField={setField} />))
+
+        renderWithPriceDTO((state, setField) => <AmountInputGroup value={state} setField={setField} />)
 
         const basePriceInput = screen.getByRole('textbox', { name: /base price/i }) as HTMLInputElement
         await user.clear(basePriceInput)
@@ -181,8 +182,8 @@ describe('Amount Input Group Component', () => {
 
     test('should set discount & return amount to 0 when base amount is set to 0', async () => {
         const user = userEvent.setup()
-        
-        renderWithPriceDTO((state, setField) => (<AmountInputGroup value={state} setField={setField} />))
+
+        renderWithPriceDTO((state, setField) => <AmountInputGroup value={state} setField={setField} />)
 
         const basePriceInput = screen.getByRole('textbox', { name: /base price/i }) as HTMLInputElement
         await user.clear(basePriceInput)

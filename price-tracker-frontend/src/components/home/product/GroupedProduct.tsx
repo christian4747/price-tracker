@@ -1,12 +1,12 @@
-import { type ProductBody } from "@/utils/Types"
-import { Accordion, Box, Combobox, Input, InputBase, Tooltip, useCombobox } from "@mantine/core"
-import { FaLink } from "react-icons/fa6"
-import { useContext, useEffect, useState } from "react"
-import { ProductTitleBar } from "./ProductTitleBar"
-import { PriceBanner } from "../price/PriceBanner"
-import { MdEdit, MdDelete } from "react-icons/md"
-import { DeleteProductContext, EditProductContext } from "@/context/ProductContext"
-import { ProductDetails } from "./ProductDetails"
+import { type ProductBody } from '@/utils/Types'
+import { Accordion, Box, Combobox, Input, InputBase, Tooltip, useCombobox } from '@mantine/core'
+import { FaLink } from 'react-icons/fa6'
+import { useContext, useEffect, useState } from 'react'
+import { ProductTitleBar } from './ProductTitleBar'
+import { PriceBanner } from '../price/PriceBanner'
+import { MdEdit, MdDelete } from 'react-icons/md'
+import { DeleteProductContext, EditProductContext } from '@/context/ProductContext'
+import { ProductDetails } from './ProductDetails'
 
 export interface GroupedProduct {
     productBodies: ProductBody[]
@@ -15,14 +15,13 @@ export interface GroupedProduct {
 }
 
 export const GroupedProduct = ({ productBodies, dateToday, setDateToday }: GroupedProduct) => {
-
     // Track state of selected store // TODO: Show store with cheapest price
     const [selectedStore, setSelectedStore] = useState<string>(productBodies[0].product.store)
     // Use mantine combobox
     const combobox = useCombobox({
         onDropdownClose: () => combobox.resetSelectedOption()
     })
-    
+
     const openEditProductModal = useContext(EditProductContext)
     const openDeleteProductModal = useContext(DeleteProductContext)
 
@@ -37,14 +36,13 @@ export const GroupedProduct = ({ productBodies, dateToday, setDateToday }: Group
 
     // Store options for the combobox
     const storeOptions = productBodies.map((productBody) => (
-        <Combobox.Option value={productBody.product.store} key={productBody.product.store} className="flex items-center gap-2">
+        <Combobox.Option
+            value={productBody.product.store}
+            key={productBody.product.store}
+            className="flex items-center gap-2"
+        >
             {productBody.product.store}
-            <PriceBanner
-                productBody={productBody}
-                dateToday={dateToday}
-                setDateToday={setDateToday}
-                mini
-            />
+            <PriceBanner productBody={productBody} dateToday={dateToday} setDateToday={setDateToday} mini />
         </Combobox.Option>
     ))
 
@@ -57,15 +55,12 @@ export const GroupedProduct = ({ productBodies, dateToday, setDateToday }: Group
                     dateToday={dateToday}
                     setDateToday={setDateToday}
                     storeString={
-                        selectedStore + (
-                            productBodies.length - 1 === 1 ?
-                                productBodies.length - 1 === 1 ?
-                                    ` (+${productBodies.length - 1} other store)`
-                                    :
-                                    ` (+${productBodies.length - 1} other stores)`
-                                :
-                                ''
-                        )
+                        selectedStore +
+                        (productBodies.length - 1 === 1
+                            ? productBodies.length - 1 === 1
+                                ? ` (+${productBodies.length - 1} other store)`
+                                : ` (+${productBodies.length - 1} other stores)`
+                            : '')
                     }
                 />
             )
@@ -78,31 +73,37 @@ export const GroupedProduct = ({ productBodies, dateToday, setDateToday }: Group
             return (
                 <>
                     <a className="cursor-pointer" href={productBody.product.link} target="_blank">
-                        <Tooltip withArrow label={productBody.product.link}><FaLink /></Tooltip>
+                        <Tooltip withArrow label={productBody.product.link}>
+                            <FaLink />
+                        </Tooltip>
                     </a>
                     <div
-                        className='cursor-pointer'
+                        className="cursor-pointer"
                         onClick={(e) => {
                             openEditProductModal(productBody.product)
                             e.stopPropagation()
                         }}
                     >
-                        <Tooltip withArrow label="Edit Product"><MdEdit /></Tooltip>
+                        <Tooltip withArrow label="Edit Product">
+                            <MdEdit />
+                        </Tooltip>
                     </div>
 
-                    {productBody.product.deletedAt === null &&
+                    {productBody.product.deletedAt === null && (
                         <div
-                            className='cursor-pointer'
-                            role='img'
-                            aria-label='Delete product'
+                            className="cursor-pointer"
+                            role="img"
+                            aria-label="Delete product"
                             onClick={(e) => {
                                 openDeleteProductModal(productBody.product)
                                 e.stopPropagation()
                             }}
                         >
-                            <Tooltip withArrow label="Delete Product"><MdDelete /></Tooltip>
+                            <Tooltip withArrow label="Delete Product">
+                                <MdDelete />
+                            </Tooltip>
                         </div>
-                    }
+                    )}
                 </>
             )
         }
@@ -112,11 +113,7 @@ export const GroupedProduct = ({ productBodies, dateToday, setDateToday }: Group
     const productDescriptions = productBodies.map((productBody) => {
         if (productBody.product.store === selectedStore) {
             return (
-                <ProductDetails
-                    product={productBody.product}
-                    dateToday={dateToday}
-                    setDateToday={setDateToday}
-                >
+                <ProductDetails product={productBody.product} dateToday={dateToday} setDateToday={setDateToday}>
                     <div className="flex items-center w-auto gap-2">
                         <Box className="w-full">
                             <Combobox
@@ -135,11 +132,15 @@ export const GroupedProduct = ({ productBodies, dateToday, setDateToday }: Group
                                         rightSectionPointerEvents="none"
                                         onClick={() => combobox.toggleDropdown()}
                                     >
-                                        {selectedStore ? selectedStore : <Input.Placeholder>Select store</Input.Placeholder>}
+                                        {selectedStore ? (
+                                            selectedStore
+                                        ) : (
+                                            <Input.Placeholder>Select store</Input.Placeholder>
+                                        )}
                                     </InputBase>
                                 </Combobox.Target>
 
-                                <Combobox.Dropdown mah={150} className="overflow-y-auto" >
+                                <Combobox.Dropdown mah={150} className="overflow-y-auto">
                                     <Combobox.Options>{storeOptions}</Combobox.Options>
                                 </Combobox.Dropdown>
                             </Combobox>
@@ -152,7 +153,7 @@ export const GroupedProduct = ({ productBodies, dateToday, setDateToday }: Group
     })
 
     return (
-        <div className='h-full w-full border-b border-smoke flex flex-col group'>
+        <div className="h-full w-full border-b border-smoke flex flex-col group">
             <Accordion.Control>
                 {/* Top content */}
                 {productTitleBars}

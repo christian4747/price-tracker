@@ -1,4 +1,4 @@
-import { notifications } from "@mantine/notifications"
+import { notifications } from '@mantine/notifications'
 
 /**
  * Sends a notification to communicate success to the user.

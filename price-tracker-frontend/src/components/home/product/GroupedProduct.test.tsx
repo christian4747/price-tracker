@@ -32,20 +32,20 @@ const product2: ProductType = {
 const price1: PriceType = {
     priceId: 1,
     amount: 100.0,
-    currency: "",
-    description: "",
+    currency: '',
+    description: '',
     discountAmount: 0.0,
     discountPercentage: 0.0,
-    priceStarted: "2026-09-04T00:00:00.000Z",
-    priceEnded: "",
+    priceStarted: '2026-09-04T00:00:00.000Z',
+    priceEnded: '',
     returnAmount: 0.0,
     returnPercentage: 0.0,
     today: false,
     totalAmount: 0.0,
     totalPercentage: 0.0,
-    createdAt: "2026-09-04T00:00:00.000Z",
+    createdAt: '2026-09-04T00:00:00.000Z',
     deletedAt: null,
-    updatedAt: "2026-09-04T00:00:00.000Z",
+    updatedAt: '2026-09-04T00:00:00.000Z',
     productId: 0
 }
 
@@ -53,22 +53,20 @@ const productBody: ProductBody = {
     product: product,
     priceToday: price1,
     nextPrice: undefined,
-    priceCategory: "",
-    lastUpdated: "2026-09-04T00:00:00.000Z"
+    priceCategory: '',
+    lastUpdated: '2026-09-04T00:00:00.000Z'
 }
 
 const productBody2: ProductBody = {
     product: product2,
     priceToday: price1,
     nextPrice: undefined,
-    priceCategory: "",
-    lastUpdated: "2026-09-04T00:00:00.000Z"
+    priceCategory: '',
+    lastUpdated: '2026-09-04T00:00:00.000Z'
 }
 
 const renderWithAccordion = (ui: React.ReactNode) => {
-
-    function AccordionWrapper({children}: {children: React.ReactNode}) {
-
+    function AccordionWrapper({ children }: { children: React.ReactNode }) {
         const [currentlyOpened, setCurrentlyOpened] = useState<string[]>(['item-1'])
 
         return (
@@ -77,7 +75,7 @@ const renderWithAccordion = (ui: React.ReactNode) => {
                 variant="unstyled"
                 styles={{
                     control: { cursor: 'default' },
-                    chevron: { cursor: 'pointer' },
+                    chevron: { cursor: 'pointer' }
                 }}
                 chevronIconSize={24}
                 value={currentlyOpened}
@@ -88,20 +86,14 @@ const renderWithAccordion = (ui: React.ReactNode) => {
         )
     }
 
-    return renderWithClient(
-        <AccordionWrapper>{ui}</AccordionWrapper>
-    )
+    return renderWithClient(<AccordionWrapper>{ui}</AccordionWrapper>)
 }
 
 describe('Grouped Product Component', () => {
     test('should render grouped product', async () => {
         renderWithAccordion(
-            <Accordion.Item value='item-1'>
-                <GroupedProduct
-                    productBodies={[productBody]}
-                    dateToday={new Date()}
-                    setDateToday={() => { }}
-                />
+            <Accordion.Item value="item-1">
+                <GroupedProduct productBodies={[productBody]} dateToday={new Date()} setDateToday={() => {}} />
             </Accordion.Item>
         )
 
@@ -111,12 +103,8 @@ describe('Grouped Product Component', () => {
 
     test('should render delete product button', async () => {
         renderWithAccordion(
-            <Accordion.Item value='item-1'>
-                <GroupedProduct
-                    productBodies={[productBody]}
-                    dateToday={new Date()}
-                    setDateToday={() => { }}
-                />
+            <Accordion.Item value="item-1">
+                <GroupedProduct productBodies={[productBody]} dateToday={new Date()} setDateToday={() => {}} />
             </Accordion.Item>
         )
 
@@ -126,12 +114,8 @@ describe('Grouped Product Component', () => {
 
     test('should not render delete product button', async () => {
         renderWithAccordion(
-            <Accordion.Item value='item-1'>
-                <GroupedProduct
-                    productBodies={[productBody2]}
-                    dateToday={new Date()}
-                    setDateToday={() => { }}
-                />
+            <Accordion.Item value="item-1">
+                <GroupedProduct productBodies={[productBody2]} dateToday={new Date()} setDateToday={() => {}} />
             </Accordion.Item>
         )
 

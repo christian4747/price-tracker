@@ -26,9 +26,9 @@ const renderProductListHeader = (showDeleted: string = 'false') => {
 
     return renderWithClient(
         <ProductListHeader
-            searchSearchTerm={() => { } }
+            searchSearchTerm={() => {}}
             productsGroupBy={''}
-            setProductsGroupBy={() => { } }
+            setProductsGroupBy={() => {}}
             productFilterDTO={modifiedProductFilterDTO}
             setField={() => {}}
         />

@@ -1,6 +1,6 @@
-import type { ProductType } from '../../utils/Types'
+import type { ProductType } from '@/utils/Types'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import api from '../../services/api'
+import productService from '@/services/productService'
 import { sendSuccessNotification } from '@/utils/NotificationUtilities'
 
 export function useDeleteProduct(product: ProductType) {
@@ -10,7 +10,7 @@ export function useDeleteProduct(product: ProductType) {
     // Mutation for deleting products
     const deleteProductMutation = useMutation({
         mutationFn: () => {
-            return api.deleteProduct(product.productId)
+            return productService.deleteProduct(product.productId)
         },
         onSuccess: (oldProduct: ProductType) => {
             queryClient.invalidateQueries()
@@ -20,7 +20,7 @@ export function useDeleteProduct(product: ProductType) {
             console.log(`Error occurred while deleting ${product.productId}: ${product.name} (${error.message})`)
         }
     })
-    
+
     const useDeleteProductProps = {
         mutation: deleteProductMutation
     }
