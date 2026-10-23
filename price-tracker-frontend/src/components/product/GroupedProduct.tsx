@@ -1,7 +1,7 @@
 import type { ProductBody } from '@/types/product'
 import { Accordion, Box, Combobox, Input, InputBase, Tooltip, useCombobox } from '@mantine/core'
 import { FaLink } from 'react-icons/fa6'
-import { Fragment, useContext, useEffect, useState } from 'react'
+import { Fragment, useContext, useState } from 'react'
 import { ProductTitleBar } from './ProductTitleBar'
 import { PriceBanner } from '@/components/price/PriceBanner'
 import { MdEdit, MdDelete } from 'react-icons/md'
@@ -15,8 +15,8 @@ export interface GroupedProduct {
 }
 
 export const GroupedProduct = ({ productBodies, dateToday, setDateToday }: GroupedProduct) => {
-    // Track state of selected store // TODO: Show store with cheapest price
-    const [selectedStore, setSelectedStore] = useState<string>(productBodies[0].product.store)
+    // Store picked by the user, if any // TODO: Show store with cheapest price
+    const [chosenStore, setChosenStore] = useState<string | undefined>(undefined)
     // Use mantine combobox
     const combobox = useCombobox({
         onDropdownClose: () => combobox.resetSelectedOption()
@@ -25,14 +25,14 @@ export const GroupedProduct = ({ productBodies, dateToday, setDateToday }: Group
     const openEditProductModal = useContext(EditProductContext)
     const openDeleteProductModal = useContext(DeleteProductContext)
 
-    // Reset to first product when list changes
-    useEffect(() => {
-        setSelectedStore(productBodies[0].product.store)
-    }, [productBodies])
-
     if (!productBodies || productBodies.length === 0) {
         return <></>
     }
+
+    // Show the chosen store while it's still in the list, otherwise the first store
+    const selectedStore = productBodies.some((productBody) => productBody.product.store === chosenStore)
+        ? chosenStore
+        : productBodies[0].product.store
 
     // Store options for the combobox
     const storeOptions = productBodies.map((productBody) => (
@@ -125,7 +125,7 @@ export const GroupedProduct = ({ productBodies, dateToday, setDateToday }: Group
                             <Combobox
                                 store={combobox}
                                 onOptionSubmit={(store) => {
-                                    setSelectedStore(store)
+                                    setChosenStore(store)
                                     combobox.closeDropdown()
                                 }}
                             >
