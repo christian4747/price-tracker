@@ -1,6 +1,6 @@
-import type { PriceType } from '../../../utils/Types'
+import type { PriceType } from '@/utils/Types'
 import { Modal } from '@mantine/core'
-import { EditPriceForm } from '../forms/EditPriceForm'
+import { EditPriceForm } from '@/components/price/forms/EditPriceForm'
 
 interface EditPriceModal {
     price: PriceType

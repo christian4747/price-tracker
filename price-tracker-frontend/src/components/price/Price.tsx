@@ -1,4 +1,4 @@
-import type { PriceType } from '../../../utils/Types'
+import type { PriceType } from '@/utils/Types'
 import { getUSDateStringFromTimestamp } from '@/utils/DateUtilities'
 import { getPriceString } from '@/utils/PriceUtilities'
 import { Tooltip } from '@mantine/core'

@@ -1,37 +1,34 @@
 import { Accordion } from '@mantine/core'
-import type { ProductBody, ProductFilterDTO, ProductType } from '../../../utils/Types'
+import type { ProductBody, ProductFilterDTO, ProductType } from '@/utils/Types'
 import { useDebounce } from '@/hooks/common/useDebounce'
+import { Product } from './Product'
+import DeleteProductModal from './modals/DeleteProductModal'
+import { EditProductModal } from './modals/EditProductModal'
 import { useEffect, useState } from 'react'
 import { useDisclosure } from '@mantine/hooks'
-import DeleteProductModal from '../modals/DeleteProductModal'
-import { EditProductModal } from '../modals/EditProductModal'
+import { useProductPage } from '@/hooks/product/useProductPage'
 import { ProductListFooter } from './ProductListFooter'
-import { useProductPageGrouped } from '@/hooks/product/useProductPageGrouped'
 import { DeleteProductContext, EditProductContext } from '@/context/ProductContext'
 import ProductListSkeleton from './ProductListSkeleton'
-import { GroupedProduct } from './GroupedProduct'
 
-interface GroupedProductData {
-    name: string
-    products: ProductBody[]
-}
-
-export interface GroupedProductList {
+export interface ProductList {
     filter: ProductFilterDTO
 }
 
-// TODO: Add a formatter
-// TODO: Look into memoizing
-export const GroupedProductList = ({ filter }: GroupedProductList) => {
+// TODO: Use productStatusFilter and searchedTerm for product list
+export const ProductList = ({ filter }: ProductList) => {
     // Hook for getting products grouped
-    const { changePageNumber, currentlyOpened, currentPageNumber, query, setCurrentlyOpened, refresh } =
-        useProductPageGrouped(undefined, undefined, filter)
+    const { changePageNumber, currentlyOpened, currentPageNumber, query, setCurrentlyOpened, refresh } = useProductPage(
+        undefined,
+        undefined,
+        filter
+    )
 
     // Debounce for setting list's today's date state
     const { value: dateToday, setValueWithDebounce: setDateToday } = useDebounce(new Date())
 
     // Track state for currently selected product
-    const [currentProduct, setCurrentProduct] = useState<ProductType>(query.data?.content[0]?.products[0])
+    const [currentProduct, setCurrentProduct] = useState<ProductType>(query.data?.content[0])
     // Track state of modal open/close
     const [editProductOpened, { open: openEditProduct, close: closeEditProduct }] = useDisclosure(false)
     const [deleteProductOpened, { open: openDeleteProduct, close: closeDeleteProduct }] = useDisclosure(false)
@@ -68,21 +65,21 @@ export const GroupedProductList = ({ filter }: GroupedProductList) => {
                     onChange={setCurrentlyOpened}
                     transitionDuration={400}
                 >
-                    {query.data.content.map((groupedProduct: GroupedProductData, idx: number) => {
-                        return (
-                            <EditProductContext value={openEditProductModal}>
-                                <DeleteProductContext value={openDeleteProductModal}>
-                                    <Accordion.Item value={`item-${idx}`} key={groupedProduct.name}>
-                                        <GroupedProduct
-                                            productBodies={groupedProduct.products}
-                                            dateToday={dateToday}
-                                            setDateToday={setDateToday}
-                                        />
-                                    </Accordion.Item>
-                                </DeleteProductContext>
-                            </EditProductContext>
-                        )
-                    })}
+                    <EditProductContext value={openEditProductModal}>
+                        <DeleteProductContext value={openDeleteProductModal}>
+                            {query.data.content.map((productBody: ProductBody, idx: number) => {
+                                return (
+                                    <Product
+                                        productBody={productBody}
+                                        dateToday={dateToday}
+                                        setDateToday={setDateToday}
+                                        value={`item-${idx}`}
+                                        key={productBody.product.name + productBody.product.store}
+                                    />
+                                )
+                            })}
+                        </DeleteProductContext>
+                    </EditProductContext>
                 </Accordion>
 
                 <ProductListFooter total={query.data.count} value={currentPageNumber} onChange={changePageNumber} />

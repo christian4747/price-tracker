@@ -1,5 +1,5 @@
 import { Button } from '@mantine/core'
-import type { PriceDTO } from '../../../utils/Types'
+import type { PriceDTO } from '@/utils/Types'
 import PriceNumberInput from './PriceNumberInput'
 
 import { useEffect } from 'react'

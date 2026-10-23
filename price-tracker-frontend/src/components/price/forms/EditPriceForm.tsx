@@ -1,11 +1,11 @@
-import type { PriceType } from '../../../utils/Types'
+import type { PriceType } from '@/utils/Types'
 import { Button, TextInput } from '@mantine/core'
 import { useEditPrice } from '@/hooks/price/useEditPrice'
 import { getFormattedDateString } from '@/utils/DateUtilities'
 import { RecentDataScroller } from '@/components/common/RecentDataScroller'
-import { PriceDateTimePicker } from '../price/PriceDateTimePicker'
+import { PriceDateTimePicker } from '@/components/price/PriceDateTimePicker'
 import { useRecentPriceData } from '@/hooks/price/useRecentPriceData'
-import { AmountInputGroup } from '../price/AmountInputGroup'
+import { AmountInputGroup } from '@/components/price/AmountInputGroup'
 
 interface EditPriceForm {
     price: PriceType

@@ -3,7 +3,7 @@ import { Accordion, Box, Combobox, Input, InputBase, Tooltip, useCombobox } from
 import { FaLink } from 'react-icons/fa6'
 import { useContext, useEffect, useState } from 'react'
 import { ProductTitleBar } from './ProductTitleBar'
-import { PriceBanner } from '../price/PriceBanner'
+import { PriceBanner } from '@/components/price/PriceBanner'
 import { MdEdit, MdDelete } from 'react-icons/md'
 import { DeleteProductContext, EditProductContext } from '@/context/ProductContext'
 import { ProductDetails } from './ProductDetails'

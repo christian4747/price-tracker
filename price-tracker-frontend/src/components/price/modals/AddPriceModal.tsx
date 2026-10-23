@@ -1,7 +1,7 @@
 import { Button, Modal } from '@mantine/core'
 import type { ProductType } from '@/utils/Types'
 import { useDisclosure } from '@mantine/hooks'
-import { AddPriceForm } from '../forms/AddPriceForm'
+import { AddPriceForm } from '@/components/price/forms/AddPriceForm'
 
 interface AddPriceModal {
     product: ProductType

@@ -1,6 +1,6 @@
 import { type ProductType } from '@/utils/Types'
-import PriceHistoryChart from '../price/PriceHistoryChart'
-import { PriceList } from '../price/PriceList'
+import PriceHistoryChart from '@/components/price/PriceHistoryChart'
+import { PriceList } from '@/components/price/PriceList'
 import { usePricePage } from '@/hooks/price/usePricePage'
 import { Skeleton } from '@mantine/core'
 import { useEffect, useState } from 'react'

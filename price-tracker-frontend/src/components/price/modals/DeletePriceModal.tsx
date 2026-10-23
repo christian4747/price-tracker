@@ -1,5 +1,5 @@
-import type { PriceType } from '../../../utils/Types'
-import { getUSDateStringFromTimestamp } from '../../../utils/DateUtilities'
+import type { PriceType } from '@/utils/Types'
+import { getUSDateStringFromTimestamp } from '@/utils/DateUtilities'
 import { Button, Center, Modal } from '@mantine/core'
 import { useDeletePrice } from '@/hooks/price/useDeletePrice'
 import { getPriceString } from '@/utils/PriceUtilities'

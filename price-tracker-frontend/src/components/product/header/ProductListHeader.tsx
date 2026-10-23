@@ -1,12 +1,12 @@
 import { MdSearch } from 'react-icons/md'
 import { useEffect, useState } from 'react'
 import { Button, Input, Menu } from '@mantine/core'
-import AddProductModal from '../../modals/AddProductModal'
+import AddProductModal from '@/components/product/modals/AddProductModal'
 import type { ProductFilterDTO } from '@/utils/Types'
 import { ACTIVE_INACTIVE_PRODUCTS, ACTIVE_PRODUCTS, INACTIVE_PRODUCTS } from '@/utils/FilterConstants'
 import { useDebouncedState } from '@mantine/hooks'
-import { DefaultSortMenu } from './sortmenu/DefaultSortMenu'
-import { GroupByNameMenu } from './sortmenu/GroupByNameMenu'
+import { DefaultSortMenu } from './DefaultSortMenu'
+import { GroupByNameMenu } from './GroupByNameMenu'
 
 interface ProductListHeader {
     searchSearchTerm: (searchTerm: string) => void

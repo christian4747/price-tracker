@@ -1,13 +1,13 @@
 import { Button, Center, Collapse, Switch, TextInput } from '@mantine/core'
 import type { ProductType } from '@/utils/Types'
 import { RecentDataScroller } from '@/components/common/RecentDataScroller'
-import { PriceDateTimePicker } from '../price/PriceDateTimePicker'
+import { PriceDateTimePicker } from '@/components/price/PriceDateTimePicker'
 import { useEffect, useState } from 'react'
 import { getFormattedDateString } from '@/utils/DateUtilities'
 import { useDisclosure } from '@mantine/hooks'
 import { useAddPrice } from '@/hooks/price/useAddPrice'
 import { useRecentPriceData } from '@/hooks/price/useRecentPriceData'
-import { AmountInputGroup } from '../price/AmountInputGroup'
+import { AmountInputGroup } from '@/components/price/AmountInputGroup'
 
 interface AddPriceForm {
     product: ProductType
