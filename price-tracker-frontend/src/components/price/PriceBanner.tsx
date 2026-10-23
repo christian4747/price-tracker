@@ -1,7 +1,7 @@
 import type { ProductBody } from '@/types/product'
 import '@/styles/PriceBanner.css'
 import { Box, Tooltip } from '@mantine/core'
-import { getPriceDiscount, getPriceString } from '@/utils/PriceUtilities'
+import { getPriceDiscount, getPriceString } from '@/utils/priceUtils'
 import dayjs from 'dayjs'
 import { usePriceTimer } from '@/hooks/price/usePriceTimer'
 import { MdTimer, MdUpdate } from 'react-icons/md'

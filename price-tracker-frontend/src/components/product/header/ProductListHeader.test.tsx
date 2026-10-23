@@ -1,7 +1,7 @@
 import { describe, expect } from 'vitest'
 import { renderWithClient, screen, test, userEvent, within } from '@/test-utils'
 import { ProductListHeader } from './ProductListHeader'
-import { ACTIVE_PRODUCTS } from '@/utils/FilterConstants'
+import { ACTIVE_PRODUCTS } from '@/utils/filterConstants'
 import type { ProductActiveStatus } from '@/types/product'
 
 const productFilterDTO = {

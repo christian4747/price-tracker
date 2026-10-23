@@ -1,6 +1,6 @@
 import type { PriceType } from '@/types/price'
-import { getUSDateStringFromTimestamp } from '@/utils/DateUtilities'
-import { getPriceString } from '@/utils/PriceUtilities'
+import { getUSDateStringFromTimestamp } from '@/utils/dateUtils'
+import { getPriceString } from '@/utils/priceUtils'
 import { Tooltip } from '@mantine/core'
 import { MdDelete, MdEdit } from 'react-icons/md'
 

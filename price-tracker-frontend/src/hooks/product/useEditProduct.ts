@@ -2,7 +2,7 @@ import type { ProductDTO, ProductType } from '@/types/product'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import productService from '@/services/productService'
 import { useProductDTO } from '@/hooks/product/useProductDTO'
-import { sendSuccessNotification } from '@/utils/NotificationUtilities'
+import { sendSuccessNotification } from '@/utils/notificationUtils'
 
 export function useEditProduct(product: ProductType) {
     // State for ProductDTO when editing Products

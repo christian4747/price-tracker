@@ -1,8 +1,8 @@
 import type { PriceType } from '@/types/price'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import priceService from '@/services/priceService'
-import { sendSuccessNotification } from '@/utils/NotificationUtilities'
-import { getFormattedDateString } from '@/utils/DateUtilities'
+import { sendSuccessNotification } from '@/utils/notificationUtils'
+import { getFormattedDateString } from '@/utils/dateUtils'
 
 export function useDeletePrice(price: PriceType) {
     // Get the query client

@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import productService from '@/services/productService'
 import { useProductDTO } from '@/hooks/product/useProductDTO'
-import { sendSuccessNotification } from '@/utils/NotificationUtilities'
+import { sendSuccessNotification } from '@/utils/notificationUtils'
 import type { ProductType } from '@/types/product'
 import { useState } from 'react'
 

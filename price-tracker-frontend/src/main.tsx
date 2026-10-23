@@ -4,7 +4,7 @@ import './styles/index.css'
 import App from './App.tsx'
 import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
-import { sendErrorNotification } from './utils/NotificationUtilities.ts'
+import { sendErrorNotification } from './utils/notificationUtils.ts'
 
 const queryClient = new QueryClient({
     queryCache: new QueryCache({

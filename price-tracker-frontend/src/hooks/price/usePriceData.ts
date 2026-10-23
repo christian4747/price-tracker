@@ -1,5 +1,5 @@
-import { getLocalDateFromUTC, localizeFormatDayjs } from '@/utils/DateUtilities'
-import { getBestDiscount, getPriceDiscount, getXYearAgoPrices, sortPricesByDateAscending } from '@/utils/PriceUtilities'
+import { getLocalDateFromUTC, localizeFormatDayjs } from '@/utils/dateUtils'
+import { getBestDiscount, getPriceDiscount, getXYearAgoPrices, sortPricesByDateAscending } from '@/utils/priceUtils'
 import type { PriceType } from '@/types/price'
 import dayjs from 'dayjs'
 
