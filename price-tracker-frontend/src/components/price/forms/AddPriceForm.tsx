@@ -8,6 +8,7 @@ import { useDisclosure } from '@mantine/hooks'
 import { useAddPrice } from '@/hooks/price/useAddPrice'
 import { useRecentPriceData } from '@/hooks/price/useRecentPriceData'
 import { AmountInputGroup } from '@/components/price/AmountInputGroup'
+import { getDiscountAmount, getReturnAmount } from '@/utils/priceUtils'
 
 interface AddPriceForm {
     product: ProductType
@@ -29,16 +30,26 @@ export const AddPriceForm = ({ product, setDateToday, close, quickAdd = false }:
     // Hook for recent price data
     const { query: recentPriceQuery } = useRecentPriceData(product.productId)
 
+    // Prefill quick add with the most recent price once recent price data loads
+    const { setField } = priceDTO
+    const recentPriceData = recentPriceQuery.data
     useEffect(() => {
-        if (quickAdd) {
-            priceDTO.setField('amount', recentPriceQuery.data?.baseAmounts[0])
-            priceDTO.setField('currency', recentPriceQuery.data?.currencies[0])
-            priceDTO.setField('discountPercentage', recentPriceQuery.data?.discountPercentages[0])
-            priceDTO.setField('priceEnded', recentPriceQuery.data?.pricesEnded[0])
-            priceDTO.setField('priceStarted', recentPriceQuery.data?.pricesStarted[0])
-            priceDTO.setField('returnPercentage', recentPriceQuery.data?.returnPercentages[0])
-        }
-    }, [recentPriceQuery.data])
+        if (!quickAdd || !recentPriceData) return
+
+        const amount = recentPriceData.baseAmounts[0]
+        const discountPercentage = recentPriceData.discountPercentages[0]
+        const returnPercentage = recentPriceData.returnPercentages[0]
+        const discountAmount = getDiscountAmount(amount, discountPercentage)
+
+        setField('amount', amount)
+        setField('currency', recentPriceData.currencies[0])
+        setField('discountPercentage', discountPercentage)
+        setField('discountAmount', discountAmount)
+        setField('priceEnded', recentPriceData.pricesEnded[0])
+        setField('priceStarted', recentPriceData.pricesStarted[0])
+        setField('returnPercentage', returnPercentage)
+        setField('returnAmount', getReturnAmount(amount, discountAmount, returnPercentage))
+    }, [quickAdd, recentPriceData, setField])
 
     const recentDescriptions = recentPriceQuery.data?.descriptions.map((description: string, idx: number) => (
         <Button key={idx} onClick={() => priceDTO.setField('description', description)}>
