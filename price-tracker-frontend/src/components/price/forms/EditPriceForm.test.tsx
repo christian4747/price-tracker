@@ -1,7 +1,7 @@
 import { describe, expect } from 'vitest'
 import { renderWithClient, screen, test } from '@/test-utils'
 import { EditPriceForm } from './EditPriceForm'
-import type { PriceType } from '@/utils/Types'
+import type { PriceType } from '@/types/price'
 
 const price: PriceType = {
     priceId: 1,

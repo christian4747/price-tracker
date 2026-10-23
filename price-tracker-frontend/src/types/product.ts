@@ -1,4 +1,5 @@
-import type { ACTIVE_INACTIVE_PRODUCTS, ACTIVE_PRODUCTS, INACTIVE_PRODUCTS } from './FilterConstants'
+import type { ACTIVE_INACTIVE_PRODUCTS, ACTIVE_PRODUCTS, INACTIVE_PRODUCTS } from '@/utils/FilterConstants'
+import type { PriceType } from '@/types/price'
 
 export interface ProductType {
     active: boolean
@@ -12,46 +13,11 @@ export interface ProductType {
     prices: PriceType[]
 }
 
-export interface PriceType {
-    priceId: number
-    amount: number
-    currency: string
-    createdAt: string
-    deletedAt: string | null
-    description: string
-    discountAmount: number
-    discountPercentage: number
-    priceEnded: string
-    priceStarted: string
-    productId: number
-    returnAmount: number
-    returnPercentage: number
-    today: boolean
-    totalAmount: number
-    totalPercentage: number
-    updatedAt: string
-}
-
 export interface ProductDTO {
     name: string
     store: string
     link: string
     active: boolean
-}
-
-export interface PriceDTO {
-    amount: number
-    currency: string
-    description: string
-    discountAmount: number
-    discountPercentage: number
-    priceEnded: string
-    priceStarted: string
-    productId: number
-    returnAmount: number
-    returnPercentage: number
-    totalAmount: number
-    totalPercentage: number
 }
 
 export interface ProductBody {

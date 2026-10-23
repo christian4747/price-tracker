@@ -1,4 +1,4 @@
-import type { PriceDTO } from '@/utils/Types'
+import type { PriceDTO } from '@/types/price'
 import { apiClient } from '@/services/apiClient'
 
 const apiPath = '/prices'

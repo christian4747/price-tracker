@@ -1,4 +1,4 @@
-import type { ProductDTO, ProductType } from '@/utils/Types'
+import type { ProductDTO, ProductType } from '@/types/product'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import productService from '@/services/productService'
 import { useProductDTO } from '@/hooks/product/useProductDTO'

@@ -1,4 +1,4 @@
-import type { PriceType } from '@/utils/Types'
+import type { PriceType } from '@/types/price'
 import { Button, TextInput } from '@mantine/core'
 import { useEditPrice } from '@/hooks/price/useEditPrice'
 import { getFormattedDateString } from '@/utils/DateUtilities'

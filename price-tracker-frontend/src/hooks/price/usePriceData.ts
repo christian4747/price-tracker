@@ -1,6 +1,6 @@
 import { getLocalDateFromUTC, localizeFormatDayjs } from '@/utils/DateUtilities'
 import { getBestDiscount, getPriceDiscount, getXYearAgoPrices, sortPricesByDateAscending } from '@/utils/PriceUtilities'
-import type { PriceType } from '@/utils/Types'
+import type { PriceType } from '@/types/price'
 import dayjs from 'dayjs'
 
 export function usePriceData(dateToday: Date) {

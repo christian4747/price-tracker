@@ -1,5 +1,5 @@
 import { usePriceData } from '@/hooks/price/usePriceData'
-import type { PriceType } from '@/utils/Types'
+import type { PriceType } from '@/types/price'
 import { LineChart, type ChartTooltipProps } from '@mantine/charts'
 import { Paper, Text } from '@mantine/core'
 

@@ -1,4 +1,4 @@
-import type { PriceType } from '@/utils/Types'
+import type { PriceType } from '@/types/price'
 import { http, HttpResponse } from 'msw'
 
 const rootUrl = import.meta.env.VITE_BACKEND_ROOT_URL

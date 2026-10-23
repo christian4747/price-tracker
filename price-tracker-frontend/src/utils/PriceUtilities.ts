@@ -1,4 +1,4 @@
-import type { PriceType } from './Types'
+import type { PriceType } from '@/types/price'
 
 // Sorts the given PriceType array ascending by date
 const sortPricesByDateAscending = (prices: PriceType[]) => {

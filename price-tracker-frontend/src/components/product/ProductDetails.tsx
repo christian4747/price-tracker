@@ -1,4 +1,4 @@
-import { type ProductType } from '@/utils/Types'
+import type { ProductType } from '@/types/product'
 import PriceHistoryChart from '@/components/price/PriceHistoryChart'
 import { PriceList } from '@/components/price/PriceList'
 import { usePricePage } from '@/hooks/price/usePricePage'

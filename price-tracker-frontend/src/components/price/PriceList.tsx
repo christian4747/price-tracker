@@ -1,4 +1,5 @@
-import type { PriceType, ProductType } from '@/utils/Types'
+import type { PriceType } from '@/types/price'
+import type { ProductType } from '@/types/product'
 import { AddPriceModal } from './modals/AddPriceModal'
 import { Price } from './Price'
 import { EditPriceModal } from './modals/EditPriceModal'

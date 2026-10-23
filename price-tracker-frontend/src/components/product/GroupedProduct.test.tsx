@@ -3,7 +3,8 @@ import { renderWithClient, screen, test } from '@/test-utils'
 import { GroupedProduct } from './GroupedProduct'
 import { Accordion } from '@mantine/core'
 import { useState } from 'react'
-import type { PriceType, ProductBody, ProductType } from '@/utils/Types'
+import type { PriceType } from '@/types/price'
+import type { ProductBody, ProductType } from '@/types/product'
 
 const product: ProductType = {
     active: false,

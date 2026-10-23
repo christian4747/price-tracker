@@ -1,4 +1,4 @@
-import { type ProductBody } from '@/utils/Types'
+import type { ProductBody } from '@/types/product'
 import { Accordion, Box, Combobox, Input, InputBase, Tooltip, useCombobox } from '@mantine/core'
 import { FaLink } from 'react-icons/fa6'
 import { useContext, useEffect, useState } from 'react'

@@ -1,7 +1,7 @@
 import { describe, expect } from 'vitest'
 import { renderWithClient, screen, test } from '@/test-utils'
 import { AddPriceForm } from './AddPriceForm'
-import type { ProductType } from '@/utils/Types'
+import type { ProductType } from '@/types/product'
 
 const product: ProductType = {
     active: false,

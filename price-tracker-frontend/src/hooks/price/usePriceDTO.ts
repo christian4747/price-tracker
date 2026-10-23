@@ -1,5 +1,5 @@
 import { useEffect, useReducer } from 'react'
-import type { PriceDTO } from '../../utils/Types'
+import type { PriceDTO } from '@/types/price'
 
 export interface ReducerAction {
     type: 'set_field' | 'reset'

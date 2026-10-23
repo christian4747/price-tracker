@@ -1,4 +1,4 @@
-import type { ProductType } from '@/utils/Types'
+import type { ProductType } from '@/types/product'
 import { Button, Modal, Switch, TextInput } from '@mantine/core'
 import { useEditProduct } from '@/hooks/product/useEditProduct'
 

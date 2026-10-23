@@ -1,4 +1,4 @@
-import type { PriceDTO, PriceType } from '@/utils/Types'
+import type { PriceDTO, PriceType } from '@/types/price'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import priceService from '@/services/priceService'
 import { usePriceDTO } from '@/hooks/price/usePriceDTO'

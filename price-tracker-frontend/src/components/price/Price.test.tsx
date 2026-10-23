@@ -1,6 +1,6 @@
 import { describe, expect } from 'vitest'
 import { renderWithClient, screen, test } from '@/test-utils'
-import type { PriceType } from '@/utils/Types'
+import type { PriceType } from '@/types/price'
 import { Price } from './Price'
 
 const price: PriceType = {

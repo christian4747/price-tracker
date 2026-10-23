@@ -1,6 +1,7 @@
 import { describe, expect } from 'vitest'
 import { renderWithClient, screen, test } from '@/test-utils'
-import type { PriceType, ProductBody, ProductType } from '@/utils/Types'
+import type { PriceType } from '@/types/price'
+import type { ProductBody, ProductType } from '@/types/product'
 import { Product } from './Product'
 import { Accordion } from '@mantine/core'
 import { useState } from 'react'

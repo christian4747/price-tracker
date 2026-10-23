@@ -1,4 +1,4 @@
-import type { ProductType } from '@/utils/Types'
+import type { ProductType } from '@/types/product'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import productService from '@/services/productService'
 import { sendSuccessNotification } from '@/utils/NotificationUtilities'

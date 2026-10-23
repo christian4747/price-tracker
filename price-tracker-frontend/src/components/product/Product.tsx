@@ -1,4 +1,4 @@
-import { type ProductBody } from '@/utils/Types'
+import type { ProductBody } from '@/types/product'
 import { Accordion } from '@mantine/core'
 import { ProductTitleBar } from './ProductTitleBar'
 import { ProductDetails } from './ProductDetails'

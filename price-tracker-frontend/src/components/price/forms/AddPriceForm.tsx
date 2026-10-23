@@ -1,5 +1,5 @@
 import { Button, Center, Collapse, Switch, TextInput } from '@mantine/core'
-import type { ProductType } from '@/utils/Types'
+import type { ProductType } from '@/types/product'
 import { RecentDataScroller } from '@/components/common/RecentDataScroller'
 import { PriceDateTimePicker } from '@/components/price/PriceDateTimePicker'
 import { useEffect, useState } from 'react'

@@ -3,7 +3,7 @@ import { screen, userEvent, test, render, RenderClientWrapper } from '@/test-uti
 import { AmountInputGroup } from './AmountInputGroup'
 import { useReducer } from 'react'
 import { createInitialPriceDTO, reducer as priceDTOReducer } from '@/hooks/price/usePriceDTO'
-import type { PriceDTO } from '@/utils/Types'
+import type { PriceDTO } from '@/types/price'
 
 function renderWithPriceDTO(
     uiFunction: (state: PriceDTO, setField: (key: string, value: string | number) => void) => React.ReactNode

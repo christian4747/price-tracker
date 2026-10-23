@@ -1,6 +1,7 @@
 import { describe, expect } from 'vitest'
 import { renderWithClient, screen, test, userEvent } from '@/test-utils'
-import type { PriceType, ProductType } from '@/utils/Types'
+import type { PriceType } from '@/types/price'
+import type { ProductType } from '@/types/product'
 import { PriceList } from './PriceList'
 import { useState } from 'react'
 

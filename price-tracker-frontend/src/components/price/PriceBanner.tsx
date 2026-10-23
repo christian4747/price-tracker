@@ -1,4 +1,4 @@
-import type { ProductBody } from '@/utils/Types'
+import type { ProductBody } from '@/types/product'
 import '@/styles/PriceBanner.css'
 import { Box, Tooltip } from '@mantine/core'
 import { getPriceDiscount, getPriceString } from '@/utils/PriceUtilities'

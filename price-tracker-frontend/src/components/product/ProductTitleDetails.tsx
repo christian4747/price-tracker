@@ -1,5 +1,5 @@
 import { DeleteProductContext, EditProductContext } from '@/context/ProductContext'
-import type { ProductType } from '@/utils/Types'
+import type { ProductType } from '@/types/product'
 import { CopyButton, Tooltip } from '@mantine/core'
 import { useContext } from 'react'
 import { FaLink, FaCheck, FaCopy } from 'react-icons/fa6'

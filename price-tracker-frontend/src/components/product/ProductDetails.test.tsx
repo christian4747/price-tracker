@@ -1,6 +1,6 @@
 import { describe, expect } from 'vitest'
 import { renderWithClient, screen, test } from '@/test-utils'
-import type { ProductType } from '@/utils/Types'
+import type { ProductType } from '@/types/product'
 import { ProductDetails } from './ProductDetails'
 
 const product: ProductType = {

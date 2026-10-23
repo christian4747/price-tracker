@@ -1,4 +1,4 @@
-import type { ProductBody } from '@/utils/Types'
+import type { ProductBody } from '@/types/product'
 import { PriceBanner } from '@/components/price/PriceBanner'
 import { ProductTitleDetails } from './ProductTitleDetails'
 

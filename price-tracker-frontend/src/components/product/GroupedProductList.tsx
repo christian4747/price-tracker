@@ -1,5 +1,5 @@
 import { Accordion } from '@mantine/core'
-import type { ProductBody, ProductFilterDTO, ProductType } from '@/utils/Types'
+import type { ProductBody, ProductFilterDTO, ProductType } from '@/types/product'
 import { useDebounce } from '@/hooks/common/useDebounce'
 import { useEffect, useState } from 'react'
 import { useDisclosure } from '@mantine/hooks'
