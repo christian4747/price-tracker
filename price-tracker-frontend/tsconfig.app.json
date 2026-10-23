@@ -24,9 +24,7 @@
 
     /* Import path */
     "paths": {
-      "@/*": ["./src/*"],
-      "components/*": ["./src/components/*"],
-      "tests/*": ["./tests/*"]
+      "@/*": ["./src/*"]
     }
   },
   "include": ["src", "src/test-utils"]

@@ -1,0 +1,101 @@
+import { Accordion } from '@mantine/core'
+import type { ProductBody, ProductFilterDTO, ProductType } from '@/types/product'
+import { useDebounce } from '@/hooks/common/useDebounce'
+import { Product } from './Product'
+import DeleteProductModal from './modals/DeleteProductModal'
+import { EditProductModal } from './modals/EditProductModal'
+import { useEffect, useState } from 'react'
+import { useDisclosure } from '@mantine/hooks'
+import { useProductPage } from '@/hooks/product/useProductPage'
+import { ProductListFooter } from './ProductListFooter'
+import { DeleteProductContext, EditProductContext } from './ProductContext'
+import ProductListSkeleton from './ProductListSkeleton'
+
+export interface ProductList {
+    filter: ProductFilterDTO
+}
+
+// TODO: Use productStatusFilter and searchedTerm for product list
+export const ProductList = ({ filter }: ProductList) => {
+    // Hook for getting products grouped
+    const { changePageNumber, currentlyOpened, currentPageNumber, query, setCurrentlyOpened, refresh } = useProductPage(
+        undefined,
+        undefined,
+        filter
+    )
+
+    // Debounce for setting list's today's date state
+    const { value: dateToday, setValueWithDebounce: setDateToday } = useDebounce(new Date())
+
+    // Track state for currently selected product
+    const [currentProduct, setCurrentProduct] = useState<ProductType>(query.data?.content[0])
+    // Track state of modal open/close
+    const [editProductOpened, { open: openEditProduct, close: closeEditProduct }] = useDisclosure(false)
+    const [deleteProductOpened, { open: openDeleteProduct, close: closeDeleteProduct }] = useDisclosure(false)
+
+    const openEditProductModal = (product: ProductType) => {
+        setCurrentProduct(product)
+        openEditProduct()
+    }
+
+    const openDeleteProductModal = (product: ProductType) => {
+        setCurrentProduct(product)
+        openDeleteProduct()
+    }
+
+    useEffect(() => {
+        refresh()
+    }, [filter])
+
+    if (query.isLoading) return <ProductListSkeleton />
+    if (!query.isSuccess) return <></>
+
+    return (
+        <>
+            <div className="flex pb-5 flex-col mb-15">
+                <Accordion
+                    multiple
+                    variant="unstyled"
+                    styles={{
+                        control: { cursor: 'default' },
+                        chevron: { cursor: 'pointer' }
+                    }}
+                    chevronIconSize={24}
+                    value={currentlyOpened}
+                    onChange={setCurrentlyOpened}
+                    transitionDuration={400}
+                >
+                    <EditProductContext value={openEditProductModal}>
+                        <DeleteProductContext value={openDeleteProductModal}>
+                            {query.data.content.map((productBody: ProductBody, idx: number) => {
+                                return (
+                                    <Product
+                                        productBody={productBody}
+                                        dateToday={dateToday}
+                                        setDateToday={setDateToday}
+                                        value={`item-${idx}`}
+                                        key={productBody.product.name + productBody.product.store}
+                                    />
+                                )
+                            })}
+                        </DeleteProductContext>
+                    </EditProductContext>
+                </Accordion>
+
+                <ProductListFooter total={query.data.count} value={currentPageNumber} onChange={changePageNumber} />
+
+                {/* Modal Zone */}
+                <EditProductModal
+                    product={currentProduct}
+                    closeEditProduct={closeEditProduct}
+                    opened={editProductOpened}
+                />
+                <DeleteProductModal
+                    product={currentProduct}
+                    closeDeleteProduct={closeDeleteProduct}
+                    opened={deleteProductOpened}
+                />
+            </div>
+        </>
+    )
+}

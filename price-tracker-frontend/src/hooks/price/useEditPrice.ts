@@ -1,10 +1,10 @@
-import type { PriceDTO, PriceType } from '@/utils/Types'
+import type { PriceDTO, PriceType } from '@/types/price'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import priceService from '@/services/priceService'
 import { usePriceDTO } from '@/hooks/price/usePriceDTO'
-import { getFormattedDateString } from '@/utils/DateUtilities'
+import { getFormattedDateString } from '@/utils/dateUtils'
 import dayjs from 'dayjs'
-import { sendSuccessNotification } from '@/utils/NotificationUtilities'
+import { sendSuccessNotification } from '@/utils/notificationUtils'
 
 export function useEditPrice(price: PriceType) {
     // PriceDTO for editing

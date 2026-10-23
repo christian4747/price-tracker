@@ -1,4 +1,4 @@
-import { ProductListContainer } from '../components/home/containers/ProductListContainer'
+import { ProductListContainer } from '@/components/product/ProductListContainer'
 
 function Home() {
     return (

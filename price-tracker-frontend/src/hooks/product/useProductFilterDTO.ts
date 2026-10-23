@@ -1,5 +1,5 @@
-import { ACTIVE_PRODUCTS } from '@/utils/FilterConstants'
-import type { ProductActiveStatus, ProductFilterDTO } from '../../utils/Types'
+import { ACTIVE_PRODUCTS } from '@/utils/filterConstants'
+import type { ProductActiveStatus, ProductFilterDTO } from '@/types/product'
 import { useDTOReducer } from '../common/useDTOReducer'
 
 const createInitialProductFilterDTO = (initialProductFilterDTO: ProductFilterDTO | undefined) => {
