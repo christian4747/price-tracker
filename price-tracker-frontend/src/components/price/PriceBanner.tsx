@@ -62,6 +62,9 @@ export interface PriceBanner {
 }
 
 export const PriceBanner = ({ productBody, dateToday, setDateToday, mini }: PriceBanner) => {
+    // Calculate the time left for timer. Called before the early return so hooks run on every render.
+    const timerText = usePriceTimer(dayjs(productBody.nextPrice?.priceStarted).valueOf() / 1000, setDateToday)
+
     if (!productBody.priceToday) {
         return <></>
     }
@@ -114,8 +117,6 @@ export const PriceBanner = ({ productBody, dateToday, setDateToday, mini }: Pric
         )
     }
 
-    // Calculate the time left for timer
-    let timerText = usePriceTimer(dayjs(productBody.nextPrice?.priceStarted).valueOf() / 1000, setDateToday)
     let timeTooltip = undefined
     if (productBody.priceToday && productBody.nextPrice && productBody.nextPrice !== productBody.priceToday) {
         const timeLeft = dayjs(productBody.nextPrice.priceStarted).diff(dayjs(), 'day')
