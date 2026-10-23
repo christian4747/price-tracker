@@ -1,11 +1,9 @@
 import productService from '@/services/productService'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { useListWithPagination } from '@/hooks/common/useListWithPagination'
 import type { ProductFilterDTO } from '@/types/product'
 
 export function useProductPage(pageNumber: number = 1, pageSize: number = 10, productFilterDTO: ProductFilterDTO) {
-    const queryClient = useQueryClient()
-
     const {
         changePageNumber,
         currentlyOpened,
@@ -15,18 +13,15 @@ export function useProductPage(pageNumber: number = 1, pageSize: number = 10, pr
         setCurrentPageNumber
     } = useListWithPagination(pageNumber, pageSize)
 
-    // Query for getting a product page
+    // Query for getting a product page. The key includes every request input so changing one refetches.
     const productPageQuery = useQuery({
-        queryKey: ['products', currentPageNumber - 1],
+        queryKey: ['products', currentPageNumber - 1, currentPageSize, productFilterDTO],
         queryFn: () => {
             return productService.getProductPage(currentPageNumber - 1, currentPageSize, productFilterDTO)
         },
-        throwOnError: true
+        throwOnError: true,
+        placeholderData: keepPreviousData
     })
-
-    const refresh = () => {
-        queryClient.invalidateQueries()
-    }
 
     const useProductPageProps = {
         changePageNumber: changePageNumber,
@@ -34,8 +29,7 @@ export function useProductPage(pageNumber: number = 1, pageSize: number = 10, pr
         currentPageNumber: currentPageNumber,
         query: productPageQuery,
         setCurrentlyOpened: setCurrentlyOpened,
-        setCurrentPageNumber: setCurrentPageNumber,
-        refresh
+        setCurrentPageNumber: setCurrentPageNumber
     }
 
     return useProductPageProps

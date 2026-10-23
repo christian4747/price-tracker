@@ -2,7 +2,7 @@ import { Button } from '@mantine/core'
 import type { PriceDTO } from '@/types/price'
 import PriceNumberInput from './PriceNumberInput'
 
-import { useEffect } from 'react'
+import { getDiscountAmount, getReturnAmount } from '@/utils/priceUtils'
 import { RecentDataScroller } from '@/components/common/RecentDataScroller'
 
 interface AmountInputGroup {
@@ -20,18 +20,30 @@ export const AmountInputGroup = ({
     discountPercentages,
     returnPercentages
 }: AmountInputGroup) => {
+    // Keeps the return amount in step with its percentage when the amounts it depends on change
+    const updateReturnAmount = (amount: number, discountAmount: number) => {
+        setField('returnAmount', getReturnAmount(amount, discountAmount, value.returnPercentage))
+    }
+
+    // Keeps the discount amount in step with its percentage when the base amount changes
     const changeBasePrice = (amount: number) => {
+        const discountAmount = getDiscountAmount(amount, value.discountPercentage)
         setField('amount', amount)
+        setField('discountAmount', discountAmount)
+        updateReturnAmount(amount, discountAmount)
     }
 
     const changeDiscountAmount = (discountAmount: number) => {
         setField('discountAmount', discountAmount)
         setField('discountPercentage', (value.amount - discountAmount) / value.amount)
+        updateReturnAmount(value.amount, discountAmount)
     }
 
     const changeDiscountPercentage = (discountPercentage: number) => {
+        const discountAmount = getDiscountAmount(value.amount, discountPercentage)
         setField('discountPercentage', discountPercentage)
-        setField('discountAmount', value.amount - value.amount * discountPercentage)
+        setField('discountAmount', discountAmount)
+        updateReturnAmount(value.amount, discountAmount)
     }
 
     const changeReturnAmount = (returnAmount: number) => {
@@ -41,16 +53,8 @@ export const AmountInputGroup = ({
 
     const changeReturnPercentage = (returnPercentage: number) => {
         setField('returnPercentage', returnPercentage)
-        setField('returnAmount', Math.min(value.discountAmount, value.amount) * returnPercentage)
+        setField('returnAmount', getReturnAmount(value.amount, value.discountAmount, returnPercentage))
     }
-
-    useEffect(() => {
-        changeDiscountPercentage(value.discountPercentage)
-    }, [value.amount])
-
-    useEffect(() => {
-        changeReturnPercentage(value.returnPercentage)
-    }, [value.discountAmount])
 
     const recentBaseAmounts = baseAmounts?.map((baseAmount: number, idx: number) => (
         <Button key={idx} onClick={() => changeBasePrice(baseAmount)}>

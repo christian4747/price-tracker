@@ -16,8 +16,10 @@ export function useEditPrice(price: PriceType) {
     // Mutation for editing prices
     const editPriceMutation = useMutation({
         mutationFn: () => {
-            priceDTO.value.priceStarted = dayjs(priceDTO.value.priceStarted).format()
-            return priceService.editPrice(price.priceId, priceDTO.value)
+            return priceService.editPrice(price.priceId, {
+                ...priceDTO.value,
+                priceStarted: dayjs(priceDTO.value.priceStarted).format()
+            })
         },
         onSuccess: (newPrice: PriceType) => {
             queryClient.invalidateQueries()

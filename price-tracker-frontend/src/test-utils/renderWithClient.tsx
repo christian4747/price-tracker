@@ -21,6 +21,6 @@ export const RenderClientWrapper = ({ children }: { children: React.ReactNode })
 
 export function renderWithClient(ui: React.ReactElement) {
     return render(<>{ui}</>, {
-        wrapper: ({ children }: { children: React.ReactNode }) => <RenderClientWrapper children={children} />
+        wrapper: RenderClientWrapper
     })
 }
