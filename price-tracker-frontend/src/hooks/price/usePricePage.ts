@@ -1,12 +1,10 @@
 import priceService from '@/services/priceService'
-import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
 
 export function usePricePage(productId: number, showDeleted: boolean = false) {
-    const queryClient = useQueryClient()
-
-    // Query for getting a price page
+    // Query for getting a price page. The key includes every request input so changing one refetches.
     const productPageQuery = useQuery({
-        queryKey: ['prices', productId],
+        queryKey: ['prices', productId, showDeleted],
         queryFn: () => {
             return priceService.getPrices(productId, undefined, undefined, showDeleted)
         },
@@ -14,13 +12,8 @@ export function usePricePage(productId: number, showDeleted: boolean = false) {
         placeholderData: keepPreviousData
     })
 
-    const refresh = () => {
-        queryClient.invalidateQueries()
-    }
-
     const useProductPageProps = {
-        query: productPageQuery,
-        refresh: refresh
+        query: productPageQuery
     }
 
     return useProductPageProps

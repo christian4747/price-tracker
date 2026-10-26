@@ -1,4 +1,4 @@
-import { useEffect, useReducer } from 'react'
+import { useCallback, useEffect, useReducer } from 'react'
 import type { PriceDTO } from '@/types/price'
 
 export interface ReducerAction {
@@ -55,9 +55,10 @@ export function usePriceDTO(initialPriceDTO: PriceDTO | undefined) {
         dispatch({ type: 'reset', value: createInitialPriceDTO(initialPriceDTO) })
     }, [initialPriceDTO])
 
-    const setField = (key: string, value: number | string) => {
+    // Stable across renders so effects can depend on it
+    const setField = useCallback((key: string, value: number | string) => {
         dispatch({ type: 'set_field', key, value })
-    }
+    }, [])
 
     const reset = () => {
         dispatch({ type: 'reset', value: createInitialPriceDTO(initialPriceDTO) })

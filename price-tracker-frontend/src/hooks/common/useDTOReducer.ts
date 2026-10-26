@@ -31,7 +31,7 @@ export function useDTOReducer<T>(initialValue: T | undefined, initFunction: (ini
 
     useEffect(() => {
         dispatch({ type: 'reset', value: initFunction(initialValue) })
-    }, [initialValue])
+    }, [initialValue, initFunction])
 
     const setField = (key: string, value: boolean | string) => {
         dispatch({ type: 'set_field', key, value })

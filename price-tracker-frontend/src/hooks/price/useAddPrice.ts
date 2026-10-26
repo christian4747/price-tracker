@@ -34,9 +34,11 @@ export function useAddPrice(product: ProductType, useEndDateDesc: boolean) {
     // Mutation for adding start date only
     const addSinglePriceMutation = useMutation({
         mutationFn: () => {
-            priceDTO.value.priceStarted = dayjs(priceDTO.value.priceStarted).format()
-            priceDTO.value.priceEnded = ''
-            return priceService.addPrice(priceDTO.value)
+            return priceService.addPrice({
+                ...priceDTO.value,
+                priceStarted: dayjs(priceDTO.value.priceStarted).format(),
+                priceEnded: ''
+            })
         },
         onSuccess: (newPrice: PriceType) => {
             priceDTO.reset()
@@ -51,18 +53,27 @@ export function useAddPrice(product: ProductType, useEndDateDesc: boolean) {
     // Mutation for adding start date and end date
     const addPriceMutation = useMutation({
         mutationFn: () => {
-            if (priceDTO.value.priceEnded && priceDTO.value.priceEnded.length > 0) {
-                priceDTO.value.priceEnded = dayjs(priceDTO.value.priceEnded).format()
-            }
-
-            priceDTO.value.priceStarted = dayjs(priceDTO.value.priceStarted).format()
-            return priceService.addPrice(priceDTO.value)
+            const { priceStarted, priceEnded } = priceDTO.value
+            return priceService.addPrice({
+                ...priceDTO.value,
+                priceStarted: dayjs(priceStarted).format(),
+                priceEnded: priceEnded ? dayjs(priceEnded).format() : priceEnded
+            })
         },
         onSuccess: (newPrice: PriceType) => {
-            if (priceDTO.value.priceEnded && priceDTO.value.priceEnded.length > 0) {
-                priceDTO.value.priceStarted = priceDTO.value.priceEnded
-                priceDTO.value.priceEnded = ''
-                addEndPriceMutation.mutate()
+            // Add the price that starts when this one ends, returning to the base amount
+            const { priceEnded, description, amount } = priceDTO.value
+            if (priceEnded) {
+                addEndPriceMutation.mutate({
+                    ...priceDTO.value,
+                    priceStarted: dayjs(priceEnded).format(),
+                    priceEnded: '',
+                    description: useEndDateDesc ? description : '',
+                    discountAmount: amount,
+                    discountPercentage: 0,
+                    returnAmount: 0,
+                    returnPercentage: 0
+                })
             }
 
             priceDTO.reset()
@@ -76,17 +87,8 @@ export function useAddPrice(product: ProductType, useEndDateDesc: boolean) {
 
     // Chained mutation for adding end date
     const addEndPriceMutation = useMutation({
-        mutationFn: () => {
-            console.log(useEndDateDesc)
-            if (!useEndDateDesc) {
-                priceDTO.value.description = ''
-            }
-
-            priceDTO.value.discountAmount = priceDTO.value.amount
-            priceDTO.value.discountPercentage = 0
-            priceDTO.value.returnAmount = 0
-            priceDTO.value.returnPercentage = 0
-            return priceService.addPrice(priceDTO.value)
+        mutationFn: (endPriceDTO: PriceDTO) => {
+            return priceService.addPrice(endPriceDTO)
         },
         onSuccess: (newPrice: PriceType) => {
             queryClient.invalidateQueries()

@@ -1,5 +1,5 @@
 import dayjs from 'dayjs'
-import { useEffect, useState } from 'react'
+import { useEffect, useEffectEvent, useState } from 'react'
 
 // Formats the given time into a string. The given time is expected to be in seconds.
 const formatTime = (time: number | undefined) => {
@@ -27,45 +27,49 @@ const formatTime = (time: number | undefined) => {
     return (dayString + hourString + minsString + secsString).trim()
 }
 
-export function usePriceTimer(endMs: number, setDateToday: any) {
-    // Check if there exists a date after today for an ending deal
-    let now = Date.now() / 1000
-    let secondsLeftTilEnd: number | undefined = undefined
-    if (endMs) {
-        secondsLeftTilEnd = Math.floor(endMs - now)
-    }
+const getSecondsLeft = (endSeconds: number, nowMs: number) => Math.floor(endSeconds - nowMs / 1000)
 
-    // Set the timer text
-    const [timeText, setTimeText] = useState(formatTime(secondsLeftTilEnd))
+/**
+ * Counts down to the given end time and returns the time left as text.
+ * @param endSeconds The end time in Unix seconds, or undefined for no timer
+ * @param setDateToday Called when a running countdown reaches zero
+ */
+export function usePriceTimer(endSeconds: number | undefined, setDateToday: (newVal: Date) => void) {
+    // Current time in ms, updated by the timer. Undefined until the first tick.
+    const [nowMs, setNowMs] = useState<number | undefined>(undefined)
 
-    // Update the timer text. If the timer is over, update the list's today's date state
-    const updateTime = () => {
-        now = Date.now() / 1000
-        secondsLeftTilEnd = Math.floor(endMs - now)
-        setTimeText(formatTime(secondsLeftTilEnd))
-        if (secondsLeftTilEnd === 0) {
-            setDateToday(dayjs().add(1, 'minute').toDate())
-        }
-    }
+    // Reads the latest setDateToday without restarting the timer when it changes
+    const onTimerEnd = useEffectEvent(() => {
+        setDateToday(dayjs().add(1, 'minute').toDate())
+    })
 
-    // Use effect for managing the interval
     useEffect(() => {
-        let intervalId
-        updateTime()
-        if (secondsLeftTilEnd && secondsLeftTilEnd > 0) {
-            // Use + 1 offset because time updates around a second faster
-            intervalId =
-                secondsLeftTilEnd >= 300
-                    ? setInterval(updateTime, ((secondsLeftTilEnd % 60) + 1) * 1000)
-                    : setInterval(updateTime, 1000)
-        } else if (intervalId && secondsLeftTilEnd && secondsLeftTilEnd <= 0) {
-            clearInterval(intervalId)
+        if (endSeconds === undefined) return
+
+        let timeoutId: ReturnType<typeof setTimeout>
+        let wasCountingDown = false
+
+        const tick = () => {
+            const tickMs = Date.now()
+            setNowMs(tickMs)
+
+            const secondsLeft = getSecondsLeft(endSeconds, tickMs)
+            if (secondsLeft > 0) {
+                wasCountingDown = true
+                // Tick every second in the last 5 minutes, otherwise just after each minute boundary
+                const delay = secondsLeft >= 300 ? ((secondsLeft % 60) + 1) * 1000 : 1000
+                timeoutId = setTimeout(tick, delay)
+            } else if (wasCountingDown) {
+                onTimerEnd()
+            }
         }
 
-        if (intervalId) {
-            return () => clearInterval(intervalId)
-        }
-    }, [secondsLeftTilEnd])
+        // Schedule the first tick instead of calling it here, so state isn't set synchronously inside the effect
+        timeoutId = setTimeout(tick, 0)
 
-    return timeText
+        return () => clearTimeout(timeoutId)
+    }, [endSeconds])
+
+    if (endSeconds === undefined || nowMs === undefined) return ''
+    return formatTime(getSecondsLeft(endSeconds, nowMs))
 }

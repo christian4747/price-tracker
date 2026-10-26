@@ -165,6 +165,27 @@ const getPriceString = (price: PriceType | undefined) => {
     }
 }
 
+/**
+ * Get the discounted amount for a base amount and discount percentage.
+ * @param amount The base amount
+ * @param discountPercentage The discount as a fraction (0.2 for 20%)
+ * @returns The amount after the discount
+ */
+const getDiscountAmount = (amount: number, discountPercentage: number) => {
+    return amount - amount * discountPercentage
+}
+
+/**
+ * Get the return amount for a return percentage, based on the lower of the discounted and base amounts.
+ * @param amount The base amount
+ * @param discountAmount The amount after the discount
+ * @param returnPercentage The return as a fraction (0.05 for 5%)
+ * @returns The amount returned
+ */
+const getReturnAmount = (amount: number, discountAmount: number, returnPercentage: number) => {
+    return Math.min(discountAmount, amount) * returnPercentage
+}
+
 export {
     sortPricesByDateAscending,
     filterPricesBeforeDate,
@@ -177,5 +198,7 @@ export {
     createPriceData,
     getMostRecentDiscount,
     getMostRecentPrice,
-    getPriceString
+    getPriceString,
+    getDiscountAmount,
+    getReturnAmount
 }

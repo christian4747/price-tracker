@@ -71,7 +71,7 @@ describe('PriceBanner Component', () => {
     })
 
     test('should stop the price timer once the price for today is removed', async () => {
-        const clearIntervalSpy = vi.spyOn(window, 'clearInterval')
+        const clearTimeoutSpy = vi.spyOn(window, 'clearTimeout')
         const nextPrice: PriceType = {
             ...price1,
             priceId: 2,
@@ -87,6 +87,6 @@ describe('PriceBanner Component', () => {
 
         rerender(<PriceBanner productBody={productBodyNoPrice} dateToday={new Date()} setDateToday={() => {}} />)
 
-        expect(clearIntervalSpy).toHaveBeenCalled()
+        expect(clearTimeoutSpy).toHaveBeenCalled()
     })
 })

@@ -1,7 +1,7 @@
 import { Accordion } from '@mantine/core'
 import type { ProductBody, ProductFilterDTO, ProductType } from '@/types/product'
 import { useDebounce } from '@/hooks/common/useDebounce'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useDisclosure } from '@mantine/hooks'
 import DeleteProductModal from './modals/DeleteProductModal'
 import { EditProductModal } from './modals/EditProductModal'
@@ -24,8 +24,11 @@ export interface GroupedProductList {
 // TODO: Look into memoizing
 export const GroupedProductList = ({ filter }: GroupedProductList) => {
     // Hook for getting products grouped
-    const { changePageNumber, currentlyOpened, currentPageNumber, query, setCurrentlyOpened, refresh } =
-        useProductPageGrouped(undefined, undefined, filter)
+    const { changePageNumber, currentlyOpened, currentPageNumber, query, setCurrentlyOpened } = useProductPageGrouped(
+        undefined,
+        undefined,
+        filter
+    )
 
     // Debounce for setting list's today's date state
     const { value: dateToday, setValueWithDebounce: setDateToday } = useDebounce(new Date())
@@ -45,10 +48,6 @@ export const GroupedProductList = ({ filter }: GroupedProductList) => {
         setCurrentProduct(product)
         openDeleteProduct()
     }
-
-    useEffect(() => {
-        refresh()
-    }, [filter])
 
     if (query.isLoading) return <ProductListSkeleton />
     if (!query.isSuccess) return <></>
@@ -70,9 +69,9 @@ export const GroupedProductList = ({ filter }: GroupedProductList) => {
                 >
                     {query.data.content.map((groupedProduct: GroupedProductData, idx: number) => {
                         return (
-                            <EditProductContext value={openEditProductModal}>
+                            <EditProductContext value={openEditProductModal} key={groupedProduct.name}>
                                 <DeleteProductContext value={openDeleteProductModal}>
-                                    <Accordion.Item value={`item-${idx}`} key={groupedProduct.name}>
+                                    <Accordion.Item value={`item-${idx}`}>
                                         <GroupedProduct
                                             productBodies={groupedProduct.products}
                                             dateToday={dateToday}

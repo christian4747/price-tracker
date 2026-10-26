@@ -1,5 +1,5 @@
-import { describe, expect } from 'vitest'
-import { renderWithClient, screen, test, userEvent, within } from '@/test-utils'
+import { describe, expect, vi } from 'vitest'
+import { renderWithClient, screen, test, userEvent, waitFor, within } from '@/test-utils'
 import { ProductListHeader } from './ProductListHeader'
 import { ACTIVE_PRODUCTS } from '@/utils/filterConstants'
 import type { ProductActiveStatus } from '@/types/product'
@@ -18,7 +18,10 @@ const productFilterDTO = {
     endDeletedAt: ''
 }
 
-const renderProductListHeader = (showDeleted: string = 'false') => {
+const renderProductListHeader = (
+    showDeleted: string = 'false',
+    searchSearchTerm: (searchTerm: string) => void = () => {}
+) => {
     const modifiedProductFilterDTO = {
         ...productFilterDTO,
         deleted: showDeleted
@@ -26,7 +29,7 @@ const renderProductListHeader = (showDeleted: string = 'false') => {
 
     return renderWithClient(
         <ProductListHeader
-            searchSearchTerm={() => {}}
+            searchSearchTerm={searchSearchTerm}
             productsGroupBy={''}
             setProductsGroupBy={() => {}}
             productFilterDTO={modifiedProductFilterDTO}
@@ -93,5 +96,28 @@ describe('Product List Header Component', () => {
 
         const ascendingSwitch = await within(sortMenu).findByText(/ascending/i)
         await expect.element(ascendingSwitch).toBeInTheDocument()
+    })
+
+    test('should search once typing stops', async () => {
+        const user = userEvent.setup()
+        const searchSearchTerm = vi.fn()
+        renderProductListHeader('false', searchSearchTerm)
+
+        await user.type(screen.getByPlaceholderText('Search'), 'milk')
+
+        await waitFor(() => expect(searchSearchTerm).toHaveBeenCalledWith('milk'))
+        expect(searchSearchTerm).toHaveBeenCalledTimes(1)
+    })
+
+    test('should search the typed text immediately when the search icon is clicked', async () => {
+        const user = userEvent.setup()
+        const searchSearchTerm = vi.fn()
+        renderProductListHeader('false', searchSearchTerm)
+
+        await user.type(screen.getByPlaceholderText('Search'), 'milk')
+        await user.click(screen.getByRole('button', { name: 'Search' }))
+
+        expect(searchSearchTerm).toHaveBeenCalledTimes(1)
+        expect(searchSearchTerm).toHaveBeenCalledWith('milk')
     })
 })

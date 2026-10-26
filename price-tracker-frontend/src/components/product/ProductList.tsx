@@ -4,7 +4,7 @@ import { useDebounce } from '@/hooks/common/useDebounce'
 import { Product } from './Product'
 import DeleteProductModal from './modals/DeleteProductModal'
 import { EditProductModal } from './modals/EditProductModal'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useDisclosure } from '@mantine/hooks'
 import { useProductPage } from '@/hooks/product/useProductPage'
 import { ProductListFooter } from './ProductListFooter'
@@ -18,7 +18,7 @@ export interface ProductList {
 // TODO: Use productStatusFilter and searchedTerm for product list
 export const ProductList = ({ filter }: ProductList) => {
     // Hook for getting products grouped
-    const { changePageNumber, currentlyOpened, currentPageNumber, query, setCurrentlyOpened, refresh } = useProductPage(
+    const { changePageNumber, currentlyOpened, currentPageNumber, query, setCurrentlyOpened } = useProductPage(
         undefined,
         undefined,
         filter
@@ -42,10 +42,6 @@ export const ProductList = ({ filter }: ProductList) => {
         setCurrentProduct(product)
         openDeleteProduct()
     }
-
-    useEffect(() => {
-        refresh()
-    }, [filter])
 
     if (query.isLoading) return <ProductListSkeleton />
     if (!query.isSuccess) return <></>

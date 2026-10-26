@@ -1,10 +1,10 @@
 import { MdSearch } from 'react-icons/md'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Button, Input, Menu } from '@mantine/core'
 import AddProductModal from '@/components/product/modals/AddProductModal'
 import type { ProductFilterDTO } from '@/types/product'
 import { ACTIVE_INACTIVE_PRODUCTS, ACTIVE_PRODUCTS, INACTIVE_PRODUCTS } from '@/utils/filterConstants'
-import { useDebouncedState } from '@mantine/hooks'
+import { useDebouncedCallback } from '@mantine/hooks'
 import { DefaultSortMenu } from './DefaultSortMenu'
 import { GroupByNameMenu } from './GroupByNameMenu'
 
@@ -23,8 +23,8 @@ export const ProductListHeader = ({
     productFilterDTO,
     setField
 }: ProductListHeader) => {
-    // Debounce the search term when entering text
-    const [currentSearchTerm, setCurrentSearchTerm] = useDebouncedState('', 500)
+    // Search 500ms after the last keystroke
+    const debouncedSearch = useDebouncedCallback(searchSearchTerm, 500)
     // Track the search term locally
     const [localSearchTerm, setLocalSearchTerm] = useState('')
 
@@ -52,18 +52,21 @@ export const ProductListHeader = ({
     }
 
     const setSearchTerm = (e: React.ChangeEvent<HTMLInputElement, HTMLInputElement>) => {
-        setCurrentSearchTerm(e.target.value)
         setLocalSearchTerm(e.target.value)
+        debouncedSearch(e.target.value)
+    }
+
+    // Search the current text immediately, skipping any pending debounced search
+    const searchNow = () => {
+        debouncedSearch.cancel()
+        searchSearchTerm(localSearchTerm)
     }
 
     const clearSearchTerm = () => {
-        setCurrentSearchTerm('')
         setLocalSearchTerm('')
+        debouncedSearch.cancel()
+        searchSearchTerm('')
     }
-
-    useEffect(() => {
-        searchSearchTerm(currentSearchTerm)
-    }, [currentSearchTerm])
 
     return (
         <>
@@ -144,14 +147,16 @@ export const ProductListHeader = ({
                                     leftSection={
                                         <div
                                             className="cursor-pointer pl-2"
-                                            onClick={() => searchSearchTerm(currentSearchTerm)}
+                                            role="button"
+                                            aria-label="Search"
+                                            onClick={searchNow}
                                         >
                                             <MdSearch size={24} />
                                         </div>
                                     }
                                     rightSectionPointerEvents="all"
                                     rightSection={
-                                        currentSearchTerm ? (
+                                        localSearchTerm ? (
                                             <Input.ClearButton aria-label="Clear input" onClick={clearSearchTerm} />
                                         ) : null
                                     }
