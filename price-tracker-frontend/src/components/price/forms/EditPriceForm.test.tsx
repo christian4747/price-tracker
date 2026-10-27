@@ -1,5 +1,6 @@
 import { describe, expect } from 'vitest'
-import { renderWithClient, screen, test } from '@/test-utils'
+import { renderWithClient, screen, test, userEvent } from '@/test-utils'
+import { http, HttpResponse } from 'msw'
 import { EditPriceForm } from './EditPriceForm'
 import type { PriceType } from '@/types/price'
 
@@ -23,7 +24,38 @@ const price: PriceType = {
     deletedAt: null
 }
 
+const pricesApiUrl = import.meta.env.VITE_BACKEND_ROOT_URL + '/prices'
+
 describe('Edit Price Form Component', () => {
+    test("should fill amounts from the product's recent prices", async ({ worker }) => {
+        let requestedProductId: string | undefined
+        worker.use(
+            http.get(pricesApiUrl + '/recent/:productId', ({ params }) => {
+                requestedProductId = params.productId as string
+                return HttpResponse.json({
+                    baseAmounts: [250],
+                    currencies: [],
+                    descriptions: [],
+                    discountPercentages: [0.2],
+                    pricesEnded: [],
+                    pricesStarted: [],
+                    returnPercentages: [0.05]
+                })
+            })
+        )
+        const user = userEvent.setup()
+        renderWithClient(<EditPriceForm price={{ ...price, productId: 7 }} closeEditPrice={() => {}} />)
+
+        await user.click(await screen.findByRole('button', { name: '250' }))
+        await user.click(screen.getByRole('button', { name: '20.00%' }))
+        await user.click(screen.getByRole('button', { name: '5.00%' }))
+
+        expect(requestedProductId).toBe('7')
+        expect((screen.getByRole('textbox', { name: /base price/i }) as HTMLInputElement).value).toBe('250.00')
+        expect((screen.getByRole('textbox', { name: /discount amount/i }) as HTMLInputElement).value).toBe('200.00')
+        expect((screen.getByRole('textbox', { name: /return amount/i }) as HTMLInputElement).value).toBe('10.00')
+    })
+
     test('should render input for price', async () => {
         renderWithClient(<EditPriceForm price={price} closeEditPrice={() => {}} />)
 
