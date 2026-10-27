@@ -224,6 +224,15 @@ public class ProductService {
     }
 
     /**
+     * Gets a distinct list of the stores of recently added Products.
+     * @param pageable Pagination settings
+     * @return A distinct list of recently used Product stores (default 20)
+     */
+    public List<String> getRecentStores(Pageable pageable) {
+        return productDAO.findDistinctStores(pageable).getContent();
+    }
+
+    /**
      * Returns a product containing the product information, today's price, and price category if applicable.
      * @param product The product to return with today's price and price category
      * @return A product containing the product information, today's price, and price category if applicable
