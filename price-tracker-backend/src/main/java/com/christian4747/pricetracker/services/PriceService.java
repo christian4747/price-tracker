@@ -41,6 +41,13 @@ public class PriceService {
      * @return The newly added Price
      */
     public Price addPrice(IncomingPriceDTO priceDTO) {
+        Timestamp priceStarted = priceDTO.getPriceStarted();
+        Timestamp priceEnded = priceDTO.getPriceEnded();
+        if (priceStarted != null && priceEnded != null && !priceEnded.after(priceStarted)) {
+            logger.info("Attempted to add a Price with an end date ({}) not after its start date ({})", priceEnded, priceStarted);
+            throw new IllegalArgumentException("Price end date must be after its start date!");
+        }
+
         Optional<Product> existingProduct = productDAO.findById(priceDTO.getProductId());
 
         if (existingProduct.isEmpty()) {

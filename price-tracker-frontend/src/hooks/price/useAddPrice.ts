@@ -16,7 +16,8 @@ export function useAddPrice(product: ProductType, useEndDateDesc: boolean) {
         description: '',
         discountAmount: 0,
         discountPercentage: 0,
-        priceEnded: getLocalDateFromUTC(new Date()).format(),
+        // Default to the end of the start day so the range starts out valid
+        priceEnded: getLocalDateFromUTC(new Date()).endOf('day').second(0).format(),
         priceStarted: getLocalDateFromUTC(new Date()).format(),
         productId: product.productId,
         returnAmount: 0,

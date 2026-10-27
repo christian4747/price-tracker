@@ -14,6 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,6 +22,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -84,6 +87,36 @@ public class PriceServiceTest {
 
     @Test
     public void addPrice_validPrice_returnPrice() {
+        when(productDAO.findById(anyInt())).thenReturn(Optional.of(product));
+        when(priceDAO.save(any())).thenReturn(price);
+
+        assertEquals(1, priceService.addPrice(priceDTO).getProduct().getProductId());
+    }
+
+    @Test
+    public void addPrice_endBeforeStart_throwException() {
+        priceDTO.setPriceStarted(Timestamp.valueOf("2026-09-10 12:00:00"));
+        priceDTO.setPriceEnded(Timestamp.valueOf("2026-09-05 12:00:00"));
+
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> priceService.addPrice(priceDTO));
+        assertEquals("Price end date must be after its start date!", ex.getMessage());
+        verify(priceDAO, never()).save(any());
+    }
+
+    @Test
+    public void addPrice_endEqualsStart_throwException() {
+        priceDTO.setPriceStarted(Timestamp.valueOf("2026-09-10 12:00:00"));
+        priceDTO.setPriceEnded(Timestamp.valueOf("2026-09-10 12:00:00"));
+
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> priceService.addPrice(priceDTO));
+        assertEquals("Price end date must be after its start date!", ex.getMessage());
+        verify(priceDAO, never()).save(any());
+    }
+
+    @Test
+    public void addPrice_endAfterStart_returnPrice() {
+        priceDTO.setPriceStarted(Timestamp.valueOf("2026-09-05 12:00:00"));
+        priceDTO.setPriceEnded(Timestamp.valueOf("2026-09-10 12:00:00"));
         when(productDAO.findById(anyInt())).thenReturn(Optional.of(product));
         when(priceDAO.save(any())).thenReturn(price);
 
