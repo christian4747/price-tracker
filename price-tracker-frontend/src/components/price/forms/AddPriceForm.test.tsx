@@ -1,5 +1,5 @@
 import { describe, expect } from 'vitest'
-import { renderWithClient, screen, test, waitFor } from '@/test-utils'
+import { renderWithClient, screen, test, userEvent, waitFor } from '@/test-utils'
 import { http, HttpResponse } from 'msw'
 import { AddPriceForm } from './AddPriceForm'
 import type { ProductType } from '@/types/product'
@@ -41,6 +41,45 @@ describe('Add Price Form Component', () => {
             expect(discountAmountInput.value).toBe('80.00')
             expect(returnAmountInput.value).toBe('4.00')
         })
+    })
+
+    test('should block adding a price that ends before it starts', async ({ worker }) => {
+        worker.use(
+            http.get(pricesApiUrl + '/recent/:productId', () =>
+                HttpResponse.json({
+                    baseAmounts: [100],
+                    currencies: ['USD'],
+                    descriptions: [],
+                    discountPercentages: [0],
+                    pricesEnded: ['2026-09-05T12:00:00.000Z'],
+                    pricesStarted: ['2026-09-10T12:00:00.000Z'],
+                    returnPercentages: [0]
+                })
+            )
+        )
+        const user = userEvent.setup()
+        renderWithClient(<AddPriceForm product={product} setDateToday={() => {}} close={() => {}} quickAdd />)
+
+        const addButton = screen.getByRole('button', { name: 'Add Price' })
+        await user.click(screen.getByRole('button', { name: 'Start and End Date' }))
+
+        await waitFor(() => expect(screen.getByText('End date must be after the start date')).toBeInTheDocument())
+        expect(addButton).toBeDisabled()
+
+        // The end date is ignored when only adding a start date
+        await user.click(screen.getByRole('button', { name: 'Start Date Only' }))
+        expect(screen.queryByText('End date must be after the start date')).not.toBeInTheDocument()
+        expect(addButton).toBeEnabled()
+    })
+
+    test('should default to a valid end date', async () => {
+        const user = userEvent.setup()
+        renderWithClient(<AddPriceForm product={product} setDateToday={() => {}} close={() => {}} />)
+
+        await user.click(screen.getByRole('button', { name: 'Start and End Date' }))
+
+        expect(screen.queryByText('End date must be after the start date')).not.toBeInTheDocument()
+        expect(screen.getByRole('button', { name: 'Add Price' })).toBeEnabled()
     })
 
     test('should render input for price', async () => {

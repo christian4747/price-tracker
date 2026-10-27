@@ -9,6 +9,7 @@ import { useAddPrice } from '@/hooks/price/useAddPrice'
 import { useRecentPriceData } from '@/hooks/price/useRecentPriceData'
 import { AmountInputGroup } from '@/components/price/AmountInputGroup'
 import { getDiscountAmount, getReturnAmount } from '@/utils/priceUtils'
+import dayjs from 'dayjs'
 
 interface AddPriceForm {
     product: ProductType
@@ -75,7 +76,15 @@ export const AddPriceForm = ({ product, setDateToday, close, quickAdd = false }:
         </Button>
     ))
 
+    // The end date only applies when adding a start and end date
+    const endDateError =
+        useEndDate && !dayjs(priceDTO.value.priceEnded).isAfter(priceDTO.value.priceStarted)
+            ? 'End date must be after the start date'
+            : undefined
+
     const finalizeAddPrice = () => {
+        if (endDateError) return
+
         if (useEndDate) {
             multiMutation.mutate()
         } else {
@@ -155,6 +164,7 @@ export const AddPriceForm = ({ product, setDateToday, close, quickAdd = false }:
             <Collapse expanded={expandEndDate}>
                 <PriceDateTimePicker
                     label="End Date"
+                    error={endDateError}
                     onChange={(priceEnded) => (priceEnded ? priceDTO.setField('priceEnded', priceEnded) : '')}
                     value={priceDTO.value.priceEnded}
                 />
@@ -171,7 +181,7 @@ export const AddPriceForm = ({ product, setDateToday, close, quickAdd = false }:
                 />
             </Collapse>
 
-            <Button className="mt-5" fullWidth onClick={finalizeAddPrice}>
+            <Button className="mt-5" fullWidth disabled={!!endDateError} onClick={finalizeAddPrice}>
                 Add Price
             </Button>
         </>
