@@ -22,7 +22,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -98,7 +97,6 @@ public class PriceServiceTest {
     public void addPrice_endBeforeStart_throwException() {
         priceDTO.setPriceStarted(Timestamp.valueOf("2026-09-10 12:00:00"));
         priceDTO.setPriceEnded(Timestamp.valueOf("2026-09-05 12:00:00"));
-        lenient().when(productDAO.findById(anyInt())).thenReturn(Optional.of(product));
 
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> priceService.addPrice(priceDTO));
         assertEquals("Price end date must be after its start date!", ex.getMessage());
@@ -109,7 +107,6 @@ public class PriceServiceTest {
     public void addPrice_endEqualsStart_throwException() {
         priceDTO.setPriceStarted(Timestamp.valueOf("2026-09-10 12:00:00"));
         priceDTO.setPriceEnded(Timestamp.valueOf("2026-09-10 12:00:00"));
-        lenient().when(productDAO.findById(anyInt())).thenReturn(Optional.of(product));
 
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> priceService.addPrice(priceDTO));
         assertEquals("Price end date must be after its start date!", ex.getMessage());
