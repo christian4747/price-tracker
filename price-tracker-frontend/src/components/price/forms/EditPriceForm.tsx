@@ -16,7 +16,7 @@ export const EditPriceForm = ({ price, closeEditPrice }: EditPriceForm) => {
     // Hook for editing prices
     const { priceDTO, mutation } = useEditPrice(price)
     // Hook for recent price data
-    const { query: recentPriceQuery } = useRecentPriceData()
+    const { query: recentPriceQuery } = useRecentPriceData(price.productId)
 
     const recentDescriptions = recentPriceQuery.data?.descriptions.map((description: string, idx: number) => (
         <Button key={idx} onClick={() => priceDTO.setField('description', description)}>
@@ -44,7 +44,13 @@ export const EditPriceForm = ({ price, closeEditPrice }: EditPriceForm) => {
 
     return (
         <>
-            <AmountInputGroup value={priceDTO.value} setField={priceDTO.setField} />
+            <AmountInputGroup
+                value={priceDTO.value}
+                setField={priceDTO.setField}
+                baseAmounts={recentPriceQuery.data?.baseAmounts}
+                discountPercentages={recentPriceQuery.data?.discountPercentages}
+                returnPercentages={recentPriceQuery.data?.returnPercentages}
+            />
 
             <TextInput
                 label="Description"
