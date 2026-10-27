@@ -37,6 +37,16 @@ export default {
         return res.data
     },
 
+    getRecentStores: async (pageNumber: number = 0, pageSize: number = 5) => {
+        const res = await apiClient.get(apiPath + '/recent/stores', {
+            params: {
+                page: pageNumber,
+                size: pageSize
+            }
+        })
+        return res.data
+    },
+
     addProduct: async (productToAdd: ProductDTO) => {
         const res = await apiClient.post(apiPath, productToAdd)
         return res.data

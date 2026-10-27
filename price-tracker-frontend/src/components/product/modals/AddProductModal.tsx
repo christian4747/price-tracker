@@ -1,6 +1,8 @@
 import { Button, Modal, Switch, TextInput } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { useAddProduct } from '@/hooks/product/useAddProduct'
+import { useRecentStores } from '@/hooks/product/useRecentStores'
+import { RecentDataScroller } from '@/components/common/RecentDataScroller'
 
 const AddProductModal = () => {
     // Track state of modal open/close
@@ -8,6 +10,14 @@ const AddProductModal = () => {
 
     // Hook for adding products
     const { productDTO, mutation } = useAddProduct()
+    // Hook for recent stores, only fetched while the modal is open
+    const { query: recentStoresQuery } = useRecentStores(opened)
+
+    const recentStores = recentStoresQuery.data?.map((store: string, idx: number) => (
+        <Button key={idx} onClick={() => productDTO.setField('store', store)}>
+            {store}
+        </Button>
+    ))
 
     const finalizeAddProduct = (e: React.MouseEvent) => {
         mutation.mutate()
@@ -37,6 +47,9 @@ const AddProductModal = () => {
                     value={productDTO.value.store}
                     className="mb-2"
                 />
+                {recentStores && recentStores.length > 0 && (
+                    <RecentDataScroller className="mb-2">{recentStores}</RecentDataScroller>
+                )}
                 <TextInput
                     label="Link"
                     placeholder="Link"

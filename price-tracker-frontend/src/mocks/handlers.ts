@@ -65,6 +65,10 @@ export const handlers = [
         })
     }),
 
+    http.get(productsApiUrl + '/recent/stores', () => {
+        return HttpResponse.json([])
+    }),
+
     http.get(pricesApiUrl + '/recent/:productId', () => {
         return HttpResponse.json({
             baseAmounts: [],
