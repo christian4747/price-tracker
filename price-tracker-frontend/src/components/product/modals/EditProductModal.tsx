@@ -1,6 +1,8 @@
 import type { ProductType } from '@/types/product'
 import { Button, Modal, Switch, TextInput } from '@mantine/core'
 import { useEditProduct } from '@/hooks/product/useEditProduct'
+import { useRecentStores } from '@/hooks/product/useRecentStores'
+import { RecentDataScroller } from '@/components/common/RecentDataScroller'
 
 interface EditProductModal {
     product: ProductType
@@ -12,6 +14,14 @@ interface EditProductModal {
 export const EditProductModal = ({ product, closeEditProduct, opened }: EditProductModal) => {
     // Hook for editing products
     const { productDTO, mutation } = useEditProduct(product)
+    // Hook for recent stores, only fetched while the modal is open
+    const { query: recentStoresQuery } = useRecentStores(opened)
+
+    const recentStores = recentStoresQuery.data?.map((store: string, idx: number) => (
+        <Button key={idx} onClick={() => productDTO.setField('store', store)}>
+            {store}
+        </Button>
+    ))
 
     const finalizeEditProduct = (e: React.MouseEvent) => {
         mutation.mutate()
@@ -40,6 +50,9 @@ export const EditProductModal = ({ product, closeEditProduct, opened }: EditProd
                     value={productDTO.value.store}
                     className="mb-2"
                 />
+                {recentStores && recentStores.length > 0 && (
+                    <RecentDataScroller className="mb-2">{recentStores}</RecentDataScroller>
+                )}
                 <TextInput
                     label="Link"
                     placeholder="Link"
