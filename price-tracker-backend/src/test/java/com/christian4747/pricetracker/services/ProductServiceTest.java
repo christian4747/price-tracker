@@ -14,6 +14,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
@@ -102,6 +103,14 @@ public class ProductServiceTest {
         when(productDAO.save(any())).thenReturn(addedProduct);
 
         assertEquals("Product", productService.addProduct(productDTO).getName());
+    }
+
+    @Test
+    public void getRecentStores_twoStores_returnTwoStores() {
+        Page<String> storePage = new PageImpl<>(List.of("Store2", "Store"));
+        when(productDAO.findDistinctStores(pageable)).thenReturn(storePage);
+
+        assertEquals(List.of("Store2", "Store"), productService.getRecentStores(pageable));
     }
 
     @Test

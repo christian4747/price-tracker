@@ -9,6 +9,8 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/products")
 @CrossOrigin
@@ -92,6 +94,16 @@ public class ProductController {
     @GetMapping("/count")
     public ResponseEntity<Long> getProductCount() {
         return ResponseEntity.ok(productService.getProductCount());
+    }
+
+    /**
+     * Gets a distinct list of the stores of recently added Products.
+     * @param pageable Pagination settings
+     * @return A distinct list of recently used Product stores (default 20)
+     */
+    @GetMapping("/recent/stores")
+    public ResponseEntity<List<String>> getRecentStores(Pageable pageable) {
+        return ResponseEntity.ok(productService.getRecentStores(pageable));
     }
 
     /**
