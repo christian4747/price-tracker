@@ -67,11 +67,12 @@ export const GroupedProductList = ({ filter }: GroupedProductList) => {
                     onChange={setCurrentlyOpened}
                     transitionDuration={400}
                 >
-                    {query.data.content.map((groupedProduct: GroupedProductData, idx: number) => {
+                    {query.data.content.map((groupedProduct: GroupedProductData) => {
+                        // Key open state by group name so it follows the group when the list changes
                         return (
                             <EditProductContext value={openEditProductModal} key={groupedProduct.name}>
                                 <DeleteProductContext value={openDeleteProductModal}>
-                                    <Accordion.Item value={`item-${idx}`}>
+                                    <Accordion.Item value={`group-${groupedProduct.name}`}>
                                         <GroupedProduct
                                             productBodies={groupedProduct.products}
                                             dateToday={dateToday}
