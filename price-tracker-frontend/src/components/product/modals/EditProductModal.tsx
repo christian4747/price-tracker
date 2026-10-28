@@ -3,6 +3,7 @@ import { Button, Modal, Switch, TextInput } from '@mantine/core'
 import { useEditProduct } from '@/hooks/product/useEditProduct'
 import { useRecentStores } from '@/hooks/product/useRecentStores'
 import { RecentDataScroller } from '@/components/common/RecentDataScroller'
+import { AddedUpdatedText } from '@/components/common/AddedUpdatedText'
 
 interface EditProductModal {
     product: ProductType
@@ -31,7 +32,23 @@ export const EditProductModal = ({ product, closeEditProduct, opened }: EditProd
 
     return (
         <>
-            <Modal title="Edit Product" opened={opened} onClose={closeEditProduct} onClick={(e) => e.stopPropagation()}>
+            <Modal
+                title="Edit Product"
+                opened={opened}
+                onClose={closeEditProduct}
+                onClick={(e) => e.stopPropagation()}
+                // No bottom padding so the dates sit right under the title
+                styles={{ header: { paddingBottom: 0 } }}
+            >
+                {/* In the body rather than the title, so the header's close button stays level with the title */}
+                {product && (
+                    <AddedUpdatedText
+                        createdAt={product.createdAt}
+                        updatedAt={product.updatedAt}
+                        stacked
+                        className="block mb-2"
+                    />
+                )}
                 <TextInput
                     label="Name"
                     placeholder="Name"

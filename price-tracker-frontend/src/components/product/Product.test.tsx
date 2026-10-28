@@ -46,6 +46,17 @@ const productBody: ProductBody = {
     lastUpdated: '2026-09-04T00:00:00.000Z'
 }
 
+// Built from local times so the expected text doesn't depend on the test machine's time zone
+const datedProductBody: ProductBody = {
+    ...productBody,
+    product: {
+        ...product,
+        createdAt: new Date(2026, 7, 31, 14, 5).toISOString(),
+        updatedAt: new Date(2026, 9, 28, 9, 30).toISOString()
+    }
+}
+const datesText = 'Added Aug 31, 2026 2:05 PM · Last updated Oct 28, 2026 9:30 AM'
+
 const renderWithAccordion = (ui: React.ReactNode) => {
     function AccordionWrapper({ children }: { children: React.ReactNode }) {
         const [currentlyOpened, setCurrentlyOpened] = useState<string[]>(['item-1'])
@@ -78,5 +89,23 @@ describe('Product Component', () => {
 
         const productName = screen.getByText('Product 1')
         await expect.element(productName).toBeInTheDocument()
+    })
+
+    test('should show when the product was added and last updated while opened', async () => {
+        renderWithAccordion(
+            <Product productBody={datedProductBody} setDateToday={() => {}} dateToday={new Date()} value={'item-1'} />
+        )
+
+        await expect.element(screen.getByText(datesText)).toBeVisible()
+    })
+
+    test('should hide when the product was added and last updated while closed', async () => {
+        renderWithAccordion(
+            <Product productBody={datedProductBody} setDateToday={() => {}} dateToday={new Date()} value={'item-2'} />
+        )
+
+        await expect.element(screen.getByText('Product 1')).toBeInTheDocument()
+        // A closed panel keeps its content mounted, just hidden
+        await expect.element(screen.getByText(datesText)).not.toBeVisible()
     })
 })
