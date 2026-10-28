@@ -12,7 +12,7 @@ import java.sql.Timestamp;
 @Component
 @Entity
 @Table(name="prices")
-@SQLDelete(sql = "UPDATE {h-schema}prices SET deleted_at = NOW() WHERE price_id=?")
+@SQLDelete(sql = "UPDATE {h-schema}prices SET deleted_at = COALESCE(deleted_at, NOW()) WHERE price_id=?")
 public class Price {
 
     @Id

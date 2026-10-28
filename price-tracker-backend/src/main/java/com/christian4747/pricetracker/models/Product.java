@@ -14,7 +14,7 @@ import java.util.List;
 @Component
 @Entity
 @Table(name="products")
-@SQLDelete(sql = "UPDATE {h-schema}products SET deleted_at = NOW() WHERE product_id=?")
+@SQLDelete(sql = "UPDATE {h-schema}products SET deleted_at = COALESCE(deleted_at, NOW()) WHERE product_id=?")
 public class Product {
 
     @Id

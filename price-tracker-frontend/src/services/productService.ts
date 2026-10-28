@@ -60,5 +60,10 @@ export default {
     deleteProduct: async (productId: number) => {
         const res = await apiClient.delete(apiPath + '/' + productId.toString())
         return res.data
+    },
+
+    restoreProduct: async (productId: number) => {
+        const res = await apiClient.put(apiPath + '/' + productId.toString() + '/restore')
+        return res.data
     }
 }

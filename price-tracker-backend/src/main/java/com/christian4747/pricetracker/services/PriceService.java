@@ -109,6 +109,27 @@ public class PriceService {
     }
 
     /**
+     * Restores a soft deleted Price in the 'prices' database table.
+     * @param priceId The ID of the Price to restore
+     * @return The restored Price
+     */
+    public Price restorePrice(Integer priceId) {
+        Optional<Price> existingPrice = priceDAO.findById(priceId);
+
+        if (existingPrice.isEmpty()) {
+            logger.info("Attempted to restore a Price that doesn't exist: {}", priceId);
+            throw new IllegalArgumentException("Price with ID " + priceId + " does not exist!");
+        }
+
+        Price priceToRestore = existingPrice.get();
+        priceToRestore.setDeletedAt(null);
+        Price restoredPrice = priceDAO.save(priceToRestore);
+        logger.info("Successfully restored Price with ID: {}", priceId);
+
+        return restoredPrice;
+    }
+
+    /**
      * Gets all the Prices in the 'prices' database table. Uses pagination (default 20 per page).
      * @param pageable Pagination settings
      * @return A list of Prices (default 20)

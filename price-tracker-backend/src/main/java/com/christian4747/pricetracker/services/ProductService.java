@@ -17,6 +17,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -92,6 +93,34 @@ public class ProductService {
             logger.info("Attempted to delete a Product that doesn't exist: {}", productId);
             throw new IllegalArgumentException("Product with ID " + productId + " does not exist!");
         }
+    }
+
+    /**
+     * Restores a soft deleted Product in the 'products' database table, along with the Prices that were deleted with it.
+     * Prices deleted separately before the Product stay deleted.
+     * @param productId The ID of the Product to restore
+     * @return The restored Product
+     */
+    @Transactional
+    public Product restoreProduct(Integer productId) {
+        Optional<Product> existingProduct = productDAO.findById(productId);
+
+        if (existingProduct.isEmpty()) {
+            logger.info("Attempted to restore a Product that doesn't exist: {}", productId);
+            throw new IllegalArgumentException("Product with ID " + productId + " does not exist!");
+        }
+
+        Product productToRestore = existingProduct.get();
+        if (productToRestore.getDeletedAt() != null) {
+            int restoredPriceCount = priceDAO.restoreByProductIdAndDeletedAt(productId, productToRestore.getDeletedAt());
+            logger.info("Restored {} Price(s) deleted with Product ID: {}", restoredPriceCount, productId);
+        }
+
+        productToRestore.setDeletedAt(null);
+        Product restoredProduct = productDAO.save(productToRestore);
+        logger.info("Successfully restored Product with ID: {}", productId);
+
+        return restoredProduct;
     }
 
     /**

@@ -7,6 +7,7 @@ import { PriceBanner } from '@/components/price/PriceBanner'
 import { MdEdit, MdDelete } from 'react-icons/md'
 import { DeleteProductContext, EditProductContext } from './ProductContext'
 import { ProductDetails } from './ProductDetails'
+import { RestoreProductButton } from './RestoreProductButton'
 
 export interface GroupedProduct {
     productBodies: ProductBody[]
@@ -105,6 +106,8 @@ export const GroupedProduct = ({ productBodies, dateToday, setDateToday }: Group
                             </Tooltip>
                         </div>
                     )}
+
+                    {productBody.product.deletedAt !== null && <RestoreProductButton product={productBody.product} />}
                 </Fragment>
             )
         }

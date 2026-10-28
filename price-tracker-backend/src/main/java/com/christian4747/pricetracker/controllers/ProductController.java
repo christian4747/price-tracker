@@ -43,6 +43,16 @@ public class ProductController {
     }
 
     /**
+     * Restores a soft deleted Product in the 'products' database table.
+     * @param productId The ID of the Product to restore
+     * @return The restored Product
+     */
+    @PutMapping("/{productId}/restore")
+    public ResponseEntity<Product> restoreProduct(@PathVariable Integer productId) {
+        return ResponseEntity.ok(productService.restoreProduct(productId));
+    }
+
+    /**
      * Gets all the products with the given pagination settings, product filter DTO, and price filter DTO.
      * @param productFilterDTO Product filter details
      * @param priceFilterDTO Current price filter details
