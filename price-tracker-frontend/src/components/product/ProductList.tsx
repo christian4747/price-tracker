@@ -63,14 +63,15 @@ export const ProductList = ({ filter }: ProductList) => {
                 >
                     <EditProductContext value={openEditProductModal}>
                         <DeleteProductContext value={openDeleteProductModal}>
-                            {query.data.content.map((productBody: ProductBody, idx: number) => {
+                            {query.data.content.map((productBody: ProductBody) => {
+                                // Key open state by product so it follows the product when the list changes
                                 return (
                                     <Product
                                         productBody={productBody}
                                         dateToday={dateToday}
                                         setDateToday={setDateToday}
-                                        value={`item-${idx}`}
-                                        key={productBody.product.name + productBody.product.store}
+                                        value={`product-${productBody.product.productId}`}
+                                        key={productBody.product.productId}
                                     />
                                 )
                             })}
