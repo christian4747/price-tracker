@@ -47,6 +47,11 @@ export const GroupedProduct = ({ productBodies, dateToday, setDateToday }: Group
         </Combobox.Option>
     ))
 
+    // Text for the other stores in the group, shown after the selected store
+    const otherStoreCount = productBodies.length - 1
+    const otherStoresText =
+        otherStoreCount > 0 ? `(+${otherStoreCount} other ${otherStoreCount === 1 ? 'store' : 'stores'})` : undefined
+
     // ProductTitleBar for each product
     const productTitleBars = productBodies.map((productBody) => {
         if (productBody.product.store === selectedStore) {
@@ -56,14 +61,7 @@ export const GroupedProduct = ({ productBodies, dateToday, setDateToday }: Group
                     productBody={productBody}
                     dateToday={dateToday}
                     setDateToday={setDateToday}
-                    storeString={
-                        selectedStore +
-                        (productBodies.length - 1 === 1
-                            ? productBodies.length - 1 === 1
-                                ? ` (+${productBodies.length - 1} other store)`
-                                : ` (+${productBodies.length - 1} other stores)`
-                            : '')
-                    }
+                    otherStoresText={otherStoresText}
                 />
             )
         }

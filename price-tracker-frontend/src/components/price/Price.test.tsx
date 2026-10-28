@@ -3,6 +3,7 @@ import { renderWithClient, screen, test, userEvent, waitFor } from '@/test-utils
 import { http, HttpResponse } from 'msw'
 import type { PriceType } from '@/types/price'
 import { Price } from './Price'
+import { getPriceString } from '@/utils/priceUtils'
 
 const pricesApiUrl = import.meta.env.VITE_BACKEND_ROOT_URL + '/prices'
 
@@ -89,5 +90,21 @@ describe('Price Component', () => {
         await user.click(screen.getByRole('img', { name: /restore price/i }))
 
         await waitFor(() => expect(restoredPriceIds).toEqual(['1']))
+    })
+
+    test('should strike through and gray out the date and amount of a deleted price', async () => {
+        renderWithClient(<Price price={deletedPrice} openEditPriceModal={() => {}} openDeletePriceModal={() => {}} />)
+
+        await expect.element(screen.getByText('9/4/2026')).toHaveClass('line-through', 'text-raincloud')
+        await expect
+            .element(screen.getByText(getPriceString(deletedPrice)))
+            .toHaveClass('line-through', 'text-raincloud')
+    })
+
+    test('should not strike through the date and amount of a price', async () => {
+        renderWithClient(<Price price={price} openEditPriceModal={() => {}} openDeletePriceModal={() => {}} />)
+
+        await expect.element(screen.getByText('9/4/2026')).not.toHaveClass('line-through')
+        await expect.element(screen.getByText(getPriceString(price))).not.toHaveClass('line-through')
     })
 })

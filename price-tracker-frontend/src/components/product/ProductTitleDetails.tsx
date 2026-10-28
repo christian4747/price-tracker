@@ -8,20 +8,25 @@ import { RestoreProductButton } from './RestoreProductButton'
 
 export interface ProductTitleDetails {
     product: ProductType
-    storeString?: string
+    otherStoresText?: string
 }
 
-export const ProductTitleDetails = ({ product, storeString }: ProductTitleDetails) => {
+export const ProductTitleDetails = ({ product, otherStoresText }: ProductTitleDetails) => {
     const openEditProductModal = useContext(EditProductContext)
     const openDeleteProductModal = useContext(DeleteProductContext)
+    // Strike through and gray out deleted products so they stand out when deleted products are shown
+    const deletedClassName = product.deletedAt !== null ? 'line-through text-raincloud' : ''
 
     return (
         <div className="flex gap-3 items-baseline-last">
-            <div title={product.name} className="text-lg max-w-100 truncate">
+            <div title={product.name} className={`text-lg max-w-100 truncate ${deletedClassName}`}>
                 {product.name}
             </div>
 
-            <div className="text-raincloud">{storeString ? storeString : product.store}</div>
+            <div className="text-raincloud">
+                <span className={deletedClassName}>{product.store}</span>
+                {otherStoresText && ` ${otherStoresText}`}
+            </div>
 
             <a className="cursor-pointer" href={product.link} target="_blank">
                 <Tooltip withArrow label={product.link}>

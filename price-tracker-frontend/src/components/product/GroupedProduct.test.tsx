@@ -153,7 +153,25 @@ describe('Grouped Product Component', () => {
         await chooseStore(user, 'Store B')
         await user.click(screen.getByRole('button', { name: 'Refetch' }))
 
-        await expect.element(screen.getByText('Store B (+1 other store)')).toBeInTheDocument()
+        await expect.element(screen.getByText(fullText('Store B (+1 other store)'))).toBeInTheDocument()
+    })
+
+    test('should count every other store in the group', async () => {
+        const storeCBody: ProductBody = { ...productBody, product: { ...product, productId: 3, store: 'Store C' } }
+        renderWithAccordion(<StoreSelectionHarness initialBodies={[storeABody, storeBBody, storeCBody]} />)
+
+        await expect.element(screen.getByText(fullText('Store A (+2 other stores)'))).toBeInTheDocument()
+    })
+
+    test('should strike through and gray out only the store of a deleted product', async () => {
+        const deletedStoreABody: ProductBody = {
+            ...storeABody,
+            product: { ...storeABody.product, deletedAt: '2026-09-04T00:00:00.000Z' }
+        }
+        renderWithAccordion(<StoreSelectionHarness initialBodies={[deletedStoreABody, storeBBody]} />)
+
+        await expect.element(screen.getByText('Store A', { exact: true })).toHaveClass('line-through', 'text-raincloud')
+        await expect.element(screen.getByText(fullText('Store A (+1 other store)'))).not.toHaveClass('line-through')
     })
 
     test('should show the first store when the chosen store leaves the list', async () => {
@@ -193,8 +211,12 @@ function StoreSelectionHarness({ initialBodies }: { initialBodies: ProductBody[]
     )
 }
 
+// Matches the innermost element whose full text (including child elements) equals the given text
+const fullText = (text: string) => (_: string, element: Element | null) =>
+    element?.textContent === text && Array.from(element.children).every((child) => child.textContent !== text)
+
 const chooseStore = async (user: ReturnType<typeof userEvent.setup>, store: string) => {
     await user.click(await screen.findByRole('button', { name: 'Store A' }))
     await user.click(await screen.findByRole('option', { name: new RegExp(store, 'i') }))
-    await expect.element(screen.getByText(`${store} (+1 other store)`)).toBeInTheDocument()
+    await expect.element(screen.getByText(fullText(`${store} (+1 other store)`))).toBeInTheDocument()
 }
