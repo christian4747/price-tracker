@@ -1,0 +1,47 @@
+name: Frontend CI
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - "price-tracker-frontend/**"
+      - ".github/workflows/frontend.yml"
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - "price-tracker-frontend/**"
+      - ".github/workflows/frontend.yml"
+
+jobs:
+  check:
+
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ./price-tracker-frontend
+
+    env:
+      # Comes from the gitignored .env.local locally
+      VITE_BACKEND_ROOT_URL: http://localhost:7777/api
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Node
+      uses: actions/setup-node@v4
+      with:
+        node-version-file: price-tracker-frontend/.nvmrc
+        cache: npm
+        cache-dependency-path: price-tracker-frontend/package-lock.json
+    - name: Install dependencies
+      run: npm ci
+    - name: Install Chromium for browser tests
+      run: npx playwright install --with-deps chromium
+    - name: Lint
+      run: npm run lint
+    - name: Check formatting
+      run: npx prettier --check src
+    - name: Run tests
+      run: npx vitest run
+    - name: Build
+      run: npm run build
