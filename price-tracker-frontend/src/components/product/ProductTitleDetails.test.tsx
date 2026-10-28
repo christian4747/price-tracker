@@ -1,7 +1,10 @@
 import { describe, expect } from 'vitest'
-import { renderWithClient, screen, test } from '@/test-utils'
+import { renderWithClient, screen, test, userEvent, waitFor } from '@/test-utils'
+import { http, HttpResponse } from 'msw'
 import type { ProductType } from '@/types/product'
 import { ProductTitleDetails } from './ProductTitleDetails'
+
+const productsApiUrl = import.meta.env.VITE_BACKEND_ROOT_URL + '/products'
 
 const product: ProductType = {
     active: false,
@@ -40,5 +43,28 @@ describe('Product Title Details Component', () => {
 
         const deleteProductButton = screen.queryByRole('img', { name: /delete product/i })
         await expect.element(deleteProductButton).not.toBeInTheDocument()
+    })
+
+    test('should not render product restore button', async () => {
+        renderWithClient(<ProductTitleDetails product={product} />)
+
+        const restoreProductButton = screen.queryByRole('img', { name: /restore product/i })
+        await expect.element(restoreProductButton).not.toBeInTheDocument()
+    })
+
+    test('should restore a deleted product', async ({ worker }) => {
+        const restoredProductIds: string[] = []
+        worker.use(
+            http.put(productsApiUrl + '/:productId/restore', ({ params }) => {
+                restoredProductIds.push(params.productId as string)
+                return HttpResponse.json({ ...deletedProduct, deletedAt: null })
+            })
+        )
+        const user = userEvent.setup()
+        renderWithClient(<ProductTitleDetails product={deletedProduct} />)
+
+        await user.click(screen.getByRole('img', { name: /restore product/i }))
+
+        await waitFor(() => expect(restoredProductIds).toEqual(['0']))
     })
 })

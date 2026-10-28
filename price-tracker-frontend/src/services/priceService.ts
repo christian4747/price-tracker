@@ -19,6 +19,11 @@ export default {
         return res.data
     },
 
+    restorePrice: async (priceId: number) => {
+        const res = await apiClient.put(apiPath + '/' + priceId.toString() + '/restore')
+        return res.data
+    },
+
     getPrices: async (
         productId: number,
         pageNumber: number = 0,

@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -135,6 +136,24 @@ public class PriceServiceTest {
         when(priceDAO.findById(anyInt())).thenReturn(Optional.empty());
 
         assertThrows(IllegalArgumentException.class, () -> priceService.deletePrice(1));
+    }
+
+    @Test
+    public void restorePrice_deletedPrice_clearDeletedAt() {
+        price.setDeletedAt(Timestamp.valueOf("2026-09-14 00:00:00"));
+        when(priceDAO.findById(anyInt())).thenReturn(Optional.of(price));
+        when(priceDAO.save(any(Price.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        assertNull(priceService.restorePrice(1).getDeletedAt());
+        verify(priceDAO).save(price);
+    }
+
+    @Test
+    public void restorePrice_nonExistentPrice_throwException() {
+        when(priceDAO.findById(anyInt())).thenReturn(Optional.empty());
+
+        assertThrows(IllegalArgumentException.class, () -> priceService.restorePrice(1));
+        verify(priceDAO, never()).save(any());
     }
 
     @Test

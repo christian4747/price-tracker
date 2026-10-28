@@ -124,6 +124,28 @@ describe('Grouped Product Component', () => {
         await expect.element(deleteProductButton).not.toBeInTheDocument()
     })
 
+    test('should render restore product button for a deleted product', async () => {
+        renderWithAccordion(
+            <Accordion.Item value="item-1">
+                <GroupedProduct productBodies={[productBody2]} dateToday={new Date()} setDateToday={() => {}} />
+            </Accordion.Item>
+        )
+
+        const restoreProductButton = screen.getByRole('img', { name: /restore product/i })
+        await expect.element(restoreProductButton).toBeInTheDocument()
+    })
+
+    test('should not render restore product button', async () => {
+        renderWithAccordion(
+            <Accordion.Item value="item-1">
+                <GroupedProduct productBodies={[productBody]} dateToday={new Date()} setDateToday={() => {}} />
+            </Accordion.Item>
+        )
+
+        const restoreProductButton = screen.queryByRole('img', { name: /restore product/i })
+        await expect.element(restoreProductButton).not.toBeInTheDocument()
+    })
+
     test('should keep the chosen store when the product list is refetched', async () => {
         const user = userEvent.setup()
         renderWithAccordion(<StoreSelectionHarness initialBodies={[storeABody, storeBBody]} />)

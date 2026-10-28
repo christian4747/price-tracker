@@ -45,6 +45,16 @@ public class PriceController {
     }
 
     /**
+     * Restores a soft deleted Price in the 'prices' database table.
+     * @param priceId The ID of the Price to restore
+     * @return The restored Price
+     */
+    @PutMapping("/{priceId}/restore")
+    public ResponseEntity<Price> restorePrice(@PathVariable Integer priceId) {
+        return ResponseEntity.ok(priceService.restorePrice(priceId));
+    }
+
+    /**
      * Gets all the Prices in 'prices' database table. Uses pagination (default 20 per page).
      * @param pageable Pagination settings
      * @return A list of Prices (default 20)

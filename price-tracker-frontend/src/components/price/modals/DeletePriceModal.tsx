@@ -31,7 +31,7 @@ export const DeletePriceModal = ({ price, closeDeletePrice, opened }: DeletePric
                         Are you sure you want to delete Price {priceStartedString} ({priceAmountString})?
                     </div>
 
-                    <div className="text-xl text-red-600 font-bold mb-2">This cannot be undone.</div>
+                    <div className="mb-2 text-center">You can restore it later by showing deleted prices.</div>
                 </Center>
 
                 <Button fullWidth className="mt-5" onClick={finalizeDeletePrice}>

@@ -2,7 +2,8 @@ import type { PriceType } from '@/types/price'
 import { getUSDateStringFromTimestamp } from '@/utils/dateUtils'
 import { getPriceString } from '@/utils/priceUtils'
 import { Tooltip } from '@mantine/core'
-import { MdDelete, MdEdit } from 'react-icons/md'
+import { MdDelete, MdEdit, MdUndo } from 'react-icons/md'
+import { useRestorePrice } from '@/hooks/price/useRestorePrice'
 
 interface Price {
     price: PriceType
@@ -13,6 +14,8 @@ interface Price {
 export const Price = ({ price, openEditPriceModal, openDeletePriceModal }: Price) => {
     // Constructing the string to show the date on the PriceList
     const priceStartedDateString = getUSDateStringFromTimestamp(price.priceStarted)
+    // Hook for restoring deleted prices
+    const { mutation: restoreMutation } = useRestorePrice(price)
 
     return (
         <div className="flex justify-between even:bg-cloud group/product">
@@ -43,6 +46,22 @@ export const Price = ({ price, openEditPriceModal, openDeletePriceModal }: Price
                     >
                         <Tooltip withArrow label="Delete Price">
                             <MdDelete />
+                        </Tooltip>
+                    </div>
+                )}
+
+                {price.deletedAt !== null && (
+                    <div
+                        className="cursor-pointer"
+                        role="img"
+                        aria-label="Restore price"
+                        onClick={(e) => {
+                            if (!restoreMutation.isPending) restoreMutation.mutate()
+                            e.stopPropagation()
+                        }}
+                    >
+                        <Tooltip withArrow label="Restore Price">
+                            <MdUndo />
                         </Tooltip>
                     </div>
                 )}

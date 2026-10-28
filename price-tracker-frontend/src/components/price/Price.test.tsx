@@ -1,7 +1,10 @@
 import { describe, expect } from 'vitest'
-import { renderWithClient, screen, test } from '@/test-utils'
+import { renderWithClient, screen, test, userEvent, waitFor } from '@/test-utils'
+import { http, HttpResponse } from 'msw'
 import type { PriceType } from '@/types/price'
 import { Price } from './Price'
+
+const pricesApiUrl = import.meta.env.VITE_BACKEND_ROOT_URL + '/prices'
 
 const price: PriceType = {
     priceId: 1,
@@ -63,5 +66,28 @@ describe('Price Component', () => {
 
         const deletePriceButton = screen.queryByRole('img', { name: /delete price/i })
         await expect.element(deletePriceButton).not.toBeInTheDocument()
+    })
+
+    test('should not render restore price button', async () => {
+        renderWithClient(<Price price={price} openEditPriceModal={() => {}} openDeletePriceModal={() => {}} />)
+
+        const restorePriceButton = screen.queryByRole('img', { name: /restore price/i })
+        await expect.element(restorePriceButton).not.toBeInTheDocument()
+    })
+
+    test('should restore a deleted price', async ({ worker }) => {
+        const restoredPriceIds: string[] = []
+        worker.use(
+            http.put(pricesApiUrl + '/:priceId/restore', ({ params }) => {
+                restoredPriceIds.push(params.priceId as string)
+                return HttpResponse.json({ ...deletedPrice, deletedAt: null })
+            })
+        )
+        const user = userEvent.setup()
+        renderWithClient(<Price price={deletedPrice} openEditPriceModal={() => {}} openDeletePriceModal={() => {}} />)
+
+        await user.click(screen.getByRole('img', { name: /restore price/i }))
+
+        await waitFor(() => expect(restoredPriceIds).toEqual(['1']))
     })
 })

@@ -95,6 +95,27 @@ public class ProductService {
     }
 
     /**
+     * Restores a soft deleted Product in the 'products' database table.
+     * @param productId The ID of the Product to restore
+     * @return The restored Product
+     */
+    public Product restoreProduct(Integer productId) {
+        Optional<Product> existingProduct = productDAO.findById(productId);
+
+        if (existingProduct.isEmpty()) {
+            logger.info("Attempted to restore a Product that doesn't exist: {}", productId);
+            throw new IllegalArgumentException("Product with ID " + productId + " does not exist!");
+        }
+
+        Product productToRestore = existingProduct.get();
+        productToRestore.setDeletedAt(null);
+        Product restoredProduct = productDAO.save(productToRestore);
+        logger.info("Successfully restored Product with ID: {}", productId);
+
+        return restoredProduct;
+    }
+
+    /**
      * Gets all the products with the given pagination settings, product filter DTO, and price filter DTO.
      * @param productFilterDTO Product filter details
      * @param priceFilterDTO Current price filter details

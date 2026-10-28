@@ -19,12 +19,16 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -125,6 +129,24 @@ public class ProductServiceTest {
         when(productDAO.findById(anyInt())).thenReturn(Optional.empty());
 
         assertThrows(IllegalArgumentException.class, () -> productService.deleteProduct(1));
+    }
+
+    @Test
+    public void restoreProduct_deletedProduct_clearDeletedAt() {
+        addedProduct.setDeletedAt(Timestamp.valueOf("2026-09-14 00:00:00"));
+        when(productDAO.findById(anyInt())).thenReturn(Optional.of(addedProduct));
+        when(productDAO.save(any(Product.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        assertNull(productService.restoreProduct(1).getDeletedAt());
+        verify(productDAO).save(addedProduct);
+    }
+
+    @Test
+    public void restoreProduct_productNonExistent_throwException() {
+        when(productDAO.findById(anyInt())).thenReturn(Optional.empty());
+
+        assertThrows(IllegalArgumentException.class, () -> productService.restoreProduct(1));
+        verify(productDAO, never()).save(any());
     }
 
     @Test
