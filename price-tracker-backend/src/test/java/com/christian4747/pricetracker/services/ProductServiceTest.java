@@ -142,6 +142,28 @@ public class ProductServiceTest {
     }
 
     @Test
+    public void restoreProduct_deletedProduct_restorePricesDeletedWithProduct() {
+        Timestamp deletedAt = Timestamp.valueOf("2026-09-14 00:00:00");
+        addedProduct.setDeletedAt(deletedAt);
+        when(productDAO.findById(anyInt())).thenReturn(Optional.of(addedProduct));
+        when(productDAO.save(any(Product.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        productService.restoreProduct(1);
+
+        verify(priceDAO).restoreByProductIdAndDeletedAt(1, deletedAt);
+    }
+
+    @Test
+    public void restoreProduct_notDeletedProduct_leavePricesAlone() {
+        when(productDAO.findById(anyInt())).thenReturn(Optional.of(addedProduct));
+        when(productDAO.save(any(Product.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        productService.restoreProduct(1);
+
+        verify(priceDAO, never()).restoreByProductIdAndDeletedAt(anyInt(), any());
+    }
+
+    @Test
     public void restoreProduct_productNonExistent_throwException() {
         when(productDAO.findById(anyInt())).thenReturn(Optional.empty());
 

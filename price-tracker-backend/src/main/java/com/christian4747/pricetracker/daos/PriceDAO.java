@@ -5,6 +5,7 @@ import com.christian4747.pricetracker.models.PriceTotalPercentages;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -21,6 +22,17 @@ public interface PriceDAO extends JpaRepository<Price, Integer> {
      * @return Prices whose deletedAt is not null (not deleted)
      */
     Page<Price> findByDeletedAtNull(Pageable pageable);
+
+    /**
+     * Restores the Prices of the given productId that were deleted at the given time. Deleting a Product deletes its
+     * Prices in the same transaction, so they share the Product's deletedAt.
+     * @param productId productId of the Prices to restore
+     * @param deletedAt The deletedAt of the Prices to restore
+     * @return The number of restored Prices
+     */
+    @Modifying
+    @Query(value = "UPDATE Price p SET p.deletedAt = NULL WHERE p.product.productId = :productId AND p.deletedAt = :deletedAt")
+    int restoreByProductIdAndDeletedAt(@Param("productId") Integer productId, @Param("deletedAt") Timestamp deletedAt);
 
     /**
      * Gets a distinct list of recently added non-deleted Price base amounts for the given product ID.
