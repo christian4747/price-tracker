@@ -11,8 +11,14 @@ name: Java CI with Maven
 on:
   push:
     branches: [ "main" ]
+    paths:
+      - "price-tracker-backend/**"
+      - ".github/workflows/maven.yml"
   pull_request:
     branches: [ "main" ]
+    paths:
+      - "price-tracker-backend/**"
+      - ".github/workflows/maven.yml"
 
 jobs:
   verify:
