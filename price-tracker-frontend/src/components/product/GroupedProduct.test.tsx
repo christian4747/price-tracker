@@ -120,10 +120,11 @@ function StoreSelectionHarness({ initialBodies }: { initialBodies: ProductBody[]
 const fullText = (text: string) => (_: string, element: Element | null) =>
     element?.textContent === text && Array.from(element.children).every((child) => child.textContent !== text)
 
-const chooseStore = async (user: ReturnType<typeof userEvent.setup>, store: string) => {
-    await user.click(await screen.findByRole('button', { name: 'Store A' }))
-    await user.click(await screen.findByRole('option', { name: new RegExp(store, 'i') }))
-    await expect.element(screen.getByText(fullText(`${store} (+1 other store)`))).toBeInTheDocument()
+// Picks toStore in the store picker, which shows fromStore until then
+const chooseStore = async (user: ReturnType<typeof userEvent.setup>, fromStore: string, toStore: string) => {
+    await user.click(await screen.findByRole('button', { name: fromStore }))
+    await user.click(await screen.findByRole('option', { name: new RegExp(toStore, 'i') }))
+    await expect.element(await screen.findByRole('button', { name: toStore })).toBeInTheDocument()
 }
 
 describe('Grouped Product Component', () => {
@@ -186,7 +187,7 @@ describe('Grouped Product Component', () => {
         const user = userEvent.setup()
         renderWithAccordion(<StoreSelectionHarness initialBodies={[storeABody, storeBBody]} />)
 
-        await chooseStore(user, 'Store B')
+        await chooseStore(user, 'Store A', 'Store B')
         await user.click(screen.getByRole('button', { name: 'Refetch' }))
 
         await expect.element(screen.getByText(fullText('Store B (+1 other store)'))).toBeInTheDocument()
@@ -214,7 +215,7 @@ describe('Grouped Product Component', () => {
         const user = userEvent.setup()
         renderWithAccordion(<StoreSelectionHarness initialBodies={[storeABody, storeBBody]} />)
 
-        await chooseStore(user, 'Store B')
+        await chooseStore(user, 'Store A', 'Store B')
         await user.click(screen.getByRole('button', { name: 'Remove Store B' }))
 
         await expect.element(await screen.findByRole('button', { name: 'Store A' })).toBeInTheDocument()
