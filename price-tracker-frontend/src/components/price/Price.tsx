@@ -16,12 +16,14 @@ export const Price = ({ price, openEditPriceModal, openDeletePriceModal }: Price
     const priceStartedDateString = getUSDateStringFromTimestamp(price.priceStarted)
     // Hook for restoring deleted prices
     const { mutation: restoreMutation } = useRestorePrice(price)
+    // Strike through and gray out deleted prices so they stand out when deleted prices are shown
+    const deletedClassName = price.deletedAt !== null ? 'line-through text-raincloud' : ''
 
     return (
         <div className="flex justify-between even:bg-cloud group/product">
-            <div className="pl-2">{priceStartedDateString}</div>
+            <div className={`pl-2 ${deletedClassName}`}>{priceStartedDateString}</div>
             <div className="pr-2 flex items-center gap-1">
-                <div>{getPriceString(price)}</div>
+                <div className={deletedClassName}>{getPriceString(price)}</div>
                 <div
                     className="cursor-pointer"
                     onClick={(e) => {

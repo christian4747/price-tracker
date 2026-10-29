@@ -67,4 +67,18 @@ describe('Product Title Details Component', () => {
 
         await waitFor(() => expect(restoredProductIds).toEqual(['0']))
     })
+
+    test('should strike through and gray out the name and store of a deleted product', async () => {
+        renderWithClient(<ProductTitleDetails product={{ ...deletedProduct, store: 'Store 1' }} />)
+
+        await expect.element(screen.getByText('Product 1')).toHaveClass('line-through', 'text-raincloud')
+        await expect.element(screen.getByText('Store 1')).toHaveClass('line-through', 'text-raincloud')
+    })
+
+    test('should not strike through the name and store of a product', async () => {
+        renderWithClient(<ProductTitleDetails product={{ ...product, store: 'Store 1' }} />)
+
+        await expect.element(screen.getByText('Product 1')).not.toHaveClass('line-through')
+        await expect.element(screen.getByText('Store 1')).not.toHaveClass('line-through')
+    })
 })

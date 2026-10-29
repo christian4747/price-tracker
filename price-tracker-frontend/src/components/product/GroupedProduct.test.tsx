@@ -90,6 +90,43 @@ const renderWithAccordion = (ui: React.ReactNode) => {
     return renderWithClient(<AccordionWrapper>{ui}</AccordionWrapper>)
 }
 
+const storeABody: ProductBody = { ...productBody, product: { ...product, productId: 1, store: 'Store A' } }
+const storeBBody: ProductBody = { ...productBody, product: { ...product, productId: 2, store: 'Store B' } }
+
+// Lets tests replace productBodies the way a refetch would
+function StoreSelectionHarness({ initialBodies }: { initialBodies: ProductBody[] }) {
+    const [productBodies, setProductBodies] = useState(initialBodies)
+
+    return (
+        <>
+            <button onClick={() => setProductBodies(productBodies.map((productBody) => ({ ...productBody })))}>
+                Refetch
+            </button>
+            <button
+                onClick={() =>
+                    setProductBodies(productBodies.filter((productBody) => productBody.product.store !== 'Store B'))
+                }
+            >
+                Remove Store B
+            </button>
+            <Accordion.Item value="item-1">
+                <GroupedProduct productBodies={productBodies} dateToday={new Date()} setDateToday={() => {}} />
+            </Accordion.Item>
+        </>
+    )
+}
+
+// Matches the innermost element whose full text (including child elements) equals the given text
+const fullText = (text: string) => (_: string, element: Element | null) =>
+    element?.textContent === text && Array.from(element.children).every((child) => child.textContent !== text)
+
+// Picks toStore in the store picker, which shows fromStore until then
+const chooseStore = async (user: ReturnType<typeof userEvent.setup>, fromStore: string, toStore: string) => {
+    await user.click(await screen.findByRole('button', { name: fromStore }))
+    await user.click(await screen.findByRole('option', { name: new RegExp(toStore, 'i') }))
+    await expect.element(await screen.findByRole('button', { name: toStore })).toBeInTheDocument()
+}
+
 describe('Grouped Product Component', () => {
     test('should render grouped product', async () => {
         renderWithAccordion(
@@ -150,51 +187,37 @@ describe('Grouped Product Component', () => {
         const user = userEvent.setup()
         renderWithAccordion(<StoreSelectionHarness initialBodies={[storeABody, storeBBody]} />)
 
-        await chooseStore(user, 'Store B')
+        await chooseStore(user, 'Store A', 'Store B')
         await user.click(screen.getByRole('button', { name: 'Refetch' }))
 
-        await expect.element(screen.getByText('Store B (+1 other store)')).toBeInTheDocument()
+        await expect.element(screen.getByText(fullText('Store B (+1 other store)'))).toBeInTheDocument()
+    })
+
+    test('should count every other store in the group', async () => {
+        const storeCBody: ProductBody = { ...productBody, product: { ...product, productId: 3, store: 'Store C' } }
+        renderWithAccordion(<StoreSelectionHarness initialBodies={[storeABody, storeBBody, storeCBody]} />)
+
+        await expect.element(screen.getByText(fullText('Store A (+2 other stores)'))).toBeInTheDocument()
+    })
+
+    test('should strike through and gray out only the store of a deleted product', async () => {
+        const deletedStoreABody: ProductBody = {
+            ...storeABody,
+            product: { ...storeABody.product, deletedAt: '2026-09-04T00:00:00.000Z' }
+        }
+        renderWithAccordion(<StoreSelectionHarness initialBodies={[deletedStoreABody, storeBBody]} />)
+
+        await expect.element(screen.getByText('Store A', { exact: true })).toHaveClass('line-through', 'text-raincloud')
+        await expect.element(screen.getByText(fullText('Store A (+1 other store)'))).not.toHaveClass('line-through')
     })
 
     test('should show the first store when the chosen store leaves the list', async () => {
         const user = userEvent.setup()
         renderWithAccordion(<StoreSelectionHarness initialBodies={[storeABody, storeBBody]} />)
 
-        await chooseStore(user, 'Store B')
+        await chooseStore(user, 'Store A', 'Store B')
         await user.click(screen.getByRole('button', { name: 'Remove Store B' }))
 
         await expect.element(await screen.findByRole('button', { name: 'Store A' })).toBeInTheDocument()
     })
 })
-
-const storeABody: ProductBody = { ...productBody, product: { ...product, productId: 1, store: 'Store A' } }
-const storeBBody: ProductBody = { ...productBody, product: { ...product, productId: 2, store: 'Store B' } }
-
-// Lets tests replace productBodies the way a refetch would
-function StoreSelectionHarness({ initialBodies }: { initialBodies: ProductBody[] }) {
-    const [productBodies, setProductBodies] = useState(initialBodies)
-
-    return (
-        <>
-            <button onClick={() => setProductBodies(productBodies.map((productBody) => ({ ...productBody })))}>
-                Refetch
-            </button>
-            <button
-                onClick={() =>
-                    setProductBodies(productBodies.filter((productBody) => productBody.product.store !== 'Store B'))
-                }
-            >
-                Remove Store B
-            </button>
-            <Accordion.Item value="item-1">
-                <GroupedProduct productBodies={productBodies} dateToday={new Date()} setDateToday={() => {}} />
-            </Accordion.Item>
-        </>
-    )
-}
-
-const chooseStore = async (user: ReturnType<typeof userEvent.setup>, store: string) => {
-    await user.click(await screen.findByRole('button', { name: 'Store A' }))
-    await user.click(await screen.findByRole('option', { name: new RegExp(store, 'i') }))
-    await expect.element(screen.getByText(`${store} (+1 other store)`)).toBeInTheDocument()
-}
