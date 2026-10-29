@@ -93,6 +93,17 @@ public class ProductServiceTest {
     }
 
     @Test
+    public void addProduct_deletedProductExists_throwRestoreMessage() {
+        addedProduct.setDeletedAt(Timestamp.valueOf("2026-09-14 00:00:00"));
+        when(productDAO.findAllByName(anyString())).thenReturn(List.of(addedProduct));
+
+        IllegalArgumentException exception =
+                assertThrows(IllegalArgumentException.class, () -> productService.addProduct(productDTO));
+        assertEquals("Product already exists as a deleted product. Restore it instead!", exception.getMessage());
+        verify(productDAO, never()).save(any());
+    }
+
+    @Test
     public void addProduct_productExistsDiffStore_returnProduct() {
         addedProduct.setStore("Store2");
 
@@ -238,6 +249,70 @@ public class ProductServiceTest {
         when(productDAO.save(any())).thenReturn(addedProduct);
 
         assertEquals("Product2", productService.updateProduct(1, productDTO).getName());
+    }
+
+    @Test
+    public void updateProduct_otherProductHasNameAndStore_throwException() {
+        addedProduct.setProductId(1);
+        Product otherProduct = new Product();
+        otherProduct.setProductId(2);
+        otherProduct.setName("Product");
+        otherProduct.setStore("Store");
+
+        when(productDAO.findById(anyInt())).thenReturn(Optional.of(addedProduct));
+        when(productDAO.findAllByName("Product")).thenReturn(List.of(addedProduct, otherProduct));
+
+        IllegalArgumentException exception =
+                assertThrows(IllegalArgumentException.class, () -> productService.updateProduct(1, productDTO));
+        assertEquals("Product already exists!", exception.getMessage());
+        verify(productDAO, never()).save(any());
+    }
+
+    @Test
+    public void updateProduct_keepOwnNameAndStore_returnProduct() {
+        addedProduct.setProductId(1);
+
+        when(productDAO.findById(anyInt())).thenReturn(Optional.of(addedProduct));
+        when(productDAO.findAllByName("Product")).thenReturn(List.of(addedProduct));
+        when(productDAO.save(any())).thenReturn(addedProduct);
+
+        assertEquals("Product", productService.updateProduct(1, productDTO).getName());
+    }
+
+    @Test
+    public void restoreProduct_activeProductHasNameAndStore_throwException() {
+        addedProduct.setProductId(1);
+        addedProduct.setDeletedAt(Timestamp.valueOf("2026-09-14 00:00:00"));
+        Product activeProduct = new Product();
+        activeProduct.setProductId(2);
+        activeProduct.setName("Product");
+        activeProduct.setStore("Store");
+
+        when(productDAO.findById(anyInt())).thenReturn(Optional.of(addedProduct));
+        when(productDAO.findAllByName("Product")).thenReturn(List.of(addedProduct, activeProduct));
+
+        IllegalArgumentException exception =
+                assertThrows(IllegalArgumentException.class, () -> productService.restoreProduct(1));
+        assertEquals("Another product with the same name and store already exists!", exception.getMessage());
+        verify(productDAO, never()).save(any());
+        verify(priceDAO, never()).restoreByProductIdAndDeletedAt(anyInt(), any());
+    }
+
+    @Test
+    public void restoreProduct_onlyDeletedProductHasNameAndStore_returnProduct() {
+        addedProduct.setProductId(1);
+        addedProduct.setDeletedAt(Timestamp.valueOf("2026-09-14 00:00:00"));
+        Product deletedProduct = new Product();
+        deletedProduct.setProductId(2);
+        deletedProduct.setName("Product");
+        deletedProduct.setStore("Store");
+        deletedProduct.setDeletedAt(Timestamp.valueOf("2026-09-15 00:00:00"));
+
+        when(productDAO.findById(anyInt())).thenReturn(Optional.of(addedProduct));
+        when(productDAO.findAllByName("Product")).thenReturn(List.of(addedProduct, deletedProduct));
+        when(productDAO.save(any(Product.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        assertNull(productService.restoreProduct(1).getDeletedAt());
     }
 
 }

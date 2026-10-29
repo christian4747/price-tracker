@@ -45,18 +45,7 @@ public class ProductService {
      * @return The newly added Product
      */
     public Product addProduct(IncomingProductDTO productDTO) {
-        List<Product> existingProducts = productDAO.findAllByName(productDTO.getName());
-
-        if (!existingProducts.isEmpty()) {
-            existingProducts
-                .forEach(product -> {
-                    if (product.getStore().equals(productDTO.getStore())) {
-                        logger.info("Attempted to add a Product that already exists: {}, {}",
-                                productDTO.getName(), productDTO.getStore());
-                        throw new IllegalArgumentException("Product already exists!");
-                    }
-                });
-        }
+        checkForDuplicate(productDTO.getName(), productDTO.getStore(), null);
 
         Product newProduct = new Product(
                 0,
@@ -112,6 +101,14 @@ public class ProductService {
 
         Product productToRestore = existingProduct.get();
         if (productToRestore.getDeletedAt() != null) {
+            boolean activeDuplicateExists = findOtherProducts(productToRestore.getName(), productToRestore.getStore(), productId)
+                    .stream()
+                    .anyMatch(product -> product.getDeletedAt() == null);
+            if (activeDuplicateExists) {
+                logger.info("Attempted to restore a Product that would duplicate another Product: {}", productId);
+                throw new IllegalArgumentException("Another product with the same name and store already exists!");
+            }
+
             int restoredPriceCount = priceDAO.restoreByProductIdAndDeletedAt(productId, productToRestore.getDeletedAt());
             logger.info("Restored {} Price(s) deleted with Product ID: {}", restoredPriceCount, productId);
         }
@@ -121,6 +118,38 @@ public class ProductService {
         logger.info("Successfully restored Product with ID: {}", productId);
 
         return restoredProduct;
+    }
+
+    /**
+     * Finds the other Products with the given name and store, including deleted Products.
+     * @param name Name to match
+     * @param store Store to match
+     * @param productId ID of the Product to leave out, or null to check every Product
+     * @return The other Products with the given name and store
+     */
+    private List<Product> findOtherProducts(String name, String store, Integer productId) {
+        return productDAO.findAllByName(name).stream()
+                .filter(product -> Objects.equals(product.getStore(), store))
+                .filter(product -> productId == null || product.getProductId() != productId)
+                .toList();
+    }
+
+    /**
+     * Throws if another Product already uses the given name and store. Deleted Products count too, so they can be
+     * restored instead of duplicated.
+     * @param name Name to check
+     * @param store Store to check
+     * @param productId ID of the Product being edited, or null when adding a Product
+     */
+    private void checkForDuplicate(String name, String store, Integer productId) {
+        List<Product> otherProducts = findOtherProducts(name, store, productId);
+        if (otherProducts.isEmpty()) return;
+
+        logger.info("Attempted to save a Product that already exists: {}, {}", name, store);
+        if (otherProducts.stream().allMatch(product -> product.getDeletedAt() != null)) {
+            throw new IllegalArgumentException("Product already exists as a deleted product. Restore it instead!");
+        }
+        throw new IllegalArgumentException("Product already exists!");
     }
 
     /**
@@ -326,6 +355,8 @@ public class ProductService {
             logger.info("Attempted to update a Product that doesn't exist: {}", productId);
             throw new IllegalArgumentException("Product with ID " + productId + " does not exist!");
         }
+
+        checkForDuplicate(productDTO.getName(), productDTO.getStore(), productId);
 
         Product productToUpdate = existingProduct.get();
 
