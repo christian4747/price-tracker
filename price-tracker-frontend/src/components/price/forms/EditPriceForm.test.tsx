@@ -1,5 +1,5 @@
-import { describe, expect } from 'vitest'
-import { renderWithClient, screen, test, userEvent } from '@/test-utils'
+import { describe, expect, vi } from 'vitest'
+import { renderWithClient, screen, test, userEvent, waitFor } from '@/test-utils'
 import { http, HttpResponse } from 'msw'
 import { EditPriceForm } from './EditPriceForm'
 import type { PriceType } from '@/types/price'
@@ -54,6 +54,52 @@ describe('Edit Price Form Component', () => {
         expect((screen.getByRole('textbox', { name: /base price/i }) as HTMLInputElement).value).toBe('250.00')
         expect((screen.getByRole('textbox', { name: /discount amount/i }) as HTMLInputElement).value).toBe('200.00')
         expect((screen.getByRole('textbox', { name: /return amount/i }) as HTMLInputElement).value).toBe('10.00')
+    })
+
+    test('should show the save in progress and close once it succeeds', async ({ worker }) => {
+        let finishSave = () => {}
+        const saveFinished = new Promise<void>((resolve) => (finishSave = resolve))
+        worker.use(
+            http.put(pricesApiUrl + '/:priceId', async () => {
+                await saveFinished
+                return HttpResponse.json(price)
+            })
+        )
+        const closeEditPrice = vi.fn()
+        const user = userEvent.setup()
+        renderWithClient(<EditPriceForm price={price} closeEditPrice={closeEditPrice} />)
+
+        const submitButton = screen.getByRole('button', { name: 'Edit Price' })
+        await user.click(submitButton)
+
+        await waitFor(() => expect(submitButton).toBeDisabled())
+        expect(closeEditPrice).not.toHaveBeenCalled()
+
+        finishSave()
+
+        await waitFor(() => expect(closeEditPrice).toHaveBeenCalledOnce())
+    })
+
+    test('should stay open with its values when the save is rejected', async ({ worker }) => {
+        let saveRejected = false
+        worker.use(
+            http.put(pricesApiUrl + '/:priceId', () => {
+                saveRejected = true
+                return HttpResponse.text('Price is invalid', { status: 400 })
+            })
+        )
+        const closeEditPrice = vi.fn()
+        const user = userEvent.setup()
+        renderWithClient(<EditPriceForm price={price} closeEditPrice={closeEditPrice} />)
+
+        await user.type(screen.getByRole('textbox', { name: 'Description' }), 'Sale')
+        const submitButton = screen.getByRole('button', { name: 'Edit Price' })
+        await user.click(submitButton)
+
+        await waitFor(() => expect(saveRejected).toBe(true))
+        await waitFor(() => expect(submitButton).toBeEnabled())
+        expect(closeEditPrice).not.toHaveBeenCalled()
+        expect((screen.getByRole('textbox', { name: 'Description' }) as HTMLInputElement).value).toBe('Sale')
     })
 
     test('should render input for price', async () => {

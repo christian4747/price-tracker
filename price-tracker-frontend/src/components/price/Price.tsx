@@ -1,7 +1,7 @@
 import type { PriceType } from '@/types/price'
 import { getUSDateStringFromTimestamp } from '@/utils/dateUtils'
 import { getPriceString } from '@/utils/priceUtils'
-import { Tooltip } from '@mantine/core'
+import { Loader, Tooltip } from '@mantine/core'
 import { MdDelete, MdEdit, MdUndo } from 'react-icons/md'
 import { useRestorePrice } from '@/hooks/price/useRestorePrice'
 
@@ -62,9 +62,13 @@ export const Price = ({ price, openEditPriceModal, openDeletePriceModal }: Price
                             e.stopPropagation()
                         }}
                     >
-                        <Tooltip withArrow label="Restore Price">
-                            <MdUndo />
-                        </Tooltip>
+                        {restoreMutation.isPending ? (
+                            <Loader size={16} />
+                        ) : (
+                            <Tooltip withArrow label="Restore Price">
+                                <MdUndo />
+                            </Tooltip>
+                        )}
                     </div>
                 )}
             </div>

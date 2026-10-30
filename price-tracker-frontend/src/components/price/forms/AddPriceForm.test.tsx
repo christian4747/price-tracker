@@ -1,4 +1,4 @@
-import { describe, expect } from 'vitest'
+import { describe, expect, vi } from 'vitest'
 import { renderWithClient, screen, test, userEvent, waitFor } from '@/test-utils'
 import { http, HttpResponse } from 'msw'
 import { AddPriceForm } from './AddPriceForm'
@@ -81,6 +81,63 @@ describe('Add Price Form Component', () => {
         expect(screen.queryByText('End date must be after the start date')).not.toBeInTheDocument()
         expect(screen.getByRole('button', { name: 'Add Price' })).toBeEnabled()
     })
+
+    test.for([{ dateButton: 'Start Date Only' }, { dateButton: 'Start and End Date' }])(
+        'should show the save in progress and close once it succeeds with $dateButton',
+        async ({ dateButton }, { worker }) => {
+            let finishSave = () => {}
+            const saveFinished = new Promise<void>((resolve) => (finishSave = resolve))
+            worker.use(
+                http.post(pricesApiUrl, async () => {
+                    await saveFinished
+                    return HttpResponse.json({ priceStarted: '2026-09-04T00:00:00.000Z' })
+                })
+            )
+            const close = vi.fn()
+            const setDateToday = vi.fn()
+            const user = userEvent.setup()
+            renderWithClient(<AddPriceForm product={product} setDateToday={setDateToday} close={close} />)
+
+            await user.click(screen.getByRole('button', { name: dateButton }))
+            const submitButton = screen.getByRole('button', { name: 'Add Price' })
+            await user.click(submitButton)
+
+            await waitFor(() => expect(submitButton).toBeDisabled())
+            expect(close).not.toHaveBeenCalled()
+            expect(setDateToday).not.toHaveBeenCalled()
+
+            finishSave()
+
+            await waitFor(() => expect(close).toHaveBeenCalledOnce())
+            expect(setDateToday).toHaveBeenCalledOnce()
+        }
+    )
+
+    test.for([{ dateButton: 'Start Date Only' }, { dateButton: 'Start and End Date' }])(
+        'should stay open with its values when rejected with $dateButton',
+        async ({ dateButton }, { worker }) => {
+            let saveRejected = false
+            worker.use(
+                http.post(pricesApiUrl, () => {
+                    saveRejected = true
+                    return HttpResponse.text('Price is invalid', { status: 400 })
+                })
+            )
+            const close = vi.fn()
+            const user = userEvent.setup()
+            renderWithClient(<AddPriceForm product={product} setDateToday={() => {}} close={close} />)
+
+            await user.click(screen.getByRole('button', { name: dateButton }))
+            await user.type(screen.getByRole('textbox', { name: 'Description' }), 'Sale')
+            const submitButton = screen.getByRole('button', { name: 'Add Price' })
+            await user.click(submitButton)
+
+            await waitFor(() => expect(saveRejected).toBe(true))
+            await waitFor(() => expect(submitButton).toBeEnabled())
+            expect(close).not.toHaveBeenCalled()
+            expect((screen.getByRole('textbox', { name: 'Description' }) as HTMLInputElement).value).toBe('Sale')
+        }
+    )
 
     test('should render input for price', async () => {
         renderWithClient(<AddPriceForm product={product} setDateToday={() => {}} close={() => {}} />)

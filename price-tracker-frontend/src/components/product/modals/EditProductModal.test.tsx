@@ -1,5 +1,5 @@
-import { describe, expect } from 'vitest'
-import { renderWithClient, screen, test, userEvent } from '@/test-utils'
+import { describe, expect, vi } from 'vitest'
+import { renderWithClient, screen, test, userEvent, waitFor } from '@/test-utils'
 import { http, HttpResponse } from 'msw'
 import { EditProductModal } from './EditProductModal'
 import type { ProductType } from '@/types/product'
@@ -57,5 +57,51 @@ describe('Edit Product Modal Component', () => {
         await user.click(await screen.findByRole('button', { name: 'Store 2' }))
 
         expect(storeInput.value).toBe('Store 2')
+    })
+
+    test('should show the save in progress and close once it succeeds', async ({ worker }) => {
+        let finishSave = () => {}
+        const saveFinished = new Promise<void>((resolve) => (finishSave = resolve))
+        worker.use(
+            http.put(productsApiUrl + '/:productId', async () => {
+                await saveFinished
+                return HttpResponse.json(product)
+            })
+        )
+        const closeEditProduct = vi.fn()
+        const user = userEvent.setup()
+        renderWithClient(<EditProductModal product={product} closeEditProduct={closeEditProduct} opened />)
+
+        const submitButton = screen.getByRole('button', { name: 'Edit Product' })
+        await user.click(submitButton)
+
+        await waitFor(() => expect(submitButton).toBeDisabled())
+        expect(closeEditProduct).not.toHaveBeenCalled()
+
+        finishSave()
+
+        await waitFor(() => expect(closeEditProduct).toHaveBeenCalledOnce())
+    })
+
+    test('should stay open with its values when the save is rejected', async ({ worker }) => {
+        let saveRejected = false
+        worker.use(
+            http.put(productsApiUrl + '/:productId', () => {
+                saveRejected = true
+                return HttpResponse.text('Product already exists!', { status: 400 })
+            })
+        )
+        const closeEditProduct = vi.fn()
+        const user = userEvent.setup()
+        renderWithClient(<EditProductModal product={product} closeEditProduct={closeEditProduct} opened />)
+
+        await user.type(screen.getByRole('textbox', { name: 'Name' }), ' changed')
+        const submitButton = screen.getByRole('button', { name: 'Edit Product' })
+        await user.click(submitButton)
+
+        await waitFor(() => expect(saveRejected).toBe(true))
+        await waitFor(() => expect(submitButton).toBeEnabled())
+        expect(closeEditProduct).not.toHaveBeenCalled()
+        expect((screen.getByRole('textbox', { name: 'Name' }) as HTMLInputElement).value).toBe('Product 1 changed')
     })
 })

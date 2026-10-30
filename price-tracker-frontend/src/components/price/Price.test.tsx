@@ -92,6 +92,32 @@ describe('Price Component', () => {
         await waitFor(() => expect(restoredPriceIds).toEqual(['1']))
     })
 
+    test('should show the restore in progress and ignore clicks until it finishes', async ({ worker }) => {
+        let requestCount = 0
+        let finishRestore = () => {}
+        const restoreFinished = new Promise<void>((resolve) => (finishRestore = resolve))
+        worker.use(
+            http.put(pricesApiUrl + '/:priceId/restore', async () => {
+                requestCount++
+                await restoreFinished
+                return HttpResponse.json({ ...deletedPrice, deletedAt: null })
+            })
+        )
+        const user = userEvent.setup()
+        renderWithClient(<Price price={deletedPrice} openEditPriceModal={() => {}} openDeletePriceModal={() => {}} />)
+
+        const restoreButton = screen.getByRole('img', { name: /restore price/i })
+        await user.click(restoreButton)
+
+        await waitFor(() => expect(restoreButton.querySelector('.mantine-Loader-root')).toBeInTheDocument())
+        await user.click(restoreButton)
+
+        finishRestore()
+
+        await waitFor(() => expect(restoreButton.querySelector('.mantine-Loader-root')).not.toBeInTheDocument())
+        expect(requestCount).toBe(1)
+    })
+
     test('should strike through and gray out the date and amount of a deleted price', async () => {
         renderWithClient(<Price price={deletedPrice} openEditPriceModal={() => {}} openDeletePriceModal={() => {}} />)
 

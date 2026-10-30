@@ -1,6 +1,6 @@
 import { useRestoreProduct } from '@/hooks/product/useRestoreProduct'
 import type { ProductType } from '@/types/product'
-import { Tooltip } from '@mantine/core'
+import { Loader, Tooltip } from '@mantine/core'
 import { MdUndo } from 'react-icons/md'
 
 interface RestoreProductButton {
@@ -21,9 +21,13 @@ export const RestoreProductButton = ({ product }: RestoreProductButton) => {
                 e.stopPropagation()
             }}
         >
-            <Tooltip withArrow label="Restore Product">
-                <MdUndo />
-            </Tooltip>
+            {mutation.isPending ? (
+                <Loader size={16} />
+            ) : (
+                <Tooltip withArrow label="Restore Product">
+                    <MdUndo />
+                </Tooltip>
+            )}
         </div>
     )
 }

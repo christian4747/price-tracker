@@ -3,6 +3,7 @@ import { Button, TextInput } from '@mantine/core'
 import { useEditPrice } from '@/hooks/price/useEditPrice'
 import { getFormattedDateString } from '@/utils/dateUtils'
 import { RecentDataScroller } from '@/components/common/RecentDataScroller'
+import { SubmitButton } from '@/components/common/SubmitButton'
 import { PriceDateTimePicker } from '@/components/price/PriceDateTimePicker'
 import { useRecentPriceData } from '@/hooks/price/useRecentPriceData'
 import { AmountInputGroup } from '@/components/price/AmountInputGroup'
@@ -37,8 +38,7 @@ export const EditPriceForm = ({ price, closeEditPrice }: EditPriceForm) => {
     ))
 
     const finalizeEditPrice = (e: React.MouseEvent) => {
-        mutation.mutate()
-        closeEditPrice()
+        mutation.mutate(undefined, { onSuccess: closeEditPrice })
         e.stopPropagation()
     }
 
@@ -86,9 +86,9 @@ export const EditPriceForm = ({ price, closeEditPrice }: EditPriceForm) => {
                 <RecentDataScroller className="mb-2">{recentPricesStarted}</RecentDataScroller>
             )}
 
-            <Button fullWidth className="mt-5" onClick={finalizeEditPrice}>
+            <SubmitButton pending={mutation.isPending} onClick={finalizeEditPrice}>
                 Edit Price
-            </Button>
+            </SubmitButton>
         </>
     )
 }
