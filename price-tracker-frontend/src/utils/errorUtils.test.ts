@@ -28,6 +28,12 @@ describe('getErrorMessage', () => {
         )
     })
 
+    test('should explain that a timed out request took too long', () => {
+        const timeoutError = new AxiosError('timeout of 10000ms exceeded', AxiosError.ECONNABORTED)
+
+        expect(getErrorMessage(timeoutError)).toBe('The server took too long to respond. Refresh and try again later.')
+    })
+
     test('should return a generic message for other errors', () => {
         expect(getErrorMessage(new Error('Something broke'))).toBe('An error has occurred: Error: Something broke')
     })
