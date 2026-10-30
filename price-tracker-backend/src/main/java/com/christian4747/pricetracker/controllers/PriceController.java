@@ -2,6 +2,7 @@ package com.christian4747.pricetracker.controllers;
 
 import com.christian4747.pricetracker.models.Price;
 import com.christian4747.pricetracker.models.dtos.IncomingPriceDTO;
+import com.christian4747.pricetracker.models.dtos.IncomingPriceRangeDTO;
 import com.christian4747.pricetracker.models.dtos.RecentPriceData;
 import com.christian4747.pricetracker.services.PriceService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +33,17 @@ public class PriceController {
     @PostMapping
     public ResponseEntity<Price> addPrice(@RequestBody IncomingPriceDTO priceDTO) {
         return ResponseEntity.ok(priceService.addPrice(priceDTO));
+    }
+
+    /**
+     * Adds a new Price with an end date and the Price that starts when it ends to the 'prices' database table. If either
+     * fails then neither is saved.
+     * @param rangeDTO The new Price details, and whether the end Price keeps the description
+     * @return The newly added Price, followed by the newly added end Price
+     */
+    @PostMapping("/range")
+    public ResponseEntity<List<Price>> addPriceRange(@RequestBody IncomingPriceRangeDTO rangeDTO) {
+        return ResponseEntity.ok(priceService.addPriceRange(rangeDTO));
     }
 
     /**
