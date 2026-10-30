@@ -1,7 +1,8 @@
 import type { PriceType } from '@/types/price'
 import { getUSDateStringFromTimestamp } from '@/utils/dateUtils'
-import { Button, Center, Modal } from '@mantine/core'
+import { Center, Modal } from '@mantine/core'
 import { useDeletePrice } from '@/hooks/price/useDeletePrice'
+import { SubmitButton } from '@/components/common/SubmitButton'
 import { getPriceString } from '@/utils/priceUtils'
 
 interface DeletePriceModal {
@@ -15,8 +16,7 @@ export const DeletePriceModal = ({ price, closeDeletePrice, opened }: DeletePric
     const { mutation } = useDeletePrice(price)
 
     const finalizeDeletePrice = (e: React.MouseEvent) => {
-        mutation.mutate()
-        closeDeletePrice()
+        mutation.mutate(undefined, { onSuccess: closeDeletePrice })
         e.stopPropagation()
     }
 
@@ -34,9 +34,9 @@ export const DeletePriceModal = ({ price, closeDeletePrice, opened }: DeletePric
                     <div className="mb-2 text-center">You can restore it later by showing deleted prices.</div>
                 </Center>
 
-                <Button fullWidth className="mt-5" onClick={finalizeDeletePrice}>
+                <SubmitButton pending={mutation.isPending} onClick={finalizeDeletePrice}>
                     Delete Price
-                </Button>
+                </SubmitButton>
             </Modal>
         </>
     )

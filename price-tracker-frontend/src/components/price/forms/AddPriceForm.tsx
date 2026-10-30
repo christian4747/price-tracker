@@ -1,6 +1,7 @@
 import { Button, Center, Collapse, Switch, TextInput } from '@mantine/core'
 import type { ProductType } from '@/types/product'
 import { RecentDataScroller } from '@/components/common/RecentDataScroller'
+import { SubmitButton } from '@/components/common/SubmitButton'
 import { PriceDateTimePicker } from '@/components/price/PriceDateTimePicker'
 import { useEffect, useState } from 'react'
 import { getFormattedDateString } from '@/utils/dateUtils'
@@ -85,13 +86,16 @@ export const AddPriceForm = ({ product, setDateToday, close, quickAdd = false }:
     const finalizeAddPrice = () => {
         if (endDateError) return
 
-        if (useEndDate) {
-            multiMutation.mutate()
-        } else {
-            singleMutation.mutate()
+        const onSuccess = () => {
+            close()
+            setDateToday(new Date())
         }
-        close()
-        setDateToday(new Date())
+
+        if (useEndDate) {
+            multiMutation.mutate(undefined, { onSuccess })
+        } else {
+            singleMutation.mutate(undefined, { onSuccess })
+        }
     }
 
     return (
@@ -181,9 +185,13 @@ export const AddPriceForm = ({ product, setDateToday, close, quickAdd = false }:
                 />
             </Collapse>
 
-            <Button className="mt-5" fullWidth disabled={!!endDateError} onClick={finalizeAddPrice}>
+            <SubmitButton
+                pending={multiMutation.isPending || singleMutation.isPending}
+                disabled={!!endDateError}
+                onClick={finalizeAddPrice}
+            >
                 Add Price
-            </Button>
+            </SubmitButton>
         </>
     )
 }
