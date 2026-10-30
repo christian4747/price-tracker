@@ -1,8 +1,9 @@
 import type { ProductType } from '@/types/product'
-import { Button, Modal, Switch, TextInput } from '@mantine/core'
+import { Button, Switch, TextInput } from '@mantine/core'
 import { useEditProduct } from '@/hooks/product/useEditProduct'
 import { useRecentStores } from '@/hooks/product/useRecentStores'
 import { RecentDataScroller } from '@/components/common/RecentDataScroller'
+import { SaveModal } from '@/components/common/SaveModal'
 import { SubmitButton } from '@/components/common/SubmitButton'
 import { AddedUpdatedText } from '@/components/common/AddedUpdatedText'
 
@@ -32,7 +33,8 @@ export const EditProductModal = ({ product, closeEditProduct, opened }: EditProd
 
     return (
         <>
-            <Modal
+            <SaveModal
+                pending={mutation.isPending}
                 title="Edit Product"
                 opened={opened}
                 onClose={closeEditProduct}
@@ -90,7 +92,7 @@ export const EditProductModal = ({ product, closeEditProduct, opened }: EditProd
                 <SubmitButton pending={mutation.isPending} onClick={finalizeEditProduct}>
                     Edit Product
                 </SubmitButton>
-            </Modal>
+            </SaveModal>
         </>
     )
 }

@@ -1,7 +1,18 @@
-import { describe, expect } from 'vitest'
-import { renderWithClient, screen, test } from '@/test-utils'
+import { describe, expect, onTestFinished, vi } from 'vitest'
+import {
+    modalCloseActions,
+    renderWithClient,
+    screen,
+    test,
+    tryEveryModalCloseAction,
+    userEvent,
+    waitFor
+} from '@/test-utils'
+import { http, HttpResponse } from 'msw'
 import type { PriceType } from '@/types/price'
 import { EditPriceModal } from './EditPriceModal'
+
+const pricesApiUrl = import.meta.env.VITE_BACKEND_ROOT_URL + '/prices'
 
 const price: PriceType = {
     priceId: 1,
@@ -32,5 +43,51 @@ describe('Edit Price Modal Component', () => {
         await expect.element(screen.getByText('Last updated Sep 6, 2026 9:30 AM')).toBeVisible()
         // The dates stay out of the title so the header's close button keeps its place
         await expect.element(screen.getByRole('heading', { name: 'Edit Price' })).toBeInTheDocument()
+    })
+
+    test('should ignore closing while the save is in progress', async ({ worker }) => {
+        let finishSave = () => {}
+        const saveFinished = new Promise<void>((resolve) => (finishSave = resolve))
+        // Ends mid-save, so still let the request finish
+        onTestFinished(() => finishSave())
+        worker.use(
+            http.put(pricesApiUrl + '/:priceId', async () => {
+                await saveFinished
+                return HttpResponse.json(price)
+            })
+        )
+        const closeEditPrice = vi.fn()
+        const user = userEvent.setup()
+        renderWithClient(<EditPriceModal price={price} closeEditPrice={closeEditPrice} opened />)
+
+        const submitButton = screen.getByRole('button', { name: 'Edit Price' })
+        await user.click(submitButton)
+        await waitFor(() => expect(submitButton).toBeDisabled())
+
+        await tryEveryModalCloseAction(user)
+
+        expect(closeEditPrice).not.toHaveBeenCalled()
+    })
+
+    test('should close after the save is rejected', async ({ worker }) => {
+        let saveRejected = false
+        worker.use(
+            http.put(pricesApiUrl + '/:priceId', () => {
+                saveRejected = true
+                return HttpResponse.text('Price is invalid', { status: 400 })
+            })
+        )
+        const closeEditPrice = vi.fn()
+        const user = userEvent.setup()
+        renderWithClient(<EditPriceModal price={price} closeEditPrice={closeEditPrice} opened />)
+
+        const submitButton = screen.getByRole('button', { name: 'Edit Price' })
+        await user.click(submitButton)
+        await waitFor(() => expect(saveRejected).toBe(true))
+        await waitFor(() => expect(submitButton).toBeEnabled())
+
+        await modalCloseActions.closeButton(user)
+
+        expect(closeEditPrice).toHaveBeenCalledOnce()
     })
 })

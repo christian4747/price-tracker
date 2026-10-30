@@ -1,4 +1,5 @@
-import { describe, expect, vi } from 'vitest'
+import { describe, expect, onTestFinished, vi } from 'vitest'
+import type { SetupWorker } from 'msw/browser'
 import { renderWithClient, screen, test, userEvent, waitFor } from '@/test-utils'
 import { http, HttpResponse } from 'msw'
 import { AddPriceForm } from './AddPriceForm'
@@ -17,6 +18,33 @@ const product: ProductType = {
 }
 
 const pricesApiUrl = import.meta.env.VITE_BACKEND_ROOT_URL + '/prices'
+
+const dateButtons = ['Start Date Only', 'Start and End Date']
+
+// Renders the form and starts a save that stays in progress until finishSave is called
+const startSave = async (worker: SetupWorker, dateButton: string) => {
+    let finishSave = () => {}
+    const saveFinished = new Promise<void>((resolve) => (finishSave = resolve))
+    // Tests that end mid-save still let the request finish
+    onTestFinished(() => finishSave())
+    worker.use(
+        http.post(pricesApiUrl, async () => {
+            await saveFinished
+            return HttpResponse.json({ priceStarted: '2026-09-04T00:00:00.000Z' })
+        })
+    )
+    const close = vi.fn()
+    const setDateToday = vi.fn()
+    const user = userEvent.setup()
+    renderWithClient(<AddPriceForm product={product} setDateToday={setDateToday} close={close} />)
+
+    await user.click(screen.getByRole('button', { name: dateButton }))
+    const submitButton = screen.getByRole('button', { name: 'Add Price' })
+    await user.click(submitButton)
+    await waitFor(() => expect(submitButton).toBeDisabled())
+
+    return { close, setDateToday, finishSave, submitButton }
+}
 
 describe('Add Price Form Component', () => {
     test('should prefill quick add with the most recent price and its derived amounts', async ({ worker }) => {
@@ -82,62 +110,50 @@ describe('Add Price Form Component', () => {
         expect(screen.getByRole('button', { name: 'Add Price' })).toBeEnabled()
     })
 
-    test.for([{ dateButton: 'Start Date Only' }, { dateButton: 'Start and End Date' }])(
-        'should show the save in progress and close once it succeeds with $dateButton',
-        async ({ dateButton }, { worker }) => {
-            let finishSave = () => {}
-            const saveFinished = new Promise<void>((resolve) => (finishSave = resolve))
-            worker.use(
-                http.post(pricesApiUrl, async () => {
-                    await saveFinished
-                    return HttpResponse.json({ priceStarted: '2026-09-04T00:00:00.000Z' })
-                })
-            )
-            const close = vi.fn()
-            const setDateToday = vi.fn()
-            const user = userEvent.setup()
-            renderWithClient(<AddPriceForm product={product} setDateToday={setDateToday} close={close} />)
+    test.for(dateButtons)('should show the save in progress with %s', async (dateButton, { worker }) => {
+        const { submitButton } = await startSave(worker, dateButton)
 
-            await user.click(screen.getByRole('button', { name: dateButton }))
-            const submitButton = screen.getByRole('button', { name: 'Add Price' })
-            await user.click(submitButton)
+        expect(submitButton).toHaveAttribute('data-loading')
+    })
 
-            await waitFor(() => expect(submitButton).toBeDisabled())
-            expect(close).not.toHaveBeenCalled()
-            expect(setDateToday).not.toHaveBeenCalled()
+    test.for(dateButtons)('should not close before the save ends with %s', async (dateButton, { worker }) => {
+        const { close, setDateToday } = await startSave(worker, dateButton)
 
-            finishSave()
+        expect(close).not.toHaveBeenCalled()
+        expect(setDateToday).not.toHaveBeenCalled()
+    })
 
-            await waitFor(() => expect(close).toHaveBeenCalledOnce())
-            expect(setDateToday).toHaveBeenCalledOnce()
-        }
-    )
+    test.for(dateButtons)('should close once the save succeeds with %s', async (dateButton, { worker }) => {
+        const { close, setDateToday, finishSave } = await startSave(worker, dateButton)
 
-    test.for([{ dateButton: 'Start Date Only' }, { dateButton: 'Start and End Date' }])(
-        'should stay open with its values when rejected with $dateButton',
-        async ({ dateButton }, { worker }) => {
-            let saveRejected = false
-            worker.use(
-                http.post(pricesApiUrl, () => {
-                    saveRejected = true
-                    return HttpResponse.text('Price is invalid', { status: 400 })
-                })
-            )
-            const close = vi.fn()
-            const user = userEvent.setup()
-            renderWithClient(<AddPriceForm product={product} setDateToday={() => {}} close={close} />)
+        finishSave()
 
-            await user.click(screen.getByRole('button', { name: dateButton }))
-            await user.type(screen.getByRole('textbox', { name: 'Description' }), 'Sale')
-            const submitButton = screen.getByRole('button', { name: 'Add Price' })
-            await user.click(submitButton)
+        await waitFor(() => expect(close).toHaveBeenCalledOnce())
+        expect(setDateToday).toHaveBeenCalledOnce()
+    })
 
-            await waitFor(() => expect(saveRejected).toBe(true))
-            await waitFor(() => expect(submitButton).toBeEnabled())
-            expect(close).not.toHaveBeenCalled()
-            expect((screen.getByRole('textbox', { name: 'Description' }) as HTMLInputElement).value).toBe('Sale')
-        }
-    )
+    test.for(dateButtons)('should stay open with its values when rejected with %s', async (dateButton, { worker }) => {
+        let saveRejected = false
+        worker.use(
+            http.post(pricesApiUrl, () => {
+                saveRejected = true
+                return HttpResponse.text('Price is invalid', { status: 400 })
+            })
+        )
+        const close = vi.fn()
+        const user = userEvent.setup()
+        renderWithClient(<AddPriceForm product={product} setDateToday={() => {}} close={close} />)
+
+        await user.click(screen.getByRole('button', { name: dateButton }))
+        await user.type(screen.getByRole('textbox', { name: 'Description' }), 'Sale')
+        const submitButton = screen.getByRole('button', { name: 'Add Price' })
+        await user.click(submitButton)
+
+        await waitFor(() => expect(saveRejected).toBe(true))
+        await waitFor(() => expect(submitButton).toBeEnabled())
+        expect(close).not.toHaveBeenCalled()
+        expect((screen.getByRole('textbox', { name: 'Description' }) as HTMLInputElement).value).toBe('Sale')
+    })
 
     test('should render input for price', async () => {
         renderWithClient(<AddPriceForm product={product} setDateToday={() => {}} close={() => {}} />)

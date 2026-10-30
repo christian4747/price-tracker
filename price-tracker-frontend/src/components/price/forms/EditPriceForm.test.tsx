@@ -1,4 +1,5 @@
-import { describe, expect, vi } from 'vitest'
+import { describe, expect, onTestFinished, vi } from 'vitest'
+import type { SetupWorker } from 'msw/browser'
 import { renderWithClient, screen, test, userEvent, waitFor } from '@/test-utils'
 import { http, HttpResponse } from 'msw'
 import { EditPriceForm } from './EditPriceForm'
@@ -25,6 +26,29 @@ const price: PriceType = {
 }
 
 const pricesApiUrl = import.meta.env.VITE_BACKEND_ROOT_URL + '/prices'
+
+// Renders the form and starts a save that stays in progress until finishSave is called
+const startSave = async (worker: SetupWorker) => {
+    let finishSave = () => {}
+    const saveFinished = new Promise<void>((resolve) => (finishSave = resolve))
+    // Tests that end mid-save still let the request finish
+    onTestFinished(() => finishSave())
+    worker.use(
+        http.put(pricesApiUrl + '/:priceId', async () => {
+            await saveFinished
+            return HttpResponse.json(price)
+        })
+    )
+    const closeEditPrice = vi.fn()
+    const user = userEvent.setup()
+    renderWithClient(<EditPriceForm price={price} closeEditPrice={closeEditPrice} />)
+
+    const submitButton = screen.getByRole('button', { name: 'Edit Price' })
+    await user.click(submitButton)
+    await waitFor(() => expect(submitButton).toBeDisabled())
+
+    return { closeEditPrice, finishSave, submitButton }
+}
 
 describe('Edit Price Form Component', () => {
     test("should fill amounts from the product's recent prices", async ({ worker }) => {
@@ -56,24 +80,20 @@ describe('Edit Price Form Component', () => {
         expect((screen.getByRole('textbox', { name: /return amount/i }) as HTMLInputElement).value).toBe('10.00')
     })
 
-    test('should show the save in progress and close once it succeeds', async ({ worker }) => {
-        let finishSave = () => {}
-        const saveFinished = new Promise<void>((resolve) => (finishSave = resolve))
-        worker.use(
-            http.put(pricesApiUrl + '/:priceId', async () => {
-                await saveFinished
-                return HttpResponse.json(price)
-            })
-        )
-        const closeEditPrice = vi.fn()
-        const user = userEvent.setup()
-        renderWithClient(<EditPriceForm price={price} closeEditPrice={closeEditPrice} />)
+    test('should show the save in progress', async ({ worker }) => {
+        const { submitButton } = await startSave(worker)
 
-        const submitButton = screen.getByRole('button', { name: 'Edit Price' })
-        await user.click(submitButton)
+        expect(submitButton).toHaveAttribute('data-loading')
+    })
 
-        await waitFor(() => expect(submitButton).toBeDisabled())
+    test('should not close before the save ends', async ({ worker }) => {
+        const { closeEditPrice } = await startSave(worker)
+
         expect(closeEditPrice).not.toHaveBeenCalled()
+    })
+
+    test('should close once the save succeeds', async ({ worker }) => {
+        const { closeEditPrice, finishSave } = await startSave(worker)
 
         finishSave()
 
