@@ -1,6 +1,7 @@
 import type { ProductType } from '@/types/product'
-import { Center, Modal } from '@mantine/core'
+import { Center } from '@mantine/core'
 import { useDeleteProduct } from '@/hooks/product/useDeleteProduct'
+import { SaveModal } from '@/components/common/SaveModal'
 import { SubmitButton } from '@/components/common/SubmitButton'
 
 type DeleteProductModalProps = {
@@ -20,7 +21,8 @@ const DeleteProductModal = ({ product, closeDeleteProduct, opened }: DeleteProdu
 
     return (
         <>
-            <Modal
+            <SaveModal
+                pending={mutation.isPending}
                 title="Delete Product"
                 opened={opened}
                 onClose={closeDeleteProduct}
@@ -37,7 +39,7 @@ const DeleteProductModal = ({ product, closeDeleteProduct, opened }: DeleteProdu
                 <SubmitButton pending={mutation.isPending} onClick={finalizeDeleteProduct}>
                     Delete Product
                 </SubmitButton>
-            </Modal>
+            </SaveModal>
         </>
     )
 }

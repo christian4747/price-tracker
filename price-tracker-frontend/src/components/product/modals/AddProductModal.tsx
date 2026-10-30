@@ -1,8 +1,9 @@
-import { Button, Modal, Switch, TextInput } from '@mantine/core'
+import { Button, Switch, TextInput } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { useAddProduct } from '@/hooks/product/useAddProduct'
 import { useRecentStores } from '@/hooks/product/useRecentStores'
 import { RecentDataScroller } from '@/components/common/RecentDataScroller'
+import { SaveModal } from '@/components/common/SaveModal'
 import { SubmitButton } from '@/components/common/SubmitButton'
 
 const AddProductModal = () => {
@@ -32,7 +33,7 @@ const AddProductModal = () => {
 
     return (
         <>
-            <Modal opened={opened} onClose={close} title="Add Product">
+            <SaveModal pending={mutation.isPending} opened={opened} onClose={close} title="Add Product">
                 <TextInput
                     label="Name"
                     placeholder="Name"
@@ -78,7 +79,7 @@ const AddProductModal = () => {
                 <SubmitButton pending={mutation.isPending} onClick={finalizeAddProduct}>
                     Add Product
                 </SubmitButton>
-            </Modal>
+            </SaveModal>
             <Button className="m-2" onClick={open}>
                 Add Product
             </Button>

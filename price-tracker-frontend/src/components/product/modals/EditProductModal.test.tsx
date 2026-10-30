@@ -1,5 +1,14 @@
-import { describe, expect, vi } from 'vitest'
-import { renderWithClient, screen, test, userEvent, waitFor } from '@/test-utils'
+import { describe, expect, onTestFinished, vi } from 'vitest'
+import type { SetupWorker } from 'msw/browser'
+import {
+    modalCloseActions,
+    renderWithClient,
+    screen,
+    test,
+    tryEveryModalCloseAction,
+    userEvent,
+    waitFor
+} from '@/test-utils'
 import { http, HttpResponse } from 'msw'
 import { EditProductModal } from './EditProductModal'
 import type { ProductType } from '@/types/product'
@@ -17,6 +26,29 @@ const product: ProductType = {
 }
 
 const productsApiUrl = import.meta.env.VITE_BACKEND_ROOT_URL + '/products'
+
+// Renders the modal and starts a save that stays in progress until finishSave is called
+const startSave = async (worker: SetupWorker) => {
+    let finishSave = () => {}
+    const saveFinished = new Promise<void>((resolve) => (finishSave = resolve))
+    // Tests that end mid-save still let the request finish
+    onTestFinished(() => finishSave())
+    worker.use(
+        http.put(productsApiUrl + '/:productId', async () => {
+            await saveFinished
+            return HttpResponse.json(product)
+        })
+    )
+    const closeEditProduct = vi.fn()
+    const user = userEvent.setup()
+    renderWithClient(<EditProductModal product={product} closeEditProduct={closeEditProduct} opened />)
+
+    const submitButton = screen.getByRole('button', { name: 'Edit Product' })
+    await user.click(submitButton)
+    await waitFor(() => expect(submitButton).toBeDisabled())
+
+    return { closeEditProduct, finishSave, submitButton, user }
+}
 
 describe('Edit Product Modal Component', () => {
     test('should show when the product was added and last updated', async () => {
@@ -59,29 +91,51 @@ describe('Edit Product Modal Component', () => {
         expect(storeInput.value).toBe('Store 2')
     })
 
-    test('should show the save in progress and close once it succeeds', async ({ worker }) => {
-        let finishSave = () => {}
-        const saveFinished = new Promise<void>((resolve) => (finishSave = resolve))
-        worker.use(
-            http.put(productsApiUrl + '/:productId', async () => {
-                await saveFinished
-                return HttpResponse.json(product)
-            })
-        )
-        const closeEditProduct = vi.fn()
-        const user = userEvent.setup()
-        renderWithClient(<EditProductModal product={product} closeEditProduct={closeEditProduct} opened />)
+    test('should show the save in progress', async ({ worker }) => {
+        const { submitButton } = await startSave(worker)
 
-        const submitButton = screen.getByRole('button', { name: 'Edit Product' })
-        await user.click(submitButton)
+        expect(submitButton).toHaveAttribute('data-loading')
+    })
 
-        await waitFor(() => expect(submitButton).toBeDisabled())
+    test('should ignore closing while the save is in progress', async ({ worker }) => {
+        const { closeEditProduct, user } = await startSave(worker)
+
+        await tryEveryModalCloseAction(user)
+
         expect(closeEditProduct).not.toHaveBeenCalled()
+    })
+
+    test('should close once the save succeeds', async ({ worker }) => {
+        const { closeEditProduct, finishSave } = await startSave(worker)
 
         finishSave()
 
         await waitFor(() => expect(closeEditProduct).toHaveBeenCalledOnce())
     })
+
+    test.for(Object.keys(modalCloseActions) as (keyof typeof modalCloseActions)[])(
+        'should close with %s after the save is rejected',
+        async (closeAction, { worker }) => {
+            let saveRejected = false
+            worker.use(
+                http.put(productsApiUrl + '/:productId', () => {
+                    saveRejected = true
+                    return HttpResponse.text('Product already exists!', { status: 400 })
+                })
+            )
+            const closeEditProduct = vi.fn()
+            const user = userEvent.setup()
+            renderWithClient(<EditProductModal product={product} closeEditProduct={closeEditProduct} opened />)
+
+            await user.click(screen.getByRole('button', { name: 'Edit Product' }))
+            await waitFor(() => expect(saveRejected).toBe(true))
+            await waitFor(() => expect(screen.getByRole('button', { name: 'Edit Product' })).toBeEnabled())
+
+            await modalCloseActions[closeAction](user)
+
+            expect(closeEditProduct).toHaveBeenCalledOnce()
+        }
+    )
 
     test('should stay open with its values when the save is rejected', async ({ worker }) => {
         let saveRejected = false
