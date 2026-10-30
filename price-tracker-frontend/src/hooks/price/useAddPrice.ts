@@ -8,6 +8,9 @@ import { sendSuccessNotification } from '@/utils/notificationUtils'
 import { getFormattedDateString, getLocalDateFromUTC } from '@/utils/dateUtils'
 import { useState } from 'react'
 
+// Lets the modal around the form see whether a price is being added
+export const getAddPriceMutationKey = (productId: number) => ['addPrice', productId]
+
 export function useAddPrice(product: ProductType, useEndDateDesc: boolean) {
     // Use state fixes this value (prevents useEffect refreshes)
     const [emptyPriceDTO] = useState<PriceDTO>({
@@ -34,6 +37,7 @@ export function useAddPrice(product: ProductType, useEndDateDesc: boolean) {
 
     // Mutation for adding start date only
     const addSinglePriceMutation = useMutation({
+        mutationKey: getAddPriceMutationKey(product.productId),
         mutationFn: () => {
             return priceService.addPrice({
                 ...priceDTO.value,
@@ -53,6 +57,7 @@ export function useAddPrice(product: ProductType, useEndDateDesc: boolean) {
 
     // Mutation for adding start date and end date
     const addPriceMutation = useMutation({
+        mutationKey: getAddPriceMutationKey(product.productId),
         mutationFn: () => {
             const { priceStarted, priceEnded } = priceDTO.value
             return priceService.addPrice({

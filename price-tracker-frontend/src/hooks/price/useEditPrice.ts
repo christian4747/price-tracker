@@ -6,6 +6,9 @@ import { getFormattedDateString } from '@/utils/dateUtils'
 import dayjs from 'dayjs'
 import { sendSuccessNotification } from '@/utils/notificationUtils'
 
+// Lets the modal around the form see whether a price is being edited
+export const getEditPriceMutationKey = (priceId: number) => ['editPrice', priceId]
+
 export function useEditPrice(price: PriceType) {
     // PriceDTO for editing
     const priceDTO = usePriceDTO(price as PriceDTO)
@@ -15,6 +18,7 @@ export function useEditPrice(price: PriceType) {
 
     // Mutation for editing prices
     const editPriceMutation = useMutation({
+        mutationKey: getEditPriceMutationKey(price.priceId),
         mutationFn: () => {
             return priceService.editPrice(price.priceId, {
                 ...priceDTO.value,

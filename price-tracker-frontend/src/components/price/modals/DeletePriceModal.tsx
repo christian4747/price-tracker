@@ -1,7 +1,8 @@
 import type { PriceType } from '@/types/price'
 import { getUSDateStringFromTimestamp } from '@/utils/dateUtils'
-import { Center, Modal } from '@mantine/core'
+import { Center } from '@mantine/core'
 import { useDeletePrice } from '@/hooks/price/useDeletePrice'
+import { SaveModal } from '@/components/common/SaveModal'
 import { SubmitButton } from '@/components/common/SubmitButton'
 import { getPriceString } from '@/utils/priceUtils'
 
@@ -25,7 +26,13 @@ export const DeletePriceModal = ({ price, closeDeletePrice, opened }: DeletePric
 
     return (
         <>
-            <Modal title="Delete Price" opened={opened} onClose={closeDeletePrice} onClick={(e) => e.stopPropagation()}>
+            <SaveModal
+                pending={mutation.isPending}
+                title="Delete Price"
+                opened={opened}
+                onClose={closeDeletePrice}
+                onClick={(e) => e.stopPropagation()}
+            >
                 <Center className="flex flex-col">
                     <div className="text-xl mb-2 text-center">
                         Are you sure you want to delete Price {priceStartedString} ({priceAmountString})?
@@ -37,7 +44,7 @@ export const DeletePriceModal = ({ price, closeDeletePrice, opened }: DeletePric
                 <SubmitButton pending={mutation.isPending} onClick={finalizeDeletePrice}>
                     Delete Price
                 </SubmitButton>
-            </Modal>
+            </SaveModal>
         </>
     )
 }
