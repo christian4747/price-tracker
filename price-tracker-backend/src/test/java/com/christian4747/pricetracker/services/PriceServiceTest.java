@@ -5,6 +5,7 @@ import com.christian4747.pricetracker.daos.ProductDAO;
 import com.christian4747.pricetracker.models.Price;
 import com.christian4747.pricetracker.models.Product;
 import com.christian4747.pricetracker.models.dtos.IncomingPriceDTO;
+import com.christian4747.pricetracker.models.dtos.IncomingPriceRangeDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -13,7 +14,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.lang.reflect.Method;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Optional;
@@ -21,6 +24,8 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.never;
@@ -122,6 +127,126 @@ public class PriceServiceTest {
         when(priceDAO.save(any())).thenReturn(price);
 
         assertEquals(1, priceService.addPrice(priceDTO).getProduct().getProductId());
+    }
+
+    private IncomingPriceRangeDTO createRangeDTO() {
+        IncomingPriceRangeDTO rangeDTO = new IncomingPriceRangeDTO();
+        rangeDTO.setAmount(100);
+        rangeDTO.setCurrency("USD");
+        rangeDTO.setDescription("Sale");
+        rangeDTO.setDiscountAmount(80);
+        rangeDTO.setDiscountPercentage(0.2);
+        rangeDTO.setPriceStarted(Timestamp.valueOf("2026-09-05 12:00:00"));
+        rangeDTO.setPriceEnded(Timestamp.valueOf("2026-09-10 12:00:00"));
+        rangeDTO.setProductId(1);
+        rangeDTO.setReturnAmount(4);
+        rangeDTO.setReturnPercentage(0.05);
+        return rangeDTO;
+    }
+
+    // Saving returns the Price it was given, so the test can check what would be saved
+    private List<Price> saveRange(IncomingPriceRangeDTO rangeDTO) {
+        when(productDAO.findById(anyInt())).thenReturn(Optional.of(product));
+        when(priceDAO.save(any())).thenAnswer(returnsFirstArg());
+
+        return priceService.addPriceRange(rangeDTO);
+    }
+
+    @Test
+    public void addPriceRange_validRange_firstPriceKeepsSubmittedValues() {
+        Price firstPrice = saveRange(createRangeDTO()).getFirst();
+
+        assertEquals(80, firstPrice.getDiscountAmount());
+        assertEquals(0.2, firstPrice.getDiscountPercentage());
+        assertEquals(4, firstPrice.getReturnAmount());
+        assertEquals(0.05, firstPrice.getReturnPercentage());
+        assertEquals("Sale", firstPrice.getDescription());
+        assertEquals(Timestamp.valueOf("2026-09-05 12:00:00"), firstPrice.getPriceStarted());
+        assertEquals(Timestamp.valueOf("2026-09-10 12:00:00"), firstPrice.getPriceEnded());
+    }
+
+    @Test
+    public void addPriceRange_validRange_endPriceStartsWhenFirstPriceEnds() {
+        Price endPrice = saveRange(createRangeDTO()).getLast();
+
+        assertEquals(Timestamp.valueOf("2026-09-10 12:00:00"), endPrice.getPriceStarted());
+        assertNull(endPrice.getPriceEnded());
+    }
+
+    @Test
+    public void addPriceRange_validRange_endPriceReturnsToFullAmount() {
+        Price endPrice = saveRange(createRangeDTO()).getLast();
+
+        assertEquals(100, endPrice.getAmount());
+        assertEquals(100, endPrice.getDiscountAmount());
+        assertEquals(100, endPrice.getTotalAmount());
+        assertEquals(0, endPrice.getTotalPercentage());
+    }
+
+    @Test
+    public void addPriceRange_validRange_endPriceResetsPercentagesAndReturn() {
+        Price endPrice = saveRange(createRangeDTO()).getLast();
+
+        assertEquals(0, endPrice.getDiscountPercentage());
+        assertEquals(0, endPrice.getReturnAmount());
+        assertEquals(0, endPrice.getReturnPercentage());
+    }
+
+    @Test
+    public void addPriceRange_useEndDateDesc_endPriceKeepsDescription() {
+        IncomingPriceRangeDTO rangeDTO = createRangeDTO();
+        rangeDTO.setUseEndDateDesc(true);
+
+        assertEquals("Sale", saveRange(rangeDTO).getLast().getDescription());
+    }
+
+    @Test
+    public void addPriceRange_notUseEndDateDesc_endPriceHasEmptyDescription() {
+        assertEquals("", saveRange(createRangeDTO()).getLast().getDescription());
+    }
+
+    @Test
+    public void addPriceRange_noEndDate_throwException() {
+        IncomingPriceRangeDTO rangeDTO = createRangeDTO();
+        rangeDTO.setPriceEnded(null);
+
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> priceService.addPriceRange(rangeDTO));
+        assertEquals("Price end date is required!", ex.getMessage());
+        verify(priceDAO, never()).save(any());
+    }
+
+    @Test
+    public void addPriceRange_endNotAfterStart_throwException() {
+        IncomingPriceRangeDTO rangeDTO = createRangeDTO();
+        rangeDTO.setPriceEnded(rangeDTO.getPriceStarted());
+
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> priceService.addPriceRange(rangeDTO));
+        assertEquals("Price end date must be after its start date!", ex.getMessage());
+        verify(priceDAO, never()).save(any());
+    }
+
+    @Test
+    public void addPriceRange_nonExistentProduct_throwException() {
+        when(productDAO.findById(anyInt())).thenReturn(Optional.empty());
+
+        assertThrows(IllegalArgumentException.class, () -> priceService.addPriceRange(createRangeDTO()));
+        verify(priceDAO, never()).save(any());
+    }
+
+    @Test
+    public void addPriceRange_endPriceFails_throwException() {
+        when(productDAO.findById(anyInt())).thenReturn(Optional.of(product));
+        when(priceDAO.save(any())).thenReturn(price).thenThrow(new IllegalStateException("Save failed"));
+
+        assertThrows(IllegalStateException.class, () -> priceService.addPriceRange(createRangeDTO()));
+    }
+
+    // The rollback itself needs a real database, so this guards the annotation that causes it
+    @Test
+    public void addPriceRange_isTransactional() throws NoSuchMethodException {
+        Method addPriceRange = PriceService.class.getMethod("addPriceRange", IncomingPriceRangeDTO.class);
+
+        assertTrue(addPriceRange.isAnnotationPresent(Transactional.class));
     }
 
     @Test
