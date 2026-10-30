@@ -3,6 +3,7 @@ import { useDisclosure } from '@mantine/hooks'
 import { useAddProduct } from '@/hooks/product/useAddProduct'
 import { useRecentStores } from '@/hooks/product/useRecentStores'
 import { RecentDataScroller } from '@/components/common/RecentDataScroller'
+import { SubmitButton } from '@/components/common/SubmitButton'
 
 const AddProductModal = () => {
     // Track state of modal open/close
@@ -20,10 +21,13 @@ const AddProductModal = () => {
     ))
 
     const finalizeAddProduct = (e: React.MouseEvent) => {
-        mutation.mutate()
-        close()
+        mutation.mutate(undefined, {
+            onSuccess: () => {
+                close()
+                productDTO.reset()
+            }
+        })
         e.stopPropagation()
-        productDTO.reset()
     }
 
     return (
@@ -71,9 +75,9 @@ const AddProductModal = () => {
                     className="hidden"
                     placeholder="Initial Price"
                 /> */}
-                <Button fullWidth className="mt-5" onClick={finalizeAddProduct}>
+                <SubmitButton pending={mutation.isPending} onClick={finalizeAddProduct}>
                     Add Product
-                </Button>
+                </SubmitButton>
             </Modal>
             <Button className="m-2" onClick={open}>
                 Add Product

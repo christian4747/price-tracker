@@ -1,6 +1,7 @@
 import type { ProductType } from '@/types/product'
-import { Button, Center, Modal } from '@mantine/core'
+import { Center, Modal } from '@mantine/core'
 import { useDeleteProduct } from '@/hooks/product/useDeleteProduct'
+import { SubmitButton } from '@/components/common/SubmitButton'
 
 type DeleteProductModalProps = {
     product: ProductType
@@ -13,8 +14,7 @@ const DeleteProductModal = ({ product, closeDeleteProduct, opened }: DeleteProdu
     const { mutation } = useDeleteProduct(product)
 
     const finalizeDeleteProduct = (e: React.MouseEvent) => {
-        mutation.mutate()
-        closeDeleteProduct()
+        mutation.mutate(undefined, { onSuccess: closeDeleteProduct })
         e.stopPropagation()
     }
 
@@ -34,9 +34,9 @@ const DeleteProductModal = ({ product, closeDeleteProduct, opened }: DeleteProdu
                     <div className="mb-2 text-center">You can restore it later by showing deleted products.</div>
                 </Center>
 
-                <Button fullWidth className="mt-5" onClick={finalizeDeleteProduct}>
+                <SubmitButton pending={mutation.isPending} onClick={finalizeDeleteProduct}>
                     Delete Product
-                </Button>
+                </SubmitButton>
             </Modal>
         </>
     )

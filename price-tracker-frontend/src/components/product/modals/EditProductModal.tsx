@@ -3,6 +3,7 @@ import { Button, Modal, Switch, TextInput } from '@mantine/core'
 import { useEditProduct } from '@/hooks/product/useEditProduct'
 import { useRecentStores } from '@/hooks/product/useRecentStores'
 import { RecentDataScroller } from '@/components/common/RecentDataScroller'
+import { SubmitButton } from '@/components/common/SubmitButton'
 import { AddedUpdatedText } from '@/components/common/AddedUpdatedText'
 
 interface EditProductModal {
@@ -25,8 +26,7 @@ export const EditProductModal = ({ product, closeEditProduct, opened }: EditProd
     ))
 
     const finalizeEditProduct = (e: React.MouseEvent) => {
-        mutation.mutate()
-        closeEditProduct()
+        mutation.mutate(undefined, { onSuccess: closeEditProduct })
         e.stopPropagation()
     }
 
@@ -87,9 +87,9 @@ export const EditProductModal = ({ product, closeEditProduct, opened }: EditProd
                     }}
                 />
 
-                <Button fullWidth className="mt-5" onClick={finalizeEditProduct}>
+                <SubmitButton pending={mutation.isPending} onClick={finalizeEditProduct}>
                     Edit Product
-                </Button>
+                </SubmitButton>
             </Modal>
         </>
     )
