@@ -28,6 +28,8 @@ const product: ProductType = {
 
 const pricesApiUrl = import.meta.env.VITE_BACKEND_ROOT_URL + '/prices'
 
+const savedPrice = { priceStarted: '2026-09-04T00:00:00.000Z' }
+
 // Opens the modal and picks which dates to save, ready for the save to be submitted
 const openWithDates = async (dateButton: string) => {
     const user = userEvent.setup()
@@ -49,7 +51,11 @@ const startSave = async (worker: SetupWorker, dateButton: string) => {
     worker.use(
         http.post(pricesApiUrl, async () => {
             await saveFinished
-            return HttpResponse.json({ priceStarted: '2026-09-04T00:00:00.000Z' })
+            return HttpResponse.json(savedPrice)
+        }),
+        http.post(pricesApiUrl + '/range', async () => {
+            await saveFinished
+            return HttpResponse.json([savedPrice, savedPrice])
         })
     )
     const { submitButton, user } = await openWithDates(dateButton)

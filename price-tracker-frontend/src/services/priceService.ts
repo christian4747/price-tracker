@@ -1,4 +1,4 @@
-import type { PriceDTO } from '@/types/price'
+import type { PriceDTO, PriceRangeDTO } from '@/types/price'
 import { apiClient } from '@/services/apiClient'
 
 const apiPath = '/prices'
@@ -6,6 +6,11 @@ const apiPath = '/prices'
 export default {
     addPrice: async (priceToAdd: PriceDTO) => {
         const res = await apiClient.post(apiPath, priceToAdd)
+        return res.data
+    },
+
+    addPriceRange: async (rangeToAdd: PriceRangeDTO) => {
+        const res = await apiClient.post(apiPath + '/range', rangeToAdd)
         return res.data
     },
 
