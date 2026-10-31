@@ -8,9 +8,14 @@ export interface ProductListFooter {
 
 export const ProductListFooter = ({ total, value, onChange }: ProductListFooter) => {
     return (
-        <footer className="fixed bottom-5 left-0 z-50 w-full">
+        <footer className="pointer-events-none fixed bottom-5 left-0 z-50 w-full">
             <Center>
-                <Pagination total={Math.ceil(total / 10)} value={value} onChange={onChange} />
+                <Pagination
+                    className="pointer-events-auto"
+                    total={Math.ceil(total / 10)}
+                    value={value}
+                    onChange={onChange}
+                />
             </Center>
         </footer>
     )
