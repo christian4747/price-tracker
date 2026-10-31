@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -84,8 +85,9 @@ public class PriceService {
     }
 
     /**
-     * Adds a new Price with an end date and the Price that starts when it ends, which returns to the full amount. Both
-     * are saved in one transaction, so if either fails then neither is saved.
+     * Adds a new Price with an end date and the Price that starts one minute after it ends, which returns to the full
+     * amount. The end date is the last minute of the first Price. Both are saved in one transaction, so if either fails
+     * then neither is saved.
      * @param rangeDTO The new Price details, and whether the end Price keeps the description
      * @return The newly added Price, followed by the newly added end Price
      */
@@ -105,7 +107,7 @@ public class PriceService {
                 rangeDTO.isUseEndDateDesc() ? rangeDTO.getDescription() : "",
                 rangeDTO.getAmount(),
                 0,
-                rangeDTO.getPriceEnded(),
+                Timestamp.from(rangeDTO.getPriceEnded().toInstant().plus(Duration.ofMinutes(1))),
                 null,
                 rangeDTO.getProductId(),
                 0,
