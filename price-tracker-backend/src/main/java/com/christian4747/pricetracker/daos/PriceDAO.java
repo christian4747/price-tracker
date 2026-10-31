@@ -35,6 +35,16 @@ public interface PriceDAO extends JpaRepository<Price, Integer> {
     int restoreByProductIdAndDeletedAt(@Param("productId") Integer productId, @Param("deletedAt") Timestamp deletedAt);
 
     /**
+     * Permanently removes a soft deleted Price from the 'prices' database table. A query is needed because deleting
+     * through the entity is a soft delete.
+     * @param priceId ID of the Price to remove
+     * @return The number of removed Prices
+     */
+    @Modifying
+    @Query(value = "DELETE FROM Price p WHERE p.priceId = :priceId AND p.deletedAt IS NOT NULL")
+    int permanentlyDeleteById(@Param("priceId") Integer priceId);
+
+    /**
      * Gets a distinct list of recently added non-deleted Price base amounts for the given product ID.
      * @param pageable Pagination settings
      * @param productId Product to fetch base amounts for

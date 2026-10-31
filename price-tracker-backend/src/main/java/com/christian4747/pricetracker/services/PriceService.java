@@ -168,6 +168,31 @@ public class PriceService {
     }
 
     /**
+     * Permanently removes a soft deleted Price from the 'prices' database table. This can't be undone.
+     * @param priceId The ID of the Price to remove
+     * @return The removed Price
+     */
+    @Transactional
+    public Price permanentlyDeletePrice(Integer priceId) {
+        Optional<Price> existingPrice = priceDAO.findById(priceId);
+
+        if (existingPrice.isEmpty()) {
+            logger.info("Attempted to permanently delete a Price that doesn't exist: {}", priceId);
+            throw new IllegalArgumentException("Price with ID " + priceId + " does not exist!");
+        }
+
+        if (existingPrice.get().getDeletedAt() == null) {
+            logger.info("Attempted to permanently delete a Price that isn't deleted: {}", priceId);
+            throw new IllegalArgumentException("Only deleted prices can be permanently deleted!");
+        }
+
+        priceDAO.permanentlyDeleteById(priceId);
+        logger.info("Successfully permanently deleted Price with ID: {}", priceId);
+
+        return existingPrice.get();
+    }
+
+    /**
      * Gets all the Prices in the 'prices' database table. Uses pagination (default 20 per page).
      * @param pageable Pagination settings
      * @return A list of Prices (default 20)

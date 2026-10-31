@@ -258,6 +258,43 @@ public class PriceServiceTest {
     }
 
     @Test
+    public void permanentlyDeletePrice_deletedPrice_removeAndReturnPrice() {
+        price.setDeletedAt(Timestamp.valueOf("2026-09-10 12:00:00"));
+        when(priceDAO.findById(1)).thenReturn(Optional.of(price));
+        when(priceDAO.permanentlyDeleteById(1)).thenReturn(1);
+
+        assertEquals(price, priceService.permanentlyDeletePrice(1));
+        verify(priceDAO).permanentlyDeleteById(1);
+    }
+
+    @Test
+    public void permanentlyDeletePrice_priceNotDeleted_throwException() {
+        price.setDeletedAt(null);
+        when(priceDAO.findById(1)).thenReturn(Optional.of(price));
+
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> priceService.permanentlyDeletePrice(1));
+        assertEquals("Only deleted prices can be permanently deleted!", ex.getMessage());
+        verify(priceDAO, never()).permanentlyDeleteById(anyInt());
+    }
+
+    @Test
+    public void permanentlyDeletePrice_nonExistentPrice_throwException() {
+        when(priceDAO.findById(1)).thenReturn(Optional.empty());
+
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> priceService.permanentlyDeletePrice(1));
+        assertEquals("Price with ID 1 does not exist!", ex.getMessage());
+        verify(priceDAO, never()).permanentlyDeleteById(anyInt());
+    }
+
+    // The query needs a transaction to run, which these tests can't see because they use mocked DAOs
+    @Test
+    public void permanentlyDeletePrice_isTransactional() throws NoSuchMethodException {
+        Method permanentlyDeletePrice = PriceService.class.getMethod("permanentlyDeletePrice", Integer.class);
+
+        assertTrue(permanentlyDeletePrice.isAnnotationPresent(Transactional.class));
+    }
+
+    @Test
     public void deletePrice_existingPrice_returnPrice() {
         when(priceDAO.findById(any())).thenReturn(Optional.of(price));
 

@@ -67,6 +67,16 @@ public class PriceController {
     }
 
     /**
+     * Permanently removes a soft deleted Price from the 'prices' database table. This can't be undone.
+     * @param priceId The ID of the Price to remove
+     * @return The removed Price
+     */
+    @DeleteMapping("/{priceId}/permanent")
+    public ResponseEntity<Price> permanentlyDeletePrice(@PathVariable Integer priceId) {
+        return ResponseEntity.ok(priceService.permanentlyDeletePrice(priceId));
+    }
+
+    /**
      * Gets all the Prices in 'prices' database table. Uses pagination (default 20 per page).
      * @param pageable Pagination settings
      * @return A list of Prices (default 20)
