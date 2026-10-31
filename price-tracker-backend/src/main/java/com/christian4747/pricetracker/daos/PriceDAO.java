@@ -45,6 +45,16 @@ public interface PriceDAO extends JpaRepository<Price, Integer> {
     int permanentlyDeleteById(@Param("priceId") Integer priceId);
 
     /**
+     * Permanently removes all the Prices of the given productId from the 'prices' database table, whether or not they
+     * are soft deleted. A query is needed because deleting through the entity is a soft delete.
+     * @param productId productId of the Prices to remove
+     * @return The number of removed Prices
+     */
+    @Modifying
+    @Query(value = "DELETE FROM Price p WHERE p.product.productId = :productId")
+    int permanentlyDeleteByProductId(@Param("productId") Integer productId);
+
+    /**
      * Gets a distinct list of recently added non-deleted Price base amounts for the given product ID.
      * @param pageable Pagination settings
      * @param productId Product to fetch base amounts for

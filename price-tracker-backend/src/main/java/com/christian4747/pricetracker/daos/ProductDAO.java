@@ -5,7 +5,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -35,4 +37,14 @@ public interface ProductDAO extends JpaRepository<Product, Integer>, JpaSpecific
      */
     @Query(value = "SELECT p.store FROM Product p WHERE p.productId IN (SELECT MAX(p.productId) FROM Product p WHERE p.store <> '' AND p.deletedAt IS NULL GROUP BY p.store) ORDER BY p.createdAt DESC")
     Page<String> findDistinctStores(Pageable pageable);
+
+    /**
+     * Permanently removes a soft deleted Product from the 'products' database table. A query is needed because deleting
+     * through the entity is a soft delete. The Product's Prices have to be removed first.
+     * @param productId ID of the Product to remove
+     * @return The number of removed Products
+     */
+    @Modifying
+    @Query(value = "DELETE FROM Product p WHERE p.productId = :productId AND p.deletedAt IS NOT NULL")
+    int permanentlyDeleteById(@Param("productId") Integer productId);
 }

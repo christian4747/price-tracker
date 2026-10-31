@@ -10,6 +10,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatchers;
+import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -18,7 +19,9 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.lang.reflect.Method;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Optional;
@@ -26,7 +29,9 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -126,6 +131,80 @@ public class ProductServiceTest {
         when(productDAO.findDistinctStores(pageable)).thenReturn(storePage);
 
         assertEquals(List.of("Store2", "Store"), productService.getRecentStores(pageable));
+    }
+
+    @Test
+    public void permanentlyDeleteProduct_deletedProduct_returnProduct() {
+        addedProduct.setDeletedAt(Timestamp.valueOf("2026-09-14 00:00:00"));
+        when(productDAO.findById(1)).thenReturn(Optional.of(addedProduct));
+        when(productDAO.permanentlyDeleteById(1)).thenReturn(1);
+
+        assertEquals("Product", productService.permanentlyDeleteProduct(1).getName());
+    }
+
+    // The database's foreign key rejects removing a Product that still has Prices
+    @Test
+    public void permanentlyDeleteProduct_deletedProduct_removePricesBeforeProduct() {
+        addedProduct.setDeletedAt(Timestamp.valueOf("2026-09-14 00:00:00"));
+        when(productDAO.findById(1)).thenReturn(Optional.of(addedProduct));
+        when(productDAO.permanentlyDeleteById(1)).thenReturn(1);
+
+        productService.permanentlyDeleteProduct(1);
+
+        InOrder removalOrder = inOrder(priceDAO, productDAO);
+        removalOrder.verify(priceDAO).permanentlyDeleteByProductId(1);
+        removalOrder.verify(productDAO).permanentlyDeleteById(1);
+    }
+
+    @Test
+    public void permanentlyDeleteProduct_productNotDeleted_throwException() {
+        when(productDAO.findById(1)).thenReturn(Optional.of(addedProduct));
+
+        IllegalArgumentException exception =
+                assertThrows(IllegalArgumentException.class, () -> productService.permanentlyDeleteProduct(1));
+        assertEquals("Only deleted products can be permanently deleted!", exception.getMessage());
+        verify(priceDAO, never()).permanentlyDeleteByProductId(anyInt());
+        verify(productDAO, never()).permanentlyDeleteById(anyInt());
+    }
+
+    @Test
+    public void permanentlyDeleteProduct_nonExistentProduct_throwException() {
+        when(productDAO.findById(1)).thenReturn(Optional.empty());
+
+        IllegalArgumentException exception =
+                assertThrows(IllegalArgumentException.class, () -> productService.permanentlyDeleteProduct(1));
+        assertEquals("Product with ID 1 does not exist!", exception.getMessage());
+        verify(priceDAO, never()).permanentlyDeleteByProductId(anyInt());
+        verify(productDAO, never()).permanentlyDeleteById(anyInt());
+    }
+
+    // Throwing rolls back the removed Prices if the Product was restored after it was checked
+    @Test
+    public void permanentlyDeleteProduct_productNotRemoved_throwException() {
+        addedProduct.setDeletedAt(Timestamp.valueOf("2026-09-14 00:00:00"));
+        when(productDAO.findById(1)).thenReturn(Optional.of(addedProduct));
+        when(productDAO.permanentlyDeleteById(1)).thenReturn(0);
+
+        IllegalArgumentException exception =
+                assertThrows(IllegalArgumentException.class, () -> productService.permanentlyDeleteProduct(1));
+        assertEquals("Only deleted products can be permanently deleted!", exception.getMessage());
+    }
+
+    @Test
+    public void permanentlyDeleteProduct_productRemovalFails_throwException() {
+        addedProduct.setDeletedAt(Timestamp.valueOf("2026-09-14 00:00:00"));
+        when(productDAO.findById(1)).thenReturn(Optional.of(addedProduct));
+        when(productDAO.permanentlyDeleteById(1)).thenThrow(new IllegalStateException("Removal failed"));
+
+        assertThrows(IllegalStateException.class, () -> productService.permanentlyDeleteProduct(1));
+    }
+
+    // The rollback itself needs a real database, so this guards the annotation that causes it
+    @Test
+    public void permanentlyDeleteProduct_isTransactional() throws NoSuchMethodException {
+        Method permanentlyDeleteProduct = ProductService.class.getMethod("permanentlyDeleteProduct", Integer.class);
+
+        assertTrue(permanentlyDeleteProduct.isAnnotationPresent(Transactional.class));
     }
 
     @Test
