@@ -166,11 +166,19 @@ public class PriceServiceTest {
     }
 
     @Test
-    public void addPriceRange_validRange_endPriceStartsWhenFirstPriceEnds() {
+    public void addPriceRange_validRange_endPriceStartsOneMinuteAfterFirstPriceEnds() {
         Price endPrice = saveRange(createRangeDTO()).getLast();
 
-        assertEquals(Timestamp.valueOf("2026-09-10 12:00:00"), endPrice.getPriceStarted());
+        assertEquals(Timestamp.valueOf("2026-09-10 12:01:00"), endPrice.getPriceStarted());
         assertNull(endPrice.getPriceEnded());
+    }
+
+    @Test
+    public void addPriceRange_endsInLastMinuteOfDay_endPriceStartsNextDay() {
+        IncomingPriceRangeDTO rangeDTO = createRangeDTO();
+        rangeDTO.setPriceEnded(Timestamp.valueOf("2026-09-10 23:59:00"));
+
+        assertEquals(Timestamp.valueOf("2026-09-11 00:00:00"), saveRange(rangeDTO).getLast().getPriceStarted());
     }
 
     @Test
