@@ -2,23 +2,11 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './styles/index.css'
 import App from './App.tsx'
-import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
-import { sendErrorNotification } from './utils/notificationUtils.ts'
-import { getErrorMessage } from './utils/errorUtils.ts'
+import { createQueryClient } from './utils/queryClientUtils.ts'
 
-const queryClient = new QueryClient({
-    queryCache: new QueryCache({
-        onError: (error) => {
-            sendErrorNotification(getErrorMessage(error))
-        }
-    }),
-    mutationCache: new MutationCache({
-        onError: (error) => {
-            sendErrorNotification(getErrorMessage(error))
-        }
-    })
-})
+const queryClient = createQueryClient()
 
 createRoot(document.getElementById('root')!).render(
     <StrictMode>
