@@ -41,6 +41,10 @@ describe('usePriceData', () => {
             expect(getChartPriceIds(prices)).toEqual([1, 2, 3, 3])
         })
 
+        test('should draw prices without a today row when no price has started', () => {
+            expect(getChartPriceIds([createPrice(2), createPrice(1)])).toEqual([1, 2])
+        })
+
         test('should leave out deleted prices', () => {
             const prices = [
                 createPrice(3, { today: true }),

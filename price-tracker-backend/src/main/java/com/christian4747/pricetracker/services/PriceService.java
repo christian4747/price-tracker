@@ -9,7 +9,6 @@ import com.christian4747.pricetracker.models.dtos.IncomingPriceRangeDTO;
 import com.christian4747.pricetracker.models.dtos.RecentPriceData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -203,7 +202,7 @@ public class PriceService {
 
     /**
      * Gets a list of Prices in the 'prices' database table with the given productId ordered by descending price started
-     * timestamp. Adds an extra Price to the list signifying today's price.
+     * timestamp. Adds an extra Price to the list signifying today's price, if a non-deleted Price has started.
      * @param pageable Pagination settings
      * @param productId productId of the Prices to get
      * @return The Prices associated with the given productId descending by priceStarted
@@ -213,19 +212,13 @@ public class PriceService {
         if (prices.isEmpty()) return List.of();
 
         Optional<Price> todayPrice = priceDAO.findPriceToday(productId);
-        Timestamp now = Timestamp.from(Instant.now());
-        Price priceToAdd;
 
         if (todayPrice.isPresent()) {
-            priceToAdd = todayPrice.get();
-        } else {
-            priceToAdd = new Price();
-            BeanUtils.copyProperties(prices.getFirst(), priceToAdd);
+            Price priceToAdd = todayPrice.get();
+            priceToAdd.setToday(true);
+            priceToAdd.setPriceStarted(Timestamp.from(Instant.now()));
+            prices.add(priceToAdd);
         }
-
-        priceToAdd.setToday(true);
-        priceToAdd.setPriceStarted(now);
-        prices.add(priceToAdd);
 
         prices.sort(Comparator.comparing(
                 Price::getPriceStarted,
