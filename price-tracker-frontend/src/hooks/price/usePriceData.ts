@@ -8,8 +8,11 @@ export function usePriceData(dateToday: Date) {
     const createPriceData = (prices: PriceType[]) => {
         if (!prices || prices.length <= 0) return []
 
-        const priceData = prices.map((price, idx) => {
-            price = prices[prices.length - 1 - idx]
+        // Deleted prices can be in the list when the price list is showing them, but the chart only draws live prices
+        const livePrices = prices.filter((price) => price.deletedAt === null)
+
+        const priceData = livePrices.map((price, idx) => {
+            price = livePrices[livePrices.length - 1 - idx]
 
             if (price.today) {
                 return {
