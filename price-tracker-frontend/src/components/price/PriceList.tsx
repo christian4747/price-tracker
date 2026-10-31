@@ -4,6 +4,7 @@ import { AddPriceModal } from './modals/AddPriceModal'
 import { Price } from './Price'
 import { EditPriceModal } from './modals/EditPriceModal'
 import { DeletePriceModal } from './modals/DeletePriceModal'
+import { PermanentlyDeletePriceModal } from './modals/PermanentlyDeletePriceModal'
 import { useDisclosure } from '@mantine/hooks'
 import { useState } from 'react'
 import { Checkbox } from '@mantine/core'
@@ -22,6 +23,8 @@ export const PriceList = ({ product, setDateToday, prices, showDeleted, setShowD
     // Track state of modal open/close
     const [editPriceOpened, { open: openEditPrice, close: closeEditPrice }] = useDisclosure(false)
     const [deletePriceOpened, { open: openDeletePrice, close: closeDeletePrice }] = useDisclosure(false)
+    const [permanentlyDeletePriceOpened, { open: openPermanentlyDeletePrice, close: closePermanentlyDeletePrice }] =
+        useDisclosure(false)
 
     const openEditPriceModal = (price: PriceType) => {
         setCurrentPrice(price)
@@ -31,6 +34,11 @@ export const PriceList = ({ product, setDateToday, prices, showDeleted, setShowD
     const openDeletePriceModal = (price: PriceType) => {
         setCurrentPrice(price)
         openDeletePrice()
+    }
+
+    const openPermanentlyDeletePriceModal = (price: PriceType) => {
+        setCurrentPrice(price)
+        openPermanentlyDeletePrice()
     }
 
     return (
@@ -45,6 +53,7 @@ export const PriceList = ({ product, setDateToday, prices, showDeleted, setShowD
                                 key={price.priceId}
                                 price={price}
                                 openDeletePriceModal={openDeletePriceModal}
+                                openPermanentlyDeletePriceModal={openPermanentlyDeletePriceModal}
                                 openEditPriceModal={openEditPriceModal}
                             />
                         )
@@ -69,6 +78,11 @@ export const PriceList = ({ product, setDateToday, prices, showDeleted, setShowD
                 {/* Modal Zone */}
                 <EditPriceModal price={currentPrice} closeEditPrice={closeEditPrice} opened={editPriceOpened} />
                 <DeletePriceModal price={currentPrice} closeDeletePrice={closeDeletePrice} opened={deletePriceOpened} />
+                <PermanentlyDeletePriceModal
+                    price={currentPrice}
+                    closeModal={closePermanentlyDeletePrice}
+                    opened={permanentlyDeletePriceOpened}
+                />
             </div>
         </>
     )

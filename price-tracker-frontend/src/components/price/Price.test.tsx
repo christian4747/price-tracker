@@ -1,4 +1,5 @@
-import { describe, expect } from 'vitest'
+import type { ComponentProps } from 'react'
+import { describe, expect, vi } from 'vitest'
 import { renderWithClient, screen, test, userEvent, waitFor } from '@/test-utils'
 import { http, HttpResponse } from 'msw'
 import type { PriceType } from '@/types/price'
@@ -47,30 +48,43 @@ const deletedPrice: PriceType = {
     productId: 0
 }
 
+// Renders the price with modal handlers that do nothing, unless a test passes its own
+const renderPrice = (priceToRender: PriceType, handlers: Partial<ComponentProps<typeof Price>> = {}) => {
+    return renderWithClient(
+        <Price
+            price={priceToRender}
+            openEditPriceModal={() => {}}
+            openDeletePriceModal={() => {}}
+            openPermanentlyDeletePriceModal={() => {}}
+            {...handlers}
+        />
+    )
+}
+
 describe('Price Component', () => {
     test('should render price', async () => {
-        renderWithClient(<Price price={price} openEditPriceModal={() => {}} openDeletePriceModal={() => {}} />)
+        renderPrice(price)
 
         const price1Date = await screen.findByText('9/4/2026')
         await expect.element(price1Date).toBeInTheDocument()
     })
 
     test('should render delete price button', async () => {
-        renderWithClient(<Price price={price} openEditPriceModal={() => {}} openDeletePriceModal={() => {}} />)
+        renderPrice(price)
 
         const deletePriceButton = screen.getByRole('img', { name: /delete price/i })
         await expect.element(deletePriceButton).toBeInTheDocument()
     })
 
     test('should not render delete price button', async () => {
-        renderWithClient(<Price price={deletedPrice} openEditPriceModal={() => {}} openDeletePriceModal={() => {}} />)
+        renderPrice(deletedPrice)
 
-        const deletePriceButton = screen.queryByRole('img', { name: /delete price/i })
+        const deletePriceButton = screen.queryByRole('img', { name: 'Delete price' })
         await expect.element(deletePriceButton).not.toBeInTheDocument()
     })
 
     test('should not render restore price button', async () => {
-        renderWithClient(<Price price={price} openEditPriceModal={() => {}} openDeletePriceModal={() => {}} />)
+        renderPrice(price)
 
         const restorePriceButton = screen.queryByRole('img', { name: /restore price/i })
         await expect.element(restorePriceButton).not.toBeInTheDocument()
@@ -85,7 +99,7 @@ describe('Price Component', () => {
             })
         )
         const user = userEvent.setup()
-        renderWithClient(<Price price={deletedPrice} openEditPriceModal={() => {}} openDeletePriceModal={() => {}} />)
+        renderPrice(deletedPrice)
 
         await user.click(screen.getByRole('img', { name: /restore price/i }))
 
@@ -104,7 +118,7 @@ describe('Price Component', () => {
             })
         )
         const user = userEvent.setup()
-        renderWithClient(<Price price={deletedPrice} openEditPriceModal={() => {}} openDeletePriceModal={() => {}} />)
+        renderPrice(deletedPrice)
 
         const restoreButton = screen.getByRole('img', { name: /restore price/i })
         await user.click(restoreButton)
@@ -118,8 +132,24 @@ describe('Price Component', () => {
         expect(requestCount).toBe(1)
     })
 
+    test('should not render permanently delete price button for a price that is not deleted', async () => {
+        renderPrice(price)
+
+        expect(screen.queryByRole('img', { name: 'Permanently delete price' })).not.toBeInTheDocument()
+    })
+
+    test('should open the permanently delete modal for a deleted price', async () => {
+        const openPermanentlyDeletePriceModal = vi.fn()
+        const user = userEvent.setup()
+        renderPrice(deletedPrice, { openPermanentlyDeletePriceModal })
+
+        await user.click(screen.getByRole('img', { name: 'Permanently delete price' }))
+
+        expect(openPermanentlyDeletePriceModal).toHaveBeenCalledWith(deletedPrice)
+    })
+
     test('should strike through and gray out the date and amount of a deleted price', async () => {
-        renderWithClient(<Price price={deletedPrice} openEditPriceModal={() => {}} openDeletePriceModal={() => {}} />)
+        renderPrice(deletedPrice)
 
         await expect.element(screen.getByText('9/4/2026')).toHaveClass('line-through', 'text-raincloud')
         await expect
@@ -128,7 +158,7 @@ describe('Price Component', () => {
     })
 
     test('should not strike through the date and amount of a price', async () => {
-        renderWithClient(<Price price={price} openEditPriceModal={() => {}} openDeletePriceModal={() => {}} />)
+        renderPrice(price)
 
         await expect.element(screen.getByText('9/4/2026')).not.toHaveClass('line-through')
         await expect.element(screen.getByText(getPriceString(price))).not.toHaveClass('line-through')

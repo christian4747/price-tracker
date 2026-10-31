@@ -2,16 +2,17 @@ import type { PriceType } from '@/types/price'
 import { getUSDateStringFromTimestamp } from '@/utils/dateUtils'
 import { getPriceString } from '@/utils/priceUtils'
 import { Loader, Tooltip } from '@mantine/core'
-import { MdDelete, MdEdit, MdUndo } from 'react-icons/md'
+import { MdDelete, MdDeleteForever, MdEdit, MdUndo } from 'react-icons/md'
 import { useRestorePrice } from '@/hooks/price/useRestorePrice'
 
 interface Price {
     price: PriceType
     openEditPriceModal: (price: PriceType) => void
     openDeletePriceModal: (price: PriceType) => void
+    openPermanentlyDeletePriceModal: (price: PriceType) => void
 }
 
-export const Price = ({ price, openEditPriceModal, openDeletePriceModal }: Price) => {
+export const Price = ({ price, openEditPriceModal, openDeletePriceModal, openPermanentlyDeletePriceModal }: Price) => {
     // Constructing the string to show the date on the PriceList
     const priceStartedDateString = getUSDateStringFromTimestamp(price.priceStarted)
     // Hook for restoring deleted prices
@@ -69,6 +70,22 @@ export const Price = ({ price, openEditPriceModal, openDeletePriceModal }: Price
                                 <MdUndo />
                             </Tooltip>
                         )}
+                    </div>
+                )}
+
+                {price.deletedAt !== null && (
+                    <div
+                        className="cursor-pointer"
+                        role="img"
+                        aria-label="Permanently delete price"
+                        onClick={(e) => {
+                            openPermanentlyDeletePriceModal(price)
+                            e.stopPropagation()
+                        }}
+                    >
+                        <Tooltip withArrow label="Permanently Delete Price">
+                            <MdDeleteForever />
+                        </Tooltip>
                     </div>
                 )}
             </div>

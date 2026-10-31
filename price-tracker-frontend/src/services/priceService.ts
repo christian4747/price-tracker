@@ -24,6 +24,11 @@ export default {
         return res.data
     },
 
+    permanentlyDeletePrice: async (priceId: number) => {
+        const res = await apiClient.delete(apiPath + '/' + priceId.toString() + '/permanent')
+        return res.data
+    },
+
     restorePrice: async (priceId: number) => {
         const res = await apiClient.put(apiPath + '/' + priceId.toString() + '/restore')
         return res.data
