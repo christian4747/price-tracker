@@ -32,3 +32,7 @@ export interface PriceDTO {
     totalAmount: number
     totalPercentage: number
 }
+
+export interface PriceRangeDTO extends PriceDTO {
+    useEndDateDesc: boolean
+}

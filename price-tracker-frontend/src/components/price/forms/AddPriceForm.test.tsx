@@ -21,6 +21,8 @@ const pricesApiUrl = import.meta.env.VITE_BACKEND_ROOT_URL + '/prices'
 
 const dateButtons = ['Start Date Only', 'Start and End Date']
 
+const savedPrice = { priceStarted: '2026-09-04T00:00:00.000Z' }
+
 // Renders the form and starts a save that stays in progress until finishSave is called
 const startSave = async (worker: SetupWorker, dateButton: string) => {
     let finishSave = () => {}
@@ -30,7 +32,11 @@ const startSave = async (worker: SetupWorker, dateButton: string) => {
     worker.use(
         http.post(pricesApiUrl, async () => {
             await saveFinished
-            return HttpResponse.json({ priceStarted: '2026-09-04T00:00:00.000Z' })
+            return HttpResponse.json(savedPrice)
+        }),
+        http.post(pricesApiUrl + '/range', async () => {
+            await saveFinished
+            return HttpResponse.json([savedPrice, savedPrice])
         })
     )
     const close = vi.fn()
@@ -134,12 +140,11 @@ describe('Add Price Form Component', () => {
 
     test.for(dateButtons)('should stay open with its values when rejected with %s', async (dateButton, { worker }) => {
         let saveRejected = false
-        worker.use(
-            http.post(pricesApiUrl, () => {
-                saveRejected = true
-                return HttpResponse.text('Price is invalid', { status: 400 })
-            })
-        )
+        const rejectSave = () => {
+            saveRejected = true
+            return HttpResponse.text('Price is invalid', { status: 400 })
+        }
+        worker.use(http.post(pricesApiUrl, rejectSave), http.post(pricesApiUrl + '/range', rejectSave))
         const close = vi.fn()
         const user = userEvent.setup()
         renderWithClient(<AddPriceForm product={product} setDateToday={() => {}} close={close} />)

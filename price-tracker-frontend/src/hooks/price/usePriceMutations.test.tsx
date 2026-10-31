@@ -2,7 +2,8 @@ import { describe, expect } from 'vitest'
 import { act, renderHook, RenderClientWrapper, test, waitFor } from '@/test-utils'
 import { http, HttpResponse } from 'msw'
 import dayjs from 'dayjs'
-import type { PriceDTO, PriceType } from '@/types/price'
+import type { SetupWorker } from 'msw/browser'
+import type { PriceDTO, PriceRangeDTO, PriceType } from '@/types/price'
 import type { ProductType } from '@/types/product'
 import { useAddPrice } from './useAddPrice'
 import { useEditPrice } from './useEditPrice'
@@ -41,48 +42,80 @@ const price1: PriceType = {
     productId: 0
 }
 
+// Saves a price with an end date, recording the request sent for the range and any sent for a single price
+const saveRange = async (worker: SetupWorker, useEndDateDesc: boolean) => {
+    const rangeBodies: PriceRangeDTO[] = []
+    let singlePriceRequests = 0
+    worker.use(
+        http.post(pricesApiUrl + '/range', async ({ request }) => {
+            rangeBodies.push((await request.json()) as PriceRangeDTO)
+            return HttpResponse.json([price1, price1])
+        }),
+        http.post(pricesApiUrl, () => {
+            singlePriceRequests++
+            return HttpResponse.json(price1)
+        })
+    )
+    const { result } = renderHook(() => useAddPrice(product, useEndDateDesc), { wrapper: RenderClientWrapper })
+
+    act(() => {
+        result.current.priceDTO.setField('amount', 100)
+        result.current.priceDTO.setField('discountAmount', 80)
+        result.current.priceDTO.setField('description', 'Sale')
+        result.current.priceDTO.setField('priceStarted', '2026-09-04T00:00:00.000Z')
+        result.current.priceDTO.setField('priceEnded', '2026-09-10T00:00:00.000Z')
+    })
+    act(() => {
+        result.current.mutation.mutate()
+    })
+    await waitFor(() => expect(result.current.mutation.isSuccess).toBe(true))
+
+    return { rangeBodies, singlePriceRequests }
+}
+
 describe('useAddPrice', () => {
-    test('should add a second price at full amount when an end date is given', async ({ worker }) => {
-        const requestBodies: PriceDTO[] = []
-        worker.use(
-            http.post(pricesApiUrl, async ({ request }) => {
-                const body = (await request.json()) as PriceDTO
-                requestBodies.push(body)
-                return HttpResponse.json(price1)
-            })
-        )
-        const { result } = renderHook(() => useAddPrice(product, false), { wrapper: RenderClientWrapper })
+    test('should send the price and its dates to the range endpoint', async ({ worker }) => {
+        const { rangeBodies } = await saveRange(worker, false)
 
-        act(() => {
-            result.current.priceDTO.setField('amount', 100)
-            result.current.priceDTO.setField('discountAmount', 80)
-            result.current.priceDTO.setField('discountPercentage', 20)
-            result.current.priceDTO.setField('description', 'Sale')
-            result.current.priceDTO.setField('priceStarted', '2026-09-04T00:00:00.000Z')
-            result.current.priceDTO.setField('priceEnded', '2026-09-10T00:00:00.000Z')
-        })
-        act(() => {
-            result.current.mutation.mutate()
-        })
-
-        await waitFor(() => expect(requestBodies).toHaveLength(2))
-        expect(requestBodies[0]).toMatchObject({
+        expect(rangeBodies).toHaveLength(1)
+        expect(rangeBodies[0]).toMatchObject({
             amount: 100,
             discountAmount: 80,
             description: 'Sale',
             priceStarted: dayjs('2026-09-04T00:00:00.000Z').format(),
             priceEnded: dayjs('2026-09-10T00:00:00.000Z').format()
         })
-        expect(requestBodies[1]).toMatchObject({
-            amount: 100,
-            discountAmount: 100,
-            discountPercentage: 0,
-            returnAmount: 0,
-            returnPercentage: 0,
-            description: '',
-            priceStarted: dayjs('2026-09-10T00:00:00.000Z').format(),
-            priceEnded: ''
+    })
+
+    test.for([true, false])('should send useEndDateDesc as %s', async (useEndDateDesc, { worker }) => {
+        const { rangeBodies } = await saveRange(worker, useEndDateDesc)
+
+        expect(rangeBodies[0].useEndDateDesc).toBe(useEndDateDesc)
+    })
+
+    test('should not send a separate request for the end price', async ({ worker }) => {
+        const { singlePriceRequests } = await saveRange(worker, false)
+
+        expect(singlePriceRequests).toBe(0)
+    })
+
+    test('should send a start date only price without an end date to the single price endpoint', async ({ worker }) => {
+        const requestBodies: PriceDTO[] = []
+        worker.use(
+            http.post(pricesApiUrl, async ({ request }) => {
+                requestBodies.push((await request.json()) as PriceDTO)
+                return HttpResponse.json(price1)
+            })
+        )
+        const { result } = renderHook(() => useAddPrice(product, false), { wrapper: RenderClientWrapper })
+
+        act(() => {
+            result.current.singleMutation.mutate()
         })
+
+        await waitFor(() => expect(result.current.singleMutation.isSuccess).toBe(true))
+        expect(requestBodies).toHaveLength(1)
+        expect(requestBodies[0].priceEnded).toBe('')
     })
 
     test('should keep the default end date after adding an unedited price', async ({ worker }) => {

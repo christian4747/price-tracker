@@ -5,6 +5,7 @@ import com.christian4747.pricetracker.daos.ProductDAO;
 import com.christian4747.pricetracker.models.Price;
 import com.christian4747.pricetracker.models.Product;
 import com.christian4747.pricetracker.models.dtos.IncomingPriceDTO;
+import com.christian4747.pricetracker.models.dtos.IncomingPriceRangeDTO;
 import com.christian4747.pricetracker.models.dtos.RecentPriceData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -79,6 +81,41 @@ public class PriceService {
         logger.info("Created new Price with ID: {}", savedPrice.getPriceId());
 
         return savedPrice;
+    }
+
+    /**
+     * Adds a new Price with an end date and the Price that starts when it ends, which returns to the full amount. Both
+     * are saved in one transaction, so if either fails then neither is saved.
+     * @param rangeDTO The new Price details, and whether the end Price keeps the description
+     * @return The newly added Price, followed by the newly added end Price
+     */
+    @Transactional
+    public List<Price> addPriceRange(IncomingPriceRangeDTO rangeDTO) {
+        if (rangeDTO.getPriceEnded() == null) {
+            logger.info("Attempted to add a Price range without an end date");
+            throw new IllegalArgumentException("Price end date is required!");
+        }
+
+        Price savedPrice = addPrice(rangeDTO);
+
+        // addPrice calculates the totals from the other values, so they don't need to be set here
+        IncomingPriceDTO endPriceDTO = new IncomingPriceDTO(
+                rangeDTO.getAmount(),
+                rangeDTO.getCurrency(),
+                rangeDTO.isUseEndDateDesc() ? rangeDTO.getDescription() : "",
+                rangeDTO.getAmount(),
+                0,
+                rangeDTO.getPriceEnded(),
+                null,
+                rangeDTO.getProductId(),
+                0,
+                0,
+                0,
+                0
+        );
+        Price savedEndPrice = addPrice(endPriceDTO);
+
+        return List.of(savedPrice, savedEndPrice);
     }
 
     private double calculateTotalPercentage(double discountAmount, double returnAmount, double amount) {
