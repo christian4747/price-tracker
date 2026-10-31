@@ -80,6 +80,26 @@ describe('Edit Price Form Component', () => {
         expect((screen.getByRole('textbox', { name: /return amount/i }) as HTMLInputElement).value).toBe('10.00')
     })
 
+    test('should show recent start dates with a 12-hour time', async ({ worker }) => {
+        worker.use(
+            http.get(pricesApiUrl + '/recent/:productId', () =>
+                HttpResponse.json({
+                    baseAmounts: [],
+                    currencies: [],
+                    descriptions: [],
+                    discountPercentages: [],
+                    pricesEnded: [],
+                    // Built from a local time so the expected text doesn't depend on the test machine's time zone
+                    pricesStarted: [new Date(2026, 8, 4, 14, 5).toISOString()],
+                    returnPercentages: []
+                })
+            )
+        )
+        renderWithClient(<EditPriceForm price={price} closeEditPrice={() => {}} />)
+
+        await expect.element(await screen.findByRole('button', { name: 'Sep 4, 2026 2:05 PM' })).toBeVisible()
+    })
+
     test('should show the save in progress', async ({ worker }) => {
         const { submitButton } = await startSave(worker)
 

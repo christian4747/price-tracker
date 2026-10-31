@@ -4,7 +4,7 @@ import { RecentDataScroller } from '@/components/common/RecentDataScroller'
 import { SubmitButton } from '@/components/common/SubmitButton'
 import { PriceDateTimePicker } from '@/components/price/PriceDateTimePicker'
 import { useEffect, useState } from 'react'
-import { getFormattedDateString } from '@/utils/dateUtils'
+import { getFormattedDateTimeString } from '@/utils/dateUtils'
 import { useDisclosure } from '@mantine/hooks'
 import { useAddPrice } from '@/hooks/price/useAddPrice'
 import { useRecentPriceData } from '@/hooks/price/useRecentPriceData'
@@ -67,13 +67,13 @@ export const AddPriceForm = ({ product, setDateToday, close, quickAdd = false }:
 
     const recentPricesStarted = recentPriceQuery.data?.pricesStarted.map((priceStarted: string, idx: number) => (
         <Button key={idx} onClick={() => priceDTO.setField('priceStarted', priceStarted)}>
-            {getFormattedDateString(priceStarted)}
+            {getFormattedDateTimeString(priceStarted)}
         </Button>
     ))
 
     const recentPricesEnded = recentPriceQuery.data?.pricesEnded.map((priceEnded: string, idx: number) => (
         <Button key={idx} onClick={() => priceDTO.setField('priceEnded', priceEnded)}>
-            {getFormattedDateString(priceEnded)}
+            {getFormattedDateTimeString(priceEnded)}
         </Button>
     ))
 

@@ -106,6 +106,30 @@ describe('Add Price Form Component', () => {
         expect(addButton).toBeEnabled()
     })
 
+    test('should show recent dates with a 12-hour time', async ({ worker }) => {
+        worker.use(
+            http.get(pricesApiUrl + '/recent/:productId', () =>
+                HttpResponse.json({
+                    baseAmounts: [],
+                    currencies: [],
+                    descriptions: [],
+                    discountPercentages: [],
+                    // Built from local times so the expected text doesn't depend on the test machine's time zone
+                    pricesEnded: [new Date(2026, 8, 10, 23, 59).toISOString()],
+                    pricesStarted: [new Date(2026, 8, 4, 14, 5).toISOString()],
+                    returnPercentages: []
+                })
+            )
+        )
+        const user = userEvent.setup()
+        renderWithClient(<AddPriceForm product={product} setDateToday={() => {}} close={() => {}} />)
+
+        await user.click(screen.getByRole('button', { name: 'Start and End Date' }))
+
+        await expect.element(await screen.findByRole('button', { name: 'Sep 4, 2026 2:05 PM' })).toBeVisible()
+        await expect.element(screen.getByRole('button', { name: 'Sep 10, 2026 11:59 PM' })).toBeVisible()
+    })
+
     test('should default to a valid end date', async () => {
         const user = userEvent.setup()
         renderWithClient(<AddPriceForm product={product} setDateToday={() => {}} close={() => {}} />)

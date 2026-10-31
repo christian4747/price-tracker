@@ -1,11 +1,13 @@
-import { describe, expect } from 'vitest'
+import { describe, expect, onTestFinished, vi } from 'vitest'
 import { act, renderHook, RenderClientWrapper, test, waitFor } from '@/test-utils'
 import { http, HttpResponse } from 'msw'
+import { notifications } from '@mantine/notifications'
 import dayjs from 'dayjs'
 import type { SetupWorker } from 'msw/browser'
 import type { PriceDTO, PriceRangeDTO, PriceType } from '@/types/price'
 import type { ProductType } from '@/types/product'
 import { useAddPrice } from './useAddPrice'
+import { useDeletePrice } from './useDeletePrice'
 import { useEditPrice } from './useEditPrice'
 
 const pricesApiUrl = import.meta.env.VITE_BACKEND_ROOT_URL + '/prices'
@@ -40,6 +42,18 @@ const price1: PriceType = {
     deletedAt: null,
     updatedAt: '2026-09-04T00:00:00.000Z',
     productId: 0
+}
+
+// Built from local times so the expected text doesn't depend on the test machine's time zone
+const afternoonPrice: PriceType = { ...price1, priceStarted: new Date(2026, 8, 4, 14, 5).toISOString() }
+const lastMinutePrice: PriceType = { ...price1, priceStarted: new Date(2026, 8, 10, 23, 59).toISOString() }
+
+// Watches the notifications until the test ends, and returns the messages shown so far
+const watchNotifications = () => {
+    const show = vi.spyOn(notifications, 'show')
+    onTestFinished(() => show.mockRestore())
+
+    return () => show.mock.calls.map(([notification]) => notification.message)
 }
 
 // Saves a price with an end date, recording the request sent for the range and any sent for a single price
@@ -130,6 +144,50 @@ describe('useAddPrice', () => {
         await waitFor(() => expect(result.current.singleMutation.isSuccess).toBe(true))
         expect(result.current.priceDTO.value.priceEnded).toBe(defaultPriceEnded)
     })
+
+    test('should notify with a 12-hour time after adding a single price', async ({ worker }) => {
+        worker.use(http.post(pricesApiUrl, () => HttpResponse.json(afternoonPrice)))
+        const messages = watchNotifications()
+        const { result } = renderHook(() => useAddPrice(product, false), { wrapper: RenderClientWrapper })
+
+        act(() => {
+            result.current.singleMutation.mutate()
+        })
+
+        await waitFor(() => expect(result.current.singleMutation.isSuccess).toBe(true))
+        expect(messages()).toEqual(['Successfully added price Sep 4, 2026 2:05 PM'])
+    })
+
+    test('should notify with a 12-hour time for both prices after adding a range', async ({ worker }) => {
+        worker.use(http.post(pricesApiUrl + '/range', () => HttpResponse.json([afternoonPrice, lastMinutePrice])))
+        const messages = watchNotifications()
+        const { result } = renderHook(() => useAddPrice(product, false), { wrapper: RenderClientWrapper })
+
+        act(() => {
+            result.current.mutation.mutate()
+        })
+
+        await waitFor(() => expect(result.current.mutation.isSuccess).toBe(true))
+        expect(messages()).toEqual([
+            'Successfully added price Sep 4, 2026 2:05 PM',
+            'Successfully added price Sep 10, 2026 11:59 PM'
+        ])
+    })
+})
+
+describe('useDeletePrice', () => {
+    test('should notify with a 12-hour time', async ({ worker }) => {
+        worker.use(http.delete(pricesApiUrl + '/:priceId', () => HttpResponse.json(afternoonPrice)))
+        const messages = watchNotifications()
+        const { result } = renderHook(() => useDeletePrice(price1), { wrapper: RenderClientWrapper })
+
+        act(() => {
+            result.current.mutation.mutate()
+        })
+
+        await waitFor(() => expect(result.current.mutation.isSuccess).toBe(true))
+        expect(messages()).toEqual(['Successfully deleted price Sep 4, 2026 2:05 PM'])
+    })
 })
 
 describe('useEditPrice', () => {
@@ -144,5 +202,18 @@ describe('useEditPrice', () => {
 
         await waitFor(() => expect(result.current.mutation.isSuccess).toBe(true))
         expect(price).toEqual(price1)
+    })
+
+    test('should notify with a 12-hour time', async ({ worker }) => {
+        worker.use(http.put(pricesApiUrl + '/:priceId', () => HttpResponse.json(afternoonPrice)))
+        const messages = watchNotifications()
+        const { result } = renderHook(() => useEditPrice(price1), { wrapper: RenderClientWrapper })
+
+        act(() => {
+            result.current.mutation.mutate()
+        })
+
+        await waitFor(() => expect(result.current.mutation.isSuccess).toBe(true))
+        expect(messages()).toEqual(['Successfully edited price Sep 4, 2026 2:05 PM'])
     })
 })
