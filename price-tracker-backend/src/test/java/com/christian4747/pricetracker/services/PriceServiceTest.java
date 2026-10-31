@@ -338,6 +338,47 @@ public class PriceServiceTest {
     }
 
     @Test
+    public void getPricesByProductId_noStartedPrice_returnNoTodayPrice() {
+        when(pricePage.getContent()).thenReturn(priceList);
+        when(priceDAO.findPriceToday(anyInt())).thenReturn(Optional.empty());
+        when(priceDAO.findByProductProductIdOrderByPriceStartedDesc(pageable, 0)).thenReturn(pricePage);
+
+        List<Price> prices = priceService.getPricesByProductId(pageable, 0, false);
+
+        assertEquals(priceList.size(), prices.size());
+        assertTrue(prices.stream().noneMatch(Price::isToday));
+    }
+
+    @Test
+    public void getPricesByProductId_noStartedPriceWithDeleted_returnNoTodayPrice() {
+        when(pricePage.getContent()).thenReturn(priceList);
+        when(priceDAO.findPriceToday(anyInt())).thenReturn(Optional.empty());
+        when(priceDAO.findByProductProductIdOrderByPriceStartedDescDeleted(pageable, 0)).thenReturn(pricePage);
+
+        List<Price> prices = priceService.getPricesByProductId(pageable, 0, true);
+
+        assertEquals(priceList.size(), prices.size());
+        assertTrue(prices.stream().noneMatch(Price::isToday));
+    }
+
+    @Test
+    public void getPricesByProductId_startedAndFuturePrice_todayPriceIsStartedPrice() {
+        Price startedPrice = new Price();
+        startedPrice.setPriceId(1);
+        Price futurePrice = new Price();
+        futurePrice.setPriceId(2);
+        futurePrice.setPriceStarted(Timestamp.valueOf("2999-01-01 00:00:00"));
+
+        when(pricePage.getContent()).thenReturn(List.of(futurePrice, startedPrice));
+        when(priceDAO.findPriceToday(anyInt())).thenReturn(Optional.of(startedPrice));
+        when(priceDAO.findByProductProductIdOrderByPriceStartedDesc(pageable, 0)).thenReturn(pricePage);
+
+        List<Price> prices = priceService.getPricesByProductId(pageable, 0, false);
+
+        assertEquals(1, prices.stream().filter(Price::isToday).findFirst().orElseThrow().getPriceId());
+    }
+
+    @Test
     public void updatePrice_nonExistentPrice_throwException() {
         when(priceDAO.findById(anyInt())).thenReturn(Optional.empty());
 
