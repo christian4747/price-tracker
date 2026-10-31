@@ -258,6 +258,13 @@ public class PriceServiceTest {
     }
 
     @Test
+    public void getPriceCountByProductId_threePrices_returnThree() {
+        when(priceDAO.countByProductProductId(1)).thenReturn(3L);
+
+        assertEquals(3, priceService.getPriceCountByProductId(1));
+    }
+
+    @Test
     public void permanentlyDeletePrice_deletedPrice_removeAndReturnPrice() {
         price.setDeletedAt(Timestamp.valueOf("2026-09-10 12:00:00"));
         when(priceDAO.findById(1)).thenReturn(Optional.of(price));

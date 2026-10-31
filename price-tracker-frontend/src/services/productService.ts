@@ -62,6 +62,11 @@ export default {
         return res.data
     },
 
+    permanentlyDeleteProduct: async (productId: number) => {
+        const res = await apiClient.delete(apiPath + '/' + productId.toString() + '/permanent')
+        return res.data
+    },
+
     restoreProduct: async (productId: number) => {
         const res = await apiClient.put(apiPath + '/' + productId.toString() + '/restore')
         return res.data

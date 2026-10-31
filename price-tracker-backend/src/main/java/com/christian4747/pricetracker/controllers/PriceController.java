@@ -112,6 +112,16 @@ public class PriceController {
     }
 
     /**
+     * Counts all the Prices of the given productId, including soft deleted ones.
+     * @param productId productId of the Prices to count
+     * @return The number of Prices
+     */
+    @GetMapping("/product/{productId}/count")
+    public ResponseEntity<Long> getPriceCountByProductId(@PathVariable Integer productId) {
+        return ResponseEntity.ok(priceService.getPriceCountByProductId(productId));
+    }
+
+    /**
      * Gets an object with lists of recent & distinct Price currencies, descriptions, discount percentage, pricesStarted,
      * pricesEnded, and return percentage.
      * @param pageable Pagination settings

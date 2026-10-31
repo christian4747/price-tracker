@@ -1,7 +1,8 @@
-import { describe, expect } from 'vitest'
+import { describe, expect, vi } from 'vitest'
 import { renderWithClient, screen, test, userEvent, waitFor } from '@/test-utils'
 import { http, HttpResponse } from 'msw'
 import type { ProductType } from '@/types/product'
+import { PermanentlyDeleteProductContext } from './ProductContext'
 import { ProductTitleDetails } from './ProductTitleDetails'
 
 const productsApiUrl = import.meta.env.VITE_BACKEND_ROOT_URL + '/products'
@@ -41,8 +42,28 @@ describe('Product Title Details Component', () => {
     test('should not render product delete button', async () => {
         renderWithClient(<ProductTitleDetails product={deletedProduct} />)
 
-        const deleteProductButton = screen.queryByRole('img', { name: /delete product/i })
+        const deleteProductButton = screen.queryByRole('img', { name: 'Delete product' })
         await expect.element(deleteProductButton).not.toBeInTheDocument()
+    })
+
+    test('should not render permanently delete button for a product that is not deleted', async () => {
+        renderWithClient(<ProductTitleDetails product={product} />)
+
+        expect(screen.queryByRole('img', { name: 'Permanently delete product' })).not.toBeInTheDocument()
+    })
+
+    test('should open the permanently delete modal for a deleted product', async () => {
+        const openPermanentlyDeleteProductModal = vi.fn()
+        const user = userEvent.setup()
+        renderWithClient(
+            <PermanentlyDeleteProductContext value={openPermanentlyDeleteProductModal}>
+                <ProductTitleDetails product={deletedProduct} />
+            </PermanentlyDeleteProductContext>
+        )
+
+        await user.click(screen.getByRole('img', { name: 'Permanently delete product' }))
+
+        expect(openPermanentlyDeleteProductModal).toHaveBeenCalledWith(deletedProduct)
     })
 
     test('should not render product restore button', async () => {

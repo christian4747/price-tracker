@@ -3,3 +3,4 @@ import { createContext } from 'react'
 
 export const EditProductContext = createContext<(product: ProductType) => void>(() => {})
 export const DeleteProductContext = createContext<(product: ProductType) => void>(() => {})
+export const PermanentlyDeleteProductContext = createContext<(product: ProductType) => void>(() => {})

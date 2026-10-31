@@ -226,6 +226,15 @@ public class PriceService {
     }
 
     /**
+     * Counts all the Prices of the given productId, including soft deleted ones.
+     * @param productId productId of the Prices to count
+     * @return The number of Prices
+     */
+    public long getPriceCountByProductId(Integer productId) {
+        return priceDAO.countByProductProductId(productId);
+    }
+
+    /**
      * Gets a list of Prices in the 'prices' database table with the given productId ordered by descending price started
      * timestamp. Adds an extra Price to the list signifying today's price, if a non-deleted Price has started.
      * @param pageable Pagination settings

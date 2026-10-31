@@ -24,6 +24,13 @@ public interface PriceDAO extends JpaRepository<Price, Integer> {
     Page<Price> findByDeletedAtNull(Pageable pageable);
 
     /**
+     * Counts all the Prices of the given productId, whether or not they are soft deleted.
+     * @param productId productId of the Prices to count
+     * @return The number of Prices
+     */
+    long countByProductProductId(Integer productId);
+
+    /**
      * Restores the Prices of the given productId that were deleted at the given time. Deleting a Product deletes its
      * Prices in the same transaction, so they share the Product's deletedAt.
      * @param productId productId of the Prices to restore

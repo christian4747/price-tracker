@@ -4,6 +4,7 @@ import { CopyButton, Tooltip } from '@mantine/core'
 import { useContext } from 'react'
 import { FaLink, FaCheck, FaCopy } from 'react-icons/fa6'
 import { MdDelete, MdEdit } from 'react-icons/md'
+import { PermanentlyDeleteProductButton } from './PermanentlyDeleteProductButton'
 import { RestoreProductButton } from './RestoreProductButton'
 
 export interface ProductTitleDetails {
@@ -63,6 +64,8 @@ export const ProductTitleDetails = ({ product, otherStoresText }: ProductTitleDe
             )}
 
             {product.deletedAt !== null && <RestoreProductButton product={product} />}
+
+            {product.deletedAt !== null && <PermanentlyDeleteProductButton product={product} />}
 
             <CopyButton value={product.name} timeout={1000}>
                 {({ copied, copy }) => (

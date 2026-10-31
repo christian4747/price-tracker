@@ -50,6 +50,11 @@ export default {
         return res.data
     },
 
+    getPriceCount: async (productId: number) => {
+        const res = await apiClient.get(apiPath + '/product/' + productId + '/count')
+        return res.data
+    },
+
     getRecentPriceData: async (productId: number, pageNumber: number = 0, pageSize: number = 5) => {
         const res = await apiClient.get(apiPath + '/recent/' + productId, {
             params: {
