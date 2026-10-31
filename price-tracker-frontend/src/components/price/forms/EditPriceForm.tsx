@@ -1,7 +1,7 @@
 import type { PriceType } from '@/types/price'
 import { Button, TextInput } from '@mantine/core'
 import { useEditPrice } from '@/hooks/price/useEditPrice'
-import { getFormattedDateString } from '@/utils/dateUtils'
+import { getFormattedDateTimeString } from '@/utils/dateUtils'
 import { RecentDataScroller } from '@/components/common/RecentDataScroller'
 import { SubmitButton } from '@/components/common/SubmitButton'
 import { PriceDateTimePicker } from '@/components/price/PriceDateTimePicker'
@@ -33,7 +33,7 @@ export const EditPriceForm = ({ price, closeEditPrice }: EditPriceForm) => {
 
     const recentPricesStarted = recentPriceQuery.data?.pricesStarted.map((priceStarted: string, idx: number) => (
         <Button key={idx} onClick={() => priceDTO.setField('priceStarted', priceStarted)}>
-            {getFormattedDateString(priceStarted)}
+            {getFormattedDateTimeString(priceStarted)}
         </Button>
     ))
 

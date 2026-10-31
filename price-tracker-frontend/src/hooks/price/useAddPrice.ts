@@ -5,7 +5,7 @@ import type { PriceDTO, PriceType } from '@/types/price'
 import type { ProductType } from '@/types/product'
 import dayjs from 'dayjs'
 import { sendSuccessNotification } from '@/utils/notificationUtils'
-import { getFormattedDateString, getLocalDateFromUTC } from '@/utils/dateUtils'
+import { getFormattedDateTimeString, getLocalDateFromUTC } from '@/utils/dateUtils'
 import { useState } from 'react'
 
 // Lets the modal around the form see whether a price is being added
@@ -48,7 +48,7 @@ export function useAddPrice(product: ProductType, useEndDateDesc: boolean) {
         onSuccess: (newPrice: PriceType) => {
             priceDTO.reset()
             queryClient.invalidateQueries()
-            sendSuccessNotification(`Successfully added price ${getFormattedDateString(newPrice.priceStarted)}`)
+            sendSuccessNotification(`Successfully added price ${getFormattedDateTimeString(newPrice.priceStarted)}`)
         },
         onError: (error) => {
             console.log(`Error occurred while adding ${priceDTO} (${error.message})`)
@@ -71,7 +71,7 @@ export function useAddPrice(product: ProductType, useEndDateDesc: boolean) {
             priceDTO.reset()
             queryClient.invalidateQueries()
             newPrices.forEach((newPrice) => {
-                sendSuccessNotification(`Successfully added price ${getFormattedDateString(newPrice.priceStarted)}`)
+                sendSuccessNotification(`Successfully added price ${getFormattedDateTimeString(newPrice.priceStarted)}`)
             })
         },
         onError: (error) => {

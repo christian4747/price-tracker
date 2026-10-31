@@ -2,7 +2,7 @@ import type { PriceDTO, PriceType } from '@/types/price'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import priceService from '@/services/priceService'
 import { usePriceDTO } from '@/hooks/price/usePriceDTO'
-import { getFormattedDateString } from '@/utils/dateUtils'
+import { getFormattedDateTimeString } from '@/utils/dateUtils'
 import dayjs from 'dayjs'
 import { sendSuccessNotification } from '@/utils/notificationUtils'
 
@@ -27,7 +27,7 @@ export function useEditPrice(price: PriceType) {
         },
         onSuccess: (newPrice: PriceType) => {
             queryClient.invalidateQueries()
-            sendSuccessNotification(`Successfully edited price ${getFormattedDateString(newPrice.priceStarted)}`)
+            sendSuccessNotification(`Successfully edited price ${getFormattedDateTimeString(newPrice.priceStarted)}`)
         },
         onError: (error) => {
             console.log(`Error occurred while updating ${price.productId}: ${price.amount} (${error.message})`)
