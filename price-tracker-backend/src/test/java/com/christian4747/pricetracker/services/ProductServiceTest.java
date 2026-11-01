@@ -2,8 +2,11 @@ package com.christian4747.pricetracker.services;
 
 import com.christian4747.pricetracker.daos.PriceDAO;
 import com.christian4747.pricetracker.daos.ProductDAO;
+import com.christian4747.pricetracker.models.Price;
 import com.christian4747.pricetracker.models.Product;
+import com.christian4747.pricetracker.models.StartedPrice;
 import com.christian4747.pricetracker.models.dtos.IncomingProductDTO;
+import com.christian4747.pricetracker.models.dtos.OutgoingProductDTO;
 import com.christian4747.pricetracker.models.dtos.PriceFilterDTO;
 import com.christian4747.pricetracker.models.dtos.ProductFilterDTO;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,10 +26,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.lang.reflect.Method;
 import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -298,6 +303,101 @@ public class ProductServiceTest {
         when(priceDAO.findPriceToday(anyInt())).thenReturn(Optional.empty());
 
         assertEquals("Product", productService.getProductById(1).product().getName());
+    }
+
+    // A price that started the given number of days ago
+    private StartedPrice createPrice(double totalAmount, String currency, double daysAgo) {
+        return new StartedPrice(totalAmount, currency, Timestamp.from(Instant.now().minusSeconds((long) (daysAgo * 86400))));
+    }
+
+    // Stubs the given started prices from oldest to newest, with the last one as today's price
+    private OutgoingProductDTO getProductWithPrices(StartedPrice... prices) {
+        Price priceToday = new Price();
+        priceToday.setTotalAmount(prices[prices.length - 1].totalAmount());
+        when(productDAO.findById(anyInt())).thenReturn(Optional.of(addedProduct));
+        when(priceDAO.findPriceToday(anyInt())).thenReturn(Optional.of(priceToday));
+        when(priceDAO.findStartedPrices(anyInt())).thenReturn(List.of(prices));
+
+        return productService.getProductById(1);
+    }
+
+    @Test
+    public void getProductById_twoPrices_averageCountsEachPriceOnce() {
+        OutgoingProductDTO product = getProductWithPrices(createPrice(10, "USD", 4), createPrice(20, "USD", 3));
+
+        assertEquals(15, product.averagePrice());
+    }
+
+    @Test
+    public void getProductById_twoPrices_weightedAverageUsesHowLongEachPriceLasted() {
+        // $10 for one day, then $20 for three days up to now
+        OutgoingProductDTO product = getProductWithPrices(createPrice(10, "USD", 4), createPrice(20, "USD", 3));
+
+        assertEquals(17.5, product.weightedAveragePrice(), 0.001);
+    }
+
+    @Test
+    public void getProductById_priceStartedNow_weightedAverageIsItsAmount() {
+        OutgoingProductDTO product = getProductWithPrices(createPrice(10, "USD", 0));
+
+        assertEquals(10, product.weightedAveragePrice(), 0.001);
+    }
+
+    @Test
+    public void getProductById_pricesUseDifferentCurrencies_noAverages() {
+        OutgoingProductDTO product = getProductWithPrices(createPrice(10, "USD", 4), createPrice(20, "EUR", 3));
+
+        assertNull(product.averagePrice());
+        assertNull(product.weightedAveragePrice());
+        assertFalse(product.belowAverage());
+    }
+
+    @Test
+    public void getProductById_blankAndNullCurrenciesWithUsd_hasAverages() {
+        OutgoingProductDTO product = getProductWithPrices(createPrice(10, "", 4), createPrice(20, null, 3), createPrice(30, "USD", 2));
+
+        assertEquals(20, product.averagePrice());
+    }
+
+    @Test
+    public void getProductById_noStartedPrices_noAverages() {
+        when(productDAO.findById(anyInt())).thenReturn(Optional.of(addedProduct));
+        when(priceDAO.findPriceToday(anyInt())).thenReturn(Optional.empty());
+
+        OutgoingProductDTO product = productService.getProductById(1);
+
+        verify(priceDAO, never()).findStartedPrices(anyInt());
+        assertNull(product.averagePrice());
+        assertNull(product.weightedAveragePrice());
+        assertFalse(product.belowAverage());
+    }
+
+    @Test
+    public void getProductById_priceTodayBelowAverage_belowAverageTrue() {
+        assertTrue(getProductWithPrices(createPrice(100, "USD", 4), createPrice(60, "USD", 3)).belowAverage());
+    }
+
+    @Test
+    public void getProductById_priceTodayAboveAverage_belowAverageFalse() {
+        assertFalse(getProductWithPrices(createPrice(60, "USD", 4), createPrice(100, "USD", 3)).belowAverage());
+    }
+
+    @Test
+    public void getProductById_priceTodayEqualsAverage_belowAverageFalse() {
+        assertFalse(getProductWithPrices(createPrice(80, "USD", 4), createPrice(80, "USD", 3)).belowAverage());
+    }
+
+    @Test
+    public void getProductById_averageDiffersOnlyByRounding_belowAverageFalse() {
+        // Three prices of 0.1 average to 0.10000000000000002 with doubles
+        OutgoingProductDTO product = getProductWithPrices(createPrice(0.1, "USD", 4), createPrice(0.1, "USD", 3), createPrice(0.1, "USD", 2));
+
+        assertFalse(product.belowAverage());
+    }
+
+    @Test
+    public void getProductById_priceTodayOneCentBelowAverage_belowAverageTrue() {
+        assertTrue(getProductWithPrices(createPrice(1.01, "USD", 4), createPrice(0.99, "USD", 3)).belowAverage());
     }
 
     @Test
