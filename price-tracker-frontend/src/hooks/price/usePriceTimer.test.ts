@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, vi } from 'vitest'
 import { act, renderHook, test } from '@/test-utils'
 import { usePriceTimer } from './usePriceTimer'
 
-const startMs = new Date('2026-10-24T12:00:00.000Z').getTime()
+const startMs = new Date(2026, 9, 24, 12).getTime()
 const secondsFromStart = (seconds: number) => startMs / 1000 + seconds
 
 const advanceSeconds = (seconds: number) => {

@@ -59,8 +59,8 @@ const saveRange = async (worker: SetupWorker, useEndDateDesc: boolean) => {
         result.current.priceDTO.setField('amount', 100)
         result.current.priceDTO.setField('discountAmount', 80)
         result.current.priceDTO.setField('description', 'Sale')
-        result.current.priceDTO.setField('priceStarted', '2026-09-04T00:00:00.000Z')
-        result.current.priceDTO.setField('priceEnded', '2026-09-10T00:00:00.000Z')
+        result.current.priceDTO.setField('priceStarted', new Date(2026, 8, 4, 12).toISOString())
+        result.current.priceDTO.setField('priceEnded', new Date(2026, 8, 10, 12).toISOString())
     })
     act(() => {
         result.current.mutation.mutate()
@@ -79,8 +79,8 @@ describe('useAddPrice', () => {
             amount: 100,
             discountAmount: 80,
             description: 'Sale',
-            priceStarted: dayjs('2026-09-04T00:00:00.000Z').format(),
-            priceEnded: dayjs('2026-09-10T00:00:00.000Z').format()
+            priceStarted: dayjs(new Date(2026, 8, 4, 12).toISOString()).format(),
+            priceEnded: dayjs(new Date(2026, 8, 10, 12).toISOString()).format()
         })
     })
 

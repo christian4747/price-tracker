@@ -21,15 +21,15 @@ const createProductBody = (productId: number, name: string): ProductBody => ({
         name: name,
         link: '',
         store: 'Store 1',
-        createdAt: '2026-09-04T00:00:00.000Z',
+        createdAt: new Date(2026, 8, 4, 12).toISOString(),
         deletedAt: null,
-        updatedAt: '2026-09-04T00:00:00.000Z',
+        updatedAt: new Date(2026, 8, 4, 12).toISOString(),
         prices: []
     },
     priceToday: undefined,
     nextPrice: undefined,
     priceCategory: '',
-    lastUpdated: '2026-09-04T00:00:00.000Z'
+    lastUpdated: new Date(2026, 8, 4, 12).toISOString()
 })
 
 const productA = createProductBody(1, 'Product A')

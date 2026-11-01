@@ -24,7 +24,7 @@ const productBody: ProductBody = {
     priceToday: price1,
     nextPrice: undefined,
     priceCategory: '',
-    lastUpdated: '2026-09-04T00:00:00.000Z'
+    lastUpdated: new Date(2026, 8, 4, 12).toISOString()
 }
 
 // Built from local times so the expected text doesn't depend on the test machine's time zone

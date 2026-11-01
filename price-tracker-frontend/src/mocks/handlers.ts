@@ -7,7 +7,7 @@ const productsApiUrl = rootUrl + '/products'
 const pricesApiUrl = rootUrl + '/prices'
 
 const price1 = createPrice(1)
-const price2 = createPrice(2, { priceStarted: '2026-09-05T00:00:00.000Z' })
+const price2 = createPrice(2, { priceStarted: new Date(2026, 8, 5, 12).toISOString() })
 
 export const handlers = [
     http.get(productsApiUrl, () => {
@@ -20,8 +20,8 @@ export const handlers = [
                     link: '',
                     store: 'Store 1',
                     active: true,
-                    createdAt: '2026-08-31T00:00:00.000Z',
-                    updatedAt: '2026-08-31T00:00:00.000Z',
+                    createdAt: new Date(2026, 7, 31, 12).toISOString(),
+                    updatedAt: new Date(2026, 7, 31, 12).toISOString(),
                     prices: []
                 }
             ],

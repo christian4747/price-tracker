@@ -4,8 +4,8 @@ import type { ProductType } from '@/types/product'
 import { PriceList } from './PriceList'
 import { useState } from 'react'
 
-const price1 = createPrice(1, { priceStarted: '2026-09-04T00:00:00.000Z' })
-const price2 = createPrice(2, { priceStarted: '2026-09-05T00:00:00.000Z' })
+const price1 = createPrice(1, { priceStarted: new Date(2026, 8, 4, 12).toISOString() })
+const price2 = createPrice(2, { priceStarted: new Date(2026, 8, 5, 12).toISOString() })
 
 const product: ProductType = {
     active: false,

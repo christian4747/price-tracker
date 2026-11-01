@@ -26,7 +26,7 @@ const deletedProduct: ProductType = {
     link: '',
     store: '',
     createdAt: '',
-    deletedAt: 'deleted',
+    deletedAt: new Date(2026, 8, 6, 12).toISOString(),
     updatedAt: '',
     prices: []
 }

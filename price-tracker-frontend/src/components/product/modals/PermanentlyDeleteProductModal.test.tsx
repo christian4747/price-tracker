@@ -15,7 +15,7 @@ const product: ProductType = {
     createdAt: '',
     updatedAt: '',
     prices: [],
-    deletedAt: '2026-09-06T00:00:00.000Z'
+    deletedAt: new Date(2026, 8, 6, 12).toISOString()
 }
 
 const productsApiUrl = import.meta.env.VITE_BACKEND_ROOT_URL + '/products'

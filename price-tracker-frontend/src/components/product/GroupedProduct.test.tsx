@@ -24,7 +24,7 @@ const product2: ProductType = {
     link: '',
     store: '',
     createdAt: '',
-    deletedAt: 'deleted',
+    deletedAt: new Date(2026, 8, 6, 12).toISOString(),
     updatedAt: '',
     prices: []
 }
@@ -36,7 +36,7 @@ const productBody: ProductBody = {
     priceToday: price1,
     nextPrice: undefined,
     priceCategory: '',
-    lastUpdated: '2026-09-04T00:00:00.000Z'
+    lastUpdated: new Date(2026, 8, 4, 12).toISOString()
 }
 
 const productBody2: ProductBody = {
@@ -44,7 +44,7 @@ const productBody2: ProductBody = {
     priceToday: price1,
     nextPrice: undefined,
     priceCategory: '',
-    lastUpdated: '2026-09-04T00:00:00.000Z'
+    lastUpdated: new Date(2026, 8, 4, 12).toISOString()
 }
 
 const renderWithAccordion = (ui: React.ReactNode) => {
@@ -205,7 +205,7 @@ describe('Grouped Product Component', () => {
     test('should strike through and gray out only the store of a deleted product', async () => {
         const deletedStoreABody: ProductBody = {
             ...storeABody,
-            product: { ...storeABody.product, deletedAt: '2026-09-04T00:00:00.000Z' }
+            product: { ...storeABody.product, deletedAt: new Date(2026, 8, 4, 12).toISOString() }
         }
         renderWithAccordion(<StoreSelectionHarness initialBodies={[deletedStoreABody, storeBBody]} />)
 

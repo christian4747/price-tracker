@@ -3,7 +3,7 @@ import { createPrice, renderHook } from '@/test-utils'
 import type { PriceType } from '@/types/price'
 import { usePriceData } from './usePriceData'
 
-const deletedAt = '2026-10-01T00:00:00.000Z'
+const deletedAt = new Date(2026, 9, 1, 12).toISOString()
 
 // Returns the IDs of the prices the chart would draw
 const getChartPriceIds = (prices: PriceType[]) => {

@@ -22,7 +22,7 @@ const product: ProductType = {
 const livePrice = createPrice(1, { priceStarted: new Date(2026, 8, 4, 12).toISOString() })
 const deletedPrice = createPrice(2, {
     priceStarted: new Date(2026, 8, 5, 12).toISOString(),
-    deletedAt: '2026-09-06T00:00:00.000Z'
+    deletedAt: new Date(2026, 8, 6, 12).toISOString()
 })
 
 describe('Product Details Component', () => {

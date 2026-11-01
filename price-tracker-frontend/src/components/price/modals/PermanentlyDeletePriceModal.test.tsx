@@ -7,7 +7,7 @@ import { PermanentlyDeletePriceModal } from './PermanentlyDeletePriceModal'
 const price = createPrice(1, {
     // Built from a local time so the expected text doesn't depend on the test machine's time zone
     priceStarted: new Date(2026, 8, 4, 12).toISOString(),
-    deletedAt: '2026-09-06T00:00:00.000Z'
+    deletedAt: new Date(2026, 8, 6, 12).toISOString()
 })
 
 const pricesApiUrl = import.meta.env.VITE_BACKEND_ROOT_URL + '/prices'

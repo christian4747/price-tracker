@@ -22,7 +22,7 @@ const productBodyNoPrice: ProductBody = {
     priceToday: undefined,
     nextPrice: undefined,
     priceCategory: '',
-    lastUpdated: '2026-09-04T00:00:00.000Z'
+    lastUpdated: new Date(2026, 8, 4, 12).toISOString()
 }
 
 const productBodyWithPrice: ProductBody = { ...productBodyNoPrice, priceToday: price1 }

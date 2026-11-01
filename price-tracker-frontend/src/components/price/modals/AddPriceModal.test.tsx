@@ -28,7 +28,7 @@ const product: ProductType = {
 
 const pricesApiUrl = import.meta.env.VITE_BACKEND_ROOT_URL + '/prices'
 
-const savedPrice = { priceStarted: '2026-09-04T00:00:00.000Z' }
+const savedPrice = { priceStarted: new Date(2026, 8, 4, 12).toISOString() }
 
 // Opens the modal and picks which dates to save, ready for the save to be submitted
 const openWithDates = async (dateButton: string) => {
