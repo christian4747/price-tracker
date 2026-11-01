@@ -21,7 +21,7 @@ export const Product = ({ productBody, dateToday, setDateToday, value }: Product
 
                 <Accordion.Panel>
                     {/* Lower content */}
-                    <ProductDetails dateToday={dateToday} product={productBody.product} setDateToday={setDateToday} />
+                    <ProductDetails dateToday={dateToday} productBody={productBody} setDateToday={setDateToday} />
                 </Accordion.Panel>
             </div>
         </Accordion.Item>

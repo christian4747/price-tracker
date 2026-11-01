@@ -1,4 +1,4 @@
-import type { ProductType } from '@/types/product'
+import type { ProductBody } from '@/types/product'
 import PriceHistoryChart from '@/components/price/PriceHistoryChart'
 import { PriceList } from '@/components/price/PriceList'
 import { usePricePage } from '@/hooks/price/usePricePage'
@@ -8,12 +8,13 @@ import { AddedUpdatedText } from '@/components/common/AddedUpdatedText'
 
 export interface ProductDetails {
     dateToday: Date
-    product: ProductType
+    productBody: ProductBody
     setDateToday: (newVal: Date) => void
     children?: React.ReactNode
 }
 
-export const ProductDetails = ({ product, dateToday, setDateToday, children }: ProductDetails) => {
+export const ProductDetails = ({ productBody, dateToday, setDateToday, children }: ProductDetails) => {
+    const { product } = productBody
     const [showDeleted, setShowDeleted] = useState(false)
     const { query: pricesQuery } = usePricePage(product.productId, showDeleted)
 
@@ -48,7 +49,7 @@ export const ProductDetails = ({ product, dateToday, setDateToday, children }: P
                 <div className="flex flex-col w-3/10 gap-2">
                     {children}
                     <PriceList
-                        product={product}
+                        productBody={productBody}
                         prices={pricesQuery.data}
                         setDateToday={setDateToday}
                         showDeleted={showDeleted}

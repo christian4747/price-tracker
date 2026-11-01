@@ -1,6 +1,6 @@
 import type { ComponentType } from 'react'
 import { describe, expect } from 'vitest'
-import { act, createProduct, renderWithClient, screen, test, userEvent, waitFor } from '@/test-utils'
+import { act, createProduct, createProductBody, renderWithClient, screen, test, userEvent, waitFor } from '@/test-utils'
 import { http, HttpResponse } from 'msw'
 import type { SetupWorker } from 'msw/browser'
 import type { ProductActiveStatus, ProductBody, ProductFilterDTO } from '@/types/product'
@@ -16,17 +16,9 @@ const filter: ProductFilterDTO = {
     sort: ''
 }
 
-const createProductBody = (productId: number, name: string): ProductBody => ({
-    product: createProduct(productId, { name }),
-    priceToday: undefined,
-    nextPrice: undefined,
-    priceCategory: '',
-    lastUpdated: new Date(2026, 8, 4, 12).toISOString()
-})
-
-const productA = createProductBody(1, 'Product A')
-const productB = createProductBody(2, 'Product B')
-const productC = createProductBody(3, 'Product C')
+const productA = createProductBody(createProduct(1, { name: 'Product A' }))
+const productB = createProductBody(createProduct(2, { name: 'Product B' }))
+const productC = createProductBody(createProduct(3, { name: 'Product C' }))
 
 // Names of the products whose accordion items are open
 const getOpenedProductNames = () =>

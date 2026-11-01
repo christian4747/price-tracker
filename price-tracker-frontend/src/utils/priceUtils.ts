@@ -77,13 +77,17 @@ const getXYearAgoPrices = (prices: PriceType[], yearsAgo: number) => {
 const getPriceString = (price: PriceType | undefined) => {
     if (!price) return ''
 
-    if (price.currency) {
-        return new Intl.NumberFormat(undefined, { style: 'currency', currency: price.currency }).format(
-            price.totalAmount
-        )
-    } else {
-        return new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD' }).format(price.totalAmount)
-    }
+    return getAmountString(price.totalAmount, price.currency || 'USD')
+}
+
+/**
+ * Get an amount in the given currency format.
+ * @param amount The amount to format
+ * @param currency The currency to format it with
+ * @returns The formatted amount
+ */
+const getAmountString = (amount: number, currency: string) => {
+    return new Intl.NumberFormat(undefined, { style: 'currency', currency: currency }).format(amount)
 }
 
 /**
@@ -115,6 +119,7 @@ export {
     getBestDiscount,
     getXYearAgoPrices,
     getPriceString,
+    getAmountString,
     getDiscountAmount,
     getReturnAmount
 }

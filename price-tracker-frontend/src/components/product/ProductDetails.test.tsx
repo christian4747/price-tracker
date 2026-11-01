@@ -1,11 +1,11 @@
 import { describe, expect } from 'vitest'
-import { createPrice, createProduct, renderWithClient, screen, test, userEvent } from '@/test-utils'
+import { createPrice, createProduct, createProductBody, renderWithClient, screen, test, userEvent } from '@/test-utils'
 import { http, HttpResponse } from 'msw'
 import { ProductDetails } from './ProductDetails'
 
 const pricesApiUrl = import.meta.env.VITE_BACKEND_ROOT_URL + '/prices'
 
-const product = createProduct(1)
+const productBody = createProductBody(createProduct(1))
 
 // Built from local times so the expected text doesn't depend on the test machine's time zone
 const livePrice = createPrice(1, { priceStarted: new Date(2026, 8, 4, 12).toISOString() })
@@ -16,7 +16,7 @@ const deletedPrice = createPrice(2, {
 
 describe('Product Details Component', () => {
     test('should render product prices', async () => {
-        renderWithClient(<ProductDetails product={product} dateToday={new Date()} setDateToday={() => {}} />)
+        renderWithClient(<ProductDetails productBody={productBody} dateToday={new Date()} setDateToday={() => {}} />)
 
         const price1Date = await screen.findByText('9/4/2026')
         await expect.element(price1Date).toBeInTheDocument()
@@ -33,7 +33,7 @@ describe('Product Details Component', () => {
             })
         )
         const user = userEvent.setup()
-        renderWithClient(<ProductDetails product={product} dateToday={new Date()} setDateToday={() => {}} />)
+        renderWithClient(<ProductDetails productBody={productBody} dateToday={new Date()} setDateToday={() => {}} />)
 
         await screen.findByText('9/4/2026')
         expect(screen.queryByText('9/5/2026')).not.toBeInTheDocument()

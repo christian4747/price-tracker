@@ -1,5 +1,5 @@
 import { describe, expect } from 'vitest'
-import { createPrice, createProduct, renderWithClient, screen, test, userEvent } from '@/test-utils'
+import { createPrice, createProduct, createProductBody, renderWithClient, screen, test, userEvent } from '@/test-utils'
 import { GroupedProduct } from './GroupedProduct'
 import { Accordion } from '@mantine/core'
 import { useState } from 'react'
@@ -11,21 +11,9 @@ const product2 = createProduct(1, { name: 'Product 1', deletedAt: new Date(2026,
 
 const price1 = createPrice(1)
 
-const productBody: ProductBody = {
-    product: product,
-    priceToday: price1,
-    nextPrice: undefined,
-    priceCategory: '',
-    lastUpdated: new Date(2026, 8, 4, 12).toISOString()
-}
+const productBody = createProductBody(product, { priceToday: price1 })
 
-const productBody2: ProductBody = {
-    product: product2,
-    priceToday: price1,
-    nextPrice: undefined,
-    priceCategory: '',
-    lastUpdated: new Date(2026, 8, 4, 12).toISOString()
-}
+const productBody2 = createProductBody(product2, { priceToday: price1 })
 
 const renderWithAccordion = (ui: React.ReactNode) => {
     function AccordionWrapper({ children }: { children: React.ReactNode }) {

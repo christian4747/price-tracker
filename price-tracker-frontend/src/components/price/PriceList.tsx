@@ -1,7 +1,8 @@
 import type { PriceType } from '@/types/price'
-import type { ProductType } from '@/types/product'
+import type { ProductBody } from '@/types/product'
 import { AddPriceModal } from './modals/AddPriceModal'
 import { Price } from './Price'
+import { PriceAverage } from './PriceAverage'
 import { EditPriceModal } from './modals/EditPriceModal'
 import { DeletePriceModal } from './modals/DeletePriceModal'
 import { PermanentlyDeletePriceModal } from './modals/PermanentlyDeletePriceModal'
@@ -10,14 +11,15 @@ import { useState } from 'react'
 import { Checkbox } from '@mantine/core'
 
 interface PriceList {
-    product: ProductType
+    productBody: ProductBody
     prices: PriceType[]
     setDateToday: (newVal: Date) => void
     showDeleted: boolean
     setShowDeleted: React.Dispatch<React.SetStateAction<boolean>>
 }
 
-export const PriceList = ({ product, setDateToday, prices, showDeleted, setShowDeleted }: PriceList) => {
+export const PriceList = ({ productBody, setDateToday, prices, showDeleted, setShowDeleted }: PriceList) => {
+    const { product } = productBody
     // Track state for currently selected price
     const [currentPrice, setCurrentPrice] = useState(prices[0])
     // Track state of modal open/close
@@ -61,8 +63,9 @@ export const PriceList = ({ product, setDateToday, prices, showDeleted, setShowD
                 </div>
 
                 <div className="flex flex-col">
+                    <PriceAverage productBody={productBody} />
                     <Checkbox
-                        className="px-2"
+                        className="px-2 pt-2"
                         label="Show deleted prices"
                         checked={showDeleted}
                         onChange={(e) => setShowDeleted(e.currentTarget.checked)}

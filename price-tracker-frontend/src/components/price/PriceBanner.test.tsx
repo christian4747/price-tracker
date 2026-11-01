@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, vi } from 'vitest'
-import { createPrice, createProduct, renderWithClient, screen, test } from '@/test-utils'
+import { createPrice, createProduct, createProductBody, renderWithClient, screen, test } from '@/test-utils'
 import type { ProductBody } from '@/types/product'
 import { PriceBanner } from './PriceBanner'
 
@@ -7,13 +7,7 @@ const product = createProduct(1)
 
 const price1 = createPrice(1, { currency: 'USD', today: true, totalAmount: 100.0 })
 
-const productBodyNoPrice: ProductBody = {
-    product: product,
-    priceToday: undefined,
-    nextPrice: undefined,
-    priceCategory: '',
-    lastUpdated: new Date(2026, 8, 4, 12).toISOString()
-}
+const productBodyNoPrice = createProductBody(product)
 
 const productBodyWithPrice: ProductBody = { ...productBodyNoPrice, priceToday: price1 }
 
