@@ -152,6 +152,7 @@ public class ProductSpecification {
 
             // Only use price filter predicates if price filter exists
             if (!subqueryPredicates.isEmpty()) {
+                subqueryPredicates.add(criteriaBuilder.equal(currentPriceRoot.get("product"), root));
                 subqueryPredicates.add(criteriaBuilder.equal(currentPriceRoot.get("priceStarted"), priceSubquery));
                 predicates.add(criteriaBuilder.exists(currentPriceSubquery.where(criteriaBuilder.and(subqueryPredicates.toArray(new Predicate[0])))));
             }

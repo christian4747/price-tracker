@@ -144,6 +144,18 @@ class ProductNameDAOTest {
     }
 
     @Test
+    void priceFilterIgnoresAnotherProductsPriceWithTheSameStartTime() {
+        addCurrentPrice(addProduct("Apple", null), 10, PAST);
+        addCurrentPrice(addProduct("Banana", null), 100, PAST);
+        saveFixtures();
+
+        Page<String> names = findNames(productFilter(null, false), priceFilter(50.0, null), page(0, 10));
+
+        assertThat(names.getContent()).containsExactly("Banana");
+        assertThat(names.getTotalElements()).isEqualTo(1);
+    }
+
+    @Test
     void pagingThroughTheResultsReturnsEveryMatchingNameOnce() {
         addProduct("Apple", null);
         addProduct("Apple", null);
