@@ -1,21 +1,18 @@
 import { describe, expect, onTestFinished, vi } from 'vitest'
 import type { SetupWorker } from 'msw/browser'
-import { renderWithClient, screen, test, tryEveryModalCloseAction, userEvent, waitFor } from '@/test-utils'
+import {
+    createProduct,
+    renderWithClient,
+    screen,
+    test,
+    tryEveryModalCloseAction,
+    userEvent,
+    waitFor
+} from '@/test-utils'
 import { http, HttpResponse } from 'msw'
 import DeleteProductModal from './DeleteProductModal'
-import type { ProductType } from '@/types/product'
 
-const product: ProductType = {
-    active: true,
-    productId: 1,
-    name: 'Product 1',
-    link: '',
-    store: 'Store 1',
-    createdAt: '',
-    updatedAt: '',
-    prices: [],
-    deletedAt: null
-}
+const product = createProduct(1)
 
 const productsApiUrl = import.meta.env.VITE_BACKEND_ROOT_URL + '/products'
 

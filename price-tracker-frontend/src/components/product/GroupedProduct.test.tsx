@@ -1,33 +1,13 @@
 import { describe, expect } from 'vitest'
-import { createPrice, renderWithClient, screen, test, userEvent } from '@/test-utils'
+import { createPrice, createProduct, renderWithClient, screen, test, userEvent } from '@/test-utils'
 import { GroupedProduct } from './GroupedProduct'
 import { Accordion } from '@mantine/core'
 import { useState } from 'react'
-import type { ProductBody, ProductType } from '@/types/product'
+import type { ProductBody } from '@/types/product'
 
-const product: ProductType = {
-    active: false,
-    productId: 0,
-    name: 'Product 1',
-    link: '',
-    store: '',
-    createdAt: '',
-    deletedAt: null,
-    updatedAt: '',
-    prices: []
-}
+const product = createProduct(1, { name: 'Product 1' })
 
-const product2: ProductType = {
-    active: false,
-    productId: 0,
-    name: 'Product 1',
-    link: '',
-    store: '',
-    createdAt: '',
-    deletedAt: new Date(2026, 8, 6, 12).toISOString(),
-    updatedAt: '',
-    prices: []
-}
+const product2 = createProduct(1, { name: 'Product 1', deletedAt: new Date(2026, 8, 6, 12).toISOString() })
 
 const price1 = createPrice(1)
 

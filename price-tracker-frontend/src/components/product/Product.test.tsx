@@ -1,21 +1,11 @@
 import { describe, expect } from 'vitest'
-import { createPrice, renderWithClient, screen, test } from '@/test-utils'
-import type { ProductBody, ProductType } from '@/types/product'
+import { createPrice, createProduct, renderWithClient, screen, test } from '@/test-utils'
+import type { ProductBody } from '@/types/product'
 import { Product } from './Product'
 import { Accordion } from '@mantine/core'
 import { useState } from 'react'
 
-const product: ProductType = {
-    active: false,
-    productId: 0,
-    name: 'Product 1',
-    link: '',
-    store: '',
-    createdAt: '',
-    deletedAt: null,
-    updatedAt: '',
-    prices: []
-}
+const product = createProduct(1, { name: 'Product 1' })
 
 const price1 = createPrice(1)
 

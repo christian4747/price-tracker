@@ -1,11 +1,10 @@
 import { describe, expect, onTestFinished, vi } from 'vitest'
-import { act, createPrice, renderHook, RenderClientWrapper, test, waitFor } from '@/test-utils'
+import { act, createPrice, createProduct, renderHook, RenderClientWrapper, test, waitFor } from '@/test-utils'
 import { http, HttpResponse } from 'msw'
 import { notifications } from '@mantine/notifications'
 import dayjs from 'dayjs'
 import type { SetupWorker } from 'msw/browser'
 import type { PriceDTO, PriceRangeDTO } from '@/types/price'
-import type { ProductType } from '@/types/product'
 import { useAddPrice } from './useAddPrice'
 import { useDeletePrice } from './useDeletePrice'
 import { useEditPrice } from './useEditPrice'
@@ -13,17 +12,7 @@ import { usePermanentlyDeletePrice } from './usePermanentlyDeletePrice'
 
 const pricesApiUrl = import.meta.env.VITE_BACKEND_ROOT_URL + '/prices'
 
-const product: ProductType = {
-    active: true,
-    productId: 0,
-    name: 'Product 1',
-    link: '',
-    store: '',
-    createdAt: '',
-    deletedAt: null,
-    updatedAt: '',
-    prices: []
-}
+const product = createProduct(1)
 
 const price1 = createPrice(1)
 

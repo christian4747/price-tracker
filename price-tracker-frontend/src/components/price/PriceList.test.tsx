@@ -1,23 +1,12 @@
 import { describe, expect } from 'vitest'
-import { createPrice, renderWithClient, screen, test, userEvent } from '@/test-utils'
-import type { ProductType } from '@/types/product'
+import { createPrice, createProduct, renderWithClient, screen, test, userEvent } from '@/test-utils'
 import { PriceList } from './PriceList'
 import { useState } from 'react'
 
 const price1 = createPrice(1, { priceStarted: new Date(2026, 8, 4, 12).toISOString() })
 const price2 = createPrice(2, { priceStarted: new Date(2026, 8, 5, 12).toISOString() })
 
-const product: ProductType = {
-    active: false,
-    productId: 0,
-    name: 'Product 1',
-    link: '',
-    store: '',
-    createdAt: '',
-    deletedAt: null,
-    updatedAt: '',
-    prices: [price1, price2]
-}
+const product = createProduct(1, { prices: [price1, price2] })
 
 const renderPriceList = () => {
     function PriceListWithState() {

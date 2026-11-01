@@ -1,22 +1,11 @@
 import { describe, expect } from 'vitest'
-import { createPrice, renderWithClient, screen, test, userEvent } from '@/test-utils'
+import { createPrice, createProduct, renderWithClient, screen, test, userEvent } from '@/test-utils'
 import { http, HttpResponse } from 'msw'
-import type { ProductType } from '@/types/product'
 import { ProductDetails } from './ProductDetails'
 
 const pricesApiUrl = import.meta.env.VITE_BACKEND_ROOT_URL + '/prices'
 
-const product: ProductType = {
-    active: false,
-    productId: 0,
-    name: 'Product 1',
-    link: '',
-    store: '',
-    createdAt: '',
-    deletedAt: null,
-    updatedAt: '',
-    prices: []
-}
+const product = createProduct(1)
 
 // Built from local times so the expected text doesn't depend on the test machine's time zone
 const livePrice = createPrice(1, { priceStarted: new Date(2026, 8, 4, 12).toISOString() })

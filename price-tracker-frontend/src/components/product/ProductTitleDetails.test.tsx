@@ -1,35 +1,14 @@
 import { describe, expect, vi } from 'vitest'
-import { renderWithClient, screen, test, userEvent, waitFor } from '@/test-utils'
+import { createProduct, renderWithClient, screen, test, userEvent, waitFor } from '@/test-utils'
 import { http, HttpResponse } from 'msw'
-import type { ProductType } from '@/types/product'
 import { PermanentlyDeleteProductContext } from './ProductContext'
 import { ProductTitleDetails } from './ProductTitleDetails'
 
 const productsApiUrl = import.meta.env.VITE_BACKEND_ROOT_URL + '/products'
 
-const product: ProductType = {
-    active: false,
-    productId: 0,
-    name: 'Product 1',
-    link: '',
-    store: '',
-    createdAt: '',
-    deletedAt: null,
-    updatedAt: '',
-    prices: []
-}
+const product = createProduct(1, { name: 'Product 1' })
 
-const deletedProduct: ProductType = {
-    active: false,
-    productId: 0,
-    name: 'Product 1',
-    link: '',
-    store: '',
-    createdAt: '',
-    deletedAt: new Date(2026, 8, 6, 12).toISOString(),
-    updatedAt: '',
-    prices: []
-}
+const deletedProduct = createProduct(1, { name: 'Product 1', deletedAt: new Date(2026, 8, 6, 12).toISOString() })
 
 describe('Product Title Details Component', () => {
     test('should render product delete button', async () => {
@@ -86,7 +65,7 @@ describe('Product Title Details Component', () => {
 
         await user.click(screen.getByRole('img', { name: /restore product/i }))
 
-        await waitFor(() => expect(restoredProductIds).toEqual(['0']))
+        await waitFor(() => expect(restoredProductIds).toEqual(['1']))
     })
 
     test('should strike through and gray out the name and store of a deleted product', async () => {

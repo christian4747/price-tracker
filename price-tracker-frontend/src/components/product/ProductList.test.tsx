@@ -1,5 +1,5 @@
 import { describe, expect } from 'vitest'
-import { act, renderWithClient, screen, test, userEvent, waitFor } from '@/test-utils'
+import { act, createProduct, renderWithClient, screen, test, userEvent, waitFor } from '@/test-utils'
 import { http, HttpResponse } from 'msw'
 import type { ProductActiveStatus, ProductBody, ProductFilterDTO } from '@/types/product'
 import { ACTIVE_PRODUCTS } from '@/utils/filterConstants'
@@ -15,17 +15,7 @@ const filter: ProductFilterDTO = {
 }
 
 const createProductBody = (productId: number, name: string): ProductBody => ({
-    product: {
-        active: true,
-        productId: productId,
-        name: name,
-        link: '',
-        store: 'Store 1',
-        createdAt: new Date(2026, 8, 4, 12).toISOString(),
-        deletedAt: null,
-        updatedAt: new Date(2026, 8, 4, 12).toISOString(),
-        prices: []
-    },
+    product: createProduct(productId, { name }),
     priceToday: undefined,
     nextPrice: undefined,
     priceCategory: '',

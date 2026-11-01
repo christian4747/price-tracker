@@ -1,19 +1,9 @@
 import { afterEach, describe, expect, vi } from 'vitest'
-import { createPrice, renderWithClient, screen, test } from '@/test-utils'
-import type { ProductBody, ProductType } from '@/types/product'
+import { createPrice, createProduct, renderWithClient, screen, test } from '@/test-utils'
+import type { ProductBody } from '@/types/product'
 import { PriceBanner } from './PriceBanner'
 
-const product: ProductType = {
-    active: true,
-    productId: 0,
-    name: 'Product 1',
-    link: '',
-    store: '',
-    createdAt: '',
-    deletedAt: null,
-    updatedAt: '',
-    prices: []
-}
+const product = createProduct(1)
 
 const price1 = createPrice(1, { currency: 'USD', today: true, totalAmount: 100.0 })
 

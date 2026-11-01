@@ -1,21 +1,10 @@
 import { describe, expect, onTestFinished, vi } from 'vitest'
 import type { SetupWorker } from 'msw/browser'
-import { renderWithClient, screen, test, userEvent, waitFor } from '@/test-utils'
+import { createProduct, renderWithClient, screen, test, userEvent, waitFor } from '@/test-utils'
 import { http, HttpResponse } from 'msw'
 import { AddPriceForm } from './AddPriceForm'
-import type { ProductType } from '@/types/product'
 
-const product: ProductType = {
-    active: false,
-    productId: 0,
-    name: '',
-    link: '',
-    store: '',
-    createdAt: '',
-    updatedAt: '',
-    prices: [],
-    deletedAt: null
-}
+const product = createProduct(1)
 
 const pricesApiUrl = import.meta.env.VITE_BACKEND_ROOT_URL + '/prices'
 

@@ -4,6 +4,7 @@ export * from '@testing-library/react'
 export { renderWithClient, RenderClientWrapper } from './renderWithClient'
 export { modalCloseActions, tryEveryModalCloseAction } from './modalCloseActions'
 export { createPrice } from './createPrice'
+export { createProduct } from './createProduct'
 export { userEvent }
 export { test } from './testExtend'
 import '@vitest/browser/matchers'

@@ -1,22 +1,20 @@
 import { describe, expect, onTestFinished, vi } from 'vitest'
 import type { SetupWorker } from 'msw/browser'
-import { act, renderWithClient, screen, test, tryEveryModalCloseAction, userEvent, waitFor } from '@/test-utils'
+import {
+    act,
+    createProduct,
+    renderWithClient,
+    screen,
+    test,
+    tryEveryModalCloseAction,
+    userEvent,
+    waitFor
+} from '@/test-utils'
 import { http, HttpResponse } from 'msw'
 import { notifications } from '@mantine/notifications'
 import { PermanentlyDeleteProductModal } from './PermanentlyDeleteProductModal'
-import type { ProductType } from '@/types/product'
 
-const product: ProductType = {
-    active: true,
-    productId: 1,
-    name: 'Product 1',
-    link: '',
-    store: 'Store 1',
-    createdAt: '',
-    updatedAt: '',
-    prices: [],
-    deletedAt: new Date(2026, 8, 6, 12).toISOString()
-}
+const product = createProduct(1, { name: 'Product 1', deletedAt: new Date(2026, 8, 6, 12).toISOString() })
 
 const productsApiUrl = import.meta.env.VITE_BACKEND_ROOT_URL + '/products'
 const pricesApiUrl = import.meta.env.VITE_BACKEND_ROOT_URL + '/prices'

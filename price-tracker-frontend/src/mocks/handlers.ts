@@ -1,5 +1,6 @@
-// Imported from its own file because test-utils/index.ts leads back to these handlers
+// Imported from their own files because test-utils/index.ts leads back to these handlers
 import { createPrice } from '@/test-utils/createPrice'
+import { createProduct } from '@/test-utils/createProduct'
 import { http, HttpResponse } from 'msw'
 
 const rootUrl = import.meta.env.VITE_BACKEND_ROOT_URL
@@ -12,19 +13,7 @@ const price2 = createPrice(2, { priceStarted: new Date(2026, 8, 5, 12).toISOStri
 export const handlers = [
     http.get(productsApiUrl, () => {
         return HttpResponse.json({
-            content: [
-                {
-                    productId: 1,
-                    brand: null,
-                    name: 'Product 1',
-                    link: '',
-                    store: 'Store 1',
-                    active: true,
-                    createdAt: new Date(2026, 7, 31, 12).toISOString(),
-                    updatedAt: new Date(2026, 7, 31, 12).toISOString(),
-                    prices: []
-                }
-            ],
+            content: [createProduct(1)],
             count: 1
         })
     }),
