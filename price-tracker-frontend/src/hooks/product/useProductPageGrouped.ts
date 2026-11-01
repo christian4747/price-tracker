@@ -15,7 +15,7 @@ export function useProductPageGrouped(
         currentPageSize,
         setCurrentlyOpened,
         setCurrentPageNumber
-    } = useListWithPagination(pageNumber, pageSize)
+    } = useListWithPagination(pageNumber, pageSize, productFilterDTO)
 
     // Query for getting a grouped product page. The key includes every request input so changing one refetches.
     const getProductsGroupedQuery = useQuery({

@@ -13,7 +13,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface ProductDAO extends JpaRepository<Product, Integer>, JpaSpecificationExecutor<Product> {
+public interface ProductDAO extends JpaRepository<Product, Integer>, JpaSpecificationExecutor<Product>, ProductNameDAO {
 
     /**
      * Finds all Products with the same name as the given name
@@ -21,14 +21,6 @@ public interface ProductDAO extends JpaRepository<Product, Integer>, JpaSpecific
      * @return A list of all the Products with the given name
      */
     List<Product> findAllByName(String name);
-
-    /**
-     * Finds distinct Product names in the database's 'products' table.
-     * @param page Pagination settings
-     * @return The list of distinct Product names
-     */
-    @Query("SELECT DISTINCT p.name from Product p")
-    Page<String> findDistinctNames(Pageable page);
 
     /**
      * Gets a distinct list of the stores of recently added non-deleted Products.
