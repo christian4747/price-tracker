@@ -5,6 +5,7 @@ import com.christian4747.pricetracker.daos.ProductDAO;
 import com.christian4747.pricetracker.models.Price;
 import com.christian4747.pricetracker.models.PriceTotalPercentages;
 import com.christian4747.pricetracker.models.Product;
+import com.christian4747.pricetracker.models.StartedPrice;
 import com.christian4747.pricetracker.models.dtos.*;
 import com.christian4747.pricetracker.specification.ProductSpecification;
 import org.jspecify.annotations.NonNull;
@@ -29,6 +30,9 @@ import java.util.stream.Collectors;
 public class ProductService {
 
     private static final Logger logger = LoggerFactory.getLogger(ProductService.class);
+
+    // Averages of doubles can be off by tiny amounts, so a price must be below the average by at least this much
+    private static final double HALF_CENT = 0.005;
 
     private final ProductDAO productDAO;
     private final PriceDAO priceDAO;
@@ -333,7 +337,70 @@ public class ProductService {
         Integer priceCount = priceDAO.findPriceCount(product.getProductId());
         Timestamp lastUpdated = priceDAO.findLastUpdated(product.getProductId()).orElse(null);
         PriceTotalPercentages priceTotalPercentages = getPriceTotalPercentages(product.getProductId(), priceToday);
-        return new OutgoingProductDTO(product, priceToday, nextPrice, lastUpdated, getPriceCategory(priceTotalPercentages, priceToday, priceCount));
+        // Without a price today, no price has started
+        List<StartedPrice> startedPrices = priceToday == null ? List.of() : priceDAO.findStartedPrices(product.getProductId());
+        boolean canAverage = canAverage(startedPrices);
+        Double averagePrice = canAverage ? getAveragePrice(startedPrices) : null;
+        Double weightedAveragePrice = canAverage ? getWeightedAveragePrice(startedPrices) : null;
+        return new OutgoingProductDTO(product, priceToday, nextPrice, lastUpdated, getPriceCategory(priceTotalPercentages, priceToday, priceCount), averagePrice, weightedAveragePrice, isBelowAverage(priceToday, averagePrice));
+    }
+
+    /**
+     * Checks whether the prices can be averaged. An average across different currencies wouldn't mean anything. A price
+     * without a currency counts as USD, since that's how it displays.
+     * @param startedPrices The prices to check
+     * @return Whether at least one price has started and they all share a currency
+     */
+    private static boolean canAverage(List<StartedPrice> startedPrices) {
+        return startedPrices.stream()
+                .map(price -> price.currency() == null || price.currency().isEmpty() ? "USD" : price.currency())
+                .distinct()
+                .count() == 1;
+    }
+
+    /**
+     * Gets the average total amount of the given prices, counting each price once however long it lasted.
+     * @param startedPrices The prices to average
+     * @return The average
+     */
+    private static double getAveragePrice(List<StartedPrice> startedPrices) {
+        return startedPrices.stream().mapToDouble(StartedPrice::totalAmount).sum() / startedPrices.size();
+    }
+
+    /**
+     * Gets the average total amount of the given prices, weighted by how long each price lasted. A price lasts until the
+     * next one starts, and the last price counts up to now.
+     * @param startedPrices The prices to average, from oldest to newest
+     * @return The weighted average
+     */
+    private static double getWeightedAveragePrice(List<StartedPrice> startedPrices) {
+        long now = Instant.now().toEpochMilli();
+        double weightedTotal = 0;
+        long totalDuration = 0;
+
+        for (int i = 0; i < startedPrices.size(); i++) {
+            StartedPrice price = startedPrices.get(i);
+            long priceEnd = i + 1 < startedPrices.size() ? startedPrices.get(i + 1).priceStarted().getTime() : now;
+            long duration = priceEnd - price.priceStarted().getTime();
+
+            weightedTotal += price.totalAmount() * duration;
+            totalDuration += duration;
+        }
+
+        // A price that started just now hasn't lasted any time yet
+        return totalDuration > 0 ? weightedTotal / totalDuration : startedPrices.getLast().totalAmount();
+    }
+
+    /**
+     * Checks whether the given price is below the given average.
+     * @param priceToday The price to compare to the average
+     * @param averagePrice The average, if there is one
+     * @return Whether the price is below the average by more than rounding
+     */
+    private static boolean isBelowAverage(Price priceToday, Double averagePrice) {
+        if (priceToday == null || averagePrice == null) return false;
+
+        return averagePrice - priceToday.getTotalAmount() >= HALF_CENT;
     }
 
     private PriceTotalPercentages getPriceTotalPercentages(Integer productId, Price priceToday) {

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, vi } from 'vitest'
-import { createPrice, createProduct, renderWithClient, screen, test } from '@/test-utils'
+import { createPrice, createProduct, createProductBody, renderWithClient, screen, test } from '@/test-utils'
 import type { ProductBody } from '@/types/product'
 import { PriceBanner } from './PriceBanner'
 
@@ -7,13 +7,7 @@ const product = createProduct(1)
 
 const price1 = createPrice(1, { currency: 'USD', today: true, totalAmount: 100.0 })
 
-const productBodyNoPrice: ProductBody = {
-    product: product,
-    priceToday: undefined,
-    nextPrice: undefined,
-    priceCategory: '',
-    lastUpdated: new Date(2026, 8, 4, 12).toISOString()
-}
+const productBodyNoPrice = createProductBody(product)
 
 const productBodyWithPrice: ProductBody = { ...productBodyNoPrice, priceToday: price1 }
 
@@ -29,6 +23,26 @@ describe('PriceBanner Component', () => {
 
         const priceText = screen.getByText('$100.00')
         await expect.element(priceText).toBeInTheDocument()
+    })
+
+    test('should show a sparkle when the price is below average', async () => {
+        renderWithClient(
+            <PriceBanner
+                productBody={{ ...productBodyWithPrice, belowAverage: true }}
+                dateToday={new Date()}
+                setDateToday={() => {}}
+            />
+        )
+
+        await expect.element(screen.getByRole('img', { name: 'Below average price' })).toHaveTextContent('✨')
+    })
+
+    test('should not show a sparkle when the price is not below average', async () => {
+        renderWithClient(
+            <PriceBanner productBody={productBodyWithPrice} dateToday={new Date()} setDateToday={() => {}} />
+        )
+
+        expect(screen.queryByRole('img', { name: 'Below average price' })).not.toBeInTheDocument()
     })
 
     test('should render nothing once the price for today is removed', async () => {

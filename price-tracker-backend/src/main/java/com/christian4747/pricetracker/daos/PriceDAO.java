@@ -2,6 +2,7 @@ package com.christian4747.pricetracker.daos;
 
 import com.christian4747.pricetracker.models.Price;
 import com.christian4747.pricetracker.models.PriceTotalPercentages;
+import com.christian4747.pricetracker.models.StartedPrice;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -11,6 +12,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.sql.Timestamp;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -169,6 +171,22 @@ public interface PriceDAO extends JpaRepository<Price, Integer> {
      */
     @Query(value = "SELECT COUNT(*) FROM Price p WHERE p.product.productId = :productId AND p.deletedAt IS NULL")
     Integer findPriceCount(@Param("productId") Integer productId);
+
+    /**
+     * Gets the values needed to average the started Price(s) for the given productId that are not deleted, from oldest
+     * to newest. Selects only those values because loading a Price also loads its Product.
+     * @param productId productId of the Price(s) to get
+     * @return The started Price(s) for the given productId
+     */
+    @Query(value = """
+        SELECT new com.christian4747.pricetracker.models.StartedPrice(p.totalAmount, p.currency, p.priceStarted)
+        FROM Price p
+        WHERE p.priceStarted <= CURRENT_TIMESTAMP
+            AND p.product.productId = :productId
+            AND p.deletedAt IS NULL
+        ORDER BY p.priceStarted
+    """)
+    List<StartedPrice> findStartedPrices(@Param("productId") Integer productId);
 
     /**
      * Gets the one-year, two-year, and all-time low percentages of the given productId's Price(s) that are not deleted.

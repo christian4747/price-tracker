@@ -1,5 +1,5 @@
 import { describe, expect } from 'vitest'
-import { createPrice, createProduct, renderWithClient, screen, test } from '@/test-utils'
+import { createPrice, createProduct, createProductBody, renderWithClient, screen, test } from '@/test-utils'
 import type { ProductBody } from '@/types/product'
 import { Product } from './Product'
 import { Accordion } from '@mantine/core'
@@ -9,13 +9,7 @@ const product = createProduct(1, { name: 'Product 1' })
 
 const price1 = createPrice(1)
 
-const productBody: ProductBody = {
-    product: product,
-    priceToday: price1,
-    nextPrice: undefined,
-    priceCategory: '',
-    lastUpdated: new Date(2026, 8, 4, 12).toISOString()
-}
+const productBody = createProductBody(product, { priceToday: price1 })
 
 // Built from local times so the expected text doesn't depend on the test machine's time zone
 const datedProductBody: ProductBody = {

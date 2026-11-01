@@ -124,7 +124,7 @@ export const GroupedProduct = ({ productBodies, dateToday, setDateToday }: Group
             return (
                 <ProductDetails
                     key={productBody.product.productId}
-                    product={productBody.product}
+                    productBody={productBody}
                     dateToday={dateToday}
                     setDateToday={setDateToday}
                 >

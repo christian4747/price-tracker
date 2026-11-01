@@ -26,6 +26,9 @@ export interface ProductBody {
     nextPrice?: PriceType
     lastUpdated: string
     priceCategory: string
+    averagePrice: number | null
+    weightedAveragePrice: number | null
+    belowAverage: boolean
 }
 
 export type ProductActiveStatus = typeof ACTIVE_INACTIVE_PRODUCTS | typeof ACTIVE_PRODUCTS | typeof INACTIVE_PRODUCTS

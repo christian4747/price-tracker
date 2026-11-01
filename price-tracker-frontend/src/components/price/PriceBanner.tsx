@@ -131,6 +131,15 @@ export const PriceBanner = ({ productBody, dateToday, setDateToday, mini }: Pric
     // Shows recent price changes, last updated (if < 7 days), and time left on current price (if < 7 days)
     const priceIndicators = (
         <>
+            {/* Below average indicator */}
+            {productBody.belowAverage && (
+                <Tooltip withArrow label="Below average price">
+                    <span role="img" aria-label="Below average price">
+                        ✨
+                    </span>
+                </Tooltip>
+            )}
+
             {/* Recent price change text */}
             {recentPriceChange}
 
