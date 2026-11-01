@@ -1,29 +1,10 @@
 import { describe, expect, onTestFinished, vi } from 'vitest'
 import type { SetupWorker } from 'msw/browser'
-import { renderWithClient, screen, test, tryEveryModalCloseAction, userEvent, waitFor } from '@/test-utils'
+import { createPrice, renderWithClient, screen, test, tryEveryModalCloseAction, userEvent, waitFor } from '@/test-utils'
 import { http, HttpResponse } from 'msw'
 import { DeletePriceModal } from './DeletePriceModal'
-import type { PriceType } from '@/types/price'
 
-const price: PriceType = {
-    priceId: 1,
-    amount: 100.0,
-    currency: '',
-    description: '',
-    discountAmount: 0.0,
-    discountPercentage: 0.0,
-    priceStarted: '2026-09-04T00:00:00.000Z',
-    priceEnded: '',
-    returnAmount: 0.0,
-    returnPercentage: 0.0,
-    totalAmount: 0.0,
-    totalPercentage: 0.0,
-    createdAt: '2026-09-04T00:00:00.000Z',
-    updatedAt: '2026-09-04T00:00:00.000Z',
-    productId: 0,
-    today: false,
-    deletedAt: null
-}
+const price = createPrice(1)
 
 const pricesApiUrl = import.meta.env.VITE_BACKEND_ROOT_URL + '/prices'
 

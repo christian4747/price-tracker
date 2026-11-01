@@ -1,49 +1,13 @@
-import type { PriceType } from '@/types/price'
+// Imported from its own file because test-utils/index.ts leads back to these handlers
+import { createPrice } from '@/test-utils/createPrice'
 import { http, HttpResponse } from 'msw'
 
 const rootUrl = import.meta.env.VITE_BACKEND_ROOT_URL
 const productsApiUrl = rootUrl + '/products'
 const pricesApiUrl = rootUrl + '/prices'
 
-const price1: PriceType = {
-    priceId: 1,
-    amount: 100.0,
-    currency: '',
-    description: '',
-    discountAmount: 0.0,
-    discountPercentage: 0.0,
-    priceStarted: '2026-09-04T00:00:00.000Z',
-    priceEnded: '',
-    returnAmount: 0.0,
-    returnPercentage: 0.0,
-    today: false,
-    totalAmount: 0.0,
-    totalPercentage: 0.0,
-    createdAt: '2026-09-04T00:00:00.000Z',
-    updatedAt: '2026-09-04T00:00:00.000Z',
-    productId: 0,
-    deletedAt: null
-}
-
-const price2: PriceType = {
-    priceId: 2,
-    amount: 150.0,
-    currency: '',
-    description: '',
-    discountAmount: 0.0,
-    discountPercentage: 0.0,
-    priceStarted: '2026-09-05T00:00:00.000Z',
-    priceEnded: '',
-    returnAmount: 0.0,
-    returnPercentage: 0.0,
-    today: false,
-    totalAmount: 0.0,
-    totalPercentage: 0.0,
-    createdAt: '2026-09-05T00:00:00.000Z',
-    updatedAt: '2026-09-05T00:00:00.000Z',
-    productId: 0,
-    deletedAt: null
-}
+const price1 = createPrice(1)
+const price2 = createPrice(2, { priceStarted: '2026-09-05T00:00:00.000Z' })
 
 export const handlers = [
     http.get(productsApiUrl, () => {

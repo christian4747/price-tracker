@@ -1,49 +1,11 @@
 import { describe, expect } from 'vitest'
-import { renderWithClient, screen, test, userEvent } from '@/test-utils'
-import type { PriceType } from '@/types/price'
+import { createPrice, renderWithClient, screen, test, userEvent } from '@/test-utils'
 import type { ProductType } from '@/types/product'
 import { PriceList } from './PriceList'
 import { useState } from 'react'
 
-const price1: PriceType = {
-    priceId: 1,
-    amount: 100.0,
-    currency: '',
-    description: '',
-    discountAmount: 0.0,
-    discountPercentage: 0.0,
-    priceStarted: '2026-09-04T00:00:00.000Z',
-    priceEnded: '',
-    returnAmount: 0.0,
-    returnPercentage: 0.0,
-    totalAmount: 0.0,
-    totalPercentage: 0.0,
-    createdAt: '2026-09-04T00:00:00.000Z',
-    deletedAt: null,
-    updatedAt: '2026-09-04T00:00:00.000Z',
-    productId: 0,
-    today: false
-}
-
-const price2: PriceType = {
-    priceId: 2,
-    amount: 150.0,
-    currency: '',
-    description: '',
-    discountAmount: 0.0,
-    discountPercentage: 0.0,
-    priceStarted: '2026-09-05T00:00:00.000Z',
-    priceEnded: '',
-    returnAmount: 0.0,
-    returnPercentage: 0.0,
-    totalAmount: 0.0,
-    totalPercentage: 0.0,
-    createdAt: '2026-09-05T00:00:00.000Z',
-    deletedAt: null,
-    updatedAt: '2026-09-05T00:00:00.000Z',
-    productId: 0,
-    today: false
-}
+const price1 = createPrice(1, { priceStarted: '2026-09-04T00:00:00.000Z' })
+const price2 = createPrice(2, { priceStarted: '2026-09-05T00:00:00.000Z' })
 
 const product: ProductType = {
     active: false,

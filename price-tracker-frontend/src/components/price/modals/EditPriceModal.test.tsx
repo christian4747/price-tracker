@@ -1,5 +1,6 @@
 import { describe, expect, onTestFinished, vi } from 'vitest'
 import {
+    createPrice,
     modalCloseActions,
     renderWithClient,
     screen,
@@ -9,31 +10,15 @@ import {
     waitFor
 } from '@/test-utils'
 import { http, HttpResponse } from 'msw'
-import type { PriceType } from '@/types/price'
 import { EditPriceModal } from './EditPriceModal'
 
 const pricesApiUrl = import.meta.env.VITE_BACKEND_ROOT_URL + '/prices'
 
-const price: PriceType = {
-    priceId: 1,
-    amount: 100.0,
-    currency: '',
-    description: '',
-    discountAmount: 0.0,
-    discountPercentage: 0.0,
-    priceStarted: '2026-09-04T00:00:00.000Z',
-    priceEnded: '',
-    returnAmount: 0.0,
-    returnPercentage: 0.0,
-    totalAmount: 0.0,
-    totalPercentage: 0.0,
+const price = createPrice(1, {
     // Built from local times so the expected text doesn't depend on the test machine's time zone
     createdAt: new Date(2026, 8, 4, 14, 5).toISOString(),
-    updatedAt: new Date(2026, 8, 6, 9, 30).toISOString(),
-    productId: 0,
-    today: false,
-    deletedAt: null
-}
+    updatedAt: new Date(2026, 8, 6, 9, 30).toISOString()
+})
 
 describe('Edit Price Modal Component', () => {
     test('should show when the price was added and last updated', async () => {

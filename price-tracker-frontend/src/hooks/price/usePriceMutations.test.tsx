@@ -1,10 +1,10 @@
 import { describe, expect, onTestFinished, vi } from 'vitest'
-import { act, renderHook, RenderClientWrapper, test, waitFor } from '@/test-utils'
+import { act, createPrice, renderHook, RenderClientWrapper, test, waitFor } from '@/test-utils'
 import { http, HttpResponse } from 'msw'
 import { notifications } from '@mantine/notifications'
 import dayjs from 'dayjs'
 import type { SetupWorker } from 'msw/browser'
-import type { PriceDTO, PriceRangeDTO, PriceType } from '@/types/price'
+import type { PriceDTO, PriceRangeDTO } from '@/types/price'
 import type { ProductType } from '@/types/product'
 import { useAddPrice } from './useAddPrice'
 import { useDeletePrice } from './useDeletePrice'
@@ -25,29 +25,11 @@ const product: ProductType = {
     prices: []
 }
 
-const price1: PriceType = {
-    priceId: 1,
-    amount: 100.0,
-    currency: 'USD',
-    description: 'Sale',
-    discountAmount: 80.0,
-    discountPercentage: 20.0,
-    priceStarted: '2026-09-04T00:00:00.000Z',
-    priceEnded: '',
-    returnAmount: 0.0,
-    returnPercentage: 0.0,
-    today: true,
-    totalAmount: 80.0,
-    totalPercentage: 20.0,
-    createdAt: '2026-09-04T00:00:00.000Z',
-    deletedAt: null,
-    updatedAt: '2026-09-04T00:00:00.000Z',
-    productId: 0
-}
+const price1 = createPrice(1)
 
 // Built from local times so the expected text doesn't depend on the test machine's time zone
-const afternoonPrice: PriceType = { ...price1, priceStarted: new Date(2026, 8, 4, 14, 5).toISOString() }
-const lastMinutePrice: PriceType = { ...price1, priceStarted: new Date(2026, 8, 10, 23, 59).toISOString() }
+const afternoonPrice = createPrice(1, { priceStarted: new Date(2026, 8, 4, 14, 5).toISOString() })
+const lastMinutePrice = createPrice(1, { priceStarted: new Date(2026, 8, 10, 23, 59).toISOString() })
 
 // Watches the notifications until the test ends, and returns the messages shown so far
 const watchNotifications = () => {

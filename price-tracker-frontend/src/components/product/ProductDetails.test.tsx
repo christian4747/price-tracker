@@ -1,7 +1,6 @@
 import { describe, expect } from 'vitest'
-import { renderWithClient, screen, test, userEvent } from '@/test-utils'
+import { createPrice, renderWithClient, screen, test, userEvent } from '@/test-utils'
 import { http, HttpResponse } from 'msw'
-import type { PriceType } from '@/types/price'
 import type { ProductType } from '@/types/product'
 import { ProductDetails } from './ProductDetails'
 
@@ -19,33 +18,12 @@ const product: ProductType = {
     prices: []
 }
 
-const livePrice: PriceType = {
-    priceId: 1,
-    amount: 100.0,
-    currency: 'USD',
-    description: '',
-    discountAmount: 100.0,
-    discountPercentage: 0.0,
-    // Built from local times so the expected text doesn't depend on the test machine's time zone
-    priceStarted: new Date(2026, 8, 4, 12).toISOString(),
-    priceEnded: '',
-    returnAmount: 0.0,
-    returnPercentage: 0.0,
-    today: false,
-    totalAmount: 100.0,
-    totalPercentage: 0.0,
-    createdAt: '2026-09-04T00:00:00.000Z',
-    deletedAt: null,
-    updatedAt: '2026-09-04T00:00:00.000Z',
-    productId: 0
-}
-
-const deletedPrice: PriceType = {
-    ...livePrice,
-    priceId: 2,
+// Built from local times so the expected text doesn't depend on the test machine's time zone
+const livePrice = createPrice(1, { priceStarted: new Date(2026, 8, 4, 12).toISOString() })
+const deletedPrice = createPrice(2, {
     priceStarted: new Date(2026, 8, 5, 12).toISOString(),
     deletedAt: '2026-09-06T00:00:00.000Z'
-}
+})
 
 describe('Product Details Component', () => {
     test('should render product prices', async () => {

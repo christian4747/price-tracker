@@ -1,6 +1,5 @@
 import { describe, expect } from 'vitest'
-import { renderWithClient, screen, test } from '@/test-utils'
-import type { PriceType } from '@/types/price'
+import { createPrice, renderWithClient, screen, test } from '@/test-utils'
 import type { ProductBody, ProductType } from '@/types/product'
 import { Product } from './Product'
 import { Accordion } from '@mantine/core'
@@ -18,25 +17,7 @@ const product: ProductType = {
     prices: []
 }
 
-const price1: PriceType = {
-    priceId: 1,
-    amount: 100.0,
-    currency: '',
-    description: '',
-    discountAmount: 0.0,
-    discountPercentage: 0.0,
-    priceStarted: '2026-09-04T00:00:00.000Z',
-    priceEnded: '',
-    returnAmount: 0.0,
-    returnPercentage: 0.0,
-    today: false,
-    totalAmount: 0.0,
-    totalPercentage: 0.0,
-    createdAt: '2026-09-04T00:00:00.000Z',
-    deletedAt: null,
-    updatedAt: '2026-09-04T00:00:00.000Z',
-    productId: 0
-}
+const price1 = createPrice(1)
 
 const productBody: ProductBody = {
     product: product,
