@@ -1,4 +1,4 @@
 package com.christian4747.pricetracker.models;
 
-public record PriceTotalPercentages(double oneYearLow, double twoYearLow, double allTimeLow) {
+public record PriceTotalPercentages(Double oneYearLow, Double twoYearLow, Double allTimeLow) {
 }

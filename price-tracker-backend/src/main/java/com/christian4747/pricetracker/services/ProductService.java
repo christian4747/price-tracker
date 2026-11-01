@@ -433,14 +433,24 @@ public class ProductService {
 
         String priceCategory = "";
 
-        if (price.getTotalPercentage() >= percentages.allTimeLow()) {
+        if (isAtLow(price, percentages.allTimeLow())) {
             priceCategory = "all-time";
-        } else if (price.getTotalPercentage() >= percentages.twoYearLow()) {
+        } else if (isAtLow(price, percentages.twoYearLow())) {
             priceCategory = "two-year";
-        } else if (price.getTotalPercentage() >= percentages.oneYearLow()) {
+        } else if (isAtLow(price, percentages.oneYearLow())) {
             priceCategory = "one-year";
         }
         return priceCategory;
+    }
+
+    /**
+     * Checks whether the given price reaches the given low.
+     * @param price The price to compare to the low
+     * @param low The low, which is null when no price started in its time window
+     * @return Whether there is a low and the price reaches it
+     */
+    private static boolean isAtLow(Price price, Double low) {
+        return low != null && price.getTotalPercentage() >= low;
     }
 
     /**

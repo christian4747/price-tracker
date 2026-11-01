@@ -3,6 +3,7 @@ package com.christian4747.pricetracker.services;
 import com.christian4747.pricetracker.daos.PriceDAO;
 import com.christian4747.pricetracker.daos.ProductDAO;
 import com.christian4747.pricetracker.models.Price;
+import com.christian4747.pricetracker.models.PriceTotalPercentages;
 import com.christian4747.pricetracker.models.Product;
 import com.christian4747.pricetracker.models.StartedPrice;
 import com.christian4747.pricetracker.models.dtos.IncomingProductDTO;
@@ -401,6 +402,44 @@ public class ProductServiceTest {
     @Test
     public void getProductById_priceTodayOneCentBelowAverage_belowAverageTrue() {
         assertTrue(getProductWithPrices(createPrice(1.01, "USD", 4), createPrice(0.99, "USD", 3)).belowAverage());
+    }
+
+    // Stubs two prices with the given lows, where a null low means no price started in that window
+    private String getCategory(double percentageToday, Double oneYearLow, Double twoYearLow, Double allTimeLow) {
+        Price priceToday = new Price();
+        priceToday.setTotalPercentage(percentageToday);
+        when(productDAO.findById(anyInt())).thenReturn(Optional.of(addedProduct));
+        when(priceDAO.findPriceToday(anyInt())).thenReturn(Optional.of(priceToday));
+        when(priceDAO.findPriceCount(anyInt())).thenReturn(2);
+        when(priceDAO.findPriceTotalPercentages(anyInt(), any(Timestamp.class), any(Timestamp.class)))
+                .thenReturn(Optional.of(new PriceTotalPercentages(oneYearLow, twoYearLow, allTimeLow)));
+
+        return productService.getProductById(1).priceCategory();
+    }
+
+    @Test
+    public void getProductById_priceAtOneYearLow_categoryIsOneYear() {
+        assertEquals("one-year", getCategory(10, 10.0, 20.0, 30.0));
+    }
+
+    @Test
+    public void getProductById_noPricesInLastTwoYearsAndAtAllTimeLow_categoryIsAllTime() {
+        assertEquals("all-time", getCategory(30, null, null, 30.0));
+    }
+
+    @Test
+    public void getProductById_noPricesInLastTwoYearsAndNotAtAllTimeLow_noCategory() {
+        assertEquals("", getCategory(10, null, null, 30.0));
+    }
+
+    @Test
+    public void getProductById_noPricesInLastYearAndAtTwoYearLow_categoryIsTwoYear() {
+        assertEquals("two-year", getCategory(20, null, 20.0, 30.0));
+    }
+
+    @Test
+    public void getProductById_noPricesInLastYearAndNotAtTwoYearLow_noCategory() {
+        assertEquals("", getCategory(10, null, 20.0, 30.0));
     }
 
     @Test
