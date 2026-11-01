@@ -106,13 +106,18 @@ public class ProductSpecification {
             List<Predicate> subqueryPredicates = new ArrayList<>();
 
             // First find the Price with current timestamp
+            // Deleting a Product also deletes its Prices, so a deleted Product's deleted Prices still count
             Expression<Timestamp> currentTimestamp = criteriaBuilder.currentTimestamp();
             Subquery<Timestamp> priceSubquery = query.subquery(Timestamp.class);
             Root<Price> priceRoot = priceSubquery.from(Price.class);
             priceSubquery.select(criteriaBuilder.greatest(priceRoot.<Timestamp>get("priceStarted")))
                     .where(
                             criteriaBuilder.lessThanOrEqualTo(priceRoot.get("priceStarted"), currentTimestamp),
-                            criteriaBuilder.equal(priceRoot.get("product"), root)
+                            criteriaBuilder.equal(priceRoot.get("product"), root),
+                            criteriaBuilder.or(
+                                    criteriaBuilder.isNull(priceRoot.get("deletedAt")),
+                                    criteriaBuilder.isNotNull(root.get("deletedAt"))
+                            )
                     );
 
             // MAX Timestamp only gives Timestamp so use another subquery
@@ -153,6 +158,10 @@ public class ProductSpecification {
             // Only use price filter predicates if price filter exists
             if (!subqueryPredicates.isEmpty()) {
                 subqueryPredicates.add(criteriaBuilder.equal(currentPriceRoot.get("product"), root));
+                subqueryPredicates.add(criteriaBuilder.or(
+                        criteriaBuilder.isNull(currentPriceRoot.get("deletedAt")),
+                        criteriaBuilder.isNotNull(root.get("deletedAt"))
+                ));
                 subqueryPredicates.add(criteriaBuilder.equal(currentPriceRoot.get("priceStarted"), priceSubquery));
                 predicates.add(criteriaBuilder.exists(currentPriceSubquery.where(criteriaBuilder.and(subqueryPredicates.toArray(new Predicate[0])))));
             }

@@ -40,12 +40,13 @@ class ProductNameDAOTest {
         return product;
     }
 
-    private void addCurrentPrice(Product product, double totalAmount, Timestamp priceStarted) {
+    private Price addCurrentPrice(Product product, double totalAmount, Timestamp priceStarted) {
         Price price = new Price();
         price.setProduct(product);
         price.setPriceStarted(priceStarted);
         price.setTotalAmount(totalAmount);
         entityManager.persist(price);
+        return price;
     }
 
     private void saveFixtures() {
@@ -153,6 +154,54 @@ class ProductNameDAOTest {
 
         assertThat(names.getContent()).containsExactly("Banana");
         assertThat(names.getTotalElements()).isEqualTo(1);
+    }
+
+    @Test
+    void priceFilterIgnoresADeletedLatestPrice() {
+        Product product = addProduct("Apple", null);
+        addCurrentPrice(product, 100, PAST);
+        addCurrentPrice(product, 10, LATER_PAST).setDeletedAt(LATER_PAST);
+        saveFixtures();
+
+        Page<String> names = findNames(productFilter(null, false), priceFilter(50.0, null), page(0, 10));
+
+        assertThat(names.getContent()).containsExactly("Apple");
+    }
+
+    @Test
+    void priceFilterDoesNotMatchADeletedPrice() {
+        Product product = addProduct("Apple", null);
+        addCurrentPrice(product, 10, PAST);
+        addCurrentPrice(product, 100, LATER_PAST).setDeletedAt(LATER_PAST);
+        saveFixtures();
+
+        Page<String> names = findNames(productFilter(null, false), priceFilter(50.0, null), page(0, 10));
+
+        assertThat(names.getContent()).isEmpty();
+    }
+
+    @Test
+    void priceFilterIgnoresADeletedPriceWithTheSameStartTime() {
+        Product product = addProduct("Apple", null);
+        addCurrentPrice(product, 10, PAST);
+        addCurrentPrice(product, 100, PAST).setDeletedAt(LATER_PAST);
+        saveFixtures();
+
+        Page<String> names = findNames(productFilter(null, false), priceFilter(50.0, null), page(0, 10));
+
+        assertThat(names.getContent()).isEmpty();
+    }
+
+    @Test
+    void priceFilterUsesTheDeletedPricesOfADeletedProduct() {
+        Product product = addProduct("Apple", LATER_PAST);
+        addCurrentPrice(product, 10, PAST).setDeletedAt(LATER_PAST);
+        addCurrentPrice(product, 100, LATER_PAST).setDeletedAt(LATER_PAST);
+        saveFixtures();
+
+        Page<String> names = findNames(productFilter(null, true), priceFilter(50.0, null), page(0, 10));
+
+        assertThat(names.getContent()).containsExactly("Apple");
     }
 
     @Test
