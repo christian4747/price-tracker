@@ -5,9 +5,10 @@ import { useState } from 'react'
 import { useDisclosure } from '@mantine/hooks'
 import DeleteProductModal from './modals/DeleteProductModal'
 import { EditProductModal } from './modals/EditProductModal'
+import { PermanentlyDeleteProductModal } from './modals/PermanentlyDeleteProductModal'
 import { ProductListFooter } from './ProductListFooter'
 import { useProductPageGrouped } from '@/hooks/product/useProductPageGrouped'
-import { DeleteProductContext, EditProductContext } from './ProductContext'
+import { DeleteProductContext, EditProductContext, PermanentlyDeleteProductContext } from './ProductContext'
 import ProductListSkeleton from './ProductListSkeleton'
 import { GroupedProduct } from './GroupedProduct'
 
@@ -38,6 +39,10 @@ export const GroupedProductList = ({ filter }: GroupedProductList) => {
     // Track state of modal open/close
     const [editProductOpened, { open: openEditProduct, close: closeEditProduct }] = useDisclosure(false)
     const [deleteProductOpened, { open: openDeleteProduct, close: closeDeleteProduct }] = useDisclosure(false)
+    const [
+        permanentlyDeleteProductOpened,
+        { open: openPermanentlyDeleteProduct, close: closePermanentlyDeleteProduct }
+    ] = useDisclosure(false)
 
     const openEditProductModal = (product: ProductType) => {
         setCurrentProduct(product)
@@ -47,6 +52,11 @@ export const GroupedProductList = ({ filter }: GroupedProductList) => {
     const openDeleteProductModal = (product: ProductType) => {
         setCurrentProduct(product)
         openDeleteProduct()
+    }
+
+    const openPermanentlyDeleteProductModal = (product: ProductType) => {
+        setCurrentProduct(product)
+        openPermanentlyDeleteProduct()
     }
 
     if (query.isLoading) return <ProductListSkeleton />
@@ -72,13 +82,15 @@ export const GroupedProductList = ({ filter }: GroupedProductList) => {
                         return (
                             <EditProductContext value={openEditProductModal} key={groupedProduct.name}>
                                 <DeleteProductContext value={openDeleteProductModal}>
-                                    <Accordion.Item value={`group-${groupedProduct.name}`}>
-                                        <GroupedProduct
-                                            productBodies={groupedProduct.products}
-                                            dateToday={dateToday}
-                                            setDateToday={setDateToday}
-                                        />
-                                    </Accordion.Item>
+                                    <PermanentlyDeleteProductContext value={openPermanentlyDeleteProductModal}>
+                                        <Accordion.Item value={`group-${groupedProduct.name}`}>
+                                            <GroupedProduct
+                                                productBodies={groupedProduct.products}
+                                                dateToday={dateToday}
+                                                setDateToday={setDateToday}
+                                            />
+                                        </Accordion.Item>
+                                    </PermanentlyDeleteProductContext>
                                 </DeleteProductContext>
                             </EditProductContext>
                         )
@@ -97,6 +109,11 @@ export const GroupedProductList = ({ filter }: GroupedProductList) => {
                     product={currentProduct}
                     closeDeleteProduct={closeDeleteProduct}
                     opened={deleteProductOpened}
+                />
+                <PermanentlyDeleteProductModal
+                    product={currentProduct}
+                    closeModal={closePermanentlyDeleteProduct}
+                    opened={permanentlyDeleteProductOpened}
                 />
             </div>
         </>

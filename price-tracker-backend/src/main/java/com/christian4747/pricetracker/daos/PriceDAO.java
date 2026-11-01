@@ -24,6 +24,13 @@ public interface PriceDAO extends JpaRepository<Price, Integer> {
     Page<Price> findByDeletedAtNull(Pageable pageable);
 
     /**
+     * Counts all the Prices of the given productId, whether or not they are soft deleted.
+     * @param productId productId of the Prices to count
+     * @return The number of Prices
+     */
+    long countByProductProductId(Integer productId);
+
+    /**
      * Restores the Prices of the given productId that were deleted at the given time. Deleting a Product deletes its
      * Prices in the same transaction, so they share the Product's deletedAt.
      * @param productId productId of the Prices to restore
@@ -33,6 +40,26 @@ public interface PriceDAO extends JpaRepository<Price, Integer> {
     @Modifying
     @Query(value = "UPDATE Price p SET p.deletedAt = NULL WHERE p.product.productId = :productId AND p.deletedAt = :deletedAt")
     int restoreByProductIdAndDeletedAt(@Param("productId") Integer productId, @Param("deletedAt") Timestamp deletedAt);
+
+    /**
+     * Permanently removes a soft deleted Price from the 'prices' database table. A query is needed because deleting
+     * through the entity is a soft delete.
+     * @param priceId ID of the Price to remove
+     * @return The number of removed Prices
+     */
+    @Modifying
+    @Query(value = "DELETE FROM Price p WHERE p.priceId = :priceId AND p.deletedAt IS NOT NULL")
+    int permanentlyDeleteById(@Param("priceId") Integer priceId);
+
+    /**
+     * Permanently removes all the Prices of the given productId from the 'prices' database table, whether or not they
+     * are soft deleted. A query is needed because deleting through the entity is a soft delete.
+     * @param productId productId of the Prices to remove
+     * @return The number of removed Prices
+     */
+    @Modifying
+    @Query(value = "DELETE FROM Price p WHERE p.product.productId = :productId")
+    int permanentlyDeleteByProductId(@Param("productId") Integer productId);
 
     /**
      * Gets a distinct list of recently added non-deleted Price base amounts for the given product ID.

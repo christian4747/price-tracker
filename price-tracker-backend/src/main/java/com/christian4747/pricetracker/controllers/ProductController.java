@@ -43,6 +43,16 @@ public class ProductController {
     }
 
     /**
+     * Permanently removes a soft deleted Product and all its Prices from the database. This can't be undone.
+     * @param productId The ID of the Product to remove
+     * @return The removed Product
+     */
+    @DeleteMapping("/{productId}/permanent")
+    public ResponseEntity<Product> permanentlyDeleteProduct(@PathVariable Integer productId) {
+        return ResponseEntity.ok(productService.permanentlyDeleteProduct(productId));
+    }
+
+    /**
      * Restores a soft deleted Product in the 'products' database table.
      * @param productId The ID of the Product to restore
      * @return The restored Product

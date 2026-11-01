@@ -9,6 +9,7 @@ import type { ProductType } from '@/types/product'
 import { useAddPrice } from './useAddPrice'
 import { useDeletePrice } from './useDeletePrice'
 import { useEditPrice } from './useEditPrice'
+import { usePermanentlyDeletePrice } from './usePermanentlyDeletePrice'
 
 const pricesApiUrl = import.meta.env.VITE_BACKEND_ROOT_URL + '/prices'
 
@@ -172,6 +173,21 @@ describe('useAddPrice', () => {
             'Successfully added price Sep 4, 2026 2:05 PM',
             'Successfully added price Sep 10, 2026 11:59 PM'
         ])
+    })
+})
+
+describe('usePermanentlyDeletePrice', () => {
+    test('should notify with a 12-hour time', async ({ worker }) => {
+        worker.use(http.delete(pricesApiUrl + '/:priceId/permanent', () => HttpResponse.json(afternoonPrice)))
+        const messages = watchNotifications()
+        const { result } = renderHook(() => usePermanentlyDeletePrice(price1), { wrapper: RenderClientWrapper })
+
+        act(() => {
+            result.current.mutation.mutate()
+        })
+
+        await waitFor(() => expect(result.current.mutation.isSuccess).toBe(true))
+        expect(messages()).toEqual(['Successfully permanently deleted price Sep 4, 2026 2:05 PM'])
     })
 })
 

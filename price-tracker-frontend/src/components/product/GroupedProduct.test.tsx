@@ -157,8 +157,29 @@ describe('Grouped Product Component', () => {
             </Accordion.Item>
         )
 
-        const deleteProductButton = screen.queryByRole('img', { name: /delete product/i })
+        const deleteProductButton = screen.queryByRole('img', { name: 'Delete product' })
         await expect.element(deleteProductButton).not.toBeInTheDocument()
+    })
+
+    test('should render permanently delete button for a deleted product', async () => {
+        renderWithAccordion(
+            <Accordion.Item value="item-1">
+                <GroupedProduct productBodies={[productBody2]} dateToday={new Date()} setDateToday={() => {}} />
+            </Accordion.Item>
+        )
+
+        const permanentlyDeleteButton = screen.getByRole('img', { name: 'Permanently delete product' })
+        await expect.element(permanentlyDeleteButton).toBeInTheDocument()
+    })
+
+    test('should not render permanently delete button for a product that is not deleted', async () => {
+        renderWithAccordion(
+            <Accordion.Item value="item-1">
+                <GroupedProduct productBodies={[productBody]} dateToday={new Date()} setDateToday={() => {}} />
+            </Accordion.Item>
+        )
+
+        expect(screen.queryByRole('img', { name: 'Permanently delete product' })).not.toBeInTheDocument()
     })
 
     test('should render restore product button for a deleted product', async () => {

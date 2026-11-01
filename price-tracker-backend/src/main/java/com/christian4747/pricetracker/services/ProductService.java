@@ -85,6 +85,38 @@ public class ProductService {
     }
 
     /**
+     * Permanently removes a soft deleted Product and all its Prices from the database. Both are removed in one
+     * transaction, so if either fails then neither is removed. This can't be undone.
+     * @param productId The ID of the Product to remove
+     * @return The removed Product
+     */
+    @Transactional
+    public Product permanentlyDeleteProduct(Integer productId) {
+        Optional<Product> existingProduct = productDAO.findById(productId);
+
+        if (existingProduct.isEmpty()) {
+            logger.info("Attempted to permanently delete a Product that doesn't exist: {}", productId);
+            throw new IllegalArgumentException("Product with ID " + productId + " does not exist!");
+        }
+
+        if (existingProduct.get().getDeletedAt() == null) {
+            logger.info("Attempted to permanently delete a Product that isn't deleted: {}", productId);
+            throw new IllegalArgumentException("Only deleted products can be permanently deleted!");
+        }
+
+        int removedPriceCount = priceDAO.permanentlyDeleteByProductId(productId);
+        logger.info("Permanently deleted {} Price(s) of Product ID: {}", removedPriceCount, productId);
+        // Throwing rolls back the removed Prices if the Product was restored after it was checked
+        if (productDAO.permanentlyDeleteById(productId) == 0) {
+            logger.info("Attempted to permanently delete a Product that was restored: {}", productId);
+            throw new IllegalArgumentException("Only deleted products can be permanently deleted!");
+        }
+        logger.info("Successfully permanently deleted Product with ID: {}", productId);
+
+        return existingProduct.get();
+    }
+
+    /**
      * Restores a soft deleted Product in the 'products' database table, along with the Prices that were deleted with it.
      * Prices deleted separately before the Product stay deleted.
      * @param productId The ID of the Product to restore

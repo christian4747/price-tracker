@@ -4,11 +4,12 @@ import { useDebounce } from '@/hooks/common/useDebounce'
 import { Product } from './Product'
 import DeleteProductModal from './modals/DeleteProductModal'
 import { EditProductModal } from './modals/EditProductModal'
+import { PermanentlyDeleteProductModal } from './modals/PermanentlyDeleteProductModal'
 import { useState } from 'react'
 import { useDisclosure } from '@mantine/hooks'
 import { useProductPage } from '@/hooks/product/useProductPage'
 import { ProductListFooter } from './ProductListFooter'
-import { DeleteProductContext, EditProductContext } from './ProductContext'
+import { DeleteProductContext, EditProductContext, PermanentlyDeleteProductContext } from './ProductContext'
 import ProductListSkeleton from './ProductListSkeleton'
 
 export interface ProductList {
@@ -32,6 +33,10 @@ export const ProductList = ({ filter }: ProductList) => {
     // Track state of modal open/close
     const [editProductOpened, { open: openEditProduct, close: closeEditProduct }] = useDisclosure(false)
     const [deleteProductOpened, { open: openDeleteProduct, close: closeDeleteProduct }] = useDisclosure(false)
+    const [
+        permanentlyDeleteProductOpened,
+        { open: openPermanentlyDeleteProduct, close: closePermanentlyDeleteProduct }
+    ] = useDisclosure(false)
 
     const openEditProductModal = (product: ProductType) => {
         setCurrentProduct(product)
@@ -41,6 +46,11 @@ export const ProductList = ({ filter }: ProductList) => {
     const openDeleteProductModal = (product: ProductType) => {
         setCurrentProduct(product)
         openDeleteProduct()
+    }
+
+    const openPermanentlyDeleteProductModal = (product: ProductType) => {
+        setCurrentProduct(product)
+        openPermanentlyDeleteProduct()
     }
 
     if (query.isLoading) return <ProductListSkeleton />
@@ -63,18 +73,20 @@ export const ProductList = ({ filter }: ProductList) => {
                 >
                     <EditProductContext value={openEditProductModal}>
                         <DeleteProductContext value={openDeleteProductModal}>
-                            {query.data.content.map((productBody: ProductBody) => {
-                                // Key open state by product so it follows the product when the list changes
-                                return (
-                                    <Product
-                                        productBody={productBody}
-                                        dateToday={dateToday}
-                                        setDateToday={setDateToday}
-                                        value={`product-${productBody.product.productId}`}
-                                        key={productBody.product.productId}
-                                    />
-                                )
-                            })}
+                            <PermanentlyDeleteProductContext value={openPermanentlyDeleteProductModal}>
+                                {query.data.content.map((productBody: ProductBody) => {
+                                    // Key open state by product so it follows the product when the list changes
+                                    return (
+                                        <Product
+                                            productBody={productBody}
+                                            dateToday={dateToday}
+                                            setDateToday={setDateToday}
+                                            value={`product-${productBody.product.productId}`}
+                                            key={productBody.product.productId}
+                                        />
+                                    )
+                                })}
+                            </PermanentlyDeleteProductContext>
                         </DeleteProductContext>
                     </EditProductContext>
                 </Accordion>
@@ -91,6 +103,11 @@ export const ProductList = ({ filter }: ProductList) => {
                     product={currentProduct}
                     closeDeleteProduct={closeDeleteProduct}
                     opened={deleteProductOpened}
+                />
+                <PermanentlyDeleteProductModal
+                    product={currentProduct}
+                    closeModal={closePermanentlyDeleteProduct}
+                    opened={permanentlyDeleteProductOpened}
                 />
             </div>
         </>

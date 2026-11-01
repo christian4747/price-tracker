@@ -21,6 +21,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -85,5 +87,33 @@ public class PriceControllerTest {
         postRange()
                 .andExpect(status().isBadRequest())
                 .andExpect(content().string("Price end date is required!"));
+    }
+
+    @Test
+    public void getPriceCountByProductId_threePrices_returnThree() throws Exception {
+        when(priceService.getPriceCountByProductId(1)).thenReturn(3L);
+
+        mockMvc.perform(get("/prices/product/1/count"))
+                .andExpect(status().isOk())
+                .andExpect(content().string("3"));
+    }
+
+    @Test
+    public void permanentlyDeletePrice_deletedPrice_returnPrice() throws Exception {
+        when(priceService.permanentlyDeletePrice(1)).thenReturn(createPrice(1));
+
+        mockMvc.perform(delete("/prices/1/permanent"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.priceId").value(1));
+    }
+
+    @Test
+    public void permanentlyDeletePrice_rejectedPrice_return400WithMessage() throws Exception {
+        when(priceService.permanentlyDeletePrice(1))
+                .thenThrow(new IllegalArgumentException("Only deleted prices can be permanently deleted!"));
+
+        mockMvc.perform(delete("/prices/1/permanent"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string("Only deleted prices can be permanently deleted!"));
     }
 }
