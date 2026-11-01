@@ -51,7 +51,7 @@ public class Product {
         (SELECT pr.total_amount FROM {h-schema}prices pr
         WHERE product_id = pr.product_id
         AND pr.price_started <= CURRENT_TIMESTAMP
-        AND deleted_at IS NULL
+        AND pr.deleted_at IS NULL
         ORDER BY pr.price_started DESC
         LIMIT 1)
     """)
@@ -62,7 +62,7 @@ public class Product {
         (SELECT pr.total_percentage FROM {h-schema}prices pr
         WHERE product_id = pr.product_id
         AND pr.price_started <= CURRENT_TIMESTAMP
-        AND deleted_at IS NULL
+        AND pr.deleted_at IS NULL
         ORDER BY pr.price_started DESC
         LIMIT 1)
     """)
@@ -73,7 +73,7 @@ public class Product {
         (SELECT pr.price_started FROM {h-schema}prices pr
         WHERE pr.price_started > CURRENT_TIMESTAMP
         AND product_id = pr.product_id
-        AND deleted_at IS NULL
+        AND pr.deleted_at IS NULL
         ORDER BY pr.price_started LIMIT 1)
     """)
     private Timestamp timeRemaining;
