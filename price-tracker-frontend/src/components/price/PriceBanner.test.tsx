@@ -25,6 +25,26 @@ describe('PriceBanner Component', () => {
         await expect.element(priceText).toBeInTheDocument()
     })
 
+    test('should show a sparkle when the price is below average', async () => {
+        renderWithClient(
+            <PriceBanner
+                productBody={{ ...productBodyWithPrice, belowAverage: true }}
+                dateToday={new Date()}
+                setDateToday={() => {}}
+            />
+        )
+
+        await expect.element(screen.getByRole('img', { name: 'Below average price' })).toHaveTextContent('✨')
+    })
+
+    test('should not show a sparkle when the price is not below average', async () => {
+        renderWithClient(
+            <PriceBanner productBody={productBodyWithPrice} dateToday={new Date()} setDateToday={() => {}} />
+        )
+
+        expect(screen.queryByRole('img', { name: 'Below average price' })).not.toBeInTheDocument()
+    })
+
     test('should render nothing once the price for today is removed', async () => {
         const { rerender } = renderWithClient(
             <PriceBanner productBody={productBodyWithPrice} dateToday={new Date()} setDateToday={() => {}} />
