@@ -1,6 +1,7 @@
 import { describe, expect, onTestFinished } from 'vitest'
 import type { SetupWorker } from 'msw/browser'
 import {
+    createProduct,
     modalCloseActions,
     renderWithClient,
     screen,
@@ -12,23 +13,12 @@ import {
 } from '@/test-utils'
 import { http, HttpResponse } from 'msw'
 import { AddPriceModal } from './AddPriceModal'
-import type { ProductType } from '@/types/product'
 
-const product: ProductType = {
-    active: true,
-    productId: 1,
-    name: 'Product 1',
-    link: '',
-    store: 'Store 1',
-    createdAt: '',
-    updatedAt: '',
-    prices: [],
-    deletedAt: null
-}
+const product = createProduct(1)
 
 const pricesApiUrl = import.meta.env.VITE_BACKEND_ROOT_URL + '/prices'
 
-const savedPrice = { priceStarted: '2026-09-04T00:00:00.000Z' }
+const savedPrice = { priceStarted: new Date(2026, 8, 4, 12).toISOString() }
 
 // Opens the modal and picks which dates to save, ready for the save to be submitted
 const openWithDates = async (dateButton: string) => {

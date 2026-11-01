@@ -1,11 +1,10 @@
 import { describe, expect, onTestFinished, vi } from 'vitest'
-import { act, renderHook, RenderClientWrapper, test, waitFor } from '@/test-utils'
+import { act, createPrice, createProduct, renderHook, RenderClientWrapper, test, waitFor } from '@/test-utils'
 import { http, HttpResponse } from 'msw'
 import { notifications } from '@mantine/notifications'
 import dayjs from 'dayjs'
 import type { SetupWorker } from 'msw/browser'
-import type { PriceDTO, PriceRangeDTO, PriceType } from '@/types/price'
-import type { ProductType } from '@/types/product'
+import type { PriceDTO, PriceRangeDTO } from '@/types/price'
 import { useAddPrice } from './useAddPrice'
 import { useDeletePrice } from './useDeletePrice'
 import { useEditPrice } from './useEditPrice'
@@ -13,41 +12,13 @@ import { usePermanentlyDeletePrice } from './usePermanentlyDeletePrice'
 
 const pricesApiUrl = import.meta.env.VITE_BACKEND_ROOT_URL + '/prices'
 
-const product: ProductType = {
-    active: true,
-    productId: 0,
-    name: 'Product 1',
-    link: '',
-    store: '',
-    createdAt: '',
-    deletedAt: null,
-    updatedAt: '',
-    prices: []
-}
+const product = createProduct(1)
 
-const price1: PriceType = {
-    priceId: 1,
-    amount: 100.0,
-    currency: 'USD',
-    description: 'Sale',
-    discountAmount: 80.0,
-    discountPercentage: 20.0,
-    priceStarted: '2026-09-04T00:00:00.000Z',
-    priceEnded: '',
-    returnAmount: 0.0,
-    returnPercentage: 0.0,
-    today: true,
-    totalAmount: 80.0,
-    totalPercentage: 20.0,
-    createdAt: '2026-09-04T00:00:00.000Z',
-    deletedAt: null,
-    updatedAt: '2026-09-04T00:00:00.000Z',
-    productId: 0
-}
+const price1 = createPrice(1)
 
 // Built from local times so the expected text doesn't depend on the test machine's time zone
-const afternoonPrice: PriceType = { ...price1, priceStarted: new Date(2026, 8, 4, 14, 5).toISOString() }
-const lastMinutePrice: PriceType = { ...price1, priceStarted: new Date(2026, 8, 10, 23, 59).toISOString() }
+const afternoonPrice = createPrice(1, { priceStarted: new Date(2026, 8, 4, 14, 5).toISOString() })
+const lastMinutePrice = createPrice(1, { priceStarted: new Date(2026, 8, 10, 23, 59).toISOString() })
 
 // Watches the notifications until the test ends, and returns the messages shown so far
 const watchNotifications = () => {
@@ -77,8 +48,8 @@ const saveRange = async (worker: SetupWorker, useEndDateDesc: boolean) => {
         result.current.priceDTO.setField('amount', 100)
         result.current.priceDTO.setField('discountAmount', 80)
         result.current.priceDTO.setField('description', 'Sale')
-        result.current.priceDTO.setField('priceStarted', '2026-09-04T00:00:00.000Z')
-        result.current.priceDTO.setField('priceEnded', '2026-09-10T00:00:00.000Z')
+        result.current.priceDTO.setField('priceStarted', new Date(2026, 8, 4, 12).toISOString())
+        result.current.priceDTO.setField('priceEnded', new Date(2026, 8, 10, 12).toISOString())
     })
     act(() => {
         result.current.mutation.mutate()
@@ -97,8 +68,8 @@ describe('useAddPrice', () => {
             amount: 100,
             discountAmount: 80,
             description: 'Sale',
-            priceStarted: dayjs('2026-09-04T00:00:00.000Z').format(),
-            priceEnded: dayjs('2026-09-10T00:00:00.000Z').format()
+            priceStarted: dayjs(new Date(2026, 8, 4, 12).toISOString()).format(),
+            priceEnded: dayjs(new Date(2026, 8, 10, 12).toISOString()).format()
         })
     })
 

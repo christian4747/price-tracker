@@ -32,20 +32,6 @@ const getPercentage = (float: number) => {
     return percentage > 1 ? Math.round(percentage) : percentage
 }
 
-// Get the highest price from the price list
-const getHighestPrice = (prices: PriceType[]) => {
-    if (!prices || prices.length <= 0) return 0
-    let highest = prices[0].amount
-
-    for (const price of prices) {
-        const priceVal = price.amount
-        if (priceVal > highest) {
-            highest = priceVal
-        }
-    }
-    return highest
-}
-
 // Gets the discount percentage for the given Price
 const getPriceDiscount = (price: PriceType | undefined) => {
     if (!price) return 0
@@ -81,71 +67,6 @@ const getXYearAgoPrices = (prices: PriceType[], yearsAgo: number) => {
     xYearAgo.setFullYear(xYearAgo.getFullYear() - yearsAgo)
 
     return sortPricesByDateAscending(filterPricesBeforeDate(prices, xYearAgo))
-}
-
-// Sort the given array by the given field (ascending)
-const sortPricesByAmountAsc = (prices: PriceType[]) => {
-    if (!prices || prices.length === 0) return []
-    if (prices.length <= 1) return prices
-
-    return prices.toSorted((a, b) => {
-        return a.totalAmount - b.totalAmount
-    })
-}
-
-// Create Price data for PriceHistoryChart
-const createPriceData = (prices: PriceType[]) => {
-    const sortedPricesByDate = sortPricesByDateAscending(prices)
-
-    if (!prices || prices.length <= 0) return []
-
-    let todayFound = false
-    let todayIndex = prices.length
-    const priceData = sortedPricesByDate.map((price, idx) => {
-        if (Date.parse(price.priceStarted) > Date.now() && todayFound === false) {
-            todayFound = true
-            todayIndex = idx
-        }
-
-        return {
-            priceId: price.priceId,
-            priceStarted: new Date(price.priceStarted).toUTCString(),
-            price: price.totalAmount,
-            description: price.description
-        }
-    })
-
-    priceData.splice(todayIndex, 0, {
-        priceId: -1,
-        priceStarted: 'Now',
-        price: sortedPricesByDate[todayIndex - 1].totalAmount,
-        description: sortedPricesByDate[todayIndex - 1].description
-    })
-
-    return priceData
-}
-
-// Gets the discount percentage for the most recent Price
-const getMostRecentDiscount = (prices: PriceType[]) => {
-    const sortedPricesByDate = sortPricesByDateAscending(prices)
-
-    // Get the Product's Price(s) sorted by amount in ascending order
-    const sortedByPrice = sortPricesByAmountAsc(prices)
-
-    if (sortedByPrice.length <= 1 || sortedPricesByDate.length <= 1) return 0
-
-    const highest = sortedByPrice[sortedByPrice.length - 1]
-    const recent = sortedPricesByDate[sortedPricesByDate.length - 1]
-
-    // console.log(highest.amount, recent.amount)
-    return getPercentage(1 - recent.totalAmount / highest.totalAmount)
-}
-
-// Get the most recent price from the price list
-const getMostRecentPrice = (prices: PriceType[]) => {
-    const sortedPricesByDate = sortPricesByDateAscending(prices)
-
-    return sortedPricesByDate ? sortedPricesByDate[sortedPricesByDate.length - 1]?.totalAmount : ''
 }
 
 /**
@@ -189,15 +110,10 @@ const getReturnAmount = (amount: number, discountAmount: number, returnPercentag
 export {
     sortPricesByDateAscending,
     filterPricesBeforeDate,
-    getHighestPrice,
     getPriceDiscount,
     getPercentage,
     getBestDiscount,
     getXYearAgoPrices,
-    sortPricesByAmountAsc,
-    createPriceData,
-    getMostRecentDiscount,
-    getMostRecentPrice,
     getPriceString,
     getDiscountAmount,
     getReturnAmount

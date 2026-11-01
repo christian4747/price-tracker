@@ -1,27 +1,16 @@
 import { describe, expect, onTestFinished, vi } from 'vitest'
 import type { SetupWorker } from 'msw/browser'
-import { renderWithClient, screen, test, userEvent, waitFor } from '@/test-utils'
+import { createProduct, renderWithClient, screen, test, userEvent, waitFor } from '@/test-utils'
 import { http, HttpResponse } from 'msw'
 import { AddPriceForm } from './AddPriceForm'
-import type { ProductType } from '@/types/product'
 
-const product: ProductType = {
-    active: false,
-    productId: 0,
-    name: '',
-    link: '',
-    store: '',
-    createdAt: '',
-    updatedAt: '',
-    prices: [],
-    deletedAt: null
-}
+const product = createProduct(1)
 
 const pricesApiUrl = import.meta.env.VITE_BACKEND_ROOT_URL + '/prices'
 
 const dateButtons = ['Start Date Only', 'Start and End Date']
 
-const savedPrice = { priceStarted: '2026-09-04T00:00:00.000Z' }
+const savedPrice = { priceStarted: new Date(2026, 8, 4, 12).toISOString() }
 
 // Renders the form and starts a save that stays in progress until finishSave is called
 const startSave = async (worker: SetupWorker, dateButton: string) => {
@@ -85,8 +74,8 @@ describe('Add Price Form Component', () => {
                     currencies: ['USD'],
                     descriptions: [],
                     discountPercentages: [0],
-                    pricesEnded: ['2026-09-05T12:00:00.000Z'],
-                    pricesStarted: ['2026-09-10T12:00:00.000Z'],
+                    pricesEnded: [new Date(2026, 8, 5, 12).toISOString()],
+                    pricesStarted: [new Date(2026, 8, 10, 12).toISOString()],
                     returnPercentages: [0]
                 })
             )

@@ -1,32 +1,13 @@
 import { describe, expect, onTestFinished } from 'vitest'
-import { RenderClientWrapper, render, screen, test, userEvent } from '@/test-utils'
+import { RenderClientWrapper, createPrice, render, screen, test, userEvent } from '@/test-utils'
 import { http, HttpResponse } from 'msw'
 import { notifications, Notifications } from '@mantine/notifications'
 import { EditPriceModal } from '@/components/price/modals/EditPriceModal'
-import type { PriceType } from '@/types/price'
 import { createQueryClient } from './queryClientUtils'
 
 const pricesApiUrl = import.meta.env.VITE_BACKEND_ROOT_URL + '/prices'
 
-const price: PriceType = {
-    priceId: 1,
-    amount: 100.0,
-    currency: '',
-    description: '',
-    discountAmount: 0.0,
-    discountPercentage: 0.0,
-    priceStarted: '2026-09-04T00:00:00.000Z',
-    priceEnded: '',
-    returnAmount: 0.0,
-    returnPercentage: 0.0,
-    totalAmount: 0.0,
-    totalPercentage: 0.0,
-    createdAt: '2026-09-04T00:00:00.000Z',
-    updatedAt: '2026-09-04T00:00:00.000Z',
-    productId: 0,
-    today: false,
-    deletedAt: null
-}
+const price = createPrice(1)
 
 describe('createQueryClient', () => {
     // One modal is enough because every save goes through the query client's handler

@@ -1,14 +1,9 @@
 import { Accordion } from '@mantine/core'
-import type { ProductBody, ProductFilterDTO, ProductType } from '@/types/product'
+import type { ProductBody, ProductFilterDTO } from '@/types/product'
 import { useDebounce } from '@/hooks/common/useDebounce'
-import { useState } from 'react'
-import { useDisclosure } from '@mantine/hooks'
-import DeleteProductModal from './modals/DeleteProductModal'
-import { EditProductModal } from './modals/EditProductModal'
-import { PermanentlyDeleteProductModal } from './modals/PermanentlyDeleteProductModal'
 import { ProductListFooter } from './ProductListFooter'
 import { useProductPageGrouped } from '@/hooks/product/useProductPageGrouped'
-import { DeleteProductContext, EditProductContext, PermanentlyDeleteProductContext } from './ProductContext'
+import { ProductModals } from './ProductModals'
 import ProductListSkeleton from './ProductListSkeleton'
 import { GroupedProduct } from './GroupedProduct'
 
@@ -34,87 +29,41 @@ export const GroupedProductList = ({ filter }: GroupedProductList) => {
     // Debounce for setting list's today's date state
     const { value: dateToday, setValueWithDebounce: setDateToday } = useDebounce(new Date())
 
-    // Track state for currently selected product
-    const [currentProduct, setCurrentProduct] = useState<ProductType>(query.data?.content[0]?.products[0])
-    // Track state of modal open/close
-    const [editProductOpened, { open: openEditProduct, close: closeEditProduct }] = useDisclosure(false)
-    const [deleteProductOpened, { open: openDeleteProduct, close: closeDeleteProduct }] = useDisclosure(false)
-    const [
-        permanentlyDeleteProductOpened,
-        { open: openPermanentlyDeleteProduct, close: closePermanentlyDeleteProduct }
-    ] = useDisclosure(false)
-
-    const openEditProductModal = (product: ProductType) => {
-        setCurrentProduct(product)
-        openEditProduct()
-    }
-
-    const openDeleteProductModal = (product: ProductType) => {
-        setCurrentProduct(product)
-        openDeleteProduct()
-    }
-
-    const openPermanentlyDeleteProductModal = (product: ProductType) => {
-        setCurrentProduct(product)
-        openPermanentlyDeleteProduct()
-    }
-
     if (query.isLoading) return <ProductListSkeleton />
     if (!query.isSuccess) return <></>
 
     return (
         <>
             <div className="flex pb-5 flex-col mb-15">
-                <Accordion
-                    multiple
-                    variant="unstyled"
-                    styles={{
-                        control: { cursor: 'default' },
-                        chevron: { cursor: 'pointer' }
-                    }}
-                    chevronIconSize={24}
-                    value={currentlyOpened}
-                    onChange={setCurrentlyOpened}
-                    transitionDuration={400}
-                >
-                    {query.data.content.map((groupedProduct: GroupedProductData) => {
-                        // Key open state by group name so it follows the group when the list changes
-                        return (
-                            <EditProductContext value={openEditProductModal} key={groupedProduct.name}>
-                                <DeleteProductContext value={openDeleteProductModal}>
-                                    <PermanentlyDeleteProductContext value={openPermanentlyDeleteProductModal}>
-                                        <Accordion.Item value={`group-${groupedProduct.name}`}>
-                                            <GroupedProduct
-                                                productBodies={groupedProduct.products}
-                                                dateToday={dateToday}
-                                                setDateToday={setDateToday}
-                                            />
-                                        </Accordion.Item>
-                                    </PermanentlyDeleteProductContext>
-                                </DeleteProductContext>
-                            </EditProductContext>
-                        )
-                    })}
-                </Accordion>
+                <ProductModals>
+                    <Accordion
+                        multiple
+                        variant="unstyled"
+                        styles={{
+                            control: { cursor: 'default' },
+                            chevron: { cursor: 'pointer' }
+                        }}
+                        chevronIconSize={24}
+                        value={currentlyOpened}
+                        onChange={setCurrentlyOpened}
+                        transitionDuration={400}
+                    >
+                        {query.data.content.map((groupedProduct: GroupedProductData) => {
+                            // Key open state by group name so it follows the group when the list changes
+                            return (
+                                <Accordion.Item value={`group-${groupedProduct.name}`} key={groupedProduct.name}>
+                                    <GroupedProduct
+                                        productBodies={groupedProduct.products}
+                                        dateToday={dateToday}
+                                        setDateToday={setDateToday}
+                                    />
+                                </Accordion.Item>
+                            )
+                        })}
+                    </Accordion>
+                </ProductModals>
 
                 <ProductListFooter total={query.data.count} value={currentPageNumber} onChange={changePageNumber} />
-
-                {/* Modal Zone */}
-                <EditProductModal
-                    product={currentProduct}
-                    closeEditProduct={closeEditProduct}
-                    opened={editProductOpened}
-                />
-                <DeleteProductModal
-                    product={currentProduct}
-                    closeDeleteProduct={closeDeleteProduct}
-                    opened={deleteProductOpened}
-                />
-                <PermanentlyDeleteProductModal
-                    product={currentProduct}
-                    closeModal={closePermanentlyDeleteProduct}
-                    opened={permanentlyDeleteProductOpened}
-                />
             </div>
         </>
     )

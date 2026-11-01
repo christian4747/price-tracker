@@ -1,30 +1,9 @@
 import { describe, expect, test } from 'vitest'
-import { renderHook } from '@/test-utils'
+import { createPrice, renderHook } from '@/test-utils'
 import type { PriceType } from '@/types/price'
 import { usePriceData } from './usePriceData'
 
-const createPrice = (priceId: number, changes: Partial<PriceType> = {}): PriceType => ({
-    priceId,
-    amount: 100.0,
-    currency: 'USD',
-    description: '',
-    discountAmount: 100.0,
-    discountPercentage: 0.0,
-    priceStarted: '2026-09-04T00:00:00.000Z',
-    priceEnded: '',
-    returnAmount: 0.0,
-    returnPercentage: 0.0,
-    today: false,
-    totalAmount: 100.0,
-    totalPercentage: 0.0,
-    createdAt: '2026-09-04T00:00:00.000Z',
-    deletedAt: null,
-    updatedAt: '2026-09-04T00:00:00.000Z',
-    productId: 1,
-    ...changes
-})
-
-const deletedAt = '2026-10-01T00:00:00.000Z'
+const deletedAt = new Date(2026, 9, 1, 12).toISOString()
 
 // Returns the IDs of the prices the chart would draw
 const getChartPriceIds = (prices: PriceType[]) => {
