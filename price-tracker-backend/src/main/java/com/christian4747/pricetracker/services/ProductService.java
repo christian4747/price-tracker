@@ -260,13 +260,15 @@ public class ProductService {
         // Separate page settings from sort settings
         PageRequest pageRequest = getPageRequestForDistinctNames(pageable);
 
-        // Find page of distinct names TODO: Change query to find product objects for sorting
-        Page<String> uniqueNamesPage = productDAO.findDistinctNames(pageRequest);
+        Specification<Product> filterSpecification = ProductSpecification
+                .filterProductBy(productFilterDTO)
+                .and(ProductSpecification.filterProductPriceBy(priceFilterDTO));
+
+        // Find page of distinct names that match the filters TODO: Change query to find product objects for sorting
+        Page<String> uniqueNamesPage = productDAO.findDistinctNames(filterSpecification, pageRequest);
 
         // Find all products in list of names and filter by specification
-        Specification<Product> productSpecification = ProductSpecification
-                .filterProductBy(productFilterDTO)
-                .and(ProductSpecification.filterProductPriceBy(priceFilterDTO))
+        Specification<Product> productSpecification = filterSpecification
                 .and(ProductSpecification.inNameList(uniqueNamesPage.getContent()));
 
         // Apply the specification and sort settings

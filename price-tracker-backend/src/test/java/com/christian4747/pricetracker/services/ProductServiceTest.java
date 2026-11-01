@@ -9,6 +9,8 @@ import com.christian4747.pricetracker.models.dtos.IncomingProductDTO;
 import com.christian4747.pricetracker.models.dtos.OutgoingProductDTO;
 import com.christian4747.pricetracker.models.dtos.PriceFilterDTO;
 import com.christian4747.pricetracker.models.dtos.ProductFilterDTO;
+import com.christian4747.pricetracker.models.dtos.ProductNameGroupDTO;
+import com.christian4747.pricetracker.models.dtos.ResponseAndCount;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,6 +21,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
@@ -402,7 +405,7 @@ public class ProductServiceTest {
 
     @Test
     public void getProductsGroupedByName_twoUniqueNames_returnTwoLists() {
-        when(productDAO.findDistinctNames(any())).thenReturn(namePage);
+        when(productDAO.findDistinctNames(ArgumentMatchers.<Specification<Product>>any(), any(Pageable.class))).thenReturn(namePage);
         when(productDAO.findAll(ArgumentMatchers.<Specification<Product>>any(), any(Sort.class))).thenReturn(productList);
         when(namePage.getContent()).thenReturn(List.of("Product", "Product2"));
         when(namePage.getTotalElements()).thenReturn(2L);
@@ -411,6 +414,52 @@ public class ProductServiceTest {
         when(pageable.getSort()).thenReturn(Sort.by("name"));
 
         assertEquals(2, productService.getProductsGroupedByName(productFilterDTO, priceFilterDTO, pageable, "name").count());
+    }
+
+    @Test
+    public void getProductsGroupedByName_noMatchingNames_returnNoGroupsAndZeroCount() {
+        when(productDAO.findDistinctNames(ArgumentMatchers.<Specification<Product>>any(), any(Pageable.class))).thenReturn(namePage);
+        when(productDAO.findAll(ArgumentMatchers.<Specification<Product>>any(), any(Sort.class))).thenReturn(List.of());
+        when(namePage.getContent()).thenReturn(List.of());
+        when(namePage.getTotalElements()).thenReturn(0L);
+        when(pageable.getPageNumber()).thenReturn(0);
+        when(pageable.getPageSize()).thenReturn(10);
+        when(pageable.getSort()).thenReturn(Sort.unsorted());
+
+        ResponseAndCount<ProductNameGroupDTO> groups = productService.getProductsGroupedByName(productFilterDTO, priceFilterDTO, pageable, "name");
+
+        assertEquals(0, groups.count());
+        assertTrue(groups.content().isEmpty());
+    }
+
+    @Test
+    public void getProductsGroupedByName_moreMatchingNamesThanPageSize_countIncludesEveryMatchingName() {
+        when(productDAO.findDistinctNames(ArgumentMatchers.<Specification<Product>>any(), any(Pageable.class))).thenReturn(namePage);
+        when(productDAO.findAll(ArgumentMatchers.<Specification<Product>>any(), any(Sort.class))).thenReturn(List.of(addedProduct));
+        when(namePage.getContent()).thenReturn(List.of("Product"));
+        when(namePage.getTotalElements()).thenReturn(7L);
+        when(pageable.getPageNumber()).thenReturn(0);
+        when(pageable.getPageSize()).thenReturn(1);
+        when(pageable.getSort()).thenReturn(Sort.unsorted());
+
+        assertEquals(7, productService.getProductsGroupedByName(productFilterDTO, priceFilterDTO, pageable, "name").count());
+    }
+
+    @Test
+    public void getProductsGroupedByName_descendingNameSort_requestsNamesInThatOrder() {
+        when(productDAO.findDistinctNames(ArgumentMatchers.<Specification<Product>>any(), any(Pageable.class))).thenReturn(namePage);
+        when(productDAO.findAll(ArgumentMatchers.<Specification<Product>>any(), any(Sort.class))).thenReturn(List.of());
+        when(namePage.getContent()).thenReturn(List.of());
+        when(pageable.getPageNumber()).thenReturn(2);
+        when(pageable.getPageSize()).thenReturn(10);
+        when(pageable.getSort()).thenReturn(Sort.by("name").descending());
+
+        productService.getProductsGroupedByName(productFilterDTO, priceFilterDTO, pageable, "name");
+
+        verify(productDAO).findDistinctNames(
+                ArgumentMatchers.<Specification<Product>>any(),
+                eq(PageRequest.of(2, 10, Sort.by("name").descending()))
+        );
     }
 
     @Test
