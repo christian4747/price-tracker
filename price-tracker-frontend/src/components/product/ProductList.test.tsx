@@ -57,6 +57,61 @@ const clickLastProductAction = async (name: string) => {
     await user.click(buttons[buttons.length - 1])
 }
 
+// Serves a count that needs two pages, and records the page and name of each request
+const recordPageRequests = (worker: SetupWorker) => {
+    const requests: { page: string | null; name: string | null }[] = []
+    const resolver = ({ request }: { request: Request }) => {
+        const params = new URL(request.url).searchParams
+        requests.push({ page: params.get('page'), name: params.get('name') })
+        return HttpResponse.json({ content: [], count: 11 })
+    }
+    worker.use(http.get(productsApiUrl, resolver), http.get(productsApiUrl + '/grouped', resolver))
+
+    return requests
+}
+
+describe.for(productLists)('$name pagination', ({ List }) => {
+    test('should go back to the first page when the filter changes', async ({ worker }) => {
+        const requests = recordPageRequests(worker)
+        const user = userEvent.setup()
+        const { rerender } = renderWithClient(<List filter={filter} />)
+
+        await user.click(await screen.findByRole('button', { name: '2' }))
+        await waitFor(() => expect(requests).toContainEqual({ page: '1', name: null }))
+
+        rerender(<List filter={{ ...filter, name: 'Product' }} />)
+
+        await waitFor(() => expect(requests).toContainEqual({ page: '0', name: 'Product' }))
+    })
+
+    test('should not ask for the old page with the new filter', async ({ worker }) => {
+        const requests = recordPageRequests(worker)
+        const user = userEvent.setup()
+        const { rerender } = renderWithClient(<List filter={filter} />)
+
+        await user.click(await screen.findByRole('button', { name: '2' }))
+        await waitFor(() => expect(requests).toContainEqual({ page: '1', name: null }))
+
+        rerender(<List filter={{ ...filter, name: 'Product' }} />)
+
+        await waitFor(() => expect(requests).toContainEqual({ page: '0', name: 'Product' }))
+        expect(requests).not.toContainEqual({ page: '1', name: 'Product' })
+    })
+
+    test('should stay on the same page when the filter has not changed', async ({ worker }) => {
+        const requests = recordPageRequests(worker)
+        const user = userEvent.setup()
+        const { rerender } = renderWithClient(<List filter={filter} />)
+
+        await user.click(await screen.findByRole('button', { name: '2' }))
+        await waitFor(() => expect(requests).toContainEqual({ page: '1', name: null }))
+
+        rerender(<List filter={filter} />)
+
+        await expect.element(screen.getByRole('button', { name: '2' })).toHaveAttribute('data-active')
+    })
+})
+
 describe.for(productLists)('$name product modals', ({ List }) => {
     test('should open the edit modal for the chosen product', async ({ worker }) => {
         renderList(worker, List, [productA, productB])

@@ -11,7 +11,7 @@ export function useProductPage(pageNumber: number = 1, pageSize: number = 10, pr
         currentPageSize,
         setCurrentlyOpened,
         setCurrentPageNumber
-    } = useListWithPagination(pageNumber, pageSize)
+    } = useListWithPagination(pageNumber, pageSize, productFilterDTO)
 
     // Query for getting a product page. The key includes every request input so changing one refetches.
     const productPageQuery = useQuery({

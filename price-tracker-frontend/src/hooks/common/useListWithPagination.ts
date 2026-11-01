@@ -1,8 +1,17 @@
 import { useState } from 'react'
 
-export function useListWithPagination(pageNumber: number = 1, pageSize: number = 10) {
+export function useListWithPagination<Filter>(pageNumber: number = 1, pageSize: number = 10, filter: Filter) {
     // Current page state
     const [currentPageNumber, setCurrentPageNumber] = useState(pageNumber)
+    // The filter the current page belongs to
+    const [pageFilter, setPageFilter] = useState(filter)
+
+    // A new filter has its own pages, so start from the first. Done while rendering so the old page is never requested
+    if (filter !== pageFilter) {
+        setPageFilter(filter)
+        setCurrentPageNumber(1)
+    }
+
     // Current page size state
     const [currentPageSize] = useState(pageSize)
     // Opened Accordion state (allows control over open accordion items over a component's lifecycle)
