@@ -37,6 +37,8 @@ export const ProductTitleDetails = ({ product, otherStoresText }: ProductTitleDe
 
             <div
                 className="cursor-pointer"
+                role="img"
+                aria-label="Edit product"
                 onClick={(e) => {
                     openEditProductModal(product)
                     e.stopPropagation()

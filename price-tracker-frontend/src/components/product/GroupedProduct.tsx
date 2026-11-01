@@ -80,6 +80,8 @@ export const GroupedProduct = ({ productBodies, dateToday, setDateToday }: Group
                     </a>
                     <div
                         className="cursor-pointer"
+                        role="img"
+                        aria-label="Edit product"
                         onClick={(e) => {
                             openEditProductModal(productBody.product)
                             e.stopPropagation()
