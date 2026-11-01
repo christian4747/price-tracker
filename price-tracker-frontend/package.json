@@ -40,10 +40,10 @@
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
     "@vitejs/plugin-react": "^6.0.3",
-    "@vitest/browser": "^4.1.11",
-    "@vitest/browser-playwright": "^4.1.11",
-    "@vitest/coverage-v8": "^4.1.11",
-    "@vitest/ui": "^4.1.11",
+    "@vitest/browser": "^4.1.12",
+    "@vitest/browser-playwright": "^4.1.12",
+    "@vitest/coverage-v8": "^4.1.12",
+    "@vitest/ui": "^4.1.12",
     "jsdom": "^30.0.1",
     "msw": "^2.15.0",
     "oxlint": "^1.71.0",
@@ -53,7 +53,7 @@
     "prettier": "3.9.10",
     "typescript": "~6.0.2",
     "vite": "^8.3.5",
-    "vitest": "^4.1.11",
+    "vitest": "^4.1.12",
     "vitest-browser-react": "^2.2.0"
   }
 }
