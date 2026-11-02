@@ -1,6 +1,7 @@
 package com.christian4747.pricetracker.daos;
 
 import com.christian4747.pricetracker.models.Price;
+import com.christian4747.pricetracker.models.PricePeriod;
 import com.christian4747.pricetracker.models.PriceTotalPercentages;
 import com.christian4747.pricetracker.models.StartedPrice;
 import org.springframework.data.domain.Page;
@@ -111,6 +112,22 @@ public interface PriceDAO extends JpaRepository<Price, Integer> {
      */
     @Query(value = "SELECT p.priceStarted FROM Price p WHERE p.priceId IN (SELECT MAX(p.priceId) FROM Price p WHERE p.deletedAt IS NULL GROUP BY p.priceStarted) ORDER BY p.createdAt DESC")
     Page<Timestamp> findDistinctPriceStartedOrderByCreatedAtDesc(Pageable pageable);
+
+    /**
+     * Gets a distinct list of the start and end dates of recently added non-deleted Prices that have an end date. Both
+     * dates come from the same Price, so each period is one that was actually used.
+     * @param pageable Pagination settings
+     * @return A distinct list of recently added Price periods, newest first (default 20)
+     */
+    @Query(value = """
+        SELECT new com.christian4747.pricetracker.models.PricePeriod(p.priceStarted, p.priceEnded) FROM Price p
+        WHERE p.priceId IN (
+            SELECT MAX(p.priceId) FROM Price p
+            WHERE p.priceEnded IS NOT NULL AND p.deletedAt IS NULL
+            GROUP BY p.priceStarted, p.priceEnded)
+        ORDER BY p.createdAt DESC
+    """)
+    Page<PricePeriod> findDistinctPricePeriods(Pageable pageable);
 
     /**
      * Gets a distinct list of recently added non-deleted Price return percentages.

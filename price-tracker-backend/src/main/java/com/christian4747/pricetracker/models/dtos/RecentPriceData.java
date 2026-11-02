@@ -1,5 +1,7 @@
 package com.christian4747.pricetracker.models.dtos;
 
+import com.christian4747.pricetracker.models.PricePeriod;
+
 import java.sql.Timestamp;
 import java.util.List;
 
@@ -10,6 +12,7 @@ public record RecentPriceData(
         List<Double> discountPercentages,
         List<Timestamp> pricesStarted,
         List<Timestamp> pricesEnded,
-        List<Double> returnPercentages
+        List<Double> returnPercentages,
+        List<PricePeriod> pricePeriods
 ) {
 }
