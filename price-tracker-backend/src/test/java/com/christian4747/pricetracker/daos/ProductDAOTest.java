@@ -164,6 +164,30 @@ class ProductDAOTest {
     }
 
     @Test
+    void existsByStoreAndDeletedAtNullFindsAStoreInUse() {
+        addProduct("Corner shop", null);
+        saveFixtures();
+
+        assertThat(productDAO.existsByStoreAndDeletedAtNull("Corner shop")).isTrue();
+    }
+
+    @Test
+    void existsByStoreAndDeletedAtNullLeavesOutDeletedProducts() {
+        addProduct("Closed shop", OLDER);
+        saveFixtures();
+
+        assertThat(productDAO.existsByStoreAndDeletedAtNull("Closed shop")).isFalse();
+    }
+
+    @Test
+    void existsByStoreAndDeletedAtNullMatchesTheExactStore() {
+        addProduct("Corner shop", null);
+        saveFixtures();
+
+        assertThat(productDAO.existsByStoreAndDeletedAtNull("corner shop")).isFalse();
+    }
+
+    @Test
     void permanentlyDeleteByIdRemovesASoftDeletedProduct() {
         Product product = addProduct("Corner shop", OLDER);
         saveFixtures();
