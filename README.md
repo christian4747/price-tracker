@@ -1,5 +1,6 @@
 ﻿# price-tracker
 [![Java CI with Maven](https://github.com/christian4747/price-tracker/actions/workflows/maven.yml/badge.svg)](https://github.com/christian4747/price-tracker/actions/workflows/maven.yml)  
+[![Frontend CI](https://github.com/christian4747/price-tracker/actions/workflows/frontend.yml/badge.svg)](https://github.com/christian4747/price-tracker/actions/workflows/frontend.yml)
   
 A simple full stack web application for locally tracking price history.
 
