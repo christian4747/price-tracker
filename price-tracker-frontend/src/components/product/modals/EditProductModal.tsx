@@ -1,6 +1,7 @@
 import type { ProductType } from '@/types/product'
 import { Button, Switch, TextInput } from '@mantine/core'
 import { useEditProduct } from '@/hooks/product/useEditProduct'
+import { useRecentBrands } from '@/hooks/product/useRecentBrands'
 import { useRecentStores } from '@/hooks/product/useRecentStores'
 import { RecentDataScroller } from '@/components/common/RecentDataScroller'
 import { SaveModal } from '@/components/common/SaveModal'
@@ -17,8 +18,15 @@ interface EditProductModal {
 export const EditProductModal = ({ product, closeEditProduct, opened }: EditProductModal) => {
     // Hook for editing products
     const { productDTO, mutation } = useEditProduct(product)
-    // Hook for recent stores, only fetched while the modal is open
+    // Hooks for recent brands and stores, only fetched while the modal is open
+    const { query: recentBrandsQuery } = useRecentBrands(opened)
     const { query: recentStoresQuery } = useRecentStores(opened)
+
+    const recentBrands = recentBrandsQuery.data?.map((brand: string, idx: number) => (
+        <Button key={idx} onClick={() => productDTO.setField('brand', brand)}>
+            {brand}
+        </Button>
+    ))
 
     const recentStores = recentStoresQuery.data?.map((store: string, idx: number) => (
         <Button key={idx} onClick={() => productDTO.setField('store', store)}>
@@ -71,6 +79,19 @@ export const EditProductModal = ({ product, closeEditProduct, opened }: EditProd
                 />
                 {recentStores && recentStores.length > 0 && (
                     <RecentDataScroller className="mb-2">{recentStores}</RecentDataScroller>
+                )}
+                <TextInput
+                    label="Brand"
+                    placeholder="Brand"
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                        productDTO.setField('brand', e.target.value)
+                    }}
+                    // Products without a brand have null, which an input can't show
+                    value={productDTO.value.brand ?? ''}
+                    className="mb-2"
+                />
+                {recentBrands && recentBrands.length > 0 && (
+                    <RecentDataScroller className="mb-2">{recentBrands}</RecentDataScroller>
                 )}
                 <TextInput
                     label="Link"

@@ -37,6 +37,16 @@ export default {
         return res.data
     },
 
+    getRecentBrands: async (pageNumber: number = 0, pageSize: number = 5) => {
+        const res = await apiClient.get(apiPath + '/recent/brands', {
+            params: {
+                page: pageNumber,
+                size: pageSize
+            }
+        })
+        return res.data
+    },
+
     getRecentStores: async (pageNumber: number = 0, pageSize: number = 5) => {
         const res = await apiClient.get(apiPath + '/recent/stores', {
             params: {

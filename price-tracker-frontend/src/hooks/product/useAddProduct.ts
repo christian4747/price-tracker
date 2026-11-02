@@ -8,6 +8,7 @@ import { useState } from 'react'
 export function useAddProduct() {
     // State for ProductDTO used in adding products
     const [emptyProductDTO] = useState({
+        brand: '',
         name: '',
         link: '',
         store: '',

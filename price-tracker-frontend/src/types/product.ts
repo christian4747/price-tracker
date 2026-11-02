@@ -4,6 +4,7 @@ import type { PriceType } from '@/types/price'
 export interface ProductType {
     active: boolean
     productId: number
+    brand: string | null
     name: string
     link: string
     store: string
@@ -14,6 +15,7 @@ export interface ProductType {
 }
 
 export interface ProductDTO {
+    brand: string | null
     name: string
     store: string
     link: string
