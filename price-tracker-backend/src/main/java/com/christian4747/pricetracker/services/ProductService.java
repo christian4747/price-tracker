@@ -49,6 +49,7 @@ public class ProductService {
      * @return The newly added Product
      */
     public Product addProduct(IncomingProductDTO productDTO) {
+        checkRequiredFields(productDTO);
         checkForDuplicate(productDTO.getName(), productDTO.getStore(), null);
 
         Product newProduct = new Product(
@@ -186,6 +187,22 @@ public class ProductService {
             throw new IllegalArgumentException("Product already exists as a deleted product. Restore it instead!");
         }
         throw new IllegalArgumentException("Product already exists!");
+    }
+
+    /**
+     * Throws if the given Product details are missing a name or store. Together they identify a Product, so neither
+     * can be blank.
+     * @param productDTO The Product details to check
+     */
+    private void checkRequiredFields(IncomingProductDTO productDTO) {
+        if (productDTO.getName() == null || productDTO.getName().isBlank()) {
+            logger.info("Attempted to save a Product without a name");
+            throw new IllegalArgumentException("Name is required!");
+        }
+        if (productDTO.getStore() == null || productDTO.getStore().isBlank()) {
+            logger.info("Attempted to save a Product without a store: {}", productDTO.getName());
+            throw new IllegalArgumentException("Store is required!");
+        }
     }
 
     /**
@@ -466,6 +483,7 @@ public class ProductService {
             throw new IllegalArgumentException("Product with ID " + productId + " does not exist!");
         }
 
+        checkRequiredFields(productDTO);
         checkForDuplicate(productDTO.getName(), productDTO.getStore(), productId);
 
         Product productToUpdate = existingProduct.get();

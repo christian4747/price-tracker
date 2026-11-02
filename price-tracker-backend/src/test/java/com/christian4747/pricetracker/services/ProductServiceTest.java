@@ -128,6 +128,46 @@ public class ProductServiceTest {
     }
 
     @Test
+    public void addProduct_blankName_throwException() {
+        productDTO.setName("  ");
+
+        IllegalArgumentException exception =
+                assertThrows(IllegalArgumentException.class, () -> productService.addProduct(productDTO));
+        assertEquals("Name is required!", exception.getMessage());
+        verify(productDAO, never()).save(any());
+    }
+
+    @Test
+    public void addProduct_nullName_throwException() {
+        productDTO.setName(null);
+
+        IllegalArgumentException exception =
+                assertThrows(IllegalArgumentException.class, () -> productService.addProduct(productDTO));
+        assertEquals("Name is required!", exception.getMessage());
+        verify(productDAO, never()).save(any());
+    }
+
+    @Test
+    public void addProduct_blankStore_throwException() {
+        productDTO.setStore("  ");
+
+        IllegalArgumentException exception =
+                assertThrows(IllegalArgumentException.class, () -> productService.addProduct(productDTO));
+        assertEquals("Store is required!", exception.getMessage());
+        verify(productDAO, never()).save(any());
+    }
+
+    @Test
+    public void addProduct_nullStore_throwException() {
+        productDTO.setStore(null);
+
+        IllegalArgumentException exception =
+                assertThrows(IllegalArgumentException.class, () -> productService.addProduct(productDTO));
+        assertEquals("Store is required!", exception.getMessage());
+        verify(productDAO, never()).save(any());
+    }
+
+    @Test
     public void addProduct_validProduct_returnProduct() {
         when(productDAO.save(any())).thenReturn(addedProduct);
 
@@ -575,6 +615,28 @@ public class ProductServiceTest {
         when(productDAO.save(any())).thenReturn(addedProduct);
 
         assertEquals("Product2", productService.updateProduct(1, productDTO).getName());
+    }
+
+    @Test
+    public void updateProduct_blankName_throwException() {
+        productDTO.setName("");
+        when(productDAO.findById(anyInt())).thenReturn(Optional.of(addedProduct));
+
+        IllegalArgumentException exception =
+                assertThrows(IllegalArgumentException.class, () -> productService.updateProduct(1, productDTO));
+        assertEquals("Name is required!", exception.getMessage());
+        verify(productDAO, never()).save(any());
+    }
+
+    @Test
+    public void updateProduct_blankStore_throwException() {
+        productDTO.setStore("");
+        when(productDAO.findById(anyInt())).thenReturn(Optional.of(addedProduct));
+
+        IllegalArgumentException exception =
+                assertThrows(IllegalArgumentException.class, () -> productService.updateProduct(1, productDTO));
+        assertEquals("Store is required!", exception.getMessage());
+        verify(productDAO, never()).save(any());
     }
 
     @Test
