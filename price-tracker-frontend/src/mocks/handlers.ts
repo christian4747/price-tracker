@@ -18,6 +18,10 @@ export const handlers = [
         })
     }),
 
+    http.get(productsApiUrl + '/recent/brands', () => {
+        return HttpResponse.json([])
+    }),
+
     http.get(productsApiUrl + '/recent/stores', () => {
         return HttpResponse.json([])
     }),

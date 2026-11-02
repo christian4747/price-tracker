@@ -12,6 +12,7 @@ const createInitialProductDTO = (initialProductDTO: ProductDTO | undefined) => {
         return initialProductDTO
     } else {
         return {
+            brand: '',
             name: '',
             link: '',
             store: '',

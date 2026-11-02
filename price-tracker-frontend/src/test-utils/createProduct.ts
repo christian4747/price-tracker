@@ -5,6 +5,7 @@ import type { ProductType } from '@/types/product'
 export const createProduct = (productId: number, changes: Partial<ProductType> = {}): ProductType => ({
     productId,
     active: true,
+    brand: null,
     name: 'Product 1',
     link: '',
     store: 'Store 1',

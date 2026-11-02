@@ -1,5 +1,6 @@
 import { describe, expect, onTestFinished, vi } from 'vitest'
 import type { SetupWorker } from 'msw/browser'
+import type { ProductDTO } from '@/types/product'
 import {
     createProduct,
     modalCloseActions,
@@ -14,6 +15,7 @@ import { http, HttpResponse } from 'msw'
 import { EditProductModal } from './EditProductModal'
 
 const product = createProduct(1, { name: 'Product 1', store: 'Store 1' })
+const brandedProduct = createProduct(1, { brand: 'Brand 1', name: 'Product 1', store: 'Store 1' })
 
 const productsApiUrl = import.meta.env.VITE_BACKEND_ROOT_URL + '/products'
 
@@ -66,6 +68,53 @@ describe('Edit Product Modal Component', () => {
         const recentStoresState = queryClient.getQueryState(['recentStores'])
         expect(recentStoresState?.fetchStatus).toBe('idle')
         expect(recentStoresState?.dataUpdateCount).toBe(0)
+    })
+
+    test('should not fetch recent brands while closed', async () => {
+        const { queryClient } = renderWithClient(
+            <EditProductModal product={product} closeEditProduct={() => {}} opened={false} />
+        )
+
+        const recentBrandsState = queryClient.getQueryState(['recentBrands'])
+        expect(recentBrandsState?.fetchStatus).toBe('idle')
+        expect(recentBrandsState?.dataUpdateCount).toBe(0)
+    })
+
+    test('should change the brand from a recent brand button', async ({ worker }) => {
+        worker.use(http.get(productsApiUrl + '/recent/brands', () => HttpResponse.json(['Brand 2', 'Brand 1'])))
+        const user = userEvent.setup()
+        renderWithClient(<EditProductModal product={brandedProduct} closeEditProduct={() => {}} opened />)
+
+        const brandInput = screen.getByRole('textbox', { name: 'Brand' }) as HTMLInputElement
+        expect(brandInput.value).toBe('Brand 1')
+
+        await user.click(await screen.findByRole('button', { name: 'Brand 2' }))
+
+        expect(brandInput.value).toBe('Brand 2')
+    })
+
+    test('should keep the brand when saving another change', async ({ worker }) => {
+        let sentProduct: ProductDTO | undefined
+        worker.use(
+            http.put(productsApiUrl + '/:productId', async ({ request }) => {
+                sentProduct = (await request.json()) as ProductDTO
+                return HttpResponse.json(brandedProduct)
+            })
+        )
+        const user = userEvent.setup()
+        renderWithClient(<EditProductModal product={brandedProduct} closeEditProduct={() => {}} opened />)
+
+        await user.type(screen.getByRole('textbox', { name: 'Name' }), ' changed')
+        await user.click(screen.getByRole('button', { name: 'Edit Product' }))
+
+        await waitFor(() => expect(sentProduct?.name).toBe('Product 1 changed'))
+        expect(sentProduct?.brand).toBe('Brand 1')
+    })
+
+    test('should show an empty brand for a product without one', async () => {
+        renderWithClient(<EditProductModal product={product} closeEditProduct={() => {}} opened />)
+
+        expect((screen.getByRole('textbox', { name: 'Brand' }) as HTMLInputElement).value).toBe('')
     })
 
     test('should change the store from a recent store button', async ({ worker }) => {
