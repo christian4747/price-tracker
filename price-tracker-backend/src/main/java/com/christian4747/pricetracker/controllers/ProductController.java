@@ -117,6 +117,16 @@ public class ProductController {
     }
 
     /**
+     * Gets a distinct list of the brands of recently added Products.
+     * @param pageable Pagination settings
+     * @return A distinct list of recently used Product brands (default 20)
+     */
+    @GetMapping("/recent/brands")
+    public ResponseEntity<List<String>> getRecentBrands(Pageable pageable) {
+        return ResponseEntity.ok(productService.getRecentBrands(pageable));
+    }
+
+    /**
      * Gets a distinct list of the stores of recently added Products.
      * @param pageable Pagination settings
      * @return A distinct list of recently used Product stores (default 20)

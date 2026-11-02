@@ -33,6 +33,12 @@ class ProductDAOTest {
         return product;
     }
 
+    private Product addBrandedProduct(String brand, Timestamp deletedAt) {
+        Product product = addProduct("Corner shop", deletedAt);
+        product.setBrand(brand);
+        return product;
+    }
+
     /** createdAt is set automatically on insert, so a fixed value has to be written afterwards. */
     private void setCreatedAt(Product product, Timestamp createdAt) {
         entityManager.flush();
@@ -107,6 +113,54 @@ class ProductDAOTest {
 
         assertThat(stores.getContent()).containsExactly("Newer shop");
         assertThat(stores.getTotalElements()).isEqualTo(2);
+    }
+
+    @Test
+    void findDistinctBrandsLeavesOutDeletedProducts() {
+        addBrandedProduct("Acme", null);
+        addBrandedProduct("Gone", OLDER);
+        saveFixtures();
+
+        assertThat(productDAO.findDistinctBrands(FIRST_PAGE).getContent()).containsExactly("Acme");
+    }
+
+    @Test
+    void findDistinctBrandsKeepsABrandWhoseNewestProductIsDeleted() {
+        addBrandedProduct("Acme", null);
+        addBrandedProduct("Acme", OLDER);
+        saveFixtures();
+
+        assertThat(productDAO.findDistinctBrands(FIRST_PAGE).getContent()).containsExactly("Acme");
+    }
+
+    @Test
+    void findDistinctBrandsLeavesOutEmptyBrands() {
+        addBrandedProduct("Acme", null);
+        addBrandedProduct("", null);
+        addBrandedProduct(null, null);
+        saveFixtures();
+
+        assertThat(productDAO.findDistinctBrands(FIRST_PAGE).getContent()).containsExactly("Acme");
+    }
+
+    @Test
+    void findDistinctBrandsReturnsEachBrandOnce() {
+        addBrandedProduct("Acme", null);
+        addBrandedProduct("Acme", null);
+        saveFixtures();
+
+        assertThat(productDAO.findDistinctBrands(FIRST_PAGE).getContent()).containsExactly("Acme");
+    }
+
+    @Test
+    void findDistinctBrandsPutsRecentlyAddedBrandsFirst() {
+        Product older = addBrandedProduct("Older brand", null);
+        Product newer = addBrandedProduct("Newer brand", null);
+        setCreatedAt(older, OLDER);
+        setCreatedAt(newer, NEWER);
+        saveFixtures();
+
+        assertThat(productDAO.findDistinctBrands(FIRST_PAGE).getContent()).containsExactly("Newer brand", "Older brand");
     }
 
     @Test
