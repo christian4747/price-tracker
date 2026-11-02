@@ -23,6 +23,14 @@ public interface ProductDAO extends JpaRepository<Product, Integer>, JpaSpecific
     List<Product> findAllByName(String name);
 
     /**
+     * Gets a distinct list of the brands of recently added non-deleted Products.
+     * @param pageable Pagination settings
+     * @return A distinct list of recently used Product brands (default 20)
+     */
+    @Query(value = "SELECT p.brand FROM Product p WHERE p.productId IN (SELECT MAX(p.productId) FROM Product p WHERE p.brand <> '' AND p.deletedAt IS NULL GROUP BY p.brand) ORDER BY p.createdAt DESC")
+    Page<String> findDistinctBrands(Pageable pageable);
+
+    /**
      * Gets a distinct list of the stores of recently added non-deleted Products.
      * @param pageable Pagination settings
      * @return A distinct list of recently used Product stores (default 20)

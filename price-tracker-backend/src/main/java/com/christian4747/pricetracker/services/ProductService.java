@@ -53,7 +53,7 @@ public class ProductService {
 
         Product newProduct = new Product(
                 0,
-                productDTO.getBrand(),
+                nullIfBlank(productDTO.getBrand()),
                 productDTO.getName(),
                 productDTO.getLink(),
                 productDTO.getStore(),
@@ -189,6 +189,15 @@ public class ProductService {
     }
 
     /**
+     * Converts a blank value to null, so it sorts with the other empty values instead of before them.
+     * @param value The value to check
+     * @return Null if the value is blank, otherwise the value
+     */
+    private String nullIfBlank(String value) {
+        return value == null || value.isBlank() ? null : value;
+    }
+
+    /**
      * Gets all the products with the given pagination settings, product filter DTO, and price filter DTO.
      * @param productFilterDTO Product filter details
      * @param priceFilterDTO Current price filter details
@@ -298,6 +307,15 @@ public class ProductService {
      */
     public Long getProductCount() {
         return productDAO.count();
+    }
+
+    /**
+     * Gets a distinct list of the brands of recently added Products.
+     * @param pageable Pagination settings
+     * @return A distinct list of recently used Product brands (default 20)
+     */
+    public List<String> getRecentBrands(Pageable pageable) {
+        return productDAO.findDistinctBrands(pageable).getContent();
     }
 
     /**
@@ -452,7 +470,7 @@ public class ProductService {
 
         Product productToUpdate = existingProduct.get();
 
-        productToUpdate.setBrand(productDTO.getBrand());
+        productToUpdate.setBrand(nullIfBlank(productDTO.getBrand()));
         productToUpdate.setName(productDTO.getName());
         productToUpdate.setLink(productDTO.getLink());
         productToUpdate.setStore(productDTO.getStore());

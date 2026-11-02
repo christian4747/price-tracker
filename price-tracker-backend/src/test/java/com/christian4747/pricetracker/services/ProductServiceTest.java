@@ -135,6 +135,34 @@ public class ProductServiceTest {
     }
 
     @Test
+    public void addProduct_brand_saveBrand() {
+        productDTO.setBrand("Brand");
+        when(productDAO.save(any())).thenReturn(addedProduct);
+
+        productService.addProduct(productDTO);
+
+        verify(productDAO).save(argThat(product -> "Brand".equals(product.getBrand())));
+    }
+
+    @Test
+    public void addProduct_blankBrand_saveNullBrand() {
+        productDTO.setBrand("  ");
+        when(productDAO.save(any())).thenReturn(addedProduct);
+
+        productService.addProduct(productDTO);
+
+        verify(productDAO).save(argThat(product -> product.getBrand() == null));
+    }
+
+    @Test
+    public void getRecentBrands_twoBrands_returnTwoBrands() {
+        Page<String> brandPage = new PageImpl<>(List.of("Brand2", "Brand"));
+        when(productDAO.findDistinctBrands(pageable)).thenReturn(brandPage);
+
+        assertEquals(List.of("Brand2", "Brand"), productService.getRecentBrands(pageable));
+    }
+
+    @Test
     public void getRecentStores_twoStores_returnTwoStores() {
         Page<String> storePage = new PageImpl<>(List.of("Store2", "Store"));
         when(productDAO.findDistinctStores(pageable)).thenReturn(storePage);
@@ -547,6 +575,19 @@ public class ProductServiceTest {
         when(productDAO.save(any())).thenReturn(addedProduct);
 
         assertEquals("Product2", productService.updateProduct(1, productDTO).getName());
+    }
+
+    @Test
+    public void updateProduct_blankBrand_saveNullBrand() {
+        addedProduct.setBrand("Brand");
+        productDTO.setBrand("");
+
+        when(productDAO.findById(anyInt())).thenReturn(Optional.of(addedProduct));
+        when(productDAO.save(any())).thenReturn(addedProduct);
+
+        productService.updateProduct(1, productDTO);
+
+        verify(productDAO).save(argThat(product -> product.getBrand() == null));
     }
 
     @Test
