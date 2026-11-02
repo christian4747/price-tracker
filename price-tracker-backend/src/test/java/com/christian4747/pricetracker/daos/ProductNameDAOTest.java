@@ -68,6 +68,26 @@ class ProductNameDAOTest {
         return productDAO.findDistinctNames(specification, pageable);
     }
 
+    private Product addProductWithBrand(String name, String brand) {
+        Product product = addProduct(name, null);
+        product.setBrand(brand);
+        return product;
+    }
+
+    // The creation time is set by Hibernate on insert, so it can only be changed afterwards
+    private void addProductCreatedAt(String name, Timestamp createdAt) {
+        addProduct(name, null).setCreatedAt(createdAt);
+    }
+
+    private void addProductWithActive(String name, boolean active) {
+        addProduct(name, null).setActive(active);
+    }
+
+    private List<String> findSortedNames(int number, int size, Sort sort) {
+        Pageable pageable = PageRequest.of(number, size, sort.and(Sort.by("name").ascending()));
+        return findNames(productFilter(null, false), priceFilter(null, null), pageable).getContent();
+    }
+
     private Pageable page(int number, int size) {
         return PageRequest.of(number, size, Sort.by("name").ascending());
     }
@@ -225,5 +245,159 @@ class ProductNameDAOTest {
         }
 
         assertThat(pagedNames).containsExactly("Apple", "Banana", "Cherry", "Damson", "Elderberry");
+    }
+
+    @Test
+    void descendingNameSortReversesTheNames() {
+        addProduct("Apple", null);
+        addProduct("Banana", null);
+        saveFixtures();
+
+        Pageable pageable = PageRequest.of(0, 10, Sort.by("name").descending());
+
+        assertThat(findNames(productFilter(null, false), priceFilter(null, null), pageable).getContent())
+                .containsExactly("Banana", "Apple");
+    }
+
+    @Test
+    void descendingDateSortPutsTheNameWithTheNewestProductOnTheFirstPage() {
+        addProductCreatedAt("Apple", PAST);
+        addProductCreatedAt("Banana", PAST);
+        addProductCreatedAt("Cherry", LATER_PAST);
+        saveFixtures();
+
+        assertThat(findSortedNames(0, 1, Sort.by("createdAt").descending())).containsExactly("Cherry");
+    }
+
+    @Test
+    void ascendingSortPositionsANameByItsLowestValue() {
+        addProductWithBrand("Apple", "C");
+        addProductWithBrand("Banana", "B");
+        addProductWithBrand("Banana", "Z");
+        saveFixtures();
+
+        assertThat(findSortedNames(0, 10, Sort.by("brand").ascending())).containsExactly("Banana", "Apple");
+    }
+
+    @Test
+    void descendingSortPositionsANameByItsHighestValue() {
+        addProductWithBrand("Apple", "Y");
+        addProductWithBrand("Banana", "A");
+        addProductWithBrand("Banana", "Z");
+        saveFixtures();
+
+        assertThat(findSortedNames(0, 10, Sort.by("brand").descending())).containsExactly("Banana", "Apple");
+    }
+
+    @Test
+    void onlyProductsMatchingTheFiltersPositionAName() {
+        addProductWithBrand("Apple", "A").setDeletedAt(PAST);
+        addProductWithBrand("Apple", "C");
+        addProductWithBrand("Banana", "B");
+        saveFixtures();
+
+        assertThat(findSortedNames(0, 10, Sort.by("brand").ascending())).containsExactly("Banana", "Apple");
+    }
+
+    @Test
+    void pagingThroughASortReturnsEveryNameOnceInTheSameOrderAsOneLargePage() {
+        addProductWithBrand("Apple", "E");
+        addProductWithBrand("Banana", "D");
+        addProductWithBrand("Banana", "F");
+        addProductWithBrand("Cherry", "C");
+        addProductWithBrand("Damson", "B");
+        addProductWithBrand("Damson", "G");
+        addProductWithBrand("Elderberry", "A");
+        saveFixtures();
+
+        Sort sort = Sort.by("brand").ascending();
+        List<String> pagedNames = new ArrayList<>();
+        pagedNames.addAll(findSortedNames(0, 2, sort));
+        pagedNames.addAll(findSortedNames(1, 2, sort));
+        pagedNames.addAll(findSortedNames(2, 2, sort));
+
+        assertThat(pagedNames)
+                .containsExactly("Elderberry", "Damson", "Cherry", "Banana", "Apple")
+                .isEqualTo(findSortedNames(0, 10, sort));
+    }
+
+    @Test
+    void namesWithEqualValuesKeepAStableOrderBetweenPages() {
+        addProductWithBrand("Cherry", "A");
+        addProductWithBrand("Apple", "A");
+        addProductWithBrand("Banana", "A");
+        saveFixtures();
+
+        Sort sort = Sort.by("brand").descending();
+
+        assertThat(findSortedNames(0, 1, sort)).containsExactly("Apple");
+        assertThat(findSortedNames(1, 1, sort)).containsExactly("Banana");
+        assertThat(findSortedNames(2, 1, sort)).containsExactly("Cherry");
+    }
+
+    @Test
+    void nameWithSomeEmptyValuesIsPositionedByItsOtherValues() {
+        addProductWithBrand("Apple", "B");
+        addProductWithBrand("Banana", null);
+        addProductWithBrand("Banana", "C");
+        saveFixtures();
+
+        assertThat(findSortedNames(0, 10, Sort.by("brand").descending())).containsExactly("Banana", "Apple");
+    }
+
+    @Test
+    void nameWithOnlyEmptyValuesComesLastInADescendingSort() {
+        addProductWithBrand("Apple", null);
+        addProductWithBrand("Banana", "B");
+        saveFixtures();
+
+        assertThat(findSortedNames(0, 10, Sort.by("brand").descending())).containsExactly("Banana", "Apple");
+    }
+
+    @Test
+    void descendingActiveSortPutsANameWithAnyActiveProductFirst() {
+        addProductWithActive("Apple", false);
+        addProductWithActive("Banana", false);
+        addProductWithActive("Banana", true);
+        saveFixtures();
+
+        assertThat(findSortedNames(0, 10, Sort.by("active").descending())).containsExactly("Banana", "Apple");
+    }
+
+    @Test
+    void ascendingActiveSortPutsANameWithAnyInactiveProductFirst() {
+        addProductWithActive("Apple", true);
+        addProductWithActive("Banana", false);
+        addProductWithActive("Banana", true);
+        saveFixtures();
+
+        assertThat(findSortedNames(0, 10, Sort.by("active").ascending())).containsExactly("Banana", "Apple");
+    }
+
+    @Test
+    void currentPriceSortPositionsANameByItsCurrentPrice() {
+        addCurrentPrice(addProduct("Apple", null), 100, PAST);
+        addCurrentPrice(addProduct("Banana", null), 10, PAST);
+        saveFixtures();
+
+        assertThat(findSortedNames(0, 10, Sort.by("currentPrice").ascending())).containsExactly("Banana", "Apple");
+    }
+
+    @Test
+    void currentDiscountSortPositionsANameByItsCurrentDiscount() {
+        addCurrentPrice(addProduct("Apple", null), 100, PAST).setTotalPercentage(0.1);
+        addCurrentPrice(addProduct("Banana", null), 100, PAST).setTotalPercentage(0.5);
+        saveFixtures();
+
+        assertThat(findSortedNames(0, 10, Sort.by("currentDiscount").descending())).containsExactly("Banana", "Apple");
+    }
+
+    @Test
+    void timeRemainingSortPositionsANameByItsNextPrice() {
+        addCurrentPrice(addProduct("Apple", null), 100, Timestamp.valueOf("2999-02-01 00:00:00"));
+        addCurrentPrice(addProduct("Banana", null), 100, Timestamp.valueOf("2999-01-01 00:00:00"));
+        saveFixtures();
+
+        assertThat(findSortedNames(0, 10, Sort.by("timeRemaining").ascending())).containsExactly("Banana", "Apple");
     }
 }

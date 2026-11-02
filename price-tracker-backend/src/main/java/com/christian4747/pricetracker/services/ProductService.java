@@ -209,19 +209,6 @@ public class ProductService {
     }
 
     /**
-     * Returns a page request containing the sort options for the 'name' property from the given pageable object.
-     * @param pageable The pageable to extract sort options for the 'name' property from
-     * @return A page request containing the sort options for the 'name' property from the given pageable object
-     */
-    private PageRequest getPageRequestForDistinctNames(Pageable pageable) {
-        Sort.Order nameOrder = pageable.getSort().getOrderFor("name");
-        if (nameOrder != null) {
-            return PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by(nameOrder));
-        }
-        return PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by("name").ascending());
-    }
-
-    /**
      * Inspects the given pageable object and appends a default 'name' sort if not present.
      * @param pageable The pageable object to inspect
      * @return The given pageable object or a new pageable object with the default 'name' sort
@@ -257,15 +244,12 @@ public class ProductService {
      * @return A list of ProductNameGroupDTO
      */
     public ResponseAndCount<ProductNameGroupDTO> getProductsGroupedByName(ProductFilterDTO productFilterDTO, PriceFilterDTO priceFilterDTO, Pageable pageable, String groupBy) {
-        // Separate page settings from sort settings
-        PageRequest pageRequest = getPageRequestForDistinctNames(pageable);
-
         Specification<Product> filterSpecification = ProductSpecification
                 .filterProductBy(productFilterDTO)
                 .and(ProductSpecification.filterProductPriceBy(priceFilterDTO));
 
-        // Find page of distinct names that match the filters TODO: Change query to find product objects for sorting
-        Page<String> uniqueNamesPage = productDAO.findDistinctNames(filterSpecification, pageRequest);
+        // Find page of distinct names that match the filters, in the requested order
+        Page<String> uniqueNamesPage = productDAO.findDistinctNames(filterSpecification, addSortByName(pageable));
 
         // Find all products in list of names and filter by specification
         Specification<Product> productSpecification = filterSpecification
@@ -273,9 +257,6 @@ public class ProductService {
 
         // Apply the specification and sort settings
         List<Product> productsInNamesPage = productDAO.findAll(productSpecification, addSortByStore(addSortByName(pageable)).getSort());
-
-        // Get the names in the sorted order
-        List<String> sortedNamesList = productsInNamesPage.stream().map(Product::getName).distinct().toList();
 
         // Construct OutgoingProductDTO
         List<OutgoingProductDTO> outgoingProductDTOS =
@@ -287,7 +268,7 @@ public class ProductService {
 
         // Construct ProductNameGroupDTO & return it with the count
         return new ResponseAndCount<>(
-                sortedNamesList.stream()
+                uniqueNamesPage.getContent().stream()
                         .filter(name -> !groupedByName.getOrDefault(name, List.of()).isEmpty())
                         .map(name -> new ProductNameGroupDTO(name, groupedByName.get(name)))
                         .toList(),
