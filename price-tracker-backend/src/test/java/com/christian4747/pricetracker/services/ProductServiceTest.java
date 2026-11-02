@@ -502,6 +502,37 @@ public class ProductServiceTest {
     }
 
     @Test
+    public void getProductsGroupedByName_nonNameSort_requestsNamesWithThatSortThenName() {
+        when(productDAO.findDistinctNames(ArgumentMatchers.<Specification<Product>>any(), any(Pageable.class))).thenReturn(namePage);
+        when(productDAO.findAll(ArgumentMatchers.<Specification<Product>>any(), any(Sort.class))).thenReturn(List.of());
+        when(namePage.getContent()).thenReturn(List.of());
+        when(pageable.getPageNumber()).thenReturn(2);
+        when(pageable.getPageSize()).thenReturn(10);
+        when(pageable.getSort()).thenReturn(Sort.by("createdAt").descending());
+
+        productService.getProductsGroupedByName(productFilterDTO, priceFilterDTO, pageable, "name");
+
+        verify(productDAO).findDistinctNames(
+                ArgumentMatchers.<Specification<Product>>any(),
+                eq(PageRequest.of(2, 10, Sort.by("createdAt").descending().and(Sort.by("name").ascending())))
+        );
+    }
+
+    @Test
+    public void getProductsGroupedByName_productsInADifferentOrder_groupsFollowTheNamesPage() {
+        when(productDAO.findDistinctNames(ArgumentMatchers.<Specification<Product>>any(), any(Pageable.class))).thenReturn(namePage);
+        when(productDAO.findAll(ArgumentMatchers.<Specification<Product>>any(), any(Sort.class))).thenReturn(productList);
+        when(namePage.getContent()).thenReturn(List.of("Product2", "Product"));
+        when(pageable.getPageNumber()).thenReturn(0);
+        when(pageable.getPageSize()).thenReturn(10);
+        when(pageable.getSort()).thenReturn(Sort.by("brand").descending());
+
+        ResponseAndCount<ProductNameGroupDTO> groups = productService.getProductsGroupedByName(productFilterDTO, priceFilterDTO, pageable, "name");
+
+        assertEquals(List.of("Product2", "Product"), groups.content().stream().map(ProductNameGroupDTO::name).toList());
+    }
+
+    @Test
     public void updateProduct_nonExistentProduct_throwException() {
         when(productDAO.findById(anyInt())).thenReturn(Optional.empty());
 
