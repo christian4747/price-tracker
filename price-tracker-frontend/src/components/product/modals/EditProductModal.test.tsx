@@ -111,6 +111,54 @@ describe('Edit Product Modal Component', () => {
         expect(sentProduct?.brand).toBe('Brand 1')
     })
 
+    test('should mark the name and store as required', async () => {
+        renderWithClient(<EditProductModal product={product} closeEditProduct={() => {}} opened />)
+
+        expect(screen.getByRole('textbox', { name: 'Name' })).toBeRequired()
+        expect(screen.getByRole('textbox', { name: 'Store' })).toBeRequired()
+        expect(screen.getByRole('textbox', { name: 'Brand' })).not.toBeRequired()
+    })
+
+    test.for(['Name', 'Store'])('should not save a product after its %s is cleared', async (field, { worker }) => {
+        let saveSent = false
+        worker.use(
+            http.put(productsApiUrl + '/:productId', () => {
+                saveSent = true
+                return HttpResponse.json(product)
+            })
+        )
+        const closeEditProduct = vi.fn()
+        const user = userEvent.setup()
+        renderWithClient(<EditProductModal product={product} closeEditProduct={closeEditProduct} opened />)
+
+        await user.clear(screen.getByRole('textbox', { name: field }))
+        await user.click(screen.getByRole('button', { name: 'Edit Product' }))
+
+        await expect.element(screen.getByText(`${field} is required`)).toBeVisible()
+        expect(saveSent).toBe(false)
+        expect(closeEditProduct).not.toHaveBeenCalled()
+    })
+
+    test('should not show the message again after closing and reopening', async () => {
+        const user = userEvent.setup()
+        // Closing asks the parent to close the modal, which this wrapper does by rerendering it closed
+        const { rerender } = renderWithClient(<EditProductModal product={product} closeEditProduct={() => {}} opened />)
+        const closeEditProduct = () =>
+            rerender(<EditProductModal product={product} closeEditProduct={closeEditProduct} opened={false} />)
+        rerender(<EditProductModal product={product} closeEditProduct={closeEditProduct} opened />)
+
+        await user.clear(screen.getByRole('textbox', { name: 'Name' }))
+        await user.click(screen.getByRole('button', { name: 'Edit Product' }))
+        await expect.element(screen.getByText('Name is required')).toBeVisible()
+        await user.keyboard('{Escape}')
+        await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+
+        rerender(<EditProductModal product={product} closeEditProduct={closeEditProduct} opened />)
+
+        await expect.element(screen.getByRole('dialog')).toBeVisible()
+        expect(screen.queryByText('Name is required')).not.toBeInTheDocument()
+    })
+
     test('should show an empty brand for a product without one', async () => {
         renderWithClient(<EditProductModal product={product} closeEditProduct={() => {}} opened />)
 

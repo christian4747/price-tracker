@@ -3,6 +3,7 @@ import { Button, Switch, TextInput } from '@mantine/core'
 import { useEditProduct } from '@/hooks/product/useEditProduct'
 import { useRecentBrands } from '@/hooks/product/useRecentBrands'
 import { useRecentStores } from '@/hooks/product/useRecentStores'
+import { useRequiredProductFields } from '@/hooks/product/useRequiredProductFields'
 import { RecentDataScroller } from '@/components/common/RecentDataScroller'
 import { SaveModal } from '@/components/common/SaveModal'
 import { SubmitButton } from '@/components/common/SubmitButton'
@@ -18,6 +19,10 @@ interface EditProductModal {
 export const EditProductModal = ({ product, closeEditProduct, opened }: EditProductModal) => {
     // Hook for editing products
     const { productDTO, mutation } = useEditProduct(product)
+    // Name and store are needed to save a product
+    const { nameError, storeError, checkRequiredFields, resetRequiredFields } = useRequiredProductFields(
+        productDTO.value
+    )
     // Hooks for recent brands and stores, only fetched while the modal is open
     const { query: recentBrandsQuery } = useRecentBrands(opened)
     const { query: recentStoresQuery } = useRecentStores(opened)
@@ -34,9 +39,17 @@ export const EditProductModal = ({ product, closeEditProduct, opened }: EditProd
         </Button>
     ))
 
+    // Hides any messages, so the modal doesn't reopen with them
+    const closeModal = () => {
+        resetRequiredFields()
+        closeEditProduct()
+    }
+
     const finalizeEditProduct = (e: React.MouseEvent) => {
-        mutation.mutate(undefined, { onSuccess: closeEditProduct })
         e.stopPropagation()
+        if (!checkRequiredFields()) return
+
+        mutation.mutate(undefined, { onSuccess: closeModal })
     }
 
     return (
@@ -45,7 +58,7 @@ export const EditProductModal = ({ product, closeEditProduct, opened }: EditProd
                 pending={mutation.isPending}
                 title="Edit Product"
                 opened={opened}
-                onClose={closeEditProduct}
+                onClose={closeModal}
                 onClick={(e) => e.stopPropagation()}
                 // No bottom padding so the dates sit right under the title
                 styles={{ header: { paddingBottom: 0 } }}
@@ -66,6 +79,8 @@ export const EditProductModal = ({ product, closeEditProduct, opened }: EditProd
                         productDTO.setField('name', e.target.value)
                     }}
                     value={productDTO.value.name}
+                    required
+                    error={nameError}
                     className="mb-2"
                 />
                 <TextInput
@@ -75,6 +90,8 @@ export const EditProductModal = ({ product, closeEditProduct, opened }: EditProd
                         productDTO.setField('store', e.target.value)
                     }}
                     value={productDTO.value.store}
+                    required
+                    error={storeError}
                     className="mb-2"
                 />
                 {recentStores && recentStores.length > 0 && (

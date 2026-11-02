@@ -7,6 +7,24 @@ import AddProductModal from './AddProductModal'
 
 const productsApiUrl = import.meta.env.VITE_BACKEND_ROOT_URL + '/products'
 
+// Fills the fields a product can't be saved without
+const fillRequiredFields = async (user: ReturnType<typeof userEvent.setup>) => {
+    await user.type(screen.getByRole('textbox', { name: 'Name' }), 'Product 1')
+    await user.type(screen.getByRole('textbox', { name: 'Store' }), 'Store 1')
+}
+
+// Records each product the modal sends
+const recordAddedProducts = (worker: SetupWorker) => {
+    const addedProducts: ProductDTO[] = []
+    worker.use(
+        http.post(productsApiUrl, async ({ request }) => {
+            addedProducts.push((await request.json()) as ProductDTO)
+            return HttpResponse.json({ name: 'Product 1' })
+        })
+    )
+    return addedProducts
+}
+
 // Opens the modal and starts a save that stays in progress until finishSave is called
 const startSave = async (worker: SetupWorker) => {
     let finishSave = () => {}
@@ -23,6 +41,7 @@ const startSave = async (worker: SetupWorker) => {
     renderWithClient(<AddProductModal />)
 
     await user.click(screen.getByRole('button', { name: 'Add Product' }))
+    await fillRequiredFields(user)
     const submitButton = within(screen.getByRole('dialog')).getByRole('button', { name: 'Add Product' })
     await user.click(submitButton)
     await waitFor(() => expect(submitButton).toBeDisabled())
@@ -83,10 +102,82 @@ describe('Add Product Modal Component', () => {
         renderWithClient(<AddProductModal />)
 
         await user.click(screen.getByRole('button', { name: 'Add Product' }))
+        await fillRequiredFields(user)
         await user.type(screen.getByRole('textbox', { name: 'Brand' }), 'Brand 1')
         await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Add Product' }))
 
         await waitFor(() => expect(sentProduct?.brand).toBe('Brand 1'))
+    })
+
+    test('should mark the name and store as required', async () => {
+        const user = userEvent.setup()
+        renderWithClient(<AddProductModal />)
+
+        await user.click(screen.getByRole('button', { name: 'Add Product' }))
+
+        expect(screen.getByRole('textbox', { name: 'Name' })).toBeRequired()
+        expect(screen.getByRole('textbox', { name: 'Store' })).toBeRequired()
+        expect(screen.getByRole('textbox', { name: 'Brand' })).not.toBeRequired()
+    })
+
+    test.for([
+        { missing: 'Name', filled: 'Store' },
+        { missing: 'Store', filled: 'Name' }
+    ])('should not send a product without a $missing', async ({ missing, filled }, { worker }) => {
+        const addedProducts = recordAddedProducts(worker)
+        const user = userEvent.setup()
+        renderWithClient(<AddProductModal />)
+
+        await user.click(screen.getByRole('button', { name: 'Add Product' }))
+        await user.type(screen.getByRole('textbox', { name: filled }), `${filled} 1`)
+        await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Add Product' }))
+
+        await expect.element(screen.getByText(`${missing} is required`)).toBeVisible()
+        expect(addedProducts).toEqual([])
+    })
+
+    test('should not show the message again after closing and reopening', async () => {
+        const user = userEvent.setup()
+        renderWithClient(<AddProductModal />)
+
+        await user.click(screen.getByRole('button', { name: 'Add Product' }))
+        await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Add Product' }))
+        await expect.element(screen.getByText('Name is required')).toBeVisible()
+        await user.keyboard('{Escape}')
+        await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+
+        await user.click(screen.getByRole('button', { name: 'Add Product' }))
+
+        await expect.element(screen.getByRole('dialog')).toBeVisible()
+        expect(screen.queryByText('Name is required')).not.toBeInTheDocument()
+    })
+
+    test('should treat a store of only spaces as missing', async ({ worker }) => {
+        const addedProducts = recordAddedProducts(worker)
+        const user = userEvent.setup()
+        renderWithClient(<AddProductModal />)
+
+        await user.click(screen.getByRole('button', { name: 'Add Product' }))
+        await user.type(screen.getByRole('textbox', { name: 'Name' }), 'Product 1')
+        await user.type(screen.getByRole('textbox', { name: 'Store' }), '   ')
+        await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Add Product' }))
+
+        await expect.element(screen.getByText('Store is required')).toBeVisible()
+        expect(addedProducts).toEqual([])
+    })
+
+    test('should remove the message once the missing field is filled', async () => {
+        const user = userEvent.setup()
+        renderWithClient(<AddProductModal />)
+
+        await user.click(screen.getByRole('button', { name: 'Add Product' }))
+        await user.type(screen.getByRole('textbox', { name: 'Name' }), 'Product 1')
+        await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Add Product' }))
+        await expect.element(screen.getByText('Store is required')).toBeVisible()
+
+        await user.type(screen.getByRole('textbox', { name: 'Store' }), 'Store 1')
+
+        expect(screen.queryByText('Store is required')).not.toBeInTheDocument()
     })
 
     test('should show the save in progress', async ({ worker }) => {
@@ -123,7 +214,7 @@ describe('Add Product Modal Component', () => {
         renderWithClient(<AddProductModal />)
 
         await user.click(screen.getByRole('button', { name: 'Add Product' }))
-        await user.type(screen.getByRole('textbox', { name: 'Name' }), 'Product 1')
+        await fillRequiredFields(user)
         const submitButton = within(screen.getByRole('dialog')).getByRole('button', { name: 'Add Product' })
         await user.click(submitButton)
 
