@@ -3,6 +3,7 @@ package com.christian4747.pricetracker.services;
 import com.christian4747.pricetracker.daos.PriceDAO;
 import com.christian4747.pricetracker.daos.ProductDAO;
 import com.christian4747.pricetracker.models.Price;
+import com.christian4747.pricetracker.models.PricePeriod;
 import com.christian4747.pricetracker.models.Product;
 import com.christian4747.pricetracker.models.dtos.IncomingPriceDTO;
 import com.christian4747.pricetracker.models.dtos.IncomingPriceRangeDTO;
@@ -291,11 +292,12 @@ public class PriceService {
 
     /**
      * Gets an object with lists of recent & distinct Price base amount, currencies, descriptions, discount percentage,
-     * pricesStarted, pricesEnded, and return percentage for the given product ID.
+     * pricesStarted, pricesEnded, return percentage, and periods for the given product ID.
      * @param pageable Pagination settings
      * @param productId Product to find the recent base amounts for
      * @return An object with lists of recent & distinct Price base amounts, currencies, descriptions,
-     * discount percentages, pricesStarted, pricesEnded, and return percentages for the given product ID (default 20)
+     * discount percentages, pricesStarted, pricesEnded, return percentages, and periods for the given product ID
+     * (default 20)
      */
     public RecentPriceData getRecentData(Pageable pageable, Integer productId) {
         return new RecentPriceData(
@@ -305,8 +307,18 @@ public class PriceService {
                 getRecentDiscountPercentages(pageable),
                 getRecentPricesStarted(pageable),
                 getRecentPricesEnded(pageable),
-                getRecentReturnPercentages(pageable)
+                getRecentReturnPercentages(pageable),
+                getRecentPricePeriods(pageable)
         );
+    }
+
+    /**
+     * Gets a distinct list of the start and end dates of recently added Prices that have both, from all Products.
+     * @param pageable Pagination settings
+     * @return A distinct list of recently added Price periods (default 20)
+     */
+    private List<PricePeriod> getRecentPricePeriods(Pageable pageable) {
+        return priceDAO.findDistinctPricePeriods(pageable).getContent();
     }
 
     /**

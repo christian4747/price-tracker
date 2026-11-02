@@ -3,6 +3,7 @@ package com.christian4747.pricetracker.services;
 import com.christian4747.pricetracker.daos.PriceDAO;
 import com.christian4747.pricetracker.daos.ProductDAO;
 import com.christian4747.pricetracker.models.Price;
+import com.christian4747.pricetracker.models.PricePeriod;
 import com.christian4747.pricetracker.models.Product;
 import com.christian4747.pricetracker.models.dtos.IncomingPriceDTO;
 import com.christian4747.pricetracker.models.dtos.IncomingPriceRangeDTO;
@@ -13,6 +14,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -463,5 +465,20 @@ public class PriceServiceTest {
         when(priceDAO.save(any())).thenReturn(price);
 
         assertEquals(2, priceService.updatePrice(1, priceDTO).getProduct().getProductId());
+    }
+
+    @Test
+    public void getRecentData_pricePeriods_includePricePeriods() {
+        PricePeriod period = new PricePeriod(Timestamp.valueOf("2026-11-27 00:00:00"), Timestamp.valueOf("2026-11-30 23:59:00"));
+        when(priceDAO.findDistinctBaseAmounts(pageable, 1)).thenReturn(Page.empty());
+        when(priceDAO.findDistinctCurrency(pageable)).thenReturn(Page.empty());
+        when(priceDAO.findDistinctDescription(pageable)).thenReturn(Page.empty());
+        when(priceDAO.findDistinctDiscountPercentages(pageable)).thenReturn(Page.empty());
+        when(priceDAO.findDistinctPriceStartedOrderByCreatedAtDesc(pageable)).thenReturn(Page.empty());
+        when(priceDAO.findDistinctPriceEndedOrderByCreatedAtDesc(pageable)).thenReturn(Page.empty());
+        when(priceDAO.findDistinctReturnPercentages(pageable)).thenReturn(Page.empty());
+        when(priceDAO.findDistinctPricePeriods(pageable)).thenReturn(new PageImpl<>(List.of(period)));
+
+        assertEquals(List.of(period), priceService.getRecentData(pageable, 1).pricePeriods());
     }
 }
