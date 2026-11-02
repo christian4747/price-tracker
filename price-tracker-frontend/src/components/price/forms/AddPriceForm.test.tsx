@@ -8,9 +8,48 @@ const product = createProduct(1)
 
 const pricesApiUrl = import.meta.env.VITE_BACKEND_ROOT_URL + '/prices'
 
-const dateButtons = ['Start Date Only', 'Start and End Date']
+const dateButtons = ['Start Date Only', 'Start and End Date', 'Sale Period']
 
 const savedPrice = { priceStarted: new Date(2026, 8, 4, 12).toISOString() }
+
+// Built from local times so the expected text doesn't depend on the test machine's time zone
+const blackFriday = {
+    priceStarted: new Date(2026, 10, 27, 0, 0).toISOString(),
+    priceEnded: new Date(2026, 10, 30, 23, 59).toISOString()
+}
+const blackFridayLabel = 'Nov 27, 2026 12:00 AM to Nov 30, 2026 11:59 PM'
+
+// Serves recent price data with no recent values, apart from the given changes
+const serveRecentPriceData = (worker: SetupWorker, changes: object = {}) => {
+    worker.use(
+        http.get(pricesApiUrl + '/recent/:productId', () =>
+            HttpResponse.json({
+                baseAmounts: [],
+                currencies: [],
+                descriptions: [],
+                discountPercentages: [],
+                pricesEnded: [],
+                pricesStarted: [],
+                returnPercentages: [],
+                pricePeriods: [],
+                ...changes
+            })
+        )
+    )
+}
+
+// Records the start and end dates of each range the form saves, as times so time zone offsets don't matter
+const recordSavedRanges = (worker: SetupWorker) => {
+    const savedRanges: { priceStarted: number; priceEnded: number }[] = []
+    worker.use(
+        http.post(pricesApiUrl + '/range', async ({ request }) => {
+            const body = (await request.json()) as { priceStarted: string; priceEnded: string }
+            savedRanges.push({ priceStarted: Date.parse(body.priceStarted), priceEnded: Date.parse(body.priceEnded) })
+            return HttpResponse.json([savedPrice, savedPrice])
+        })
+    )
+    return savedRanges
+}
 
 // Renders the form and starts a save that stays in progress until finishSave is called
 const startSave = async (worker: SetupWorker, dateButton: string) => {
@@ -117,6 +156,77 @@ describe('Add Price Form Component', () => {
 
         await expect.element(await screen.findByRole('button', { name: 'Sep 4, 2026 2:05 PM' })).toBeVisible()
         await expect.element(screen.getByRole('button', { name: 'Sep 10, 2026 11:59 PM' })).toBeVisible()
+    })
+
+    test('should show recent periods with a 12-hour time for a sale period', async ({ worker }) => {
+        serveRecentPriceData(worker, { pricePeriods: [blackFriday] })
+        const user = userEvent.setup()
+        renderWithClient(<AddPriceForm product={product} setDateToday={() => {}} close={() => {}} />)
+
+        await user.click(screen.getByRole('button', { name: 'Sale Period' }))
+
+        await expect.element(await screen.findByRole('button', { name: blackFridayLabel })).toBeVisible()
+    })
+
+    test('should only show recent periods for a sale period', async ({ worker }) => {
+        serveRecentPriceData(worker, { pricePeriods: [blackFriday] })
+        const user = userEvent.setup()
+        renderWithClient(<AddPriceForm product={product} setDateToday={() => {}} close={() => {}} />)
+
+        // Shown first, so a missing button afterwards means it's hidden rather than still loading
+        await user.click(screen.getByRole('button', { name: 'Sale Period' }))
+        await screen.findByRole('button', { name: blackFridayLabel })
+        await user.click(screen.getByRole('button', { name: 'Start and End Date' }))
+
+        expect(screen.queryByRole('button', { name: blackFridayLabel })).not.toBeInTheDocument()
+    })
+
+    test('should save both dates of a recent period as a range', async ({ worker }) => {
+        serveRecentPriceData(worker, { pricePeriods: [blackFriday] })
+        const savedRanges = recordSavedRanges(worker)
+        const user = userEvent.setup()
+        renderWithClient(<AddPriceForm product={product} setDateToday={() => {}} close={() => {}} />)
+
+        await user.click(screen.getByRole('button', { name: 'Sale Period' }))
+        await user.click(await screen.findByRole('button', { name: blackFridayLabel }))
+        await user.click(screen.getByRole('button', { name: 'Add Price' }))
+
+        await waitFor(() =>
+            expect(savedRanges).toEqual([
+                { priceStarted: Date.parse(blackFriday.priceStarted), priceEnded: Date.parse(blackFriday.priceEnded) }
+            ])
+        )
+    })
+
+    test('should let a date be changed after choosing a recent period', async ({ worker }) => {
+        const laterEnd = new Date(2026, 11, 1, 23, 59).toISOString()
+        serveRecentPriceData(worker, { pricePeriods: [blackFriday], pricesEnded: [laterEnd] })
+        const savedRanges = recordSavedRanges(worker)
+        const user = userEvent.setup()
+        renderWithClient(<AddPriceForm product={product} setDateToday={() => {}} close={() => {}} />)
+
+        await user.click(screen.getByRole('button', { name: 'Sale Period' }))
+        await user.click(await screen.findByRole('button', { name: blackFridayLabel }))
+        await user.click(screen.getByRole('button', { name: 'Dec 1, 2026 11:59 PM' }))
+        await user.click(screen.getByRole('button', { name: 'Add Price' }))
+
+        await waitFor(() =>
+            expect(savedRanges).toEqual([
+                { priceStarted: Date.parse(blackFriday.priceStarted), priceEnded: Date.parse(laterEnd) }
+            ])
+        )
+    })
+
+    test('should explain when there are no recent periods', async ({ worker }) => {
+        serveRecentPriceData(worker)
+        const user = userEvent.setup()
+        renderWithClient(<AddPriceForm product={product} setDateToday={() => {}} close={() => {}} />)
+
+        await user.click(screen.getByRole('button', { name: 'Sale Period' }))
+
+        await expect
+            .element(await screen.findByText('No recent sale periods yet. Enter the dates below.'))
+            .toBeVisible()
     })
 
     test('should default to a valid end date', async () => {

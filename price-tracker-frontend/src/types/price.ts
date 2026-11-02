@@ -36,3 +36,9 @@ export interface PriceDTO {
 export interface PriceRangeDTO extends PriceDTO {
     useEndDateDesc: boolean
 }
+
+// The start and end dates of a recent price, from recent price data
+export interface PricePeriod {
+    priceStarted: string
+    priceEnded: string
+}

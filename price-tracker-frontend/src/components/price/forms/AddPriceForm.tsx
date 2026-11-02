@@ -1,5 +1,6 @@
-import { Button, Center, Collapse, Switch, TextInput } from '@mantine/core'
+import { Button, Center, Collapse, Switch, Text, TextInput } from '@mantine/core'
 import type { ProductType } from '@/types/product'
+import type { PricePeriod } from '@/types/price'
 import { RecentDataScroller } from '@/components/common/RecentDataScroller'
 import { SubmitButton } from '@/components/common/SubmitButton'
 import { PriceDateTimePicker } from '@/components/price/PriceDateTimePicker'
@@ -12,6 +13,8 @@ import { AmountInputGroup } from '@/components/price/AmountInputGroup'
 import { getDiscountAmount, getReturnAmount } from '@/utils/priceUtils'
 import dayjs from 'dayjs'
 
+type DateOption = 'start' | 'range' | 'period'
+
 interface AddPriceForm {
     product: ProductType
     setDateToday: (newVal: Date) => void
@@ -22,8 +25,10 @@ interface AddPriceForm {
 export const AddPriceForm = ({ product, setDateToday, close, quickAdd = false }: AddPriceForm) => {
     // Track state of expanding the end date input
     const [expandEndDate, { open: openEndDate, close: closeEndDate }] = useDisclosure(false)
-    // Track button group state for selecting start date or start + end date
-    const [useEndDate, setUseEndDate] = useState(false)
+    // Track button group state for selecting start date, start + end date, or a sale period
+    const [dateOption, setDateOption] = useState<DateOption>('start')
+    // A sale period sets both dates, so it saves the same way as a start and end date
+    const useEndDate = dateOption !== 'start'
     // Track state for adding desc to end date
     const [useEndDateDesc, setUseEndDateDesc] = useState(false)
 
@@ -76,6 +81,27 @@ export const AddPriceForm = ({ product, setDateToday, close, quickAdd = false }:
             {getFormattedDateTimeString(priceEnded)}
         </Button>
     ))
+
+    const recentPricePeriods = recentPriceQuery.data?.pricePeriods?.map((period: PricePeriod, idx: number) => (
+        <Button
+            key={idx}
+            onClick={() => {
+                priceDTO.setField('priceStarted', period.priceStarted)
+                priceDTO.setField('priceEnded', period.priceEnded)
+            }}
+        >
+            {`${getFormattedDateTimeString(period.priceStarted)} to ${getFormattedDateTimeString(period.priceEnded)}`}
+        </Button>
+    ))
+
+    const chooseDateOption = (option: DateOption) => {
+        setDateOption(option)
+        if (option === 'start') {
+            closeEndDate()
+        } else {
+            openEndDate()
+        }
+    }
 
     // The end date only applies when adding a start and end date
     const endDateError =
@@ -133,27 +159,40 @@ export const AddPriceForm = ({ product, setDateToday, close, quickAdd = false }:
             )}
 
             <Center>
+                {/* Narrower padding than usual, so all three buttons fit the modal's width */}
                 <Button.Group>
                     <Button
-                        variant={useEndDate ? 'default' : 'filled'}
-                        onClick={() => {
-                            setUseEndDate(false)
-                            closeEndDate()
-                        }}
+                        px="sm"
+                        variant={dateOption === 'start' ? 'filled' : 'default'}
+                        onClick={() => chooseDateOption('start')}
                     >
                         Start Date Only
                     </Button>
                     <Button
-                        variant={useEndDate ? 'filled' : 'default'}
-                        onClick={() => {
-                            setUseEndDate(true)
-                            openEndDate()
-                        }}
+                        px="sm"
+                        variant={dateOption === 'range' ? 'filled' : 'default'}
+                        onClick={() => chooseDateOption('range')}
                     >
                         Start and End Date
                     </Button>
+                    <Button
+                        px="sm"
+                        variant={dateOption === 'period' ? 'filled' : 'default'}
+                        onClick={() => chooseDateOption('period')}
+                    >
+                        Sale Period
+                    </Button>
                 </Button.Group>
             </Center>
+
+            {dateOption === 'period' &&
+                (recentPricePeriods?.length > 0 ? (
+                    <RecentDataScroller className="mt-2">{recentPricePeriods}</RecentDataScroller>
+                ) : (
+                    <Text size="sm" className="mt-2 text-raincloud">
+                        No recent sale periods yet. Enter the dates below.
+                    </Text>
+                ))}
 
             <PriceDateTimePicker
                 label="Start Date"
