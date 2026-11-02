@@ -170,15 +170,39 @@ describe('Grouped Product Component', () => {
         await expect.element(screen.getByText(fullText('Store A (+2 other stores)'))).toBeInTheDocument()
     })
 
-    test('should strike through and gray out only the store of a deleted product', async () => {
+    test('should strike through only the name of a deleted product', async () => {
         const deletedStoreABody: ProductBody = {
             ...storeABody,
             product: { ...storeABody.product, deletedAt: new Date(2026, 8, 4, 12).toISOString() }
         }
         renderWithAccordion(<StoreSelectionHarness initialBodies={[deletedStoreABody, storeBBody]} />)
 
-        await expect.element(screen.getByText('Store A', { exact: true })).toHaveClass('line-through', 'text-raincloud')
+        await expect.element(screen.getByText('Product 1')).toHaveClass('line-through', 'text-raincloud')
+        await expect.element(screen.getByText('Store A', { exact: true })).not.toHaveClass('line-through')
         await expect.element(screen.getByText(fullText('Store A (+1 other store)'))).not.toHaveClass('line-through')
+    })
+
+    test('should show the brand of the chosen store', async () => {
+        const brandedStoreABody: ProductBody = { ...storeABody, product: { ...storeABody.product, brand: 'Brand A' } }
+        const brandedStoreBBody: ProductBody = { ...storeBBody, product: { ...storeBBody.product, brand: 'Brand B' } }
+        const user = userEvent.setup()
+        renderWithAccordion(<StoreSelectionHarness initialBodies={[brandedStoreABody, brandedStoreBBody]} />)
+
+        await expect.element(screen.getByText('Brand A')).toBeInTheDocument()
+        await chooseStore(user, 'Store A', 'Store B')
+
+        await expect.element(screen.getByText('Brand B')).toBeInTheDocument()
+        expect(screen.queryByText('Brand A')).not.toBeInTheDocument()
+    })
+
+    test('should hide the brand when the chosen store has none', async () => {
+        const brandedStoreABody: ProductBody = { ...storeABody, product: { ...storeABody.product, brand: 'Brand A' } }
+        const user = userEvent.setup()
+        renderWithAccordion(<StoreSelectionHarness initialBodies={[brandedStoreABody, storeBBody]} />)
+
+        await chooseStore(user, 'Store A', 'Store B')
+
+        expect(screen.queryByText('Brand A')).not.toBeInTheDocument()
     })
 
     test('should show the first store when the chosen store leaves the list', async () => {
