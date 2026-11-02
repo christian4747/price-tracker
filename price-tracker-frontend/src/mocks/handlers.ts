@@ -34,7 +34,8 @@ export const handlers = [
             discountPercentages: [],
             pricesStarted: [],
             pricesEnded: [],
-            returnPercentages: []
+            returnPercentages: [],
+            pricePeriods: []
         })
     }),
 
