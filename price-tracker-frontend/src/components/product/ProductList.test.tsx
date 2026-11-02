@@ -112,6 +112,21 @@ describe.for(productLists)('$name pagination', ({ List }) => {
     })
 })
 
+describe.for(productLists)('$name sorting', ({ List }) => {
+    test('should send the sort in the request', async ({ worker }) => {
+        const sorts: (string | null)[] = []
+        const resolver = ({ request }: { request: Request }) => {
+            sorts.push(new URL(request.url).searchParams.get('sort'))
+            return HttpResponse.json({ content: [], count: 0 })
+        }
+        worker.use(http.get(productsApiUrl, resolver), http.get(productsApiUrl + '/grouped', resolver))
+
+        renderWithClient(<List filter={{ ...filter, sort: 'currentPrice,desc' }} />)
+
+        await waitFor(() => expect(sorts).toEqual(['currentPrice,desc']))
+    })
+})
+
 describe.for(productLists)('$name product modals', ({ List }) => {
     test('should open the edit modal for the chosen product', async ({ worker }) => {
         renderList(worker, List, [productA, productB])

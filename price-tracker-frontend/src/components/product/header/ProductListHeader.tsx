@@ -6,7 +6,6 @@ import type { ProductFilterDTO } from '@/types/product'
 import { ACTIVE_INACTIVE_PRODUCTS, ACTIVE_PRODUCTS, INACTIVE_PRODUCTS } from '@/utils/filterConstants'
 import { useDebouncedCallback } from '@mantine/hooks'
 import { DefaultSortMenu } from './DefaultSortMenu'
-import { GroupByNameMenu } from './GroupByNameMenu'
 
 interface ProductListHeader {
     searchSearchTerm: (searchTerm: string) => void
@@ -128,11 +127,7 @@ export const ProductListHeader = ({
                                 </Menu.Dropdown>
                             </Menu>
 
-                            {productsGroupBy === '' ? (
-                                <DefaultSortMenu sortValue={sortValue} setSort={setSort} isAscending={isAscending} />
-                            ) : (
-                                <GroupByNameMenu sortValue={sortValue} setSort={setSort} isAscending={isAscending} />
-                            )}
+                            <DefaultSortMenu sortValue={sortValue} setSort={setSort} isAscending={isAscending} />
                         </div>
 
                         <div className="flex items-center gap-2">

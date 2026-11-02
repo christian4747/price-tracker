@@ -20,7 +20,8 @@ const productFilterDTO = {
 
 const renderProductListHeader = (
     showDeleted: string = 'false',
-    searchSearchTerm: (searchTerm: string) => void = () => {}
+    searchSearchTerm: (searchTerm: string) => void = () => {},
+    { productsGroupBy = '', setField = () => {} }: { productsGroupBy?: string; setField?: () => void } = {}
 ) => {
     const modifiedProductFilterDTO = {
         ...productFilterDTO,
@@ -30,13 +31,19 @@ const renderProductListHeader = (
     return renderWithClient(
         <ProductListHeader
             searchSearchTerm={searchSearchTerm}
-            productsGroupBy={''}
+            productsGroupBy={productsGroupBy}
             setProductsGroupBy={() => {}}
             productFilterDTO={modifiedProductFilterDTO}
-            setField={() => {}}
+            setField={setField}
         />
     )
 }
+
+// The plain list, and the grouped list grouped by name
+const lists = [
+    { list: 'plain', productsGroupBy: '' },
+    { list: 'grouped', productsGroupBy: 'name' }
+]
 
 describe('Product List Header Component', () => {
     test('should render hide deleted menu button', async () => {
@@ -60,42 +67,56 @@ describe('Product List Header Component', () => {
         await expect.element(sortMenuButton).toBeInTheDocument()
     })
 
-    test('should render sort values after clicking menu button', async () => {
+    test.for(lists)(
+        'should render sort values after clicking menu button on the $list list',
+        async ({ productsGroupBy }) => {
+            const user = userEvent.setup()
+
+            renderProductListHeader('false', () => {}, { productsGroupBy })
+
+            const openSortMenuButton = await screen.findByText(/sort/i)
+            await user.click(openSortMenuButton)
+
+            const sortMenu = await screen.findByRole('menu')
+
+            const sortByName = await within(sortMenu).findByText(/name/i)
+            await expect.element(sortByName).toBeInTheDocument()
+
+            const sortByBrand = await within(sortMenu).findByText(/brand/i)
+            await expect.element(sortByBrand).toBeInTheDocument()
+
+            const sortByStore = await within(sortMenu).findByText(/store/i)
+            await expect.element(sortByStore).toBeInTheDocument()
+
+            const sortByCreatedAt = await within(sortMenu).findByText(/date added/i)
+            await expect.element(sortByCreatedAt).toBeInTheDocument()
+
+            const sortByUpdatedAt = await within(sortMenu).findByText(/last updated/i)
+            await expect.element(sortByUpdatedAt).toBeInTheDocument()
+
+            const sortByCurrentPrice = await within(sortMenu).findByText(/current price/i)
+            await expect.element(sortByCurrentPrice).toBeInTheDocument()
+
+            const sortByCurrentDiscount = await within(sortMenu).findByText(/current discount/i)
+            await expect.element(sortByCurrentDiscount).toBeInTheDocument()
+
+            const sortByTimeRemaining = await within(sortMenu).findByText(/time remaining/i)
+            await expect.element(sortByTimeRemaining).toBeInTheDocument()
+
+            const ascendingSwitch = await within(sortMenu).findByText(/ascending/i)
+            await expect.element(ascendingSwitch).toBeInTheDocument()
+        }
+    )
+
+    test.for(lists)('should sort by the chosen option on the $list list', async ({ productsGroupBy }) => {
         const user = userEvent.setup()
+        const setField = vi.fn()
+        renderProductListHeader('false', () => {}, { productsGroupBy, setField })
 
-        renderProductListHeader()
+        await user.click(await screen.findByText(/sort/i))
+        await user.click(await within(await screen.findByRole('menu')).findByText('Current Price'))
 
-        const openSortMenuButton = await screen.findByText(/sort/i)
-        await user.click(openSortMenuButton)
-
-        const sortMenu = await screen.findByRole('menu')
-
-        const sortByName = await within(sortMenu).findByText(/name/i)
-        await expect.element(sortByName).toBeInTheDocument()
-
-        const sortByBrand = await within(sortMenu).findByText(/brand/i)
-        await expect.element(sortByBrand).toBeInTheDocument()
-
-        const sortByStore = await within(sortMenu).findByText(/store/i)
-        await expect.element(sortByStore).toBeInTheDocument()
-
-        const sortByCreatedAt = await within(sortMenu).findByText(/date added/i)
-        await expect.element(sortByCreatedAt).toBeInTheDocument()
-
-        const sortByUpdatedAt = await within(sortMenu).findByText(/last updated/i)
-        await expect.element(sortByUpdatedAt).toBeInTheDocument()
-
-        const sortByCurrentPrice = await within(sortMenu).findByText(/current price/i)
-        await expect.element(sortByCurrentPrice).toBeInTheDocument()
-
-        const sortByCurrentDiscount = await within(sortMenu).findByText(/current discount/i)
-        await expect.element(sortByCurrentDiscount).toBeInTheDocument()
-
-        const sortByTimeRemaining = await within(sortMenu).findByText(/time remaining/i)
-        await expect.element(sortByTimeRemaining).toBeInTheDocument()
-
-        const ascendingSwitch = await within(sortMenu).findByText(/ascending/i)
-        await expect.element(ascendingSwitch).toBeInTheDocument()
+        expect(setField).toHaveBeenCalledWith('sort', 'currentPrice,asc')
     })
 
     test('should search once typing stops', async () => {
