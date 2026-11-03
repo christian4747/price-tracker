@@ -1,8 +1,10 @@
 package com.christian4747.pricetracker.controllers;
 
 import com.christian4747.pricetracker.models.Period;
+import com.christian4747.pricetracker.models.MatchingPeriodPrice;
 import com.christian4747.pricetracker.models.dtos.IncomingPeriodDTO;
 import com.christian4747.pricetracker.services.PeriodService;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,6 +31,17 @@ public class PeriodController {
     public ResponseEntity<List<Period>> getPeriods(
             @RequestParam(required = false) String store, @RequestParam(defaultValue = "false") Boolean showDeleted) {
         return ResponseEntity.ok(periodService.getPeriods(store, showDeleted));
+    }
+
+    /**
+     * Gets the non-deleted Prices that fall within a Period's dates and store. Uses pagination (default 20 per page).
+     * @param periodId The ID of the Period to get the Prices of
+     * @param pageable Pagination settings
+     * @return The matching Prices, each with its Product, newest start first
+     */
+    @GetMapping("/{periodId}/prices")
+    public ResponseEntity<List<MatchingPeriodPrice>> getPeriodPrices(@PathVariable Integer periodId, Pageable pageable) {
+        return ResponseEntity.ok(periodService.getPeriodPrices(periodId, pageable));
     }
 
     /**

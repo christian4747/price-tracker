@@ -1,11 +1,14 @@
 package com.christian4747.pricetracker.services;
 
 import com.christian4747.pricetracker.daos.PeriodDAO;
+import com.christian4747.pricetracker.daos.PriceDAO;
+import com.christian4747.pricetracker.models.MatchingPeriodPrice;
 import com.christian4747.pricetracker.models.Period;
 import com.christian4747.pricetracker.models.dtos.IncomingPeriodDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,10 +23,12 @@ public class PeriodService {
     private static final Logger logger = LoggerFactory.getLogger(PeriodService.class);
 
     private final PeriodDAO periodDAO;
+    private final PriceDAO priceDAO;
 
     @Autowired
-    public PeriodService(PeriodDAO periodDAO) {
+    public PeriodService(PeriodDAO periodDAO, PriceDAO priceDAO) {
         this.periodDAO = periodDAO;
+        this.priceDAO = priceDAO;
     }
 
     /**
@@ -35,6 +40,23 @@ public class PeriodService {
      */
     public List<Period> getPeriods(String store, Boolean showDeleted) {
         return periodDAO.findAllForStore(nullIfBlank(store), showDeleted, Timestamp.from(Instant.now()));
+    }
+
+    /**
+     * Gets the non-deleted Prices of non-deleted Products that fall within a Period's dates, newest start first. A
+     * Price matches when both its start and end are within the Period, and its Product is at the Period's store when the
+     * Period has one.
+     * @param periodId The ID of the Period to get the Prices of
+     * @param pageable Pagination settings
+     * @return The matching Prices, each with its Product
+     */
+    public List<MatchingPeriodPrice> getPeriodPrices(Integer periodId, Pageable pageable) {
+        Period period = findPeriod(periodId, "get the Prices of");
+
+        return priceDAO.findAllWithinPeriod(pageable, period.getPeriodStarted(), period.getPeriodEnded(), period.getStore())
+                .getContent().stream()
+                .map(price -> new MatchingPeriodPrice(price, price.getProduct()))
+                .toList();
     }
 
     /**

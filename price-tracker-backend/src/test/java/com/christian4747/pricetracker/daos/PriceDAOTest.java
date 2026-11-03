@@ -185,4 +185,105 @@ class PriceDAOTest {
         assertThat(periods.getContent()).containsExactly(BLACK_FRIDAY);
         assertThat(periods.getTotalElements()).isEqualTo(2);
     }
+
+    private Product addStoreProduct(String store) {
+        Product product = addProduct();
+        product.setStore(store);
+        return product;
+    }
+
+    private static PricePeriod dates(String priceStarted, String priceEnded) {
+        return new PricePeriod(
+                Timestamp.valueOf(priceStarted), priceEnded == null ? null : Timestamp.valueOf(priceEnded));
+    }
+
+    private List<Price> findWithinBlackFriday(String store) {
+        entityManager.flush();
+        entityManager.clear();
+        return priceDAO.findAllWithinPeriod(
+                FIRST_PAGE, BLACK_FRIDAY.priceStarted(), BLACK_FRIDAY.priceEnded(), store).getContent();
+    }
+
+    @Test
+    void findAllWithinPeriodIncludesAPriceInsideThePeriod() {
+        Price price = addPeriodPrice(addProduct(), dates("2026-11-28 00:00:00", "2026-11-29 00:00:00"), null);
+
+        assertThat(findWithinBlackFriday(null)).extracting(Price::getPriceId).containsExactly(price.getPriceId());
+    }
+
+    @Test
+    void findAllWithinPeriodIncludesAPriceWithThePeriodsExactDates() {
+        Price price = addPeriodPrice(addProduct(), BLACK_FRIDAY, null);
+
+        assertThat(findWithinBlackFriday(null)).extracting(Price::getPriceId).containsExactly(price.getPriceId());
+    }
+
+    @Test
+    void findAllWithinPeriodLeavesOutAPriceStartingBeforeThePeriod() {
+        addPeriodPrice(addProduct(), dates("2026-11-26 23:59:00", "2026-11-29 00:00:00"), null);
+
+        assertThat(findWithinBlackFriday(null)).extracting(Price::getPriceId).isEmpty();
+    }
+
+    @Test
+    void findAllWithinPeriodLeavesOutAPriceEndingAfterThePeriod() {
+        addPeriodPrice(addProduct(), dates("2026-11-28 00:00:00", "2026-12-01 00:00:00"), null);
+
+        assertThat(findWithinBlackFriday(null)).extracting(Price::getPriceId).isEmpty();
+    }
+
+    @Test
+    void findAllWithinPeriodLeavesOutAPriceWithoutAnEndDate() {
+        addPeriodPrice(addProduct(), dates("2026-11-28 00:00:00", null), null);
+
+        assertThat(findWithinBlackFriday(null)).extracting(Price::getPriceId).isEmpty();
+    }
+
+    @Test
+    void findAllWithinPeriodLeavesOutDeletedPrices() {
+        addPeriodPrice(addProduct(), BLACK_FRIDAY, ONE_YEAR_AGO);
+
+        assertThat(findWithinBlackFriday(null)).extracting(Price::getPriceId).isEmpty();
+    }
+
+    @Test
+    void findAllWithinPeriodLeavesOutPricesOfDeletedProducts() {
+        Product product = addProduct();
+        product.setDeletedAt(ONE_YEAR_AGO);
+        addPeriodPrice(product, BLACK_FRIDAY, null);
+
+        assertThat(findWithinBlackFriday(null)).extracting(Price::getPriceId).isEmpty();
+    }
+
+    @Test
+    void findAllWithinPeriodWithAStoreLeavesOutOtherStores() {
+        Price cornerShopPrice = addPeriodPrice(addStoreProduct("Corner shop"), BLACK_FRIDAY, null);
+        addPeriodPrice(addStoreProduct("Other shop"), BLACK_FRIDAY, null);
+        addPeriodPrice(addStoreProduct(null), BLACK_FRIDAY, null);
+
+        assertThat(findWithinBlackFriday("Corner shop"))
+                .extracting(Price::getPriceId)
+                .containsExactly(cornerShopPrice.getPriceId());
+    }
+
+    @Test
+    void findAllWithinPeriodWithoutAStoreIncludesEveryStore() {
+        Price cornerShopPrice = addPeriodPrice(addStoreProduct("Corner shop"), BLACK_FRIDAY, null);
+        Price otherShopPrice = addPeriodPrice(addStoreProduct("Other shop"), BLACK_FRIDAY, null);
+
+        assertThat(findWithinBlackFriday(null))
+                .extracting(Price::getPriceId)
+                .containsExactlyInAnyOrder(cornerShopPrice.getPriceId(), otherShopPrice.getPriceId());
+    }
+
+    @Test
+    void findAllWithinPeriodPutsTheNewestStartFirst() {
+        Product product = addProduct();
+        Price older = addPeriodPrice(product, dates("2026-11-27 00:00:00", "2026-11-28 00:00:00"), null);
+        Price newer = addPeriodPrice(product, dates("2026-11-29 00:00:00", "2026-11-30 00:00:00"), null);
+
+        assertThat(findWithinBlackFriday(null))
+                .extracting(Price::getPriceId)
+                .containsExactly(newer.getPriceId(), older.getPriceId());
+    }
 }
