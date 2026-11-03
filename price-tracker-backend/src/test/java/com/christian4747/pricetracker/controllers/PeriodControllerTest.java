@@ -17,9 +17,13 @@ import java.time.Instant;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -75,10 +79,47 @@ public class PeriodControllerTest {
 
     @Test
     public void addPeriod_rejectedPeriod_return400WithMessage() throws Exception {
-        when(periodService.addPeriod(any())).thenThrow(new IllegalArgumentException("Store doesn't exist!"));
+        when(periodService.addPeriod(any())).thenThrow(new IllegalArgumentException("Name is required!"));
 
         mockMvc.perform(post("/periods").contentType(MediaType.APPLICATION_JSON).content(PERIOD_JSON))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string("Store doesn't exist!"));
+                .andExpect(content().string("Name is required!"));
+    }
+
+    @Test
+    public void updatePeriod_json_passIdAndDetailsToService() throws Exception {
+        when(periodService.updatePeriod(eq(1), any())).thenReturn(new Period());
+
+        mockMvc.perform(put("/periods/1").contentType(MediaType.APPLICATION_JSON).content(PERIOD_JSON))
+                .andExpect(status().isOk());
+
+        verify(periodService).updatePeriod(eq(1), argThat(periodDTO -> "Black Friday".equals(periodDTO.getName())));
+    }
+
+    @Test
+    public void deletePeriod_periodId_passIdToService() throws Exception {
+        when(periodService.deletePeriod(1)).thenReturn(new Period());
+
+        mockMvc.perform(delete("/periods/1")).andExpect(status().isOk());
+
+        verify(periodService).deletePeriod(1);
+    }
+
+    @Test
+    public void restorePeriod_periodId_passIdToService() throws Exception {
+        when(periodService.restorePeriod(1)).thenReturn(new Period());
+
+        mockMvc.perform(put("/periods/1/restore")).andExpect(status().isOk());
+
+        verify(periodService).restorePeriod(1);
+    }
+
+    @Test
+    public void permanentlyDeletePeriod_periodId_passIdToService() throws Exception {
+        when(periodService.permanentlyDeletePeriod(1)).thenReturn(new Period());
+
+        mockMvc.perform(delete("/periods/1/permanent")).andExpect(status().isOk());
+
+        verify(periodService).permanentlyDeletePeriod(1);
     }
 }

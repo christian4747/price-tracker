@@ -23,13 +23,6 @@ public interface ProductDAO extends JpaRepository<Product, Integer>, JpaSpecific
     List<Product> findAllByName(String name);
 
     /**
-     * Checks whether any non-deleted Product uses the given store.
-     * @param store Store to check
-     * @return Whether a non-deleted Product uses the store
-     */
-    boolean existsByStoreAndDeletedAtNull(String store);
-
-    /**
      * Gets a distinct list of the brands of recently added non-deleted Products.
      * @param pageable Pagination settings
      * @return A distinct list of recently used Product brands (default 20)

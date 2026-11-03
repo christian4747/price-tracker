@@ -23,8 +23,10 @@ class PeriodDAOTest {
     @Autowired
     private EntityManager entityManager;
 
-    private void addPeriod(String name, Timestamp deletedAt) {
-        entityManager.persist(new Period(0, name, PeriodType.SALE, null, START, END, null, deletedAt, null));
+    private Period addPeriod(String name, Timestamp deletedAt) {
+        Period period = new Period(0, name, PeriodType.SALE, null, START, END, null, deletedAt, null);
+        entityManager.persist(period);
+        return period;
     }
 
     private void saveFixtures() {
@@ -58,5 +60,51 @@ class PeriodDAOTest {
         saveFixtures();
 
         assertThat(periodDAO.findAllByNameIgnoreCase("Black Friday")).isEmpty();
+    }
+
+    @Test
+    void deleteByIdKeepsThePeriodWithADeletedTime() {
+        Period period = addPeriod("Black Friday", null);
+        saveFixtures();
+
+        periodDAO.deleteById(period.getPeriodId());
+        saveFixtures();
+
+        assertThat(entityManager.find(Period.class, period.getPeriodId()).getDeletedAt()).isNotNull();
+    }
+
+    @Test
+    void deleteByIdKeepsTheFirstDeletedTime() {
+        Period period = addPeriod("Black Friday", DELETED);
+        saveFixtures();
+
+        periodDAO.deleteById(period.getPeriodId());
+        saveFixtures();
+
+        assertThat(entityManager.find(Period.class, period.getPeriodId()).getDeletedAt()).isEqualTo(DELETED);
+    }
+
+    @Test
+    void permanentlyDeleteByIdRemovesASoftDeletedPeriod() {
+        Period period = addPeriod("Black Friday", DELETED);
+        saveFixtures();
+
+        int removed = periodDAO.permanentlyDeleteById(period.getPeriodId());
+        entityManager.clear();
+
+        assertThat(removed).isEqualTo(1);
+        assertThat(entityManager.find(Period.class, period.getPeriodId())).isNull();
+    }
+
+    @Test
+    void permanentlyDeleteByIdLeavesAPeriodThatIsNotDeleted() {
+        Period period = addPeriod("Black Friday", null);
+        saveFixtures();
+
+        int removed = periodDAO.permanentlyDeleteById(period.getPeriodId());
+        entityManager.clear();
+
+        assertThat(removed).isZero();
+        assertThat(entityManager.find(Period.class, period.getPeriodId())).isNotNull();
     }
 }
