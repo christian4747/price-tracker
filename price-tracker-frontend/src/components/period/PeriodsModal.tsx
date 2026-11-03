@@ -1,6 +1,8 @@
-import { Button, Modal, Switch, Text } from '@mantine/core'
+import { Button, Collapse, Modal, Switch, Text } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { useState } from 'react'
+import { MdAdd, MdRemove } from 'react-icons/md'
+import { AddPeriodForm } from './AddPeriodForm'
 import { usePeriods } from '@/hooks/period/usePeriods'
 import { TitleSeparator } from '@/components/common/TitleSeparator'
 import { getFormattedDateRangeString } from '@/utils/dateUtils'
@@ -40,17 +42,33 @@ const PeriodRow = ({ period }: { period: PeriodType }) => {
 // Only rendered while the modal is open, so the periods load when it opens
 const PeriodList = () => {
     const [showDeleted, setShowDeleted] = useState(false)
+    const [adding, { toggle: toggleAdding, close: closeAdding }] = useDisclosure(false)
     const { query: periodsQuery } = usePeriods(undefined, showDeleted)
 
     return (
         <>
-            <div className="flex justify-end mb-2">
+            <div className="flex items-center justify-between mb-2">
+                {/* A link color, like the sale period toggle in the price form */}
+                <Button
+                    variant="subtle"
+                    color="var(--mantine-color-blue-8)"
+                    size="compact-sm"
+                    leftSection={adding ? <MdRemove /> : <MdAdd />}
+                    aria-expanded={adding}
+                    onClick={toggleAdding}
+                >
+                    Add period
+                </Button>
                 <Switch
                     label="Show deleted"
                     checked={showDeleted}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => setShowDeleted(e.target.checked)}
                 />
             </div>
+            {/* Removed once it finishes closing, so the form starts over each time it opens */}
+            <Collapse expanded={adding} keepMounted={false}>
+                <AddPeriodForm onSaved={closeAdding} />
+            </Collapse>
             {periodsQuery.data?.length === 0 && (
                 <Text size="sm" className="text-raincloud">
                     No periods yet.

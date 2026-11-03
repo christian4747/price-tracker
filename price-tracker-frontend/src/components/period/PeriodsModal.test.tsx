@@ -154,6 +154,61 @@ describe('PeriodsModal', () => {
         expect(await within(dialog).findByText('No periods yet.')).toBeInTheDocument()
     })
 
+    test('should open the add period form from Add period', async ({ worker }) => {
+        servePeriods(worker, [])
+        const user = userEvent.setup()
+        renderWithClient(<PeriodsModal />)
+
+        const dialog = await openPeriods(user)
+        const addPeriod = within(dialog).getByRole('button', { name: 'Add period' })
+        expect(addPeriod).toHaveAttribute('aria-expanded', 'false')
+        await user.click(addPeriod)
+
+        expect(await within(dialog).findByRole('textbox', { name: 'Name' })).toBeInTheDocument()
+        expect(addPeriod).toHaveAttribute('aria-expanded', 'true')
+    })
+
+    test('should start the add period form over after closing it', async ({ worker }) => {
+        servePeriods(worker, [])
+        const user = userEvent.setup()
+        renderWithClient(<PeriodsModal />)
+
+        const dialog = await openPeriods(user)
+        const addPeriod = within(dialog).getByRole('button', { name: 'Add period' })
+        await user.click(addPeriod)
+        await user.type(await within(dialog).findByRole('textbox', { name: 'Name' }), 'Black Friday')
+        await user.click(addPeriod)
+        // A placeholder query, since the closing form is hidden from role queries as soon as it starts sliding closed
+        await waitFor(() => expect(within(dialog).queryByPlaceholderText('ex. Black Friday')).not.toBeInTheDocument())
+        await user.click(addPeriod)
+
+        expect(await within(dialog).findByRole('textbox', { name: 'Name' })).toHaveValue('')
+    })
+
+    test('should close the form and list the new period once it is saved', async ({ worker }) => {
+        const periods: PeriodType[] = []
+        servePeriods(worker, periods)
+        worker.use(
+            http.post(periodsApiUrl, () => {
+                // The backend lists the new period from then on
+                periods.push(blackFriday)
+                return HttpResponse.json(blackFriday)
+            })
+        )
+        const user = userEvent.setup()
+        renderWithClient(<PeriodsModal />)
+
+        const dialog = await openPeriods(user)
+        await user.click(within(dialog).getByRole('button', { name: 'Add period' }))
+        await user.type(await within(dialog).findByRole('textbox', { name: 'Name' }), 'Black Friday')
+        await user.type(within(dialog).getByRole('textbox', { name: 'Store' }), 'Store 1')
+        await user.click(within(dialog).getByRole('button', { name: 'Save period' }))
+
+        expect(await within(dialog).findByRole('listitem', { name: 'Black Friday' })).toBeInTheDocument()
+        // A placeholder query, since the closing form is hidden from role queries as soon as it starts sliding closed
+        await waitFor(() => expect(within(dialog).queryByPlaceholderText('ex. Black Friday')).not.toBeInTheDocument())
+    })
+
     test('should not explain while there are periods', async ({ worker }) => {
         servePeriods(worker, [blackFriday])
         const user = userEvent.setup()

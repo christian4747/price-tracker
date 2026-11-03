@@ -15,7 +15,8 @@ export function useAddPeriod() {
         onSuccess: (newPeriod: PeriodType) => {
             // Only the period lists change, so prices and products don't need to load again
             queryClient.invalidateQueries({ queryKey: ['periods'] })
-            sendSuccessNotification(`Successfully added sale period ${newPeriod.name}`)
+            const typeText = newPeriod.type === 'RETURN' ? 'return' : 'sale'
+            sendSuccessNotification(`Successfully added ${typeText} period ${newPeriod.name}`)
         },
         onError: (error, periodToAdd) => {
             console.log(`Error occurred while adding ${periodToAdd.name} (${error.message})`)
