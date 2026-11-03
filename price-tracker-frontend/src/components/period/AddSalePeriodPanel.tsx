@@ -1,4 +1,4 @@
-import { Button, Switch, Text, TextInput } from '@mantine/core'
+import { Button, Collapse, Switch, Text, TextInput } from '@mantine/core'
 import { useAddPeriod } from '@/hooks/period/useAddPeriod'
 import { useId, useState } from 'react'
 import { MdAdd, MdRemove } from 'react-icons/md'
@@ -27,16 +27,15 @@ export const AddSalePeriodPanel = ({ store, periodStarted, periodEnded, datesInv
     const nameBlank = name.trim() === ''
     const nameError = saveTried && nameBlank ? 'Name is required' : undefined
 
-    // Opening or closing starts the panel over, so it never reopens with an old name
-    const resetPanel = () => {
-        setName('')
-        setAllStores(false)
-        setSaveTried(false)
-    }
-
+    // Opening starts the panel over, so it never reopens with an old name. Closing leaves the values alone, so they
+    // don't visibly clear while the panel slides closed
     const togglePanel = () => {
+        if (!opened) {
+            setName('')
+            setAllStores(false)
+            setSaveTried(false)
+        }
         setOpened(!opened)
-        resetPanel()
     }
 
     const savePeriod = () => {
@@ -72,40 +71,44 @@ export const AddSalePeriodPanel = ({ store, periodStarted, periodEnded, datesInv
             >
                 Save these dates as a sale period
             </Button>
-            {opened && (
-                <div className="mt-1 mb-2 rounded-md border border-smoke p-3">
-                    <TextInput
-                        label="Sale period name"
-                        placeholder="ex. Black Friday"
-                        onChange={(e) => setName(e.target.value)}
-                        value={name}
-                        required
-                        error={nameError}
-                        className="mb-2"
-                    />
-                    <Switch
-                        label="All stores"
-                        aria-describedby={storesTextId}
-                        checked={allStores}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAllStores(e.target.checked)}
-                    />
-                    {/* Its own element rather than the switch's description, since Mantine puts the description inside
+            {/* Removed once it finishes closing, so its hidden inputs don't stay in the page */}
+            <Collapse expanded={opened} keepMounted={false}>
+                {/* Padding rather than margins, since margins can escape the sliding box and make it jump at the end */}
+                <div className="pt-1 pb-2">
+                    <div className="rounded-md border border-smoke p-3">
+                        <TextInput
+                            label="Sale period name"
+                            placeholder="ex. Black Friday"
+                            onChange={(e) => setName(e.target.value)}
+                            value={name}
+                            required
+                            error={nameError}
+                            className="mb-2"
+                        />
+                        <Switch
+                            label="All stores"
+                            aria-describedby={storesTextId}
+                            checked={allStores}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAllStores(e.target.checked)}
+                        />
+                        {/* Its own element rather than the switch's description, since Mantine puts the description inside
                         the label, which would make the store text part of the switch's name */}
-                    <Text id={storesTextId} size="xs" className="mt-1 text-raincloud">
-                        {allStores ? 'For every store' : `Only for ${store}`}
-                    </Text>
-                    <Button
-                        size="sm"
-                        variant="light"
-                        className="mt-3"
-                        loading={mutation.isPending}
-                        disabled={datesInvalid}
-                        onClick={savePeriod}
-                    >
-                        Save sale period
-                    </Button>
+                        <Text id={storesTextId} size="xs" className="mt-1 text-raincloud">
+                            {allStores ? 'For every store' : `Only for ${store}`}
+                        </Text>
+                        <Button
+                            size="sm"
+                            variant="light"
+                            className="mt-3"
+                            loading={mutation.isPending}
+                            disabled={datesInvalid}
+                            onClick={savePeriod}
+                        >
+                            Save sale period
+                        </Button>
+                    </div>
                 </div>
-            )}
+            </Collapse>
         </>
     )
 }

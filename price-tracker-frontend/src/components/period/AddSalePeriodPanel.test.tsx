@@ -37,8 +37,17 @@ const renderPanel = (datesInvalid = false) =>
         />
     )
 
+// Opens the panel and waits for it to slide open, since its inputs only appear once the slide starts
 const openPanel = async (user: ReturnType<typeof userEvent.setup>) => {
     await user.click(screen.getByRole('button', { name: toggleName }))
+    await screen.findByRole('textbox', { name: 'Sale period name' })
+}
+
+// Closes the panel and waits for it to finish sliding closed. A placeholder query, since the closing panel is hidden
+// from role queries as soon as the slide starts
+const closePanel = async (user: ReturnType<typeof userEvent.setup>) => {
+    await user.click(screen.getByRole('button', { name: toggleName }))
+    await waitFor(() => expect(screen.queryByPlaceholderText('ex. Black Friday')).not.toBeInTheDocument())
 }
 
 describe('AddSalePeriodPanel', () => {
@@ -135,10 +144,9 @@ describe('AddSalePeriodPanel', () => {
         await openPanel(user)
         await user.click(screen.getByRole('button', { name: 'Save sale period' }))
         await screen.findByText('Name is required')
-        await openPanel(user)
+        await closePanel(user)
         await openPanel(user)
 
-        expect(screen.getByRole('textbox', { name: 'Sale period name' })).toBeInTheDocument()
         expect(screen.queryByText('Name is required')).not.toBeInTheDocument()
     })
 
@@ -161,7 +169,7 @@ describe('AddSalePeriodPanel', () => {
         await user.click(screen.getByRole('switch', { name: 'All stores' }))
         await user.click(screen.getByRole('button', { name: 'Save sale period' }))
 
-        await waitFor(() => expect(screen.queryByRole('textbox', { name: 'Sale period name' })).not.toBeInTheDocument())
+        await waitFor(() => expect(screen.queryByPlaceholderText('ex. Black Friday')).not.toBeInTheDocument())
         await openPanel(user)
         expect((screen.getByRole('textbox', { name: 'Sale period name' }) as HTMLInputElement).value).toBe('')
         expect(screen.getByRole('switch', { name: 'All stores' })).not.toBeChecked()

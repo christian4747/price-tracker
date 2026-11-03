@@ -215,21 +215,20 @@ export const AddPriceForm = ({ product, setDateToday, close, quickAdd = false }:
                 </Button.Group>
             </Center>
 
-            {dateOption === 'period' && (
-                <>
-                    {namedSalePeriods.length > 0 && (
-                        <RecentDataScroller className="mt-2">{namedSalePeriods}</RecentDataScroller>
-                    )}
-                    {recentPricePeriods?.length > 0 && (
-                        <RecentDataScroller className="mt-2">{recentPricePeriods}</RecentDataScroller>
-                    )}
-                    {namedSalePeriods.length === 0 && !recentPricePeriods?.length && (
-                        <Text size="sm" className="mt-2 text-raincloud">
-                            No sale periods yet. Enter the dates below.
-                        </Text>
-                    )}
-                </>
-            )}
+            {/* Slides open and closed like the end date, and is removed once closed */}
+            <Collapse expanded={dateOption === 'period'} keepMounted={false}>
+                {namedSalePeriods.length > 0 && (
+                    <RecentDataScroller className="mt-2">{namedSalePeriods}</RecentDataScroller>
+                )}
+                {recentPricePeriods?.length > 0 && (
+                    <RecentDataScroller className="mt-2">{recentPricePeriods}</RecentDataScroller>
+                )}
+                {namedSalePeriods.length === 0 && !recentPricePeriods?.length && (
+                    <Text size="sm" className="mt-2 text-raincloud">
+                        No sale periods yet. Enter the dates below.
+                    </Text>
+                )}
+            </Collapse>
 
             <PriceDateTimePicker
                 label="Start Date"
@@ -261,15 +260,16 @@ export const AddPriceForm = ({ product, setDateToday, close, quickAdd = false }:
                 />
             </Collapse>
 
-            {/* Below the dates, since it saves the dates shown above it */}
-            {dateOption === 'period' && (
+            {/* Below the dates, since it saves the dates shown above it. Removed once closed, so choosing Sale Period
+                again starts it over */}
+            <Collapse expanded={dateOption === 'period'} keepMounted={false}>
                 <AddSalePeriodPanel
                     store={product.store}
                     periodStarted={priceDTO.value.priceStarted}
                     periodEnded={priceDTO.value.priceEnded}
                     datesInvalid={!!endDateError}
                 />
-            )}
+            </Collapse>
 
             <SubmitButton
                 pending={multiMutation.isPending || singleMutation.isPending}

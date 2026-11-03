@@ -70,9 +70,15 @@ const recordSavedPeriods = (worker: SetupWorker, onSave: () => unknown = () => {
     return savedPeriods
 }
 
+// Opens the add sale period panel, waiting for the Sale Period content and then the panel to slide open
+const openSalePeriodPanel = async (user: ReturnType<typeof userEvent.setup>) => {
+    await user.click(await screen.findByRole('button', { name: saveAsSalePeriod }))
+    await screen.findByRole('textbox', { name: 'Sale period name' })
+}
+
 // Opens the add sale period panel and saves the form's dates under the given name
 const saveSalePeriod = async (user: ReturnType<typeof userEvent.setup>, name: string) => {
-    await user.click(screen.getByRole('button', { name: saveAsSalePeriod }))
+    await openSalePeriodPanel(user)
     await user.type(screen.getByRole('textbox', { name: 'Sale period name' }), name)
     await user.click(screen.getByRole('button', { name: 'Save sale period' }))
 }
@@ -407,6 +413,23 @@ describe('Add Price Form Component', () => {
         expect(await screen.findByRole('button', { name: namedBlackFridayLabel })).toBeInTheDocument()
     })
 
+    test('should start the sale period panel over after leaving Sale Period', async () => {
+        const user = userEvent.setup()
+        renderWithClient(<AddPriceForm product={product} setDateToday={() => {}} close={() => {}} />)
+
+        await user.click(screen.getByRole('button', { name: 'Sale Period' }))
+        await openSalePeriodPanel(user)
+        await user.type(screen.getByRole('textbox', { name: 'Sale period name' }), 'Black Friday')
+        await user.click(screen.getByRole('button', { name: 'Start Date Only' }))
+        // A text query, since the closing content is hidden from role queries before the slide ends and it's removed
+        await waitFor(() => expect(screen.queryByText(saveAsSalePeriod)).not.toBeInTheDocument())
+        await user.click(screen.getByRole('button', { name: 'Sale Period' }))
+
+        const toggle = await screen.findByRole('button', { name: saveAsSalePeriod })
+        expect(toggle).toHaveAttribute('aria-expanded', 'false')
+        expect(screen.queryByRole('textbox', { name: 'Sale period name' })).not.toBeInTheDocument()
+    })
+
     test('should not save a sale period while the end date is before the start', async ({ worker }) => {
         const afterTheEnd = new Date(2099, 0, 1, 12).toISOString()
         serveRecentPriceData(worker, { pricesStarted: [afterTheEnd] })
@@ -415,7 +438,7 @@ describe('Add Price Form Component', () => {
 
         await user.click(screen.getByRole('button', { name: 'Sale Period' }))
         await user.click(await screen.findByRole('button', { name: 'Jan 1, 2099 12:00 PM' }))
-        await user.click(screen.getByRole('button', { name: saveAsSalePeriod }))
+        await openSalePeriodPanel(user)
 
         expect(screen.getByRole('button', { name: 'Save sale period' })).toBeDisabled()
     })
