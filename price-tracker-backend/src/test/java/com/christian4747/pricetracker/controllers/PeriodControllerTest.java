@@ -14,6 +14,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -22,6 +23,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -46,6 +48,26 @@ public class PeriodControllerTest {
 
     @MockitoBean
     private PeriodService periodService;
+
+    @Test
+    public void getPeriods_store_passStoreToServiceAndReturnPeriods() throws Exception {
+        Period period = new Period();
+        period.setName("Black Friday");
+        when(periodService.getPeriods("Corner shop")).thenReturn(List.of(period));
+
+        mockMvc.perform(get("/periods").param("store", "Corner shop"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].name").value("Black Friday"));
+
+        verify(periodService).getPeriods("Corner shop");
+    }
+
+    @Test
+    public void getPeriods_noStore_passNullToService() throws Exception {
+        mockMvc.perform(get("/periods")).andExpect(status().isOk());
+
+        verify(periodService).getPeriods(null);
+    }
 
     @Test
     public void addPeriod_json_passDetailsToService() throws Exception {

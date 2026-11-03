@@ -16,6 +16,7 @@ class PeriodDAOTest {
     private static final Timestamp START = Timestamp.valueOf("2026-11-27 00:00:00");
     private static final Timestamp END = Timestamp.valueOf("2026-11-30 23:59:00");
     private static final Timestamp DELETED = Timestamp.valueOf("2026-12-01 00:00:00");
+    private static final Timestamp NOW = Timestamp.valueOf("2026-11-28 12:00:00");
 
     @Autowired
     private PeriodDAO periodDAO;
@@ -25,6 +26,12 @@ class PeriodDAOTest {
 
     private Period addPeriod(String name, Timestamp deletedAt) {
         Period period = new Period(0, name, PeriodType.SALE, null, START, END, null, deletedAt, null);
+        entityManager.persist(period);
+        return period;
+    }
+
+    private Period addStorePeriod(String name, String store, Timestamp start, Timestamp end) {
+        Period period = new Period(0, name, PeriodType.SALE, store, start, end, null, null, null);
         entityManager.persist(period);
         return period;
     }
@@ -106,5 +113,76 @@ class PeriodDAOTest {
 
         assertThat(removed).isZero();
         assertThat(entityManager.find(Period.class, period.getPeriodId())).isNotNull();
+    }
+
+    @Test
+    void findAllForStoreLeavesOutDeletedPeriods() {
+        addPeriod("Black Friday", null);
+        addPeriod("Cyber Monday", DELETED);
+        saveFixtures();
+
+        assertThat(periodDAO.findAllForStore(null, NOW))
+                .extracting(Period::getName)
+                .containsExactly("Black Friday");
+    }
+
+    @Test
+    void findAllForStoreIncludesPeriodsForAllStores() {
+        addStorePeriod("Corner shop sale", "Corner shop", START, END);
+        addStorePeriod("Black Friday", null, START, END);
+        addStorePeriod("Other shop sale", "Other shop", START, END);
+        saveFixtures();
+
+        assertThat(periodDAO.findAllForStore("Corner shop", NOW))
+                .extracting(Period::getName)
+                .containsExactlyInAnyOrder("Corner shop sale", "Black Friday");
+    }
+
+    @Test
+    void findAllForStoreWithoutAStoreIncludesEveryStore() {
+        addStorePeriod("Corner shop sale", "Corner shop", START, END);
+        addStorePeriod("Black Friday", null, START, END);
+        addStorePeriod("Other shop sale", "Other shop", START, END);
+        saveFixtures();
+
+        assertThat(periodDAO.findAllForStore(null, NOW))
+                .extracting(Period::getName)
+                .containsExactlyInAnyOrder("Corner shop sale", "Black Friday", "Other shop sale");
+    }
+
+    @Test
+    void findAllForStorePutsCurrentAndUpcomingPeriodsFirstSoonestStartFirst() {
+        addStorePeriod("Later sale", null, Timestamp.valueOf("2026-12-20 00:00:00"), Timestamp.valueOf("2026-12-21 00:00:00"));
+        addStorePeriod("Past sale", null, Timestamp.valueOf("2026-11-01 00:00:00"), Timestamp.valueOf("2026-11-02 00:00:00"));
+        addStorePeriod("Soon sale", null, Timestamp.valueOf("2026-12-01 00:00:00"), Timestamp.valueOf("2026-12-02 00:00:00"));
+        addStorePeriod("Long sale", null, Timestamp.valueOf("2026-11-01 00:00:00"), Timestamp.valueOf("2026-12-31 00:00:00"));
+        saveFixtures();
+
+        assertThat(periodDAO.findAllForStore(null, NOW))
+                .extracting(Period::getName)
+                .containsExactly("Long sale", "Soon sale", "Later sale", "Past sale");
+    }
+
+    @Test
+    void findAllForStorePutsPastPeriodsMostRecentlyEndedFirst() {
+        addStorePeriod("Short sale", null, Timestamp.valueOf("2026-11-10 00:00:00"), Timestamp.valueOf("2026-11-12 00:00:00"));
+        addStorePeriod("Long sale", null, Timestamp.valueOf("2026-10-01 00:00:00"), Timestamp.valueOf("2026-11-25 00:00:00"));
+        saveFixtures();
+
+        assertThat(periodDAO.findAllForStore(null, NOW))
+                .extracting(Period::getName)
+                .containsExactly("Long sale", "Short sale");
+    }
+
+    @Test
+    void findAllForStoreCountsAPeriodEndingNowAsPast() {
+        addStorePeriod("Ending sale", null, Timestamp.valueOf("2026-11-01 00:00:00"), NOW);
+        addStorePeriod("Past sale", null, Timestamp.valueOf("2026-10-01 00:00:00"), Timestamp.valueOf("2026-10-02 00:00:00"));
+        addStorePeriod("Soon sale", null, Timestamp.valueOf("2026-12-01 00:00:00"), Timestamp.valueOf("2026-12-02 00:00:00"));
+        saveFixtures();
+
+        assertThat(periodDAO.findAllForStore(null, NOW))
+                .extracting(Period::getName)
+                .containsExactly("Soon sale", "Ending sale", "Past sale");
     }
 }

@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -22,6 +24,16 @@ public class PeriodService {
     @Autowired
     public PeriodService(PeriodDAO periodDAO) {
         this.periodDAO = periodDAO;
+    }
+
+    /**
+     * Gets the non-deleted Periods for the given store, along with the Periods for all stores. Current and upcoming
+     * Periods come first, soonest start first, then past Periods, most recently ended first.
+     * @param store Store of the Periods to get, or null or blank for every store's Periods
+     * @return A list of the store's Periods
+     */
+    public List<Period> getPeriods(String store) {
+        return periodDAO.findAllForStore(nullIfBlank(store), Timestamp.from(Instant.now()));
     }
 
     /**

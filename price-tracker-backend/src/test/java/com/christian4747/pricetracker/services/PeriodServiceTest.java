@@ -17,10 +17,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.lang.reflect.Method;
 import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -29,6 +31,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -85,6 +89,28 @@ public class PeriodServiceTest {
     @BeforeEach
     public void setUp() {
         periodDTO = new IncomingPeriodDTO("Black Friday", PeriodType.SALE, null, START, END);
+    }
+
+    @Test
+    public void getPeriods_store_passStoreAndCurrentTimeToDAO() {
+        List<Period> periods = List.of(period(1, "Black Friday", null));
+        when(periodDAO.findAllForStore(eq("Corner shop"), any())).thenReturn(periods);
+        Instant before = Instant.now();
+
+        List<Period> result = periodService.getPeriods("Corner shop");
+
+        ArgumentCaptor<Timestamp> nowCaptor = ArgumentCaptor.forClass(Timestamp.class);
+        verify(periodDAO).findAllForStore(eq("Corner shop"), nowCaptor.capture());
+        assertSame(periods, result);
+        assertFalse(nowCaptor.getValue().toInstant().isBefore(before));
+        assertFalse(nowCaptor.getValue().toInstant().isAfter(Instant.now()));
+    }
+
+    @Test
+    public void getPeriods_blankStore_passNullForEveryStore() {
+        periodService.getPeriods("  ");
+
+        verify(periodDAO).findAllForStore(isNull(), any());
     }
 
     @Test
