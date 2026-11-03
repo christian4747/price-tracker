@@ -1,14 +1,17 @@
 import { Button, Center, Collapse, Switch, Text, TextInput } from '@mantine/core'
 import type { ProductType } from '@/types/product'
 import type { PricePeriod } from '@/types/price'
+import type { PeriodType } from '@/types/period'
 import { RecentDataScroller } from '@/components/common/RecentDataScroller'
 import { SubmitButton } from '@/components/common/SubmitButton'
+import { AddSalePeriodPanel } from '@/components/period/AddSalePeriodPanel'
 import { PriceDateTimePicker } from '@/components/price/PriceDateTimePicker'
 import { useEffect, useState } from 'react'
 import { getFormattedDateTimeString } from '@/utils/dateUtils'
 import { useDisclosure } from '@mantine/hooks'
 import { useAddPrice } from '@/hooks/price/useAddPrice'
 import { useRecentPriceData } from '@/hooks/price/useRecentPriceData'
+import { usePeriods } from '@/hooks/period/usePeriods'
 import { AmountInputGroup } from '@/components/price/AmountInputGroup'
 import { getDiscountAmount, getReturnAmount } from '@/utils/priceUtils'
 import dayjs from 'dayjs'
@@ -36,6 +39,8 @@ export const AddPriceForm = ({ product, setDateToday, close, quickAdd = false }:
     const { priceDTO, mutation: multiMutation, singleMutation } = useAddPrice(product, useEndDateDesc)
     // Hook for recent price data
     const { query: recentPriceQuery } = useRecentPriceData(product.productId)
+    // Hook for the named periods of the product's store, along with the ones for every store
+    const { query: periodsQuery } = usePeriods(product.store)
 
     // Prefill quick add with the most recent price once recent price data loads
     const { setField } = priceDTO
@@ -82,15 +87,40 @@ export const AddPriceForm = ({ product, setDateToday, close, quickAdd = false }:
         </Button>
     ))
 
+    const setPeriodDates = (priceStarted: string, priceEnded: string) => {
+        priceDTO.setField('priceStarted', priceStarted)
+        priceDTO.setField('priceEnded', priceEnded)
+    }
+
+    const getPeriodDatesText = (started: string, ended: string) =>
+        `${getFormattedDateTimeString(started)} to ${getFormattedDateTimeString(ended)}`
+
+    // The backend lists current and upcoming periods first, so the order is kept
+    const namedSalePeriods = (periodsQuery.data ?? [])
+        .filter((period: PeriodType) => period.type === 'SALE')
+        .map((period: PeriodType) => {
+            const datesText = getPeriodDatesText(period.periodStarted, period.periodEnded)
+            return (
+                <Button
+                    key={period.periodId}
+                    // Read as one name, since screen readers would run the pieces together
+                    aria-label={`${period.name}, ${datesText}`}
+                    onClick={() => setPeriodDates(period.periodStarted, period.periodEnded)}
+                >
+                    <span className="flex gap-1.5">
+                        <span title={period.name} className="max-w-40 truncate">
+                            {period.name}
+                        </span>
+                        <span className="text-raincloud">·</span>
+                        <span>{datesText}</span>
+                    </span>
+                </Button>
+            )
+        })
+
     const recentPricePeriods = recentPriceQuery.data?.pricePeriods?.map((period: PricePeriod, idx: number) => (
-        <Button
-            key={idx}
-            onClick={() => {
-                priceDTO.setField('priceStarted', period.priceStarted)
-                priceDTO.setField('priceEnded', period.priceEnded)
-            }}
-        >
-            {`${getFormattedDateTimeString(period.priceStarted)} to ${getFormattedDateTimeString(period.priceEnded)}`}
+        <Button key={idx} onClick={() => setPeriodDates(period.priceStarted, period.priceEnded)}>
+            {getPeriodDatesText(period.priceStarted, period.priceEnded)}
         </Button>
     ))
 
@@ -185,14 +215,20 @@ export const AddPriceForm = ({ product, setDateToday, close, quickAdd = false }:
                 </Button.Group>
             </Center>
 
-            {dateOption === 'period' &&
-                (recentPricePeriods?.length > 0 ? (
+            {/* Slides open and closed like the end date, and is removed once closed */}
+            <Collapse expanded={dateOption === 'period'} keepMounted={false}>
+                {namedSalePeriods.length > 0 && (
+                    <RecentDataScroller className="mt-2">{namedSalePeriods}</RecentDataScroller>
+                )}
+                {recentPricePeriods?.length > 0 && (
                     <RecentDataScroller className="mt-2">{recentPricePeriods}</RecentDataScroller>
-                ) : (
+                )}
+                {namedSalePeriods.length === 0 && !recentPricePeriods?.length && (
                     <Text size="sm" className="mt-2 text-raincloud">
-                        No recent sale periods yet. Enter the dates below.
+                        No sale periods yet. Enter the dates below.
                     </Text>
-                ))}
+                )}
+            </Collapse>
 
             <PriceDateTimePicker
                 label="Start Date"
@@ -221,6 +257,17 @@ export const AddPriceForm = ({ product, setDateToday, close, quickAdd = false }:
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                         setUseEndDateDesc(e.target.checked)
                     }}
+                />
+            </Collapse>
+
+            {/* Below the dates, since it saves the dates shown above it. Removed once closed, so choosing Sale Period
+                again starts it over */}
+            <Collapse expanded={dateOption === 'period'} keepMounted={false}>
+                <AddSalePeriodPanel
+                    store={product.store}
+                    periodStarted={priceDTO.value.priceStarted}
+                    periodEnded={priceDTO.value.priceEnded}
+                    datesInvalid={!!endDateError}
                 />
             </Collapse>
 

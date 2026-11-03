@@ -1,12 +1,14 @@
 import { describe, expect, onTestFinished, vi } from 'vitest'
 import type { SetupWorker } from 'msw/browser'
-import { createProduct, renderWithClient, screen, test, userEvent, waitFor } from '@/test-utils'
+import { createPeriod, createProduct, renderWithClient, screen, test, userEvent, waitFor } from '@/test-utils'
 import { http, HttpResponse } from 'msw'
+import type { PeriodDTO, PeriodType } from '@/types/period'
 import { AddPriceForm } from './AddPriceForm'
 
 const product = createProduct(1)
 
 const pricesApiUrl = import.meta.env.VITE_BACKEND_ROOT_URL + '/prices'
+const periodsApiUrl = import.meta.env.VITE_BACKEND_ROOT_URL + '/periods'
 
 const dateButtons = ['Start Date Only', 'Start and End Date', 'Sale Period']
 
@@ -18,6 +20,68 @@ const blackFriday = {
     priceEnded: new Date(2026, 10, 30, 23, 59).toISOString()
 }
 const blackFridayLabel = 'Nov 27, 2026 12:00 AM to Nov 30, 2026 11:59 PM'
+
+// A named sale period with the same dates as blackFriday
+const namedBlackFriday = createPeriod(1, {
+    name: 'Black Friday',
+    periodStarted: blackFriday.priceStarted,
+    periodEnded: blackFriday.priceEnded
+})
+const namedBlackFridayLabel = 'Black Friday, ' + blackFridayLabel
+
+// Serves the given periods for the product's store, and records the store each request asks for
+const servePeriods = (worker: SetupWorker, periods: PeriodType[]) => {
+    const requestedStores: (string | null)[] = []
+    worker.use(
+        http.get(periodsApiUrl, ({ request }) => {
+            requestedStores.push(new URL(request.url).searchParams.get('store'))
+            return HttpResponse.json(periods)
+        })
+    )
+    return requestedStores
+}
+
+const saveAsSalePeriod = 'Save these dates as a sale period'
+
+interface SavedPeriod {
+    name: string
+    type: string
+    store: string | null
+    periodStarted: number
+    periodEnded: number
+}
+
+// Records each sale period the form saves, with its dates as times so time zone offsets don't matter
+const recordSavedPeriods = (worker: SetupWorker, onSave: () => unknown = () => {}) => {
+    const savedPeriods: SavedPeriod[] = []
+    worker.use(
+        http.post(periodsApiUrl, async ({ request }) => {
+            const body = (await request.json()) as PeriodDTO
+            const saved = {
+                ...body,
+                periodStarted: Date.parse(body.periodStarted),
+                periodEnded: Date.parse(body.periodEnded)
+            }
+            savedPeriods.push(saved)
+            onSave()
+            return HttpResponse.json(createPeriod(1, { name: body.name }))
+        })
+    )
+    return savedPeriods
+}
+
+// Opens the add sale period panel, waiting for the Sale Period content and then the panel to slide open
+const openSalePeriodPanel = async (user: ReturnType<typeof userEvent.setup>) => {
+    await user.click(await screen.findByRole('button', { name: saveAsSalePeriod }))
+    await screen.findByRole('textbox', { name: 'Sale period name' })
+}
+
+// Opens the add sale period panel and saves the form's dates under the given name
+const saveSalePeriod = async (user: ReturnType<typeof userEvent.setup>, name: string) => {
+    await openSalePeriodPanel(user)
+    await user.type(screen.getByRole('textbox', { name: 'Sale period name' }), name)
+    await user.click(screen.getByRole('button', { name: 'Save sale period' }))
+}
 
 // Serves recent price data with no recent values, apart from the given changes
 const serveRecentPriceData = (worker: SetupWorker, changes: object = {}) => {
@@ -217,16 +281,166 @@ describe('Add Price Form Component', () => {
         )
     })
 
-    test('should explain when there are no recent periods', async ({ worker }) => {
-        serveRecentPriceData(worker)
+    test('should show named sale periods with their dates for a sale period', async ({ worker }) => {
+        servePeriods(worker, [namedBlackFriday])
         const user = userEvent.setup()
         renderWithClient(<AddPriceForm product={product} setDateToday={() => {}} close={() => {}} />)
 
         await user.click(screen.getByRole('button', { name: 'Sale Period' }))
 
-        await expect
-            .element(await screen.findByText('No recent sale periods yet. Enter the dates below.'))
-            .toBeVisible()
+        await expect.element(await screen.findByRole('button', { name: namedBlackFridayLabel })).toBeVisible()
+    })
+
+    test("should ask for the periods of the product's store", async ({ worker }) => {
+        const requestedStores = servePeriods(worker, [])
+        const user = userEvent.setup()
+        renderWithClient(<AddPriceForm product={product} setDateToday={() => {}} close={() => {}} />)
+
+        await user.click(screen.getByRole('button', { name: 'Sale Period' }))
+
+        await waitFor(() => expect(requestedStores).toContain(product.store))
+        expect(requestedStores.every((store) => store === product.store)).toBe(true)
+    })
+
+    test('should leave out return periods', async ({ worker }) => {
+        servePeriods(worker, [namedBlackFriday, createPeriod(2, { name: 'Card cashback', type: 'RETURN' })])
+        const user = userEvent.setup()
+        renderWithClient(<AddPriceForm product={product} setDateToday={() => {}} close={() => {}} />)
+
+        // Shown first, so a missing button afterwards means it's left out rather than still loading
+        await user.click(screen.getByRole('button', { name: 'Sale Period' }))
+        await screen.findByRole('button', { name: namedBlackFridayLabel })
+
+        expect(screen.queryByRole('button', { name: /Card cashback/ })).not.toBeInTheDocument()
+    })
+
+    test('should show named periods above recent periods', async ({ worker }) => {
+        servePeriods(worker, [namedBlackFriday])
+        serveRecentPriceData(worker, { pricePeriods: [blackFriday] })
+        const user = userEvent.setup()
+        renderWithClient(<AddPriceForm product={product} setDateToday={() => {}} close={() => {}} />)
+
+        await user.click(screen.getByRole('button', { name: 'Sale Period' }))
+        const namedButton = await screen.findByRole('button', { name: namedBlackFridayLabel })
+        const recentButton = await screen.findByRole('button', { name: blackFridayLabel })
+
+        expect(namedButton.compareDocumentPosition(recentButton) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    })
+
+    test('should save both dates of a named period as a range', async ({ worker }) => {
+        servePeriods(worker, [namedBlackFriday])
+        const savedRanges = recordSavedRanges(worker)
+        const user = userEvent.setup()
+        renderWithClient(<AddPriceForm product={product} setDateToday={() => {}} close={() => {}} />)
+
+        await user.click(screen.getByRole('button', { name: 'Sale Period' }))
+        await user.click(await screen.findByRole('button', { name: namedBlackFridayLabel }))
+        await user.click(screen.getByRole('button', { name: 'Add Price' }))
+
+        await waitFor(() =>
+            expect(savedRanges).toEqual([
+                { priceStarted: Date.parse(blackFriday.priceStarted), priceEnded: Date.parse(blackFriday.priceEnded) }
+            ])
+        )
+    })
+
+    test('should explain when there are no sale periods', async ({ worker }) => {
+        serveRecentPriceData(worker)
+        servePeriods(worker, [])
+        const user = userEvent.setup()
+        renderWithClient(<AddPriceForm product={product} setDateToday={() => {}} close={() => {}} />)
+
+        await user.click(screen.getByRole('button', { name: 'Sale Period' }))
+
+        await expect.element(await screen.findByText('No sale periods yet. Enter the dates below.')).toBeVisible()
+    })
+
+    test('should not explain when there are only named periods', async ({ worker }) => {
+        serveRecentPriceData(worker)
+        servePeriods(worker, [namedBlackFriday])
+        const user = userEvent.setup()
+        renderWithClient(<AddPriceForm product={product} setDateToday={() => {}} close={() => {}} />)
+
+        await user.click(screen.getByRole('button', { name: 'Sale Period' }))
+        await screen.findByRole('button', { name: namedBlackFridayLabel })
+
+        expect(screen.queryByText('No sale periods yet. Enter the dates below.')).not.toBeInTheDocument()
+    })
+
+    test.for(['Start Date Only', 'Start and End Date'])(
+        'should not offer saving the dates as a sale period with %s',
+        async (dateButton) => {
+            const user = userEvent.setup()
+            renderWithClient(<AddPriceForm product={product} setDateToday={() => {}} close={() => {}} />)
+
+            await user.click(screen.getByRole('button', { name: dateButton }))
+
+            expect(screen.queryByRole('button', { name: saveAsSalePeriod })).not.toBeInTheDocument()
+        }
+    )
+
+    test("should save the form's dates as a sale period for the product's store", async ({ worker }) => {
+        serveRecentPriceData(worker, { pricePeriods: [blackFriday] })
+        const savedPeriods = recordSavedPeriods(worker)
+        const user = userEvent.setup()
+        renderWithClient(<AddPriceForm product={product} setDateToday={() => {}} close={() => {}} />)
+
+        await user.click(screen.getByRole('button', { name: 'Sale Period' }))
+        await user.click(await screen.findByRole('button', { name: blackFridayLabel }))
+        await saveSalePeriod(user, 'Black Friday')
+
+        await waitFor(() => expect(savedPeriods).toHaveLength(1))
+        expect(savedPeriods[0]).toEqual({
+            name: 'Black Friday',
+            type: 'SALE',
+            store: product.store,
+            periodStarted: Date.parse(blackFriday.priceStarted),
+            periodEnded: Date.parse(blackFriday.priceEnded)
+        })
+    })
+
+    test('should list a new sale period once it is saved', async ({ worker }) => {
+        const periods: PeriodType[] = []
+        servePeriods(worker, periods)
+        // The backend lists the new period from then on
+        recordSavedPeriods(worker, () => periods.push(namedBlackFriday))
+        const user = userEvent.setup()
+        renderWithClient(<AddPriceForm product={product} setDateToday={() => {}} close={() => {}} />)
+
+        await user.click(screen.getByRole('button', { name: 'Sale Period' }))
+        await saveSalePeriod(user, 'Black Friday')
+
+        expect(await screen.findByRole('button', { name: namedBlackFridayLabel })).toBeInTheDocument()
+    })
+
+    test('should start the sale period panel over after leaving Sale Period', async () => {
+        const user = userEvent.setup()
+        renderWithClient(<AddPriceForm product={product} setDateToday={() => {}} close={() => {}} />)
+
+        await user.click(screen.getByRole('button', { name: 'Sale Period' }))
+        await openSalePeriodPanel(user)
+        await user.type(screen.getByRole('textbox', { name: 'Sale period name' }), 'Black Friday')
+        await user.click(screen.getByRole('button', { name: 'Start Date Only' }))
+        // A text query, since the closing content is hidden from role queries before the slide ends and it's removed
+        await waitFor(() => expect(screen.queryByText(saveAsSalePeriod)).not.toBeInTheDocument())
+        await user.click(screen.getByRole('button', { name: 'Sale Period' }))
+
+        const toggle = await screen.findByRole('button', { name: saveAsSalePeriod })
+        expect(toggle).toHaveAttribute('aria-expanded', 'false')
+        expect(screen.queryByRole('textbox', { name: 'Sale period name' })).not.toBeInTheDocument()
+    })
+
+    test('should not save a sale period while the end date is before the start', async ({ worker }) => {
+        const afterTheEnd = new Date(2099, 0, 1, 12).toISOString()
+        serveRecentPriceData(worker, { pricesStarted: [afterTheEnd] })
+        const user = userEvent.setup()
+        renderWithClient(<AddPriceForm product={product} setDateToday={() => {}} close={() => {}} />)
+
+        await user.click(screen.getByRole('button', { name: 'Sale Period' }))
+        await user.click(await screen.findByRole('button', { name: 'Jan 1, 2099 12:00 PM' }))
+        await openSalePeriodPanel(user)
+
+        expect(screen.getByRole('button', { name: 'Save sale period' })).toBeDisabled()
     })
 
     test('should default to a valid end date', async () => {

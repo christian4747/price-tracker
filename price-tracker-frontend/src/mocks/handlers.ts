@@ -6,6 +6,7 @@ import { http, HttpResponse } from 'msw'
 const rootUrl = import.meta.env.VITE_BACKEND_ROOT_URL
 const productsApiUrl = rootUrl + '/products'
 const pricesApiUrl = rootUrl + '/prices'
+const periodsApiUrl = rootUrl + '/periods'
 
 const price1 = createPrice(1)
 const price2 = createPrice(2, { priceStarted: new Date(2026, 8, 5, 12).toISOString() })
@@ -41,5 +42,9 @@ export const handlers = [
 
     http.get(pricesApiUrl + '/product/*', () => {
         return HttpResponse.json([price1, price2])
+    }),
+
+    http.get(periodsApiUrl, () => {
+        return HttpResponse.json([])
     })
 ]
