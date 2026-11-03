@@ -1,13 +1,17 @@
 package com.christian4747.pricetracker.controllers;
 
+import com.christian4747.pricetracker.models.MatchingPeriodPrice;
 import com.christian4747.pricetracker.models.Period;
 import com.christian4747.pricetracker.models.PeriodType;
+import com.christian4747.pricetracker.models.Price;
+import com.christian4747.pricetracker.models.Product;
 import com.christian4747.pricetracker.models.dtos.IncomingPeriodDTO;
 import com.christian4747.pricetracker.services.PeriodService;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -74,6 +78,35 @@ public class PeriodControllerTest {
         mockMvc.perform(get("/periods").param("showDeleted", "true")).andExpect(status().isOk());
 
         verify(periodService).getPeriods(null, true);
+    }
+
+    @Test
+    public void getPeriodPrices_periodId_passIdAndPageToServiceAndReturnPricesWithProducts() throws Exception {
+        Price price = new Price();
+        price.setPriceId(7);
+        Product product = new Product();
+        product.setName("Apple");
+        price.setProduct(product);
+        when(periodService.getPeriodPrices(eq(1), any())).thenReturn(List.of(new MatchingPeriodPrice(price, product)));
+
+        mockMvc.perform(get("/periods/1/prices").param("page", "2").param("size", "5"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].price.priceId").value(7))
+                .andExpect(jsonPath("$[0].product.name").value("Apple"));
+
+        ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
+        verify(periodService).getPeriodPrices(eq(1), pageableCaptor.capture());
+        assertEquals(2, pageableCaptor.getValue().getPageNumber());
+        assertEquals(5, pageableCaptor.getValue().getPageSize());
+    }
+
+    @Test
+    public void getPeriodPrices_rejected_return400WithMessage() throws Exception {
+        when(periodService.getPeriodPrices(eq(1), any())).thenThrow(new IllegalArgumentException("Period with ID 1 does not exist!"));
+
+        mockMvc.perform(get("/periods/1/prices"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string("Period with ID 1 does not exist!"));
     }
 
     @Test

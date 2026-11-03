@@ -219,4 +219,25 @@ public interface PriceDAO extends JpaRepository<Price, Integer> {
         	(SELECT MAX(p.totalPercentage) FROM Price p WHERE p.product.productId = :productId AND p.deletedAt IS NULL) AS allTimeLow
     """)
     Optional<PriceTotalPercentages> findPriceTotalPercentages(@Param("productId") Integer productId, Timestamp oneYearAgo, Timestamp twoYearsAgo);
+
+    /**
+     * Gets the non-deleted Prices of non-deleted Products that fall within the given dates, newest start first. A Price matches when both its
+     * start and end are within the dates, so Prices with no end date never match.
+     * @param pageable Pagination settings
+     * @param periodStarted Start of the dates the Prices must fall within
+     * @param periodEnded End of the dates the Prices must fall within
+     * @param store Store the Prices' Products must be at, or null for every store
+     * @return The matching Prices
+     */
+    @Query(value = """
+        SELECT p FROM Price p
+        WHERE p.deletedAt IS NULL
+        AND p.product.deletedAt IS NULL
+        AND p.priceStarted >= :periodStarted
+        AND p.priceEnded <= :periodEnded
+        AND (:store IS NULL OR p.product.store = :store)
+        ORDER BY p.priceStarted DESC, p.priceId DESC
+        """)
+    Page<Price> findAllWithinPeriod(Pageable pageable, @Param("periodStarted") Timestamp periodStarted,
+            @Param("periodEnded") Timestamp periodEnded, @Param("store") String store);
 }

@@ -1,7 +1,11 @@
 package com.christian4747.pricetracker.services;
 
 import com.christian4747.pricetracker.daos.PeriodDAO;
+import com.christian4747.pricetracker.daos.PriceDAO;
+import com.christian4747.pricetracker.models.MatchingPeriodPrice;
 import com.christian4747.pricetracker.models.Period;
+import com.christian4747.pricetracker.models.Price;
+import com.christian4747.pricetracker.models.Product;
 import com.christian4747.pricetracker.models.PeriodType;
 import com.christian4747.pricetracker.models.dtos.IncomingPeriodDTO;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,6 +17,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.lang.reflect.Method;
@@ -51,6 +58,9 @@ public class PeriodServiceTest {
 
     @Mock
     private PeriodDAO periodDAO;
+
+    @Mock
+    private PriceDAO priceDAO;
 
     @Captor
     private ArgumentCaptor<Period> periodCaptor;
@@ -118,6 +128,51 @@ public class PeriodServiceTest {
         periodService.getPeriods("Corner shop", true);
 
         verify(periodDAO).findAllForStore(eq("Corner shop"), eq(true), any());
+    }
+
+    @Test
+    public void getPeriodPrices_missingPeriod_throwException() {
+        when(periodDAO.findById(1)).thenReturn(Optional.empty());
+
+        IllegalArgumentException exception =
+                assertThrows(IllegalArgumentException.class, () -> periodService.getPeriodPrices(1, PageRequest.of(0, 20)));
+        assertEquals("Period with ID 1 does not exist!", exception.getMessage());
+    }
+
+    @Test
+    public void getPeriodPrices_period_passDatesAndStoreToDAO() {
+        storePeriod("Corner shop", null);
+        PageRequest pageable = PageRequest.of(1, 5);
+        when(priceDAO.findAllWithinPeriod(any(), any(), any(), any())).thenReturn(Page.empty());
+
+        periodService.getPeriodPrices(1, pageable);
+
+        verify(priceDAO).findAllWithinPeriod(pageable, OTHER_START, OTHER_END, "Corner shop");
+    }
+
+    @Test
+    public void getPeriodPrices_matchingPrices_pairEachPriceWithItsProduct() {
+        storePeriod(null, null);
+        Product product = new Product();
+        Price price = new Price();
+        price.setProduct(product);
+        when(priceDAO.findAllWithinPeriod(any(), any(), any(), any())).thenReturn(new PageImpl<>(List.of(price)));
+
+        List<MatchingPeriodPrice> matchingPeriodPrices = periodService.getPeriodPrices(1, PageRequest.of(0, 20));
+
+        assertEquals(1, matchingPeriodPrices.size());
+        assertSame(price, matchingPeriodPrices.get(0).price());
+        assertSame(product, matchingPeriodPrices.get(0).product());
+    }
+
+    @Test
+    public void getPeriodPrices_deletedPeriod_stillGetPrices() {
+        storePeriod(null, DELETED);
+        when(priceDAO.findAllWithinPeriod(any(), any(), any(), isNull())).thenReturn(Page.empty());
+
+        periodService.getPeriodPrices(1, PageRequest.of(0, 20));
+
+        verify(priceDAO).findAllWithinPeriod(any(), eq(OTHER_START), eq(OTHER_END), isNull());
     }
 
     @Test
