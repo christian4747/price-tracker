@@ -2,6 +2,7 @@ import { MdSearch } from 'react-icons/md'
 import { useState } from 'react'
 import { Button, Input, Menu } from '@mantine/core'
 import AddProductModal from '@/components/product/modals/AddProductModal'
+import { PeriodsModal } from '@/components/period/PeriodsModal'
 import type { ProductFilterDTO } from '@/types/product'
 import { ACTIVE_INACTIVE_PRODUCTS, ACTIVE_PRODUCTS, INACTIVE_PRODUCTS } from '@/utils/filterConstants'
 import { useDebouncedCallback } from '@mantine/hooks'
@@ -156,6 +157,10 @@ export const ProductListHeader = ({
                                         ) : null
                                     }
                                 />
+                            </div>
+
+                            <div>
+                                <PeriodsModal />
                             </div>
 
                             <div>

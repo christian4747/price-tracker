@@ -31,4 +31,21 @@ const getFormattedDateTimeString = (timeStamp: string) => {
     return localizeFormatDayjs(getLocalDateFromUTC(new Date(timeStamp)), 'MMM D, YYYY h:mm A')
 }
 
-export { getUSDateStringFromTimestamp, getLocalDateFromUTC, localizeFormatDayjs, getFormattedDateTimeString }
+/**
+ * Returns a start and end time stamp as one range of formatted dates and times
+ * (ex. Nov 27, 2026 12:00 AM to Nov 30, 2026 11:59 PM)
+ * @param started Time stamp string of the start
+ * @param ended Time stamp string of the end
+ * @returns The two formatted date and time strings joined by "to"
+ */
+const getFormattedDateRangeString = (started: string, ended: string) => {
+    return `${getFormattedDateTimeString(started)} to ${getFormattedDateTimeString(ended)}`
+}
+
+export {
+    getUSDateStringFromTimestamp,
+    getLocalDateFromUTC,
+    localizeFormatDayjs,
+    getFormattedDateTimeString,
+    getFormattedDateRangeString
+}

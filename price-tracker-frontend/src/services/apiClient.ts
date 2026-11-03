@@ -8,8 +8,10 @@ export const apiClient = axios.create({
     timeout: 10000,
     paramsSerializer: {
         serialize: (params) => {
-            // Filter params that are empty strings
-            const nonEmptyParams = Object.fromEntries(Object.entries(params).filter(([, value]) => value !== ''))
+            // Leave out params with no value, since URLSearchParams would send undefined and null as text
+            const nonEmptyParams = Object.fromEntries(
+                Object.entries(params).filter(([, value]) => value !== '' && value !== undefined && value !== null)
+            )
 
             return new URLSearchParams(nonEmptyParams).toString()
         }

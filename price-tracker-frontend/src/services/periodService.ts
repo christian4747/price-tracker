@@ -4,11 +4,13 @@ import type { PeriodDTO } from '@/types/period'
 const apiPath = '/periods'
 
 export default {
-    // Gets the store's periods along with the ones for every store, current and upcoming first, then past
-    getPeriods: async (store: string) => {
+    // Gets the store's periods along with the ones for every store, or every period when no store is given. Current and
+    // upcoming periods come first, then past ones
+    getPeriods: async (store?: string, showDeleted = false) => {
         const res = await apiClient.get(apiPath, {
             params: {
-                store: store
+                store: store,
+                showDeleted: showDeleted
             }
         })
         return res.data

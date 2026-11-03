@@ -6,18 +6,12 @@ import { FaLink, FaCheck, FaCopy } from 'react-icons/fa6'
 import { MdDelete, MdEdit } from 'react-icons/md'
 import { PermanentlyDeleteProductButton } from './PermanentlyDeleteProductButton'
 import { RestoreProductButton } from './RestoreProductButton'
+import { TitleSeparator } from '@/components/common/TitleSeparator'
 
 export interface ProductTitleDetails {
     product: ProductType
     otherStoresText?: string
 }
-
-// Hidden from screen readers, which already treat the name, store, and brand as separate pieces
-const TitleSeparator = () => (
-    <span aria-hidden="true" className="text-raincloud">
-        ·
-    </span>
-)
 
 export const ProductTitleDetails = ({ product, otherStoresText }: ProductTitleDetails) => {
     const openEditProductModal = useContext(EditProductContext)
