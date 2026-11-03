@@ -20,13 +20,15 @@ public class PeriodController {
     }
 
     /**
-     * Gets the non-deleted Periods for the given store, along with the Periods for all stores.
+     * Gets the Periods for the given store, along with the Periods for all stores.
      * @param store Store of the Periods to get, or none for every store's Periods
+     * @param showDeleted Whether to include soft deleted Periods (default false)
      * @return A list of the store's Periods, current and upcoming first, then past
      */
     @GetMapping
-    public ResponseEntity<List<Period>> getPeriods(@RequestParam(required = false) String store) {
-        return ResponseEntity.ok(periodService.getPeriods(store));
+    public ResponseEntity<List<Period>> getPeriods(
+            @RequestParam(required = false) String store, @RequestParam(defaultValue = "false") Boolean showDeleted) {
+        return ResponseEntity.ok(periodService.getPeriods(store, showDeleted));
     }
 
     /**

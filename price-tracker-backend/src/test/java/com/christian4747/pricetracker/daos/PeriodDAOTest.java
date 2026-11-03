@@ -121,9 +121,20 @@ class PeriodDAOTest {
         addPeriod("Cyber Monday", DELETED);
         saveFixtures();
 
-        assertThat(periodDAO.findAllForStore(null, NOW))
+        assertThat(periodDAO.findAllForStore(null, false, NOW))
                 .extracting(Period::getName)
                 .containsExactly("Black Friday");
+    }
+
+    @Test
+    void findAllForStoreWithShowDeletedIncludesDeletedPeriods() {
+        addPeriod("Black Friday", null);
+        addPeriod("Cyber Monday", DELETED);
+        saveFixtures();
+
+        assertThat(periodDAO.findAllForStore(null, true, NOW))
+                .extracting(Period::getName)
+                .containsExactlyInAnyOrder("Black Friday", "Cyber Monday");
     }
 
     @Test
@@ -133,7 +144,7 @@ class PeriodDAOTest {
         addStorePeriod("Other shop sale", "Other shop", START, END);
         saveFixtures();
 
-        assertThat(periodDAO.findAllForStore("Corner shop", NOW))
+        assertThat(periodDAO.findAllForStore("Corner shop", false, NOW))
                 .extracting(Period::getName)
                 .containsExactlyInAnyOrder("Corner shop sale", "Black Friday");
     }
@@ -145,7 +156,7 @@ class PeriodDAOTest {
         addStorePeriod("Other shop sale", "Other shop", START, END);
         saveFixtures();
 
-        assertThat(periodDAO.findAllForStore(null, NOW))
+        assertThat(periodDAO.findAllForStore(null, false, NOW))
                 .extracting(Period::getName)
                 .containsExactlyInAnyOrder("Corner shop sale", "Black Friday", "Other shop sale");
     }
@@ -158,7 +169,7 @@ class PeriodDAOTest {
         addStorePeriod("Long sale", null, Timestamp.valueOf("2026-11-01 00:00:00"), Timestamp.valueOf("2026-12-31 00:00:00"));
         saveFixtures();
 
-        assertThat(periodDAO.findAllForStore(null, NOW))
+        assertThat(periodDAO.findAllForStore(null, false, NOW))
                 .extracting(Period::getName)
                 .containsExactly("Long sale", "Soon sale", "Later sale", "Past sale");
     }
@@ -169,7 +180,7 @@ class PeriodDAOTest {
         addStorePeriod("Long sale", null, Timestamp.valueOf("2026-10-01 00:00:00"), Timestamp.valueOf("2026-11-25 00:00:00"));
         saveFixtures();
 
-        assertThat(periodDAO.findAllForStore(null, NOW))
+        assertThat(periodDAO.findAllForStore(null, false, NOW))
                 .extracting(Period::getName)
                 .containsExactly("Long sale", "Short sale");
     }
@@ -181,7 +192,7 @@ class PeriodDAOTest {
         addStorePeriod("Soon sale", null, Timestamp.valueOf("2026-12-01 00:00:00"), Timestamp.valueOf("2026-12-02 00:00:00"));
         saveFixtures();
 
-        assertThat(periodDAO.findAllForStore(null, NOW))
+        assertThat(periodDAO.findAllForStore(null, false, NOW))
                 .extracting(Period::getName)
                 .containsExactly("Soon sale", "Ending sale", "Past sale");
     }

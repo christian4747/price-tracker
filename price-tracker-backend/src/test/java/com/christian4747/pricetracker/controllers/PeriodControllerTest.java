@@ -53,20 +53,27 @@ public class PeriodControllerTest {
     public void getPeriods_store_passStoreToServiceAndReturnPeriods() throws Exception {
         Period period = new Period();
         period.setName("Black Friday");
-        when(periodService.getPeriods("Corner shop")).thenReturn(List.of(period));
+        when(periodService.getPeriods("Corner shop", false)).thenReturn(List.of(period));
 
         mockMvc.perform(get("/periods").param("store", "Corner shop"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].name").value("Black Friday"));
 
-        verify(periodService).getPeriods("Corner shop");
+        verify(periodService).getPeriods("Corner shop", false);
     }
 
     @Test
     public void getPeriods_noStore_passNullToService() throws Exception {
         mockMvc.perform(get("/periods")).andExpect(status().isOk());
 
-        verify(periodService).getPeriods(null);
+        verify(periodService).getPeriods(null, false);
+    }
+
+    @Test
+    public void getPeriods_showDeleted_passShowDeletedToService() throws Exception {
+        mockMvc.perform(get("/periods").param("showDeleted", "true")).andExpect(status().isOk());
+
+        verify(periodService).getPeriods(null, true);
     }
 
     @Test

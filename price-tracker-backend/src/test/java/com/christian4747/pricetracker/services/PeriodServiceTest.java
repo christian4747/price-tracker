@@ -94,13 +94,13 @@ public class PeriodServiceTest {
     @Test
     public void getPeriods_store_passStoreAndCurrentTimeToDAO() {
         List<Period> periods = List.of(period(1, "Black Friday", null));
-        when(periodDAO.findAllForStore(eq("Corner shop"), any())).thenReturn(periods);
+        when(periodDAO.findAllForStore(eq("Corner shop"), eq(false), any())).thenReturn(periods);
         Instant before = Instant.now();
 
-        List<Period> result = periodService.getPeriods("Corner shop");
+        List<Period> result = periodService.getPeriods("Corner shop", false);
 
         ArgumentCaptor<Timestamp> nowCaptor = ArgumentCaptor.forClass(Timestamp.class);
-        verify(periodDAO).findAllForStore(eq("Corner shop"), nowCaptor.capture());
+        verify(periodDAO).findAllForStore(eq("Corner shop"), eq(false), nowCaptor.capture());
         assertSame(periods, result);
         assertFalse(nowCaptor.getValue().toInstant().isBefore(before));
         assertFalse(nowCaptor.getValue().toInstant().isAfter(Instant.now()));
@@ -108,9 +108,16 @@ public class PeriodServiceTest {
 
     @Test
     public void getPeriods_blankStore_passNullForEveryStore() {
-        periodService.getPeriods("  ");
+        periodService.getPeriods("  ", false);
 
-        verify(periodDAO).findAllForStore(isNull(), any());
+        verify(periodDAO).findAllForStore(isNull(), eq(false), any());
+    }
+
+    @Test
+    public void getPeriods_showDeleted_passShowDeletedToDAO() {
+        periodService.getPeriods("Corner shop", true);
+
+        verify(periodDAO).findAllForStore(eq("Corner shop"), eq(true), any());
     }
 
     @Test

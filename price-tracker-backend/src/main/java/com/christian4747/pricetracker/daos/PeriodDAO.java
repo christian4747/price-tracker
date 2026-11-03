@@ -21,21 +21,22 @@ public interface PeriodDAO extends JpaRepository<Period, Integer> {
     List<Period> findAllByNameIgnoreCase(String name);
 
     /**
-     * Finds the non-deleted Periods for the given store, along with the Periods for all stores. Current and upcoming
+     * Finds the Periods for the given store, along with the Periods for all stores. Current and upcoming
      * Periods come first, soonest start first, then past Periods, most recently ended first.
      * @param store Store of the Periods to find, or null for every store's Periods
+     * @param showDeleted Whether to include soft deleted Periods
      * @param now The time that decides which Periods have ended
      * @return A list of the store's Periods
      */
     @Query(value = """
         SELECT p FROM Period p
-        WHERE p.deletedAt IS NULL
+        WHERE (:showDeleted = true OR p.deletedAt IS NULL)
         AND (:store IS NULL OR p.store = :store OR p.store IS NULL)
         ORDER BY CASE WHEN p.periodEnded > :now THEN p.periodStarted END NULLS LAST,
             p.periodEnded DESC,
             p.periodId
         """)
-    List<Period> findAllForStore(@Param("store") String store, @Param("now") Timestamp now);
+    List<Period> findAllForStore(@Param("store") String store, @Param("showDeleted") Boolean showDeleted, @Param("now") Timestamp now);
 
     /**
      * Permanently removes a soft deleted Period from the 'periods' database table. A query is needed because deleting

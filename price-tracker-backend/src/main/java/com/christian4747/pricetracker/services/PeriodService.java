@@ -27,13 +27,14 @@ public class PeriodService {
     }
 
     /**
-     * Gets the non-deleted Periods for the given store, along with the Periods for all stores. Current and upcoming
+     * Gets the Periods for the given store, along with the Periods for all stores. Current and upcoming
      * Periods come first, soonest start first, then past Periods, most recently ended first.
      * @param store Store of the Periods to get, or null or blank for every store's Periods
+     * @param showDeleted Whether to include soft deleted Periods
      * @return A list of the store's Periods
      */
-    public List<Period> getPeriods(String store) {
-        return periodDAO.findAllForStore(nullIfBlank(store), Timestamp.from(Instant.now()));
+    public List<Period> getPeriods(String store, Boolean showDeleted) {
+        return periodDAO.findAllForStore(nullIfBlank(store), showDeleted, Timestamp.from(Instant.now()));
     }
 
     /**
