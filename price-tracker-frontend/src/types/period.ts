@@ -13,3 +13,12 @@ export interface PeriodType {
     deletedAt: string | null
     updatedAt: string
 }
+
+// The details sent to the backend when saving a period
+export interface PeriodDTO {
+    name: string
+    type: PeriodKind
+    store: string | null
+    periodStarted: string
+    periodEnded: string
+}

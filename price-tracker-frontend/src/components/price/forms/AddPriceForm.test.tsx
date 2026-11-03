@@ -2,7 +2,7 @@ import { describe, expect, onTestFinished, vi } from 'vitest'
 import type { SetupWorker } from 'msw/browser'
 import { createPeriod, createProduct, renderWithClient, screen, test, userEvent, waitFor } from '@/test-utils'
 import { http, HttpResponse } from 'msw'
-import type { PeriodType } from '@/types/period'
+import type { PeriodDTO, PeriodType } from '@/types/period'
 import { AddPriceForm } from './AddPriceForm'
 
 const product = createProduct(1)
@@ -39,6 +39,42 @@ const servePeriods = (worker: SetupWorker, periods: PeriodType[]) => {
         })
     )
     return requestedStores
+}
+
+const saveAsSalePeriod = 'Save these dates as a sale period'
+
+interface SavedPeriod {
+    name: string
+    type: string
+    store: string | null
+    periodStarted: number
+    periodEnded: number
+}
+
+// Records each sale period the form saves, with its dates as times so time zone offsets don't matter
+const recordSavedPeriods = (worker: SetupWorker, onSave: () => unknown = () => {}) => {
+    const savedPeriods: SavedPeriod[] = []
+    worker.use(
+        http.post(periodsApiUrl, async ({ request }) => {
+            const body = (await request.json()) as PeriodDTO
+            const saved = {
+                ...body,
+                periodStarted: Date.parse(body.periodStarted),
+                periodEnded: Date.parse(body.periodEnded)
+            }
+            savedPeriods.push(saved)
+            onSave()
+            return HttpResponse.json(createPeriod(1, { name: body.name }))
+        })
+    )
+    return savedPeriods
+}
+
+// Opens the add sale period panel and saves the form's dates under the given name
+const saveSalePeriod = async (user: ReturnType<typeof userEvent.setup>, name: string) => {
+    await user.click(screen.getByRole('button', { name: saveAsSalePeriod }))
+    await user.type(screen.getByRole('textbox', { name: 'Sale period name' }), name)
+    await user.click(screen.getByRole('button', { name: 'Save sale period' }))
 }
 
 // Serves recent price data with no recent values, apart from the given changes
@@ -323,6 +359,65 @@ describe('Add Price Form Component', () => {
         await screen.findByRole('button', { name: namedBlackFridayLabel })
 
         expect(screen.queryByText('No sale periods yet. Enter the dates below.')).not.toBeInTheDocument()
+    })
+
+    test.for(['Start Date Only', 'Start and End Date'])(
+        'should not offer saving the dates as a sale period with %s',
+        async (dateButton) => {
+            const user = userEvent.setup()
+            renderWithClient(<AddPriceForm product={product} setDateToday={() => {}} close={() => {}} />)
+
+            await user.click(screen.getByRole('button', { name: dateButton }))
+
+            expect(screen.queryByRole('button', { name: saveAsSalePeriod })).not.toBeInTheDocument()
+        }
+    )
+
+    test("should save the form's dates as a sale period for the product's store", async ({ worker }) => {
+        serveRecentPriceData(worker, { pricePeriods: [blackFriday] })
+        const savedPeriods = recordSavedPeriods(worker)
+        const user = userEvent.setup()
+        renderWithClient(<AddPriceForm product={product} setDateToday={() => {}} close={() => {}} />)
+
+        await user.click(screen.getByRole('button', { name: 'Sale Period' }))
+        await user.click(await screen.findByRole('button', { name: blackFridayLabel }))
+        await saveSalePeriod(user, 'Black Friday')
+
+        await waitFor(() => expect(savedPeriods).toHaveLength(1))
+        expect(savedPeriods[0]).toEqual({
+            name: 'Black Friday',
+            type: 'SALE',
+            store: product.store,
+            periodStarted: Date.parse(blackFriday.priceStarted),
+            periodEnded: Date.parse(blackFriday.priceEnded)
+        })
+    })
+
+    test('should list a new sale period once it is saved', async ({ worker }) => {
+        const periods: PeriodType[] = []
+        servePeriods(worker, periods)
+        // The backend lists the new period from then on
+        recordSavedPeriods(worker, () => periods.push(namedBlackFriday))
+        const user = userEvent.setup()
+        renderWithClient(<AddPriceForm product={product} setDateToday={() => {}} close={() => {}} />)
+
+        await user.click(screen.getByRole('button', { name: 'Sale Period' }))
+        await saveSalePeriod(user, 'Black Friday')
+
+        expect(await screen.findByRole('button', { name: namedBlackFridayLabel })).toBeInTheDocument()
+    })
+
+    test('should not save a sale period while the end date is before the start', async ({ worker }) => {
+        const afterTheEnd = new Date(2099, 0, 1, 12).toISOString()
+        serveRecentPriceData(worker, { pricesStarted: [afterTheEnd] })
+        const user = userEvent.setup()
+        renderWithClient(<AddPriceForm product={product} setDateToday={() => {}} close={() => {}} />)
+
+        await user.click(screen.getByRole('button', { name: 'Sale Period' }))
+        await user.click(await screen.findByRole('button', { name: 'Jan 1, 2099 12:00 PM' }))
+        await user.click(screen.getByRole('button', { name: saveAsSalePeriod }))
+
+        expect(screen.getByRole('button', { name: 'Save sale period' })).toBeDisabled()
     })
 
     test('should default to a valid end date', async () => {

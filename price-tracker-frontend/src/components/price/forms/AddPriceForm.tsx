@@ -4,6 +4,7 @@ import type { PricePeriod } from '@/types/price'
 import type { PeriodType } from '@/types/period'
 import { RecentDataScroller } from '@/components/common/RecentDataScroller'
 import { SubmitButton } from '@/components/common/SubmitButton'
+import { AddSalePeriodPanel } from '@/components/period/AddSalePeriodPanel'
 import { PriceDateTimePicker } from '@/components/price/PriceDateTimePicker'
 import { useEffect, useState } from 'react'
 import { getFormattedDateTimeString } from '@/utils/dateUtils'
@@ -259,6 +260,16 @@ export const AddPriceForm = ({ product, setDateToday, close, quickAdd = false }:
                     }}
                 />
             </Collapse>
+
+            {/* Below the dates, since it saves the dates shown above it */}
+            {dateOption === 'period' && (
+                <AddSalePeriodPanel
+                    store={product.store}
+                    periodStarted={priceDTO.value.priceStarted}
+                    periodEnded={priceDTO.value.priceEnded}
+                    datesInvalid={!!endDateError}
+                />
+            )}
 
             <SubmitButton
                 pending={multiMutation.isPending || singleMutation.isPending}

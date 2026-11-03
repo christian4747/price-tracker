@@ -1,4 +1,5 @@
 import { apiClient } from '@/services/apiClient'
+import type { PeriodDTO } from '@/types/period'
 
 const apiPath = '/periods'
 
@@ -10,6 +11,11 @@ export default {
                 store: store
             }
         })
+        return res.data
+    },
+
+    addPeriod: async (periodToAdd: PeriodDTO) => {
+        const res = await apiClient.post(apiPath, periodToAdd)
         return res.data
     }
 }
