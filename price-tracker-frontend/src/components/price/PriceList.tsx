@@ -48,7 +48,6 @@ export const PriceList = ({ productBody, setDateToday, prices, showDeleted, setS
             <div className="flex flex-col h-full border border-smoke rounded-sm overflow-hidden justify-between">
                 <div className="flex flex-col bg-smoke font-bold max-h-45 overflow-auto">
                     {prices.map((price) => {
-                        price.productId = product.productId
                         if (price.today === true) return
                         return (
                             <Price
@@ -79,7 +78,12 @@ export const PriceList = ({ productBody, setDateToday, prices, showDeleted, setS
                 </div>
 
                 {/* Modal Zone */}
-                <EditPriceModal price={currentPrice} closeEditPrice={closeEditPrice} opened={editPriceOpened} />
+                <EditPriceModal
+                    price={currentPrice}
+                    productId={product.productId}
+                    closeEditPrice={closeEditPrice}
+                    opened={editPriceOpened}
+                />
                 <DeletePriceModal price={currentPrice} closeDeletePrice={closeDeletePrice} opened={deletePriceOpened} />
                 <PermanentlyDeletePriceModal
                     price={currentPrice}

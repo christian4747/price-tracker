@@ -22,7 +22,7 @@ const startSave = async (worker: SetupWorker) => {
     )
     const closeEditPrice = vi.fn()
     const user = userEvent.setup()
-    renderWithClient(<EditPriceForm price={price} closeEditPrice={closeEditPrice} />)
+    renderWithClient(<EditPriceForm price={price} productId={1} closeEditPrice={closeEditPrice} />)
 
     const submitButton = screen.getByRole('button', { name: 'Edit Price' })
     await user.click(submitButton)
@@ -49,7 +49,7 @@ describe('Edit Price Form Component', () => {
             })
         )
         const user = userEvent.setup()
-        renderWithClient(<EditPriceForm price={{ ...price, productId: 7 }} closeEditPrice={() => {}} />)
+        renderWithClient(<EditPriceForm price={price} productId={7} closeEditPrice={() => {}} />)
 
         await user.click(await screen.findByRole('button', { name: '250' }))
         await user.click(screen.getByRole('button', { name: '20.00%' }))
@@ -76,7 +76,7 @@ describe('Edit Price Form Component', () => {
                 })
             )
         )
-        renderWithClient(<EditPriceForm price={price} closeEditPrice={() => {}} />)
+        renderWithClient(<EditPriceForm price={price} productId={1} closeEditPrice={() => {}} />)
 
         await expect.element(await screen.findByRole('button', { name: 'Sep 4, 2026 2:05 PM' })).toBeVisible()
     })
@@ -111,7 +111,7 @@ describe('Edit Price Form Component', () => {
         )
         const closeEditPrice = vi.fn()
         const user = userEvent.setup()
-        renderWithClient(<EditPriceForm price={price} closeEditPrice={closeEditPrice} />)
+        renderWithClient(<EditPriceForm price={price} productId={1} closeEditPrice={closeEditPrice} />)
 
         await user.type(screen.getByRole('textbox', { name: 'Description' }), 'Sale')
         const submitButton = screen.getByRole('button', { name: 'Edit Price' })
@@ -124,28 +124,28 @@ describe('Edit Price Form Component', () => {
     })
 
     test('should render input for price', async () => {
-        renderWithClient(<EditPriceForm price={price} closeEditPrice={() => {}} />)
+        renderWithClient(<EditPriceForm price={price} productId={1} closeEditPrice={() => {}} />)
 
         const discountAmountInput = screen.getByText('Base Price', { selector: 'label' })
         await expect.element(discountAmountInput).toBeInTheDocument()
     })
 
     test('should render input for discount amount', async () => {
-        renderWithClient(<EditPriceForm price={price} closeEditPrice={() => {}} />)
+        renderWithClient(<EditPriceForm price={price} productId={1} closeEditPrice={() => {}} />)
 
         const discountAmountInput = screen.getByText('Discount Amount', { selector: 'label' })
         await expect.element(discountAmountInput).toBeInTheDocument()
     })
 
     test('should render input for discount percentage', async () => {
-        renderWithClient(<EditPriceForm price={price} closeEditPrice={() => {}} />)
+        renderWithClient(<EditPriceForm price={price} productId={1} closeEditPrice={() => {}} />)
 
         const discountPercentLabel = screen.getByText('Discount %', { selector: 'label' })
         await expect.element(discountPercentLabel).toBeInTheDocument()
     })
 
     test('should render input for return percentage', async () => {
-        renderWithClient(<EditPriceForm price={price} closeEditPrice={() => {}} />)
+        renderWithClient(<EditPriceForm price={price} productId={1} closeEditPrice={() => {}} />)
 
         const returnPercentageLabel = screen.getByText('Return %', { selector: 'label' })
         await expect.element(returnPercentageLabel).toBeInTheDocument()

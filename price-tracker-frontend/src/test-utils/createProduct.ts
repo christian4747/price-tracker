@@ -12,6 +12,5 @@ export const createProduct = (productId: number, changes: Partial<ProductType> =
     createdAt: new Date(2026, 8, 4, 12).toISOString(),
     deletedAt: null,
     updatedAt: new Date(2026, 8, 4, 12).toISOString(),
-    prices: [],
     ...changes
 })

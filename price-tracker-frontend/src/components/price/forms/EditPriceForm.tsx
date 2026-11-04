@@ -10,14 +10,16 @@ import { AmountInputGroup } from '@/components/price/AmountInputGroup'
 
 interface EditPriceForm {
     price: PriceType
+    // Passed separately because the API's prices leave out their product
+    productId: number
     closeEditPrice: () => void
 }
 
-export const EditPriceForm = ({ price, closeEditPrice }: EditPriceForm) => {
+export const EditPriceForm = ({ price, productId, closeEditPrice }: EditPriceForm) => {
     // Hook for editing prices
-    const { priceDTO, mutation } = useEditPrice(price)
+    const { priceDTO, mutation } = useEditPrice(price, productId)
     // Hook for recent price data
-    const { query: recentPriceQuery } = useRecentPriceData(price.productId)
+    const { query: recentPriceQuery } = useRecentPriceData(productId)
 
     const recentDescriptions = recentPriceQuery.data?.descriptions.map((description: string, idx: number) => (
         <Button key={idx} onClick={() => priceDTO.setField('description', description)}>

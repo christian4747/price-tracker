@@ -11,7 +11,6 @@ export interface ProductType {
     createdAt: string
     deletedAt: string | null
     updatedAt: string
-    prices: PriceType[]
 }
 
 export interface ProductDTO {
@@ -24,8 +23,8 @@ export interface ProductDTO {
 
 export interface ProductBody {
     product: ProductType
-    priceToday?: PriceType
-    nextPrice?: PriceType
+    priceToday: PriceType | null
+    nextPrice: PriceType | null
     lastUpdated: string
     priceCategory: string
     averagePrice: number | null

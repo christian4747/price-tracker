@@ -22,7 +22,7 @@ const price = createPrice(1, {
 
 describe('Edit Price Modal Component', () => {
     test('should show when the price was added and last updated', async () => {
-        renderWithClient(<EditPriceModal price={price} closeEditPrice={() => {}} opened />)
+        renderWithClient(<EditPriceModal price={price} productId={1} closeEditPrice={() => {}} opened />)
 
         await expect.element(await screen.findByText('Added Sep 4, 2026 2:05 PM')).toBeVisible()
         await expect.element(screen.getByText('Last updated Sep 6, 2026 9:30 AM')).toBeVisible()
@@ -43,7 +43,7 @@ describe('Edit Price Modal Component', () => {
         )
         const closeEditPrice = vi.fn()
         const user = userEvent.setup()
-        renderWithClient(<EditPriceModal price={price} closeEditPrice={closeEditPrice} opened />)
+        renderWithClient(<EditPriceModal price={price} productId={1} closeEditPrice={closeEditPrice} opened />)
 
         const submitButton = screen.getByRole('button', { name: 'Edit Price' })
         await user.click(submitButton)
@@ -64,7 +64,7 @@ describe('Edit Price Modal Component', () => {
         )
         const closeEditPrice = vi.fn()
         const user = userEvent.setup()
-        renderWithClient(<EditPriceModal price={price} closeEditPrice={closeEditPrice} opened />)
+        renderWithClient(<EditPriceModal price={price} productId={1} closeEditPrice={closeEditPrice} opened />)
 
         const submitButton = screen.getByRole('button', { name: 'Edit Price' })
         await user.click(submitButton)

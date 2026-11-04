@@ -7,9 +7,9 @@ export interface PriceType {
     description: string
     discountAmount: number
     discountPercentage: number
-    priceEnded: string
+    // Null for a price with only a start date
+    priceEnded: string | null
     priceStarted: string
-    productId: number
     returnAmount: number
     returnPercentage: number
     today: boolean
