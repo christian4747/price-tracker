@@ -6,6 +6,7 @@ import com.christian4747.pricetracker.models.PeriodType;
 import com.christian4747.pricetracker.models.Price;
 import com.christian4747.pricetracker.models.Product;
 import com.christian4747.pricetracker.models.dtos.IncomingPeriodDTO;
+import com.christian4747.pricetracker.models.dtos.ResponseAndCount;
 import com.christian4747.pricetracker.services.PeriodService;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -87,12 +88,14 @@ public class PeriodControllerTest {
         Product product = new Product();
         product.setName("Apple");
         price.setProduct(product);
-        when(periodService.getPeriodPrices(eq(1), any())).thenReturn(List.of(new MatchingPeriodPrice(price, product)));
+        when(periodService.getPeriodPrices(eq(1), any()))
+                .thenReturn(new ResponseAndCount<>(List.of(new MatchingPeriodPrice(price, product)), 11L));
 
         mockMvc.perform(get("/periods/1/prices").param("page", "2").param("size", "5"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].price.priceId").value(7))
-                .andExpect(jsonPath("$[0].product.name").value("Apple"));
+                .andExpect(jsonPath("$.content[0].price.priceId").value(7))
+                .andExpect(jsonPath("$.content[0].product.name").value("Apple"))
+                .andExpect(jsonPath("$.count").value(11));
 
         ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
         verify(periodService).getPeriodPrices(eq(1), pageableCaptor.capture());
