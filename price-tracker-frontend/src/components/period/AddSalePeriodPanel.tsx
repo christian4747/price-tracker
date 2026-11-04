@@ -94,7 +94,7 @@ export const AddSalePeriodPanel = ({ store, periodStarted, periodEnded, datesInv
                         />
                         {/* Its own element rather than the switch's description, since Mantine puts the description inside
                         the label, which would make the store text part of the switch's name */}
-                        <Text id={storesTextId} size="xs" className="mt-1 text-raincloud">
+                        <Text id={storesTextId} size="xs" mt={4} className="text-raincloud">
                             {allStores ? 'For every store' : `Only for ${store}`}
                         </Text>
                         {/* The toggle's blue rather than the usual raisin, so it isn't mistaken for Add Price below it */}

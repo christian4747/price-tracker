@@ -221,7 +221,7 @@ export const AddPriceForm = ({ product, setDateToday, close, quickAdd = false }:
                     <RecentDataScroller className="mt-2">{recentPricePeriods}</RecentDataScroller>
                 )}
                 {namedSalePeriods.length === 0 && !recentPricePeriods?.length && (
-                    <Text size="sm" className="mt-2 text-raincloud">
+                    <Text size="sm" mt={8} className="text-raincloud">
                         No sale periods yet. Enter the dates below.
                     </Text>
                 )}
