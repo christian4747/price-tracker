@@ -32,15 +32,16 @@ const createMatch = (id: number, productName = 'Product ' + id): MatchingPeriodP
 // A full page of matches, which means there may be more
 const fullPage = (start: number) => Array.from({ length: 20 }, (_, idx) => createMatch(start + idx))
 
-// Serves the given pages of matches in order, and records the page and size each request asks for
-const serveMatches = (worker: SetupWorker, pages: MatchingPeriodPrice[][]) => {
+// Serves the given pages of matches in order, each with the total across all pages, and records the page and size
+// each request asks for
+const serveMatches = (worker: SetupWorker, pages: MatchingPeriodPrice[][], count = pages.flat().length) => {
     const requests: { periodId: string; page: string | null; size: string | null }[] = []
     worker.use(
         http.get(periodsApiUrl + '/:periodId/prices', ({ request, params }) => {
             const searchParams = new URL(request.url).searchParams
             const page = searchParams.get('page')
             requests.push({ periodId: params.periodId as string, page, size: searchParams.get('size') })
-            return HttpResponse.json(pages[Number(page)] ?? [])
+            return HttpResponse.json({ content: pages[Number(page)] ?? [], count })
         })
     )
     return requests
@@ -103,5 +104,31 @@ describe('PeriodMatches', () => {
         expect(screen.getAllByRole('listitem')).toHaveLength(21)
         expect(requests.map((request) => request.page)).toEqual(['0', '1'])
         await waitFor(() => expect(screen.queryByRole('button', { name: 'Load more' })).not.toBeInTheDocument())
+    })
+
+    test('should stop offering more once all of exactly 40 have loaded', async ({ worker }) => {
+        const requests = serveMatches(worker, [fullPage(1), fullPage(21)])
+        const user = userEvent.setup()
+        renderWithClient(<PeriodMatches period={blackFriday} />)
+
+        await user.click(await screen.findByRole('button', { name: 'Load more' }))
+
+        expect(await screen.findByRole('listitem', { name: 'Product 40' })).toBeInTheDocument()
+        await waitFor(() => expect(screen.queryByRole('button', { name: 'Load more' })).not.toBeInTheDocument())
+        expect(requests.map((request) => request.page)).toEqual(['0', '1'])
+    })
+
+    test('should stop offering more when a page comes back empty, even if the count says there are more', async ({
+        worker
+    }) => {
+        // As if the count disagreed with the page, from a price added between the backend's page and count queries
+        serveMatches(worker, [fullPage(1), []], 25)
+        const user = userEvent.setup()
+        renderWithClient(<PeriodMatches period={blackFriday} />)
+
+        await user.click(await screen.findByRole('button', { name: 'Load more' }))
+
+        await waitFor(() => expect(screen.queryByRole('button', { name: 'Load more' })).not.toBeInTheDocument())
+        expect(screen.getAllByRole('listitem')).toHaveLength(20)
     })
 })

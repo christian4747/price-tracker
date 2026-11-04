@@ -31,3 +31,9 @@ export interface MatchingPeriodPrice {
     price: PriceType
     product: ProductType
 }
+
+// A page of a period's matching prices, with the number that match across all pages
+export interface MatchingPeriodPricesPage {
+    content: MatchingPeriodPrice[]
+    count: number
+}

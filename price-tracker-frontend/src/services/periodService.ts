@@ -1,5 +1,5 @@
 import { apiClient } from '@/services/apiClient'
-import type { PeriodDTO } from '@/types/period'
+import type { MatchingPeriodPricesPage, PeriodDTO } from '@/types/period'
 
 const apiPath = '/periods'
 
@@ -16,8 +16,13 @@ export default {
         return res.data
     },
 
-    // Gets a page of the prices that fall within the period, each with its product, newest start first
-    getPeriodPrices: async (periodId: number, pageNumber: number = 0, pageSize: number = 20) => {
+    // Gets a page of the prices that fall within the period, each with its product, newest start first, along with the
+    // number that match across all pages
+    getPeriodPrices: async (
+        periodId: number,
+        pageNumber: number = 0,
+        pageSize: number = 20
+    ): Promise<MatchingPeriodPricesPage> => {
         const res = await apiClient.get(apiPath + '/' + periodId.toString() + '/prices', {
             params: {
                 page: pageNumber,

@@ -49,6 +49,6 @@ export const handlers = [
     }),
 
     http.get(periodsApiUrl + '/:periodId/prices', () => {
-        return HttpResponse.json([])
+        return HttpResponse.json({ content: [], count: 0 })
     })
 ]

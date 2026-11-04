@@ -33,7 +33,7 @@ const MatchRow = ({ match }: { match: MatchingPeriodPrice }) => {
 // The prices that fall within a period, newest start first, loaded 20 at a time
 export const PeriodMatches = ({ period }: { period: PeriodType }) => {
     const { query } = usePeriodPrices(period.periodId)
-    const matches = query.data?.pages.flat() ?? []
+    const matches = query.data?.pages.flatMap((page) => page.content) ?? []
 
     return (
         // Light gray, so the matches read as details of the period above rather than more periods
