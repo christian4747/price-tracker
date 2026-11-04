@@ -1,6 +1,7 @@
 import type { PriceType } from '@/types/price'
 
-// Creates a test price, where changes replace only the values a test depends on
+// Creates a test price shaped like the API's, where changes replace only the values a test depends on. Like the API,
+// it has no product ID and a null end date unless one is given.
 // Dates are built from local times so displayed text doesn't depend on the test machine's time zone
 export const createPrice = (priceId: number, changes: Partial<PriceType> = {}): PriceType => ({
     priceId,
@@ -10,7 +11,7 @@ export const createPrice = (priceId: number, changes: Partial<PriceType> = {}): 
     discountAmount: 100.0,
     discountPercentage: 0.0,
     priceStarted: new Date(2026, 8, 4, 12).toISOString(),
-    priceEnded: '',
+    priceEnded: null,
     returnAmount: 0.0,
     returnPercentage: 0.0,
     today: false,
@@ -19,6 +20,5 @@ export const createPrice = (priceId: number, changes: Partial<PriceType> = {}): 
     createdAt: new Date(2026, 8, 4, 12).toISOString(),
     deletedAt: null,
     updatedAt: new Date(2026, 8, 4, 12).toISOString(),
-    productId: 1,
     ...changes
 })

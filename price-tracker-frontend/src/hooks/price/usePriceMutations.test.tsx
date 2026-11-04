@@ -181,7 +181,7 @@ describe('useEditPrice', () => {
     test('should not modify the price being edited', async ({ worker }) => {
         worker.use(http.put(pricesApiUrl + '/:priceId', () => HttpResponse.json(price1)))
         const price = { ...price1 }
-        const { result } = renderHook(() => useEditPrice(price), { wrapper: RenderClientWrapper })
+        const { result } = renderHook(() => useEditPrice(price, 1), { wrapper: RenderClientWrapper })
 
         act(() => {
             result.current.mutation.mutate()
@@ -194,7 +194,7 @@ describe('useEditPrice', () => {
     test('should notify with a 12-hour time', async ({ worker }) => {
         worker.use(http.put(pricesApiUrl + '/:priceId', () => HttpResponse.json(afternoonPrice)))
         const messages = watchNotifications()
-        const { result } = renderHook(() => useEditPrice(price1), { wrapper: RenderClientWrapper })
+        const { result } = renderHook(() => useEditPrice(price1, 1), { wrapper: RenderClientWrapper })
 
         act(() => {
             result.current.mutation.mutate()

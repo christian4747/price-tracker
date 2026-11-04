@@ -14,6 +14,17 @@ const deletedPrice = createPrice(2, {
     deletedAt: new Date(2026, 8, 6, 12).toISOString()
 })
 
+// Fails the first price request, then answers later ones with the live price
+const failFirstPriceRequest = () => {
+    let requestCount = 0
+    return http.get(pricesApiUrl + '/product/:productId', () => {
+        requestCount++
+        return requestCount === 1
+            ? HttpResponse.json({ message: 'Server error' }, { status: 500 })
+            : HttpResponse.json([livePrice])
+    })
+}
+
 describe('Product Details Component', () => {
     test('should render product prices', async () => {
         renderWithClient(<ProductDetails productBody={productBody} dateToday={new Date()} setDateToday={() => {}} />)
@@ -41,5 +52,24 @@ describe('Product Details Component', () => {
         await user.click(screen.getByRole('checkbox', { name: 'Show deleted prices' }))
 
         await expect.element(await screen.findByText('9/5/2026')).toBeInTheDocument()
+    })
+
+    test('should show a message with a retry button when the prices fail to load', async ({ worker }) => {
+        worker.use(failFirstPriceRequest())
+        renderWithClient(<ProductDetails productBody={productBody} dateToday={new Date()} setDateToday={() => {}} />)
+
+        await expect.element(await screen.findByText("Couldn't load prices")).toBeInTheDocument()
+        expect(screen.getByRole('button', { name: 'Retry' })).toBeInTheDocument()
+    })
+
+    test('should show the prices once a retry succeeds', async ({ worker }) => {
+        worker.use(failFirstPriceRequest())
+        const user = userEvent.setup()
+        renderWithClient(<ProductDetails productBody={productBody} dateToday={new Date()} setDateToday={() => {}} />)
+
+        await user.click(await screen.findByRole('button', { name: 'Retry' }))
+
+        await expect.element(await screen.findByText('9/4/2026')).toBeInTheDocument()
+        expect(screen.queryByText("Couldn't load prices")).not.toBeInTheDocument()
     })
 })

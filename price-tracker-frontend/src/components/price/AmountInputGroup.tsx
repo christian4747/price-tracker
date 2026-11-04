@@ -8,9 +8,9 @@ import { RecentDataScroller } from '@/components/common/RecentDataScroller'
 interface AmountInputGroup {
     value: PriceDTO
     setField: (key: string, value: number | string) => void
-    baseAmounts?: []
-    discountPercentages?: []
-    returnPercentages?: []
+    baseAmounts?: number[]
+    discountPercentages?: number[]
+    returnPercentages?: number[]
 }
 
 export const AmountInputGroup = ({

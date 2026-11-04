@@ -7,9 +7,9 @@ export interface PriceType {
     description: string
     discountAmount: number
     discountPercentage: number
-    priceEnded: string
+    // Null for a price with only a start date
+    priceEnded: string | null
     priceStarted: string
-    productId: number
     returnAmount: number
     returnPercentage: number
     today: boolean
@@ -41,4 +41,16 @@ export interface PriceRangeDTO extends PriceDTO {
 export interface PricePeriod {
     priceStarted: string
     priceEnded: string
+}
+
+// A product's recent values, newest first, offered as quick picks in the price forms
+export interface RecentPriceData {
+    baseAmounts: number[]
+    currencies: string[]
+    descriptions: string[]
+    discountPercentages: number[]
+    pricesStarted: string[]
+    pricesEnded: string[]
+    returnPercentages: number[]
+    pricePeriods: PricePeriod[]
 }

@@ -11,7 +11,6 @@ export interface ProductType {
     createdAt: string
     deletedAt: string | null
     updatedAt: string
-    prices: PriceType[]
 }
 
 export interface ProductDTO {
@@ -24,13 +23,19 @@ export interface ProductDTO {
 
 export interface ProductBody {
     product: ProductType
-    priceToday?: PriceType
-    nextPrice?: PriceType
+    priceToday: PriceType | null
+    nextPrice: PriceType | null
     lastUpdated: string
     priceCategory: string
     averagePrice: number | null
     weightedAveragePrice: number | null
     belowAverage: boolean
+}
+
+// The products that share a name, from the grouped product list
+export interface ProductNameGroup {
+    name: string
+    products: ProductBody[]
 }
 
 export type ProductActiveStatus = typeof ACTIVE_INACTIVE_PRODUCTS | typeof ACTIVE_PRODUCTS | typeof INACTIVE_PRODUCTS
