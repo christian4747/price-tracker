@@ -7,7 +7,7 @@ import { SubmitButton } from '@/components/common/SubmitButton'
 import { AddSalePeriodPanel } from '@/components/period/AddSalePeriodPanel'
 import { PriceDateTimePicker } from '@/components/price/PriceDateTimePicker'
 import { useEffect, useState } from 'react'
-import { getFormattedDateTimeString } from '@/utils/dateUtils'
+import { getFormattedDateRangeString, getFormattedDateTimeString } from '@/utils/dateUtils'
 import { useDisclosure } from '@mantine/hooks'
 import { useAddPrice } from '@/hooks/price/useAddPrice'
 import { useRecentPriceData } from '@/hooks/price/useRecentPriceData'
@@ -92,14 +92,11 @@ export const AddPriceForm = ({ product, setDateToday, close, quickAdd = false }:
         priceDTO.setField('priceEnded', priceEnded)
     }
 
-    const getPeriodDatesText = (started: string, ended: string) =>
-        `${getFormattedDateTimeString(started)} to ${getFormattedDateTimeString(ended)}`
-
     // The backend lists current and upcoming periods first, so the order is kept
     const namedSalePeriods = (periodsQuery.data ?? [])
         .filter((period: PeriodType) => period.type === 'SALE')
         .map((period: PeriodType) => {
-            const datesText = getPeriodDatesText(period.periodStarted, period.periodEnded)
+            const datesText = getFormattedDateRangeString(period.periodStarted, period.periodEnded)
             return (
                 <Button
                     key={period.periodId}
@@ -120,7 +117,7 @@ export const AddPriceForm = ({ product, setDateToday, close, quickAdd = false }:
 
     const recentPricePeriods = recentPriceQuery.data?.pricePeriods?.map((period: PricePeriod, idx: number) => (
         <Button key={idx} onClick={() => setPeriodDates(period.priceStarted, period.priceEnded)}>
-            {getPeriodDatesText(period.priceStarted, period.priceEnded)}
+            {getFormattedDateRangeString(period.priceStarted, period.priceEnded)}
         </Button>
     ))
 
@@ -222,7 +219,7 @@ export const AddPriceForm = ({ product, setDateToday, close, quickAdd = false }:
                     <RecentDataScroller className="mt-2">{recentPricePeriods}</RecentDataScroller>
                 )}
                 {namedSalePeriods.length === 0 && !recentPricePeriods?.length && (
-                    <Text size="sm" className="mt-2 text-raincloud">
+                    <Text size="sm" mt={8} className="text-raincloud">
                         No sale periods yet. Enter the dates below.
                     </Text>
                 )}

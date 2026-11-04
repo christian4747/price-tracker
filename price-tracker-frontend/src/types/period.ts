@@ -1,3 +1,6 @@
+import type { PriceType } from '@/types/price'
+import type { ProductType } from '@/types/product'
+
 // What a period is for: a sale, or a return, where purchases get cash or points back
 export type PeriodKind = 'SALE' | 'RETURN'
 
@@ -21,4 +24,11 @@ export interface PeriodDTO {
     store: string | null
     periodStarted: string
     periodEnded: string
+}
+
+// A price that falls within a period, with the product it belongs to, since prices leave their product out. A price
+// only matches when its end falls within the period, so a matching price always has an end date
+export interface MatchingPeriodPrice {
+    price: PriceType & { priceEnded: string }
+    product: ProductType
 }

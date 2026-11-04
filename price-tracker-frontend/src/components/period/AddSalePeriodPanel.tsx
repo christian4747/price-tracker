@@ -75,7 +75,8 @@ export const AddSalePeriodPanel = ({ store, periodStarted, periodEnded, datesInv
             <Collapse expanded={opened} keepMounted={false}>
                 {/* Padding rather than margins, since margins can escape the sliding box and make it jump at the end */}
                 <div className="pt-1 pb-2">
-                    <div className="rounded-md border border-smoke p-3">
+                    {/* A lighter shade of the toggle's blue, so the panel reads as opened from it */}
+                    <div className="rounded-md border border-(--mantine-color-blue-3) p-3">
                         <TextInput
                             label="Sale period name"
                             placeholder="ex. Black Friday"
@@ -93,12 +94,13 @@ export const AddSalePeriodPanel = ({ store, periodStarted, periodEnded, datesInv
                         />
                         {/* Its own element rather than the switch's description, since Mantine puts the description inside
                         the label, which would make the store text part of the switch's name */}
-                        <Text id={storesTextId} size="xs" className="mt-1 text-raincloud">
+                        <Text id={storesTextId} size="xs" mt={4} className="text-raincloud">
                             {allStores ? 'For every store' : `Only for ${store}`}
                         </Text>
+                        {/* The toggle's blue rather than the usual raisin, so it isn't mistaken for Add Price below it */}
                         <Button
                             size="sm"
-                            variant="light"
+                            color="blue.8"
                             className="mt-3"
                             loading={mutation.isPending}
                             disabled={datesInvalid}

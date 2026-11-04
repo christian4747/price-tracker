@@ -53,6 +53,14 @@ describe('Product List Header Component', () => {
         await expect.element(hideShowDeletedButton).toBeInTheDocument()
     })
 
+    test('should render the Periods button beside Add Product', async () => {
+        renderProductListHeader()
+
+        const periodsButton = screen.getByRole('button', { name: 'Periods' })
+        const addProductButton = screen.getByRole('button', { name: 'Add Product' })
+        expect(periodsButton.compareDocumentPosition(addProductButton) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    })
+
     test('should render hide/show delete menu button', async () => {
         renderProductListHeader('true')
 
