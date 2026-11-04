@@ -20,7 +20,7 @@ describe('createQueryClient', () => {
         render(
             <RenderClientWrapper queryClient={queryClient}>
                 <Notifications />
-                <EditPriceModal price={price} closeEditPrice={() => {}} opened />
+                <EditPriceModal price={price} productId={1} closeEditPrice={() => {}} opened />
             </RenderClientWrapper>
         )
 

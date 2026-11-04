@@ -172,7 +172,7 @@ export const AddPriceForm = ({ product, setDateToday, close, quickAdd = false }:
                 value={priceDTO.value.description}
                 className="mb-2"
             />
-            {recentDescriptions?.length > 0 && (
+            {!!recentDescriptions?.length && (
                 <RecentDataScroller className="mb-2">{recentDescriptions}</RecentDataScroller>
             )}
 
@@ -184,9 +184,7 @@ export const AddPriceForm = ({ product, setDateToday, close, quickAdd = false }:
                 value={priceDTO.value.currency}
                 className="mb-2"
             />
-            {recentCurrencies?.length > 0 && (
-                <RecentDataScroller className="mb-2">{recentCurrencies}</RecentDataScroller>
-            )}
+            {!!recentCurrencies?.length && <RecentDataScroller className="mb-2">{recentCurrencies}</RecentDataScroller>}
 
             <Center>
                 {/* Narrower padding than usual, so all three buttons fit the modal's width */}
@@ -220,7 +218,7 @@ export const AddPriceForm = ({ product, setDateToday, close, quickAdd = false }:
                 {namedSalePeriods.length > 0 && (
                     <RecentDataScroller className="mt-2">{namedSalePeriods}</RecentDataScroller>
                 )}
-                {recentPricePeriods?.length > 0 && (
+                {!!recentPricePeriods?.length && (
                     <RecentDataScroller className="mt-2">{recentPricePeriods}</RecentDataScroller>
                 )}
                 {namedSalePeriods.length === 0 && !recentPricePeriods?.length && (
@@ -236,7 +234,7 @@ export const AddPriceForm = ({ product, setDateToday, close, quickAdd = false }:
                 onChange={(priceStarted) => (priceStarted ? priceDTO.setField('priceStarted', priceStarted) : '')}
                 value={priceDTO.value.priceStarted}
             />
-            {recentPricesStarted?.length > 0 && (
+            {!!recentPricesStarted?.length && (
                 <RecentDataScroller className="mb-2">{recentPricesStarted}</RecentDataScroller>
             )}
 
@@ -247,7 +245,7 @@ export const AddPriceForm = ({ product, setDateToday, close, quickAdd = false }:
                     onChange={(priceEnded) => (priceEnded ? priceDTO.setField('priceEnded', priceEnded) : '')}
                     value={priceDTO.value.priceEnded}
                 />
-                {recentPricesEnded?.length > 0 && (
+                {!!recentPricesEnded?.length && (
                     <RecentDataScroller className="mb-2">{recentPricesEnded}</RecentDataScroller>
                 )}
 

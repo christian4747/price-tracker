@@ -7,11 +7,13 @@ import { getEditPriceMutationKey } from '@/hooks/price/useEditPrice'
 
 interface EditPriceModal {
     price: PriceType
+    // Passed separately because the API's prices leave out their product
+    productId: number
     closeEditPrice: () => void
     opened: boolean
 }
 
-export const EditPriceModal = ({ price, closeEditPrice, opened }: EditPriceModal) => {
+export const EditPriceModal = ({ price, productId, closeEditPrice, opened }: EditPriceModal) => {
     // The save runs in the form, so check for it by its key
     const saving = useIsMutating({ mutationKey: getEditPriceMutationKey(price?.priceId) }) > 0
 
@@ -34,7 +36,7 @@ export const EditPriceModal = ({ price, closeEditPrice, opened }: EditPriceModal
                         className="block mb-2"
                     />
                 )}
-                <EditPriceForm price={price} closeEditPrice={closeEditPrice} />
+                <EditPriceForm price={price} productId={productId} closeEditPrice={closeEditPrice} />
             </SaveModal>
         </>
     )

@@ -27,6 +27,8 @@ export const Price = ({ price, openEditPriceModal, openDeletePriceModal, openPer
                 <div className={deletedClassName}>{getPriceString(price)}</div>
                 <div
                     className="cursor-pointer"
+                    role="img"
+                    aria-label="Edit price"
                     onClick={(e) => {
                         openEditPriceModal(price)
                         e.stopPropagation()

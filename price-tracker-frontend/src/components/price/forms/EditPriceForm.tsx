@@ -10,14 +10,16 @@ import { AmountInputGroup } from '@/components/price/AmountInputGroup'
 
 interface EditPriceForm {
     price: PriceType
+    // Passed separately because the API's prices leave out their product
+    productId: number
     closeEditPrice: () => void
 }
 
-export const EditPriceForm = ({ price, closeEditPrice }: EditPriceForm) => {
+export const EditPriceForm = ({ price, productId, closeEditPrice }: EditPriceForm) => {
     // Hook for editing prices
-    const { priceDTO, mutation } = useEditPrice(price)
+    const { priceDTO, mutation } = useEditPrice(price, productId)
     // Hook for recent price data
-    const { query: recentPriceQuery } = useRecentPriceData(price.productId)
+    const { query: recentPriceQuery } = useRecentPriceData(productId)
 
     const recentDescriptions = recentPriceQuery.data?.descriptions.map((description: string, idx: number) => (
         <Button key={idx} onClick={() => priceDTO.setField('description', description)}>
@@ -60,7 +62,7 @@ export const EditPriceForm = ({ price, closeEditPrice }: EditPriceForm) => {
                 value={priceDTO.value.description}
                 className="mb-2"
             />
-            {recentDescriptions?.length > 0 && (
+            {!!recentDescriptions?.length && (
                 <RecentDataScroller className="mb-2">{recentDescriptions}</RecentDataScroller>
             )}
 
@@ -72,9 +74,7 @@ export const EditPriceForm = ({ price, closeEditPrice }: EditPriceForm) => {
                 value={priceDTO.value.currency}
                 className="mb-2"
             />
-            {recentCurrencies?.length > 0 && (
-                <RecentDataScroller className="mb-2">{recentCurrencies}</RecentDataScroller>
-            )}
+            {!!recentCurrencies?.length && <RecentDataScroller className="mb-2">{recentCurrencies}</RecentDataScroller>}
 
             <PriceDateTimePicker
                 label="Start Date"
@@ -82,7 +82,7 @@ export const EditPriceForm = ({ price, closeEditPrice }: EditPriceForm) => {
                 onChange={(priceStarted) => (priceStarted ? priceDTO.setField('priceStarted', priceStarted) : '')}
                 value={priceDTO.value.priceStarted}
             />
-            {recentPricesStarted?.length > 0 && (
+            {!!recentPricesStarted?.length && (
                 <RecentDataScroller className="mb-2">{recentPricesStarted}</RecentDataScroller>
             )}
 
