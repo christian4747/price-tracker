@@ -1,9 +1,11 @@
-import { describe, expect } from 'vitest'
+import { describe, expect, onTestFinished, vi } from 'vitest'
 import type { SetupWorker } from 'msw/browser'
 import { createPeriod, renderWithClient, screen, test, userEvent, waitFor, within } from '@/test-utils'
 import { http, HttpResponse } from 'msw'
 import type { PeriodType } from '@/types/period'
 import { PeriodsModal } from './PeriodsModal'
+// The app's styles, so the dividers between periods take up the space they do in the app
+import '@/styles/index.css'
 
 const periodsApiUrl = import.meta.env.VITE_BACKEND_ROOT_URL + '/periods'
 
@@ -130,6 +132,57 @@ describe('PeriodsModal', () => {
 
         expect(await within(dialog).findByText('Old sale')).toBeInTheDocument()
         expect(requests.at(-1)).toEqual({ store: null, showDeleted: 'true' })
+    })
+
+    test('should fade deleted periods in when Show deleted is switched on', async ({ worker }) => {
+        servePeriods(worker, [blackFriday, deletedSale])
+        const user = userEvent.setup()
+        renderWithClient(<PeriodsModal />)
+        const dialog = await openPeriods(user)
+        await within(dialog).findByText('Black Friday')
+
+        const fadedIn: string[] = []
+        onTestFinished(() => {
+            vi.restoreAllMocks()
+        })
+        const animate = Element.prototype.animate
+        vi.spyOn(Element.prototype, 'animate').mockImplementation(function (this: Element, keyframes, options) {
+            if (this.tagName === 'LI' && (keyframes as Keyframe[])[0]?.opacity === 0) {
+                fadedIn.push(this.getAttribute('aria-label') ?? '')
+            }
+            return animate.call(this, keyframes, options)
+        })
+        await user.click(within(dialog).getByRole('switch', { name: 'Show deleted' }))
+
+        await within(dialog).findByText('Old sale')
+        expect(fadedIn).toEqual(['Old sale'])
+    })
+
+    test('should keep the other rows the same height when deleted periods appear', async ({ worker }) => {
+        servePeriods(worker, [blackFriday, deletedSale])
+        const user = userEvent.setup()
+        renderWithClient(<PeriodsModal />)
+        const dialog = await openPeriods(user)
+        await within(dialog).findByText('Black Friday')
+
+        // The heights the list animates Black Friday's row between
+        const resized: string[] = []
+        onTestFinished(() => {
+            vi.restoreAllMocks()
+        })
+        const animate = Element.prototype.animate
+        vi.spyOn(Element.prototype, 'animate').mockImplementation(function (this: Element, keyframes, options) {
+            const frames = keyframes as Keyframe[]
+            if (this.getAttribute('aria-label') === 'Black Friday' && frames[0]?.height !== frames.at(-1)?.height) {
+                resized.push(`${frames[0]?.height} to ${frames.at(-1)?.height}`)
+            }
+            return animate.call(this, keyframes, options)
+        })
+        await user.click(within(dialog).getByRole('switch', { name: 'Show deleted' }))
+        await within(dialog).findByRole('listitem', { name: 'Old sale' })
+
+        // A divider that depends on the rows around it would change the row's height, which the list then animates
+        expect(resized).toEqual([])
     })
 
     test('should strike through the names of deleted periods', async ({ worker }) => {

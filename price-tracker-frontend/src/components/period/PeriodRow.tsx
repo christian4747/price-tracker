@@ -85,8 +85,13 @@ export const PeriodRow = ({ period }: { period: PeriodType }) => {
     const storeText = period.store ?? 'All stores'
 
     return (
-        // Named after the period, so the row can be found and read by its name alone
-        <li aria-label={period.name} className="py-2">
+        // Named after the period, so the row can be found and read by its name alone. The line between rows is drawn on
+        // top of the row's padding, not as a border, so a row keeps its height when rows appear or go away beside it.
+        // The list animates rows that change size
+        <li
+            aria-label={period.name}
+            className="relative py-2 before:absolute before:inset-x-0 before:top-0 before:h-px before:bg-smoke first:before:hidden"
+        >
             <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
                     <div className="flex gap-1.5 items-baseline">

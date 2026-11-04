@@ -3,6 +3,7 @@ import { useDisclosure } from '@mantine/hooks'
 import { useState } from 'react'
 import { MdAdd, MdRemove } from 'react-icons/md'
 import { PeriodForm } from './PeriodForm'
+import { useAnimatedList } from '@/hooks/common/useAnimatedList'
 import { usePeriods } from '@/hooks/period/usePeriods'
 import { PeriodRow } from './PeriodRow'
 import type { PeriodType } from '@/types/period'
@@ -12,6 +13,8 @@ const PeriodList = () => {
     const [showDeleted, setShowDeleted] = useState(false)
     const [adding, { toggle: toggleAdding, close: closeAdding }] = useDisclosure(false)
     const { query: periodsQuery } = usePeriods(undefined, showDeleted)
+    // Slides rows in and out as the list changes, such as deleted periods appearing with Show deleted
+    const listRef = useAnimatedList<HTMLUListElement>()
 
     return (
         <>
@@ -43,7 +46,7 @@ const PeriodList = () => {
                 </Text>
             )}
             {/* The backend lists current and upcoming periods first, so the order is kept */}
-            <ul className="divide-y divide-smoke">
+            <ul ref={listRef}>
                 {periodsQuery.data?.map((period: PeriodType) => (
                     <PeriodRow key={period.periodId} period={period} />
                 ))}
