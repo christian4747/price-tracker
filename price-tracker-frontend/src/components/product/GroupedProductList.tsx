@@ -1,16 +1,11 @@
 import { Accordion } from '@mantine/core'
-import type { ProductBody, ProductFilterDTO } from '@/types/product'
+import type { ProductFilterDTO, ProductNameGroup } from '@/types/product'
 import { useDebounce } from '@/hooks/common/useDebounce'
 import { ProductListFooter } from './ProductListFooter'
 import { useProductPageGrouped } from '@/hooks/product/useProductPageGrouped'
 import { ProductModals } from './ProductModals'
 import ProductListSkeleton from './ProductListSkeleton'
 import { GroupedProduct } from './GroupedProduct'
-
-interface GroupedProductData {
-    name: string
-    products: ProductBody[]
-}
 
 export interface GroupedProductList {
     filter: ProductFilterDTO
@@ -48,7 +43,7 @@ export const GroupedProductList = ({ filter }: GroupedProductList) => {
                         onChange={setCurrentlyOpened}
                         transitionDuration={400}
                     >
-                        {query.data.content.map((groupedProduct: GroupedProductData) => {
+                        {query.data.content.map((groupedProduct: ProductNameGroup) => {
                             // Key open state by group name so it follows the group when the list changes
                             return (
                                 <Accordion.Item value={`group-${groupedProduct.name}`} key={groupedProduct.name}>

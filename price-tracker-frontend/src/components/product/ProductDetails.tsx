@@ -2,7 +2,7 @@ import type { ProductBody } from '@/types/product'
 import PriceHistoryChart from '@/components/price/PriceHistoryChart'
 import { PriceList } from '@/components/price/PriceList'
 import { usePricePage } from '@/hooks/price/usePricePage'
-import { Skeleton } from '@mantine/core'
+import { Button, Skeleton } from '@mantine/core'
 import { useState } from 'react'
 import { AddedUpdatedText } from '@/components/common/AddedUpdatedText'
 
@@ -28,7 +28,7 @@ export const ProductDetails = ({ productBody, dateToday, setDateToday, children 
         />
     )
 
-    if (pricesQuery.isLoading) {
+    if (pricesQuery.isPending) {
         return (
             <div className="w-full h-full flex flex-col">
                 <div className="w-full flex-1 flex justify-between gap-2">
@@ -36,6 +36,21 @@ export const ProductDetails = ({ productBody, dateToday, setDateToday, children 
                     <div className="w-3/10">
                         <Skeleton className="mt-1" height={245} />
                     </div>
+                </div>
+                {productDates}
+            </div>
+        )
+    }
+
+    // Retrying here refetches only this product's prices, without reloading the page
+    if (pricesQuery.isError) {
+        return (
+            <div className="w-full h-full flex flex-col">
+                <div className="w-full flex-1 flex flex-col items-center justify-center gap-2 py-6">
+                    <span className="text-sm text-raincloud">Couldn't load prices</span>
+                    <Button size="xs" onClick={() => pricesQuery.refetch()} loading={pricesQuery.isFetching}>
+                        Retry
+                    </Button>
                 </div>
                 {productDates}
             </div>

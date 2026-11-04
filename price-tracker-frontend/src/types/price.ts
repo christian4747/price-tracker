@@ -42,3 +42,15 @@ export interface PricePeriod {
     priceStarted: string
     priceEnded: string
 }
+
+// A product's recent values, newest first, offered as quick picks in the price forms
+export interface RecentPriceData {
+    baseAmounts: number[]
+    currencies: string[]
+    descriptions: string[]
+    discountPercentages: number[]
+    pricesStarted: string[]
+    pricesEnded: string[]
+    returnPercentages: number[]
+    pricePeriods: PricePeriod[]
+}
