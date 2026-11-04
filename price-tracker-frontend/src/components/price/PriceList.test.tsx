@@ -154,7 +154,6 @@ describe('Price List Component', () => {
     test("should save an edited price with the product's ID", async ({ worker }) => {
         let savedBody: { productId?: number } | undefined
         worker.use(
-            http.get(pricesApiUrl + '/recent/:productId', () => HttpResponse.json(emptyRecentPriceData)),
             http.put(pricesApiUrl + '/:priceId', async ({ request }) => {
                 savedBody = (await request.json()) as { productId?: number }
                 return HttpResponse.json(price1)
