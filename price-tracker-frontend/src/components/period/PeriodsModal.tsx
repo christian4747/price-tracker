@@ -2,42 +2,10 @@ import { Button, Collapse, Modal, Switch, Text } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { useState } from 'react'
 import { MdAdd, MdRemove } from 'react-icons/md'
-import { AddPeriodForm } from './AddPeriodForm'
+import { PeriodForm } from './PeriodForm'
 import { usePeriods } from '@/hooks/period/usePeriods'
-import { TitleSeparator } from '@/components/common/TitleSeparator'
-import { getFormattedDateRangeString } from '@/utils/dateUtils'
-import type { PeriodKind, PeriodType } from '@/types/period'
-
-const periodKindText: Record<PeriodKind, string> = {
-    SALE: 'Sale',
-    RETURN: 'Return'
-}
-
-const PeriodRow = ({ period }: { period: PeriodType }) => {
-    // Matches deleted products: only the name is struck through, since the store and type are already gray
-    const deletedClassName = period.deletedAt !== null ? 'line-through text-raincloud' : ''
-    const storeText = period.store ?? 'All stores'
-
-    return (
-        // Named after the period, so the row can be found and read by its name alone
-        <li aria-label={period.name} className="py-2">
-            <div className="flex gap-1.5 items-baseline">
-                <span title={period.name} className={`max-w-60 truncate ${deletedClassName}`}>
-                    {period.name}
-                </span>
-                <TitleSeparator />
-                <span title={storeText} className="max-w-40 truncate text-raincloud">
-                    {storeText}
-                </span>
-                <TitleSeparator />
-                <span className="text-raincloud">{periodKindText[period.type]}</span>
-            </div>
-            <Text size="sm" className="text-raincloud">
-                {getFormattedDateRangeString(period.periodStarted, period.periodEnded)}
-            </Text>
-        </li>
-    )
-}
+import { PeriodRow } from './PeriodRow'
+import type { PeriodType } from '@/types/period'
 
 // Only rendered while the modal is open, so the periods load when it opens
 const PeriodList = () => {
@@ -67,7 +35,7 @@ const PeriodList = () => {
             </div>
             {/* Removed once it finishes closing, so the form starts over each time it opens */}
             <Collapse expanded={adding} keepMounted={false}>
-                <AddPeriodForm onSaved={closeAdding} />
+                <PeriodForm onSaved={closeAdding} />
             </Collapse>
             {periodsQuery.data?.length === 0 && (
                 <Text size="sm" className="text-raincloud">

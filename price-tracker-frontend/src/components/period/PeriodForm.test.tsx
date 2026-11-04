@@ -5,7 +5,7 @@ import { http, HttpResponse } from 'msw'
 import { notifications } from '@mantine/notifications'
 import dayjs from 'dayjs'
 import type { PeriodDTO } from '@/types/period'
-import { AddPeriodForm } from './AddPeriodForm'
+import { PeriodForm } from './PeriodForm'
 
 const periodsApiUrl = import.meta.env.VITE_BACKEND_ROOT_URL + '/periods'
 const productsApiUrl = import.meta.env.VITE_BACKEND_ROOT_URL + '/products'
@@ -44,11 +44,11 @@ const save = async (user: ReturnType<typeof userEvent.setup>) => {
     await user.click(screen.getByRole('button', { name: 'Save period' }))
 }
 
-describe('AddPeriodForm', () => {
+describe('PeriodForm', () => {
     test('should save a sale period for the typed store, from now until the end of today', async ({ worker }) => {
         const savedPeriods = recordSavedPeriods(worker)
         const user = userEvent.setup()
-        renderWithClient(<AddPeriodForm onSaved={() => {}} />)
+        renderWithClient(<PeriodForm onSaved={() => {}} />)
 
         await fillName(user)
         await fillStore(user)
@@ -65,7 +65,7 @@ describe('AddPeriodForm', () => {
     test('should save a return period when Return is chosen', async ({ worker }) => {
         const savedPeriods = recordSavedPeriods(worker)
         const user = userEvent.setup()
-        renderWithClient(<AddPeriodForm onSaved={() => {}} />)
+        renderWithClient(<PeriodForm onSaved={() => {}} />)
 
         await fillName(user, 'Card cashback')
         await fillStore(user)
@@ -77,7 +77,7 @@ describe('AddPeriodForm', () => {
     })
 
     test('should start as a sale', () => {
-        renderWithClient(<AddPeriodForm onSaved={() => {}} />)
+        renderWithClient(<PeriodForm onSaved={() => {}} />)
 
         expect(screen.getByRole('radio', { name: 'Sale' })).toBeChecked()
     })
@@ -85,7 +85,7 @@ describe('AddPeriodForm', () => {
     test('should save a period for all stores without asking for a store', async ({ worker }) => {
         const savedPeriods = recordSavedPeriods(worker)
         const user = userEvent.setup()
-        renderWithClient(<AddPeriodForm onSaved={() => {}} />)
+        renderWithClient(<PeriodForm onSaved={() => {}} />)
 
         await fillName(user)
         await user.click(screen.getByRole('switch', { name: 'All stores' }))
@@ -98,7 +98,7 @@ describe('AddPeriodForm', () => {
 
     test('should bring back the typed store when All stores is switched off again', async () => {
         const user = userEvent.setup()
-        renderWithClient(<AddPeriodForm onSaved={() => {}} />)
+        renderWithClient(<PeriodForm onSaved={() => {}} />)
 
         await fillStore(user)
         const allStores = screen.getByRole('switch', { name: 'All stores' })
@@ -113,7 +113,7 @@ describe('AddPeriodForm', () => {
     test('should fill the store from a recent store', async ({ worker }) => {
         worker.use(http.get(productsApiUrl + '/recent/stores', () => HttpResponse.json(['Store 7'])))
         const user = userEvent.setup()
-        renderWithClient(<AddPeriodForm onSaved={() => {}} />)
+        renderWithClient(<PeriodForm onSaved={() => {}} />)
 
         await user.click(await screen.findByRole('button', { name: 'Store 7' }))
 
@@ -121,7 +121,7 @@ describe('AddPeriodForm', () => {
     })
 
     test('should not show messages before a save is tried', () => {
-        renderWithClient(<AddPeriodForm onSaved={() => {}} />)
+        renderWithClient(<PeriodForm onSaved={() => {}} />)
 
         expect(screen.queryByText('Name is required')).not.toBeInTheDocument()
         expect(screen.queryByText('Store is required')).not.toBeInTheDocument()
@@ -130,7 +130,7 @@ describe('AddPeriodForm', () => {
     test('should ask for a name and store instead of saving without them', async ({ worker }) => {
         const savedPeriods = recordSavedPeriods(worker)
         const user = userEvent.setup()
-        renderWithClient(<AddPeriodForm onSaved={() => {}} />)
+        renderWithClient(<PeriodForm onSaved={() => {}} />)
 
         await user.type(screen.getByRole('textbox', { name: 'Name' }), '   ')
         await save(user)
@@ -143,7 +143,7 @@ describe('AddPeriodForm', () => {
     test('should not save without a name, even with a store', async ({ worker }) => {
         const savedPeriods = recordSavedPeriods(worker)
         const user = userEvent.setup()
-        renderWithClient(<AddPeriodForm onSaved={() => {}} />)
+        renderWithClient(<PeriodForm onSaved={() => {}} />)
 
         await fillStore(user)
         await save(user)
@@ -155,7 +155,7 @@ describe('AddPeriodForm', () => {
     test('should not save without a store, even with a name', async ({ worker }) => {
         const savedPeriods = recordSavedPeriods(worker)
         const user = userEvent.setup()
-        renderWithClient(<AddPeriodForm onSaved={() => {}} />)
+        renderWithClient(<PeriodForm onSaved={() => {}} />)
 
         await fillName(user)
         await save(user)
@@ -166,7 +166,7 @@ describe('AddPeriodForm', () => {
 
     test('should clear the messages once the name and store are typed', async () => {
         const user = userEvent.setup()
-        renderWithClient(<AddPeriodForm onSaved={() => {}} />)
+        renderWithClient(<PeriodForm onSaved={() => {}} />)
 
         await save(user)
         await screen.findByText('Name is required')
@@ -179,7 +179,7 @@ describe('AddPeriodForm', () => {
 
     test('should not save while the end date is before the start', async () => {
         const user = userEvent.setup()
-        renderWithClient(<AddPeriodForm onSaved={() => {}} />)
+        renderWithClient(<PeriodForm onSaved={() => {}} />)
 
         // Moves the end to midnight this morning, before the start of now
         await user.click(screen.getByText(dayjs().endOf('day').format('MMM D, YYYY h:mm A')))
@@ -193,7 +193,7 @@ describe('AddPeriodForm', () => {
         recordSavedPeriods(worker)
         const onSaved = vi.fn()
         const user = userEvent.setup()
-        renderWithClient(<AddPeriodForm onSaved={onSaved} />)
+        renderWithClient(<PeriodForm onSaved={onSaved} />)
 
         await fillName(user)
         await fillStore(user)
@@ -206,7 +206,7 @@ describe('AddPeriodForm', () => {
         const savedPeriods = recordSavedPeriods(worker, 400)
         const onSaved = vi.fn()
         const user = userEvent.setup()
-        renderWithClient(<AddPeriodForm onSaved={onSaved} />)
+        renderWithClient(<PeriodForm onSaved={onSaved} />)
 
         await fillName(user)
         await fillStore(user)
@@ -225,7 +225,7 @@ describe('AddPeriodForm', () => {
         recordSavedPeriods(worker)
         const messages = watchNotifications()
         const user = userEvent.setup()
-        renderWithClient(<AddPeriodForm onSaved={() => {}} />)
+        renderWithClient(<PeriodForm onSaved={() => {}} />)
 
         await fillName(user)
         await fillStore(user)
@@ -233,5 +233,89 @@ describe('AddPeriodForm', () => {
         await save(user)
 
         await waitFor(() => expect(messages()).toContain(message))
+    })
+})
+
+// Built from local times so the expected text doesn't depend on the test machine's time zone
+const cardCashback = createPeriod(7, {
+    name: 'Card cashback',
+    type: 'RETURN',
+    store: 'Store 2',
+    periodStarted: new Date(2026, 11, 1, 0, 0).toISOString(),
+    periodEnded: new Date(2026, 11, 31, 23, 59).toISOString()
+})
+
+// Records the ID and body of each edit the form saves
+const recordEditedPeriods = (worker: SetupWorker) => {
+    const edits: { periodId: string; body: PeriodDTO }[] = []
+    worker.use(
+        http.put(periodsApiUrl + '/:periodId', async ({ request, params }) => {
+            const body = (await request.json()) as PeriodDTO
+            edits.push({ periodId: params.periodId as string, body })
+            return HttpResponse.json(createPeriod(Number(params.periodId), { ...body }))
+        })
+    )
+    return edits
+}
+
+describe('PeriodForm when editing', () => {
+    test("should start with the period's values", () => {
+        renderWithClient(<PeriodForm period={cardCashback} onSaved={() => {}} />)
+
+        expect(screen.getByRole('textbox', { name: 'Name' })).toHaveValue('Card cashback')
+        expect(screen.getByRole('radio', { name: 'Return' })).toBeChecked()
+        expect(screen.getByRole('switch', { name: 'All stores' })).not.toBeChecked()
+        expect(screen.getByRole('textbox', { name: 'Store' })).toHaveValue('Store 2')
+        expect(screen.getByText('Dec 1, 2026 12:00 AM')).toBeInTheDocument()
+        expect(screen.getByText('Dec 31, 2026 11:59 PM')).toBeInTheDocument()
+    })
+
+    test('should start with All stores on for a period without a store', () => {
+        renderWithClient(<PeriodForm period={{ ...cardCashback, store: null }} onSaved={() => {}} />)
+
+        expect(screen.getByRole('switch', { name: 'All stores' })).toBeChecked()
+        expect(screen.queryByRole('textbox', { name: 'Store' })).not.toBeInTheDocument()
+    })
+
+    test('should save the changes to the same period', async ({ worker }) => {
+        const edits = recordEditedPeriods(worker)
+        const onSaved = vi.fn()
+        const user = userEvent.setup()
+        renderWithClient(<PeriodForm period={cardCashback} onSaved={onSaved} />)
+
+        await user.type(screen.getByRole('textbox', { name: 'Name' }), ' 2027')
+        await user.click(screen.getByRole('button', { name: 'Save changes' }))
+
+        await waitFor(() => expect(edits).toHaveLength(1))
+        expect(edits[0].periodId).toBe('7')
+        expect(edits[0].body).toMatchObject({ name: 'Card cashback 2027', type: 'RETURN', store: 'Store 2' })
+        // Compared as times so time zone offsets don't matter
+        expect(Date.parse(edits[0].body.periodStarted)).toBe(Date.parse(cardCashback.periodStarted))
+        expect(Date.parse(edits[0].body.periodEnded)).toBe(Date.parse(cardCashback.periodEnded))
+        await waitFor(() => expect(onSaved).toHaveBeenCalledOnce())
+    })
+
+    test('should not add a new period', async ({ worker }) => {
+        recordEditedPeriods(worker)
+        const savedPeriods = recordSavedPeriods(worker)
+        const onSaved = vi.fn()
+        const user = userEvent.setup()
+        renderWithClient(<PeriodForm period={cardCashback} onSaved={onSaved} />)
+
+        await user.click(screen.getByRole('button', { name: 'Save changes' }))
+
+        await waitFor(() => expect(onSaved).toHaveBeenCalledOnce())
+        expect(savedPeriods).toHaveLength(0)
+    })
+
+    test('should name the period once its changes are saved', async ({ worker }) => {
+        recordEditedPeriods(worker)
+        const messages = watchNotifications()
+        const user = userEvent.setup()
+        renderWithClient(<PeriodForm period={cardCashback} onSaved={() => {}} />)
+
+        await user.click(screen.getByRole('button', { name: 'Save changes' }))
+
+        await waitFor(() => expect(messages()).toContain('Successfully edited period Card cashback'))
     })
 })

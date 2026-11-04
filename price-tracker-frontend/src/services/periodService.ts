@@ -19,5 +19,27 @@ export default {
     addPeriod: async (periodToAdd: PeriodDTO) => {
         const res = await apiClient.post(apiPath, periodToAdd)
         return res.data
+    },
+
+    editPeriod: async (periodId: number, periodToEdit: PeriodDTO) => {
+        const res = await apiClient.put(apiPath + '/' + periodId.toString(), periodToEdit)
+        return res.data
+    },
+
+    // Soft deletes the period, so it can be restored from the deleted list
+    deletePeriod: async (periodId: number) => {
+        const res = await apiClient.delete(apiPath + '/' + periodId.toString())
+        return res.data
+    },
+
+    restorePeriod: async (periodId: number) => {
+        const res = await apiClient.put(apiPath + '/' + periodId.toString() + '/restore')
+        return res.data
+    },
+
+    // Only works on a deleted period, and can't be undone
+    permanentlyDeletePeriod: async (periodId: number) => {
+        const res = await apiClient.delete(apiPath + '/' + periodId.toString() + '/permanent')
+        return res.data
     }
 }

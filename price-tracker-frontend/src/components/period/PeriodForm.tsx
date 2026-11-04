@@ -2,34 +2,40 @@ import { Button, Collapse, Input, SegmentedControl, Switch, TextInput } from '@m
 import { useState } from 'react'
 import dayjs from 'dayjs'
 import { useAddPeriod } from '@/hooks/period/useAddPeriod'
+import { useEditPeriod } from '@/hooks/period/useEditPeriod'
 import { useRecentStores } from '@/hooks/product/useRecentStores'
 import { RecentDataScroller } from '@/components/common/RecentDataScroller'
 import { SubmitButton } from '@/components/common/SubmitButton'
 import { PriceDateTimePicker } from '@/components/price/PriceDateTimePicker'
 import { getLocalDateFromUTC } from '@/utils/dateUtils'
-import type { PeriodKind } from '@/types/period'
+import type { PeriodDTO, PeriodKind, PeriodType } from '@/types/period'
 
 const isBlank = (value: string) => value.trim() === ''
 
-interface AddPeriodForm {
-    onSaved: () => void
+interface PeriodFields {
+    // The period being edited, or nothing when adding one
+    period?: PeriodType
+    submitText: string
+    pending: boolean
+    onSubmit: (periodDTO: PeriodDTO) => void
 }
 
-// Adds a named sale or return period. Only rendered while open, so each opening starts with empty values
-export const AddPeriodForm = ({ onSaved }: AddPeriodForm) => {
-    const [name, setName] = useState('')
-    const [type, setType] = useState<PeriodKind>('SALE')
-    const [allStores, setAllStores] = useState(false)
-    const [store, setStore] = useState('')
-    // Starts now and ends at the end of today, so the range starts out valid
-    const [periodStarted, setPeriodStarted] = useState(() => getLocalDateFromUTC(new Date()).second(0).format())
+// The fields of a period, with the checks that run before it's saved
+const PeriodFields = ({ period, submitText, pending, onSubmit }: PeriodFields) => {
+    const [name, setName] = useState(period?.name ?? '')
+    const [type, setType] = useState<PeriodKind>(period?.type ?? 'SALE')
+    const [allStores, setAllStores] = useState(period ? period.store === null : false)
+    const [store, setStore] = useState(period?.store ?? '')
+    // A new period starts now and ends at the end of today, so the range starts out valid
+    const [periodStarted, setPeriodStarted] = useState(() =>
+        period ? dayjs(period.periodStarted).format() : getLocalDateFromUTC(new Date()).second(0).format()
+    )
     const [periodEnded, setPeriodEnded] = useState(() =>
-        getLocalDateFromUTC(new Date()).endOf('day').second(0).format()
+        period ? dayjs(period.periodEnded).format() : getLocalDateFromUTC(new Date()).endOf('day').second(0).format()
     )
     // Messages only show after a save is tried, so the form doesn't open with errors
     const [saveTried, setSaveTried] = useState(false)
 
-    const { mutation } = useAddPeriod()
     const { query: recentStoresQuery } = useRecentStores()
 
     const nameError = saveTried && isBlank(name) ? 'Name is required' : undefined
@@ -49,21 +55,18 @@ export const AddPeriodForm = ({ onSaved }: AddPeriodForm) => {
         setSaveTried(true)
         if (isBlank(name) || (!allStores && isBlank(store))) return
 
-        mutation.mutate(
-            {
-                name,
-                type,
-                // No store means the period applies to every store
-                store: allStores ? null : store,
-                periodStarted: dayjs(periodStarted).format(),
-                periodEnded: dayjs(periodEnded).format()
-            },
-            { onSuccess: onSaved }
-        )
+        onSubmit({
+            name,
+            type,
+            // No store means the period applies to every store
+            store: allStores ? null : store,
+            periodStarted: dayjs(periodStarted).format(),
+            periodEnded: dayjs(periodEnded).format()
+        })
     }
 
     return (
-        // A lighter shade of the Add period button's blue, so the form reads as opened from it
+        // A light blue border, like the price form's sale period panel, so it reads as opened from a blue toggle
         <div className="mb-3 rounded-md border border-(--mantine-color-blue-3) p-3">
             <TextInput
                 label="Name"
@@ -125,9 +128,50 @@ export const AddPeriodForm = ({ onSaved }: AddPeriodForm) => {
                 value={periodEnded}
             />
 
-            <SubmitButton pending={mutation.isPending} disabled={!!endDateError} onClick={savePeriod}>
-                Save period
+            <SubmitButton pending={pending} disabled={!!endDateError} onClick={savePeriod}>
+                {submitText}
             </SubmitButton>
         </div>
     )
+}
+
+interface SavedForm {
+    onSaved: () => void
+}
+
+const AddPeriodFields = ({ onSaved }: SavedForm) => {
+    const { mutation } = useAddPeriod()
+
+    return (
+        <PeriodFields
+            submitText="Save period"
+            pending={mutation.isPending}
+            onSubmit={(periodDTO) => mutation.mutate(periodDTO, { onSuccess: onSaved })}
+        />
+    )
+}
+
+const EditPeriodFields = ({ period, onSaved }: SavedForm & { period: PeriodType }) => {
+    const { mutation } = useEditPeriod(period)
+
+    return (
+        <PeriodFields
+            period={period}
+            submitText="Save changes"
+            pending={mutation.isPending}
+            onSubmit={(periodDTO) => mutation.mutate(periodDTO, { onSuccess: onSaved })}
+        />
+    )
+}
+
+interface PeriodForm {
+    // The period to edit, or nothing to add a new one
+    period?: PeriodType
+    onSaved: () => void
+}
+
+// Adds a named sale or return period, or edits one. Only rendered while open, so each opening starts over
+export const PeriodForm = ({ period, onSaved }: PeriodForm) => {
+    // Split in two, since each needs its own hook and hooks can't be called only some of the time
+    return period ? <EditPeriodFields period={period} onSaved={onSaved} /> : <AddPeriodFields onSaved={onSaved} />
 }
