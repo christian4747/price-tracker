@@ -16,6 +16,17 @@ export default {
         return res.data
     },
 
+    // Gets a page of the prices that fall within the period, each with its product, newest start first
+    getPeriodPrices: async (periodId: number, pageNumber: number = 0, pageSize: number = 20) => {
+        const res = await apiClient.get(apiPath + '/' + periodId.toString() + '/prices', {
+            params: {
+                page: pageNumber,
+                size: pageSize
+            }
+        })
+        return res.data
+    },
+
     addPeriod: async (periodToAdd: PeriodDTO) => {
         const res = await apiClient.post(apiPath, periodToAdd)
         return res.data

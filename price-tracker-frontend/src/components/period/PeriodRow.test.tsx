@@ -186,6 +186,32 @@ describe('PeriodRow', () => {
         await waitFor(() => expect(screen.queryByPlaceholderText('ex. Black Friday')).not.toBeInTheDocument())
     })
 
+    test("should show the period's matching prices from the row", async () => {
+        const user = userEvent.setup()
+        renderRow(blackFriday)
+
+        const showMatches = screen.getByRole('button', { name: 'Show matching prices' })
+        expect(showMatches).toHaveAttribute('aria-expanded', 'false')
+        await user.click(showMatches)
+
+        // The default handler has no matches
+        expect(await screen.findByText('No prices match this period yet.')).toBeInTheDocument()
+        expect(showMatches).toHaveAttribute('aria-expanded', 'true')
+    })
+
+    test('should replace the edit form with the matching prices', async () => {
+        const user = userEvent.setup()
+        renderRow(blackFriday)
+
+        await user.click(screen.getByRole('button', { name: 'Edit period' }))
+        await screen.findByRole('textbox', { name: 'Name' })
+        await user.click(screen.getByRole('button', { name: 'Show matching prices' }))
+
+        expect(await screen.findByText('No prices match this period yet.')).toBeInTheDocument()
+        // A placeholder query, since the closing form is hidden from role queries as soon as it starts sliding closed
+        await waitFor(() => expect(screen.queryByPlaceholderText('ex. Black Friday')).not.toBeInTheDocument())
+    })
+
     test('should keep the name and details in the row while a panel is open', async () => {
         const user = userEvent.setup()
         renderRow(blackFriday)

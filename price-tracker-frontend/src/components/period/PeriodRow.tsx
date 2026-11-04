@@ -1,8 +1,9 @@
 import { ActionIcon, Button, Collapse, Text, Tooltip } from '@mantine/core'
 import { useState } from 'react'
-import { MdDelete, MdDeleteForever, MdEdit, MdUndo } from 'react-icons/md'
+import { MdDelete, MdDeleteForever, MdEdit, MdExpandLess, MdExpandMore, MdUndo } from 'react-icons/md'
 import { TitleSeparator } from '@/components/common/TitleSeparator'
 import { PeriodForm } from './PeriodForm'
+import { PeriodMatches } from './PeriodMatches'
 import { useDeletePeriod } from '@/hooks/period/useDeletePeriod'
 import { useRestorePeriod } from '@/hooks/period/useRestorePeriod'
 import { usePermanentlyDeletePeriod } from '@/hooks/period/usePermanentlyDeletePeriod'
@@ -15,7 +16,7 @@ const periodKindText: Record<PeriodKind, string> = {
 }
 
 // What opens below the row. Only one at a time, so the row never grows two panels
-type RowPanel = 'none' | 'edit' | 'delete' | 'permanentlyDelete'
+type RowPanel = 'none' | 'edit' | 'delete' | 'permanentlyDelete' | 'matches'
 
 interface RowAction {
     label: string
@@ -135,6 +136,13 @@ export const PeriodRow = ({ period }: { period: PeriodType }) => {
                             onClick={() => togglePanel('delete')}
                         />
                     )}
+                    {/* Last, since it opens the period's details rather than changing the period */}
+                    <RowAction
+                        label="Show matching prices"
+                        icon={panel === 'matches' ? <MdExpandLess /> : <MdExpandMore />}
+                        expanded={panel === 'matches'}
+                        onClick={() => togglePanel('matches')}
+                    />
                 </div>
             </div>
 
@@ -152,6 +160,9 @@ export const PeriodRow = ({ period }: { period: PeriodType }) => {
                     onConfirm={() => deleteMutation.mutate(undefined, { onSuccess: closePanel })}
                     onCancel={closePanel}
                 />
+            </Collapse>
+            <Collapse expanded={panel === 'matches'} keepMounted={false}>
+                <PeriodMatches period={period} />
             </Collapse>
             <Collapse expanded={panel === 'permanentlyDelete'} keepMounted={false}>
                 <ConfirmPanel
