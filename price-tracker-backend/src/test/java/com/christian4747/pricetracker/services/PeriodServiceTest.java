@@ -8,6 +8,7 @@ import com.christian4747.pricetracker.models.Price;
 import com.christian4747.pricetracker.models.Product;
 import com.christian4747.pricetracker.models.PeriodType;
 import com.christian4747.pricetracker.models.dtos.IncomingPeriodDTO;
+import com.christian4747.pricetracker.models.dtos.ResponseAndCount;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,6 +28,7 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -158,11 +160,28 @@ public class PeriodServiceTest {
         price.setProduct(product);
         when(priceDAO.findAllWithinPeriod(any(), any(), any(), any())).thenReturn(new PageImpl<>(List.of(price)));
 
-        List<MatchingPeriodPrice> matchingPeriodPrices = periodService.getPeriodPrices(1, PageRequest.of(0, 20));
+        List<MatchingPeriodPrice> matchingPeriodPrices = periodService.getPeriodPrices(1, PageRequest.of(0, 20)).content();
 
         assertEquals(1, matchingPeriodPrices.size());
         assertSame(price, matchingPeriodPrices.get(0).price());
         assertSame(product, matchingPeriodPrices.get(0).product());
+    }
+
+    @Test
+    public void getPeriodPrices_matchingPrices_returnTotalAcrossAllPages() {
+        storePeriod(null, null);
+        List<Price> lastFivePrices = Stream.generate(() -> {
+            Price price = new Price();
+            price.setProduct(new Product());
+            return price;
+        }).limit(5).toList();
+        // The third page of 20 holds matches 41 to 45, out of 45 in total
+        when(priceDAO.findAllWithinPeriod(any(), any(), any(), any()))
+                .thenReturn(new PageImpl<>(lastFivePrices, PageRequest.of(2, 20), 45));
+
+        ResponseAndCount<MatchingPeriodPrice> matchingPeriodPrices = periodService.getPeriodPrices(1, PageRequest.of(2, 20));
+
+        assertEquals(45L, matchingPeriodPrices.count());
     }
 
     @Test

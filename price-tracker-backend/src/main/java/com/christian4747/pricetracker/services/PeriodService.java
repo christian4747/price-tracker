@@ -4,10 +4,13 @@ import com.christian4747.pricetracker.daos.PeriodDAO;
 import com.christian4747.pricetracker.daos.PriceDAO;
 import com.christian4747.pricetracker.models.MatchingPeriodPrice;
 import com.christian4747.pricetracker.models.Period;
+import com.christian4747.pricetracker.models.Price;
 import com.christian4747.pricetracker.models.dtos.IncomingPeriodDTO;
+import com.christian4747.pricetracker.models.dtos.ResponseAndCount;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -48,15 +51,18 @@ public class PeriodService {
      * Period has one.
      * @param periodId The ID of the Period to get the Prices of
      * @param pageable Pagination settings
-     * @return The matching Prices, each with its Product
+     * @return The page's matching Prices, each with its Product, and the number of matching Prices across all pages
      */
-    public List<MatchingPeriodPrice> getPeriodPrices(Integer periodId, Pageable pageable) {
+    public ResponseAndCount<MatchingPeriodPrice> getPeriodPrices(Integer periodId, Pageable pageable) {
         Period period = findPeriod(periodId, "get the Prices of");
 
-        return priceDAO.findAllWithinPeriod(pageable, period.getPeriodStarted(), period.getPeriodEnded(), period.getStore())
-                .getContent().stream()
+        Page<Price> pricePage =
+                priceDAO.findAllWithinPeriod(pageable, period.getPeriodStarted(), period.getPeriodEnded(), period.getStore());
+        List<MatchingPeriodPrice> matchingPeriodPrices = pricePage.getContent().stream()
                 .map(price -> new MatchingPeriodPrice(price, price.getProduct()))
                 .toList();
+
+        return new ResponseAndCount<>(matchingPeriodPrices, pricePage.getTotalElements());
     }
 
     /**
