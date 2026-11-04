@@ -19,13 +19,13 @@ const periodsApiUrl = import.meta.env.VITE_BACKEND_ROOT_URL + '/periods'
 
 const blackFriday = createPeriod(5, { name: 'Black Friday' })
 
-// Built from local times so the expected text doesn't depend on the test machine's time zone
+// Built from local times so the expected text doesn't depend on the test machine's time zone. The end date is set
+// outside createPrice, so the type knows it's there, as it always is on a matching price
 const createMatch = (id: number, productName = 'Product ' + id): MatchingPeriodPrice => ({
-    price: createPrice(id, {
-        totalAmount: 4.99,
-        priceStarted: new Date(2026, 10, 27, 0, 0).toISOString(),
+    price: {
+        ...createPrice(id, { totalAmount: 4.99, priceStarted: new Date(2026, 10, 27, 0, 0).toISOString() }),
         priceEnded: new Date(2026, 10, 29, 23, 59).toISOString()
-    }),
+    },
     product: createProduct(id, { name: productName, store: 'Store 1' })
 })
 

@@ -26,14 +26,9 @@ export interface PeriodDTO {
     periodEnded: string
 }
 
-// A price that falls within a period, with the product it belongs to, since prices leave their product out
+// A price that falls within a period, with the product it belongs to, since prices leave their product out. A price
+// only matches when its end falls within the period, so a matching price always has an end date
 export interface MatchingPeriodPrice {
-    price: PriceType
+    price: PriceType & { priceEnded: string }
     product: ProductType
-}
-
-// A page of a period's matching prices, with the number that match across all pages
-export interface MatchingPeriodPricesPage {
-    content: MatchingPeriodPrice[]
-    count: number
 }
