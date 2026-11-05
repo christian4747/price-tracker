@@ -54,7 +54,7 @@ const AddProductModal = () => {
 
     return (
         <>
-            <SaveModal pending={mutation.isPending} opened={opened} onClose={closeModal} title="Add Product">
+            <SaveModal pending={mutation.isPending} opened={opened} onClose={closeModal} title="Add Product" size="lg">
                 <TextInput
                     label="Name"
                     placeholder="Name"

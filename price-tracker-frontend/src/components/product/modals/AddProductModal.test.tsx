@@ -1,7 +1,16 @@
 import { describe, expect, onTestFinished } from 'vitest'
 import type { SetupWorker } from 'msw/browser'
 import type { ProductDTO } from '@/types/product'
-import { renderWithClient, screen, test, tryEveryModalCloseAction, userEvent, waitFor, within } from '@/test-utils'
+import {
+    getModalSize,
+    renderWithClient,
+    screen,
+    test,
+    tryEveryModalCloseAction,
+    userEvent,
+    waitFor,
+    within
+} from '@/test-utils'
 import { http, HttpResponse } from 'msw'
 import AddProductModal from './AddProductModal'
 
@@ -50,6 +59,15 @@ const startSave = async (worker: SetupWorker) => {
 }
 
 describe('Add Product Modal Component', () => {
+    test('should open wide enough to show more recent values', async () => {
+        const user = userEvent.setup()
+        renderWithClient(<AddProductModal />)
+
+        await user.click(screen.getByRole('button', { name: 'Add Product' }))
+
+        expect(getModalSize(await screen.findByRole('dialog'))).toBe('lg')
+    })
+
     test('should fill the store from a recent store button', async ({ worker }) => {
         let recentStoresRequested = false
         worker.use(

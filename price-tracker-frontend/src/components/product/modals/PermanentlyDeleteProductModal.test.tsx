@@ -3,6 +3,7 @@ import type { SetupWorker } from 'msw/browser'
 import {
     act,
     createProduct,
+    getModalSize,
     renderWithClient,
     screen,
     test,
@@ -55,6 +56,12 @@ const startDelete = async (worker: SetupWorker) => {
 }
 
 describe('Permanently Delete Product Modal Component', () => {
+    test('should keep the default width, since it only holds a confirmation', async ({ worker }) => {
+        await renderModal(worker)
+
+        expect(getModalSize(await screen.findByRole('dialog'))).toBe('md')
+    })
+
     test('should show the product, its store and that it cannot be undone', async ({ worker }) => {
         await renderModal(worker)
 

@@ -87,17 +87,19 @@ export const AmountInputGroup = ({
                 <RecentDataScroller className="mb-2">{recentBaseAmounts}</RecentDataScroller>
             )}
 
+            {/* In the discount and return rows, the amount takes the row's spare room and the percentage keeps a
+                narrow width, since it never needs more than "100.00" */}
             <div className="flex gap-1 mb-2">
                 <PriceNumberInput
                     label="Discount Amount"
-                    className="w-75"
+                    className="flex-1"
                     value={value.discountAmount}
                     max={value.amount}
                     onChange={(discountAmount) => changeDiscountAmount(discountAmount as number)}
                 />
                 <PriceNumberInput
                     label="Discount %"
-                    className="max-w-25"
+                    className="w-25"
                     value={value.discountPercentage * 100}
                     max={100}
                     onChange={(discountPercentage) => changeDiscountPercentage((discountPercentage as number) / 100)}
@@ -110,14 +112,14 @@ export const AmountInputGroup = ({
             <div className="flex gap-1 mb-2">
                 <PriceNumberInput
                     label="Return Amount"
-                    className="w-75"
+                    className="flex-1"
                     value={value.returnAmount}
                     max={value.discountAmount}
                     onChange={(returnAmount) => changeReturnAmount(returnAmount as number)}
                 />
                 <PriceNumberInput
                     label="Return %"
-                    className="max-w-25"
+                    className="w-25"
                     value={value.returnPercentage * 100}
                     max={100}
                     onChange={(returnPercentage) => changeReturnPercentage((returnPercentage as number) / 100)}

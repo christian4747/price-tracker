@@ -20,7 +20,7 @@ export const AddPriceModal = ({ product, setDateToday, quickAdd = false }: AddPr
 
     return (
         <>
-            <SaveModal pending={saving} opened={opened} onClose={close} title="Add Price">
+            <SaveModal pending={saving} opened={opened} onClose={close} title="Add Price" size="lg">
                 <AddPriceForm product={product} setDateToday={setDateToday} close={close} quickAdd={quickAdd} />
             </SaveModal>
             <Button className="m-2" onClick={open}>

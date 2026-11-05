@@ -1,6 +1,15 @@
 import { describe, expect, onTestFinished, vi } from 'vitest'
 import type { SetupWorker } from 'msw/browser'
-import { createPrice, renderWithClient, screen, test, tryEveryModalCloseAction, userEvent, waitFor } from '@/test-utils'
+import {
+    createPrice,
+    getModalSize,
+    renderWithClient,
+    screen,
+    test,
+    tryEveryModalCloseAction,
+    userEvent,
+    waitFor
+} from '@/test-utils'
 import { http, HttpResponse } from 'msw'
 import { PermanentlyDeletePriceModal } from './PermanentlyDeletePriceModal'
 
@@ -36,6 +45,12 @@ const startDelete = async (worker: SetupWorker) => {
 }
 
 describe('Permanently Delete Price Modal Component', () => {
+    test('should keep the default width, since it only holds a sentence and a button', async () => {
+        renderWithClient(<PermanentlyDeletePriceModal price={price} closeModal={() => {}} opened />)
+
+        expect(getModalSize(await screen.findByRole('dialog'))).toBe('md')
+    })
+
     test('should say which price is being deleted and that it cannot be undone', async () => {
         renderWithClient(<PermanentlyDeletePriceModal price={price} closeModal={() => {}} opened />)
 

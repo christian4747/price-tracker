@@ -3,6 +3,7 @@ import type { SetupWorker } from 'msw/browser'
 import {
     createProduct,
     modalCloseActions,
+    getModalSize,
     renderWithClient,
     screen,
     test,
@@ -57,6 +58,15 @@ const startSave = async (worker: SetupWorker, dateButton: string) => {
 }
 
 describe('Add Price Modal Component', () => {
+    test('should open wide enough to show more recent values', async () => {
+        const user = userEvent.setup()
+        renderWithClient(<AddPriceModal product={product} setDateToday={() => {}} />)
+
+        await user.click(screen.getByRole('button', { name: 'Add Price' }))
+
+        expect(getModalSize(await screen.findByRole('dialog'))).toBe('lg')
+    })
+
     test.for(['Start Date Only', 'Start and End Date'])(
         'should ignore closing while saving with %s',
         async (dateButton, { worker }) => {
