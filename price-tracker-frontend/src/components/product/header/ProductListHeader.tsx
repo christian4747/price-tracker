@@ -77,7 +77,7 @@ export const ProductListHeader = ({
                         <div className="flex gap-2">
                             <Menu>
                                 <Menu.Target>
-                                    <Button className="flex gap-2 min-w-30">{productFilterDTO.active}</Button>
+                                    <Button className="min-w-30">{productFilterDTO.active}</Button>
                                 </Menu.Target>
 
                                 <Menu.Dropdown>
@@ -95,7 +95,7 @@ export const ProductListHeader = ({
 
                             <Menu>
                                 <Menu.Target>
-                                    <Button className="flex gap-2 min-w-30">
+                                    <Button className="min-w-30">
                                         {productsGroupBy.length > 0 ? `Group By: ${productsGroupBy}` : 'Group By'}
                                     </Button>
                                 </Menu.Target>
@@ -111,7 +111,7 @@ export const ProductListHeader = ({
 
                             <Menu>
                                 <Menu.Target>
-                                    <Button className="flex gap-2 min-w-30">
+                                    <Button className="min-w-30">
                                         {productFilterDTO.deleted === 'true' ? 'Show Deleted' : 'Hide Deleted'}
                                     </Button>
                                 </Menu.Target>
