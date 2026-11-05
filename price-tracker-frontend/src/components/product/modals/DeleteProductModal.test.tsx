@@ -2,6 +2,7 @@ import { describe, expect, onTestFinished, vi } from 'vitest'
 import type { SetupWorker } from 'msw/browser'
 import {
     createProduct,
+    getModalSize,
     renderWithClient,
     screen,
     test,
@@ -40,6 +41,12 @@ const startDelete = async (worker: SetupWorker) => {
 }
 
 describe('Delete Product Modal Component', () => {
+    test('should keep the default width, since it only holds a sentence and a button', async () => {
+        renderWithClient(<DeleteProductModal product={product} closeDeleteProduct={() => {}} opened />)
+
+        expect(getModalSize(await screen.findByRole('dialog'))).toBe('md')
+    })
+
     test('should show the delete in progress', async ({ worker }) => {
         const { submitButton } = await startDelete(worker)
 

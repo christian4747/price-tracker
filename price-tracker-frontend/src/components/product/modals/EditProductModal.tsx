@@ -57,6 +57,7 @@ export const EditProductModal = ({ product, closeEditProduct, opened }: EditProd
             <SaveModal
                 pending={mutation.isPending}
                 title="Edit Product"
+                size="lg"
                 opened={opened}
                 onClose={closeModal}
                 onClick={(e) => e.stopPropagation()}

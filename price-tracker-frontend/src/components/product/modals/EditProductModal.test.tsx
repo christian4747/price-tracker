@@ -4,6 +4,7 @@ import type { ProductDTO } from '@/types/product'
 import {
     createProduct,
     modalCloseActions,
+    getModalSize,
     renderWithClient,
     screen,
     test,
@@ -43,6 +44,12 @@ const startSave = async (worker: SetupWorker) => {
 }
 
 describe('Edit Product Modal Component', () => {
+    test('should open wide enough to show more recent values', async () => {
+        renderWithClient(<EditProductModal product={product} closeEditProduct={() => {}} opened />)
+
+        expect(getModalSize(await screen.findByRole('dialog'))).toBe('lg')
+    })
+
     test('should show when the product was added and last updated', async () => {
         // Built from local times so the expected text doesn't depend on the test machine's time zone
         const datedProduct = {

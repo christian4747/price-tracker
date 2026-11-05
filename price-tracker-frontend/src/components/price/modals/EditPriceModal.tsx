@@ -24,6 +24,7 @@ export const EditPriceModal = ({ price, productId, closeEditPrice, opened }: Edi
                 opened={opened}
                 onClose={closeEditPrice}
                 title="Edit Price"
+                size="lg"
                 // No bottom padding so the dates sit right under the title
                 styles={{ header: { paddingBottom: 0 } }}
             >

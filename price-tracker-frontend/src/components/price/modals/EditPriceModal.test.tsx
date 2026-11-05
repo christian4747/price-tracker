@@ -2,6 +2,7 @@ import { describe, expect, onTestFinished, vi } from 'vitest'
 import {
     createPrice,
     modalCloseActions,
+    getModalSize,
     renderWithClient,
     screen,
     test,
@@ -21,6 +22,12 @@ const price = createPrice(1, {
 })
 
 describe('Edit Price Modal Component', () => {
+    test('should open wide enough to show more recent values', async () => {
+        renderWithClient(<EditPriceModal price={price} productId={1} closeEditPrice={() => {}} opened />)
+
+        expect(getModalSize(await screen.findByRole('dialog'))).toBe('lg')
+    })
+
     test('should show when the price was added and last updated', async () => {
         renderWithClient(<EditPriceModal price={price} productId={1} closeEditPrice={() => {}} opened />)
 
