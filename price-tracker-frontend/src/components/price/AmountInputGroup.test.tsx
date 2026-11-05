@@ -4,6 +4,8 @@ import { AmountInputGroup } from './AmountInputGroup'
 import { useReducer } from 'react'
 import { createInitialPriceDTO, reducer as priceDTOReducer } from '@/hooks/price/usePriceDTO'
 import type { PriceDTO } from '@/types/price'
+// The widths come from Tailwind classes, so the layout tests need the app's styles
+import '@/styles/index.css'
 
 function renderWithPriceDTO(
     uiFunction: (state: PriceDTO, setField: (key: string, value: string | number) => void) => React.ReactNode
@@ -204,5 +206,52 @@ describe('Amount Input Group Component', () => {
 
         expect(discountAmountInput.value).toBe('0.00')
         expect(returnAmountInput.value).toBe('0.00')
+    })
+
+    describe('layout', () => {
+        // The width of a large modal's content, as measured in the app: 620px less its padding and the room kept for a
+        // scrollbar on each side
+        const MODAL_CONTENT_WIDTH = 558
+
+        // Renders the group in a box as wide as a large modal's content, and returns the box
+        const renderInModalWidth = () => {
+            renderWithPriceDTO((state, setField) => (
+                <div data-testid="modal-content" style={{ width: MODAL_CONTENT_WIDTH }}>
+                    <AmountInputGroup value={state} setField={setField} />
+                </div>
+            ))
+            return screen.getByTestId('modal-content').getBoundingClientRect()
+        }
+
+        // Where an input's whole field sits, label included, found by the input's label
+        const fieldBox = (name: RegExp) =>
+            screen.getByRole('textbox', { name }).closest('.mantine-NumberInput-root')!.getBoundingClientRect()
+
+        test('should stretch the base price across the modal', () => {
+            const content = renderInModalWidth()
+
+            expect(fieldBox(/base price/i).width).toBe(content.width)
+        })
+
+        test.each([
+            ['discount', /discount amount/i, /discount %/i],
+            ['return', /return amount/i, /return %/i]
+        ])('should fill the modal with the %s row', (_row, amountName, percentageName) => {
+            const content = renderInModalWidth()
+
+            expect(fieldBox(amountName).left).toBe(content.left)
+            expect(fieldBox(percentageName).right).toBe(content.right)
+        })
+
+        test.each([
+            ['discount', /discount amount/i, /discount %/i],
+            ['return', /return amount/i, /return %/i]
+        ])('should give the extra room in the %s row to the amount', (_row, amountName, percentageName) => {
+            renderInModalWidth()
+
+            // The percentage stays narrow, since it never needs more than "100.00"
+            expect(fieldBox(percentageName).width).toBe(100)
+            expect(fieldBox(amountName).width).toBeGreaterThan(fieldBox(percentageName).width)
+        })
     })
 })
