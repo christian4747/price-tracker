@@ -123,6 +123,45 @@ describe('Edit Price Form Component', () => {
         expect((screen.getByRole('textbox', { name: 'Description' }) as HTMLInputElement).value).toBe('Sale')
     })
 
+    test.for([
+        ['description', 'Description'],
+        ['currency', 'Currency']
+    ])('should save a cleared %s', async ([field, label], { worker }) => {
+        let savedPrice: Record<string, unknown> | undefined
+        worker.use(
+            http.put(pricesApiUrl + '/:priceId', async ({ request }) => {
+                savedPrice = (await request.json()) as Record<string, unknown>
+                return HttpResponse.json(price)
+            })
+        )
+        const user = userEvent.setup()
+        const priceWithText = createPrice(1, { description: 'Old note', currency: 'JPY' })
+        renderWithClient(<EditPriceForm price={priceWithText} productId={1} closeEditPrice={() => {}} />)
+
+        await user.clear(screen.getByRole('textbox', { name: label }))
+        await user.click(screen.getByRole('button', { name: 'Edit Price' }))
+
+        await waitFor(() => expect(savedPrice?.[field]).toBe(''))
+    })
+
+    test('should save a cleared base price as 0, keeping its discount percentage', async ({ worker }) => {
+        let savedPrice: Record<string, unknown> | undefined
+        worker.use(
+            http.put(pricesApiUrl + '/:priceId', async ({ request }) => {
+                savedPrice = (await request.json()) as Record<string, unknown>
+                return HttpResponse.json(price)
+            })
+        )
+        const user = userEvent.setup()
+        const discountedPrice = createPrice(1, { amount: 100, discountAmount: 80, discountPercentage: 0.2 })
+        renderWithClient(<EditPriceForm price={discountedPrice} productId={1} closeEditPrice={() => {}} />)
+
+        await user.clear(screen.getByRole('textbox', { name: /base price/i }))
+        await user.click(screen.getByRole('button', { name: 'Edit Price' }))
+
+        await waitFor(() => expect(savedPrice).toMatchObject({ amount: 0, discountAmount: 0, discountPercentage: 0.2 }))
+    })
+
     test('should render input for price', async () => {
         renderWithClient(<EditPriceForm price={price} productId={1} closeEditPrice={() => {}} />)
 

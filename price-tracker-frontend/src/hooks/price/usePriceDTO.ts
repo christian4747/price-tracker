@@ -32,7 +32,7 @@ export const reducer = (state: PriceDTO, action: ReducerAction) => {
     switch (action.type) {
         case 'set_field': {
             const { key, value } = action
-            if (!key || (!value && value !== 0)) return state
+            if (!key || value === undefined) return state
 
             return {
                 ...state,
