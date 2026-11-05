@@ -10,7 +10,7 @@
     "lint:fix": "oxlint --fix",
     "preview": "vite preview",
     "test": "vitest",
-    "test:browser": "vitest --config=vitest.browser.config.ts",
+    "test:browser": "vitest --browser.headless=false",
     "format": "prettier --write src"
   },
   "dependencies": {
