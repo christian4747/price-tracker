@@ -2,7 +2,6 @@ import { describe, expect, test, vi } from 'vitest'
 import { renderWithClient, screen, userEvent } from '@/test-utils'
 import { ProductListFooter } from './ProductListFooter'
 // The footer's layout and pointer events come from these styles
-import '@mantine/core/styles.css'
 import '@/styles/index.css'
 
 describe('Product List Footer Component', () => {
