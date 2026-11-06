@@ -169,6 +169,45 @@ describe('Add Price Form Component', () => {
         })
     })
 
+    test.for(['Description', 'Currency'])('should let the %s be deleted down to nothing', async (label) => {
+        const user = userEvent.setup()
+        renderWithClient(<AddPriceForm product={product} setDateToday={() => {}} close={() => {}} />)
+        const input = screen.getByRole('textbox', { name: label }) as HTMLInputElement
+
+        await user.type(input, 'ab{Backspace}{Backspace}')
+
+        expect(input.value).toBe('')
+    })
+
+    // A new price's amounts start at 0, where a percentage would divide by zero
+    test.for(['Discount Amount', 'Return Amount'])(
+        'should save numbers for every amount after the %s of a new price is cleared',
+        async (label, { worker }) => {
+            let savedPrice: Record<string, unknown> | undefined
+            worker.use(
+                http.post(pricesApiUrl, async ({ request }) => {
+                    savedPrice = (await request.json()) as Record<string, unknown>
+                    return HttpResponse.json(savedPrice)
+                })
+            )
+            const user = userEvent.setup()
+            renderWithClient(<AddPriceForm product={product} setDateToday={() => {}} close={() => {}} />)
+
+            await user.clear(screen.getByRole('textbox', { name: label }))
+            await user.click(screen.getByRole('button', { name: 'Add Price' }))
+
+            await waitFor(() =>
+                expect(savedPrice).toMatchObject({
+                    amount: 0,
+                    discountAmount: 0,
+                    discountPercentage: 0,
+                    returnAmount: 0,
+                    returnPercentage: 0
+                })
+            )
+        }
+    )
+
     test('should block adding a price that ends before it starts', async ({ worker }) => {
         worker.use(
             http.get(pricesApiUrl + '/recent/:productId', () =>
