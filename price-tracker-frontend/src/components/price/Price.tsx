@@ -1,8 +1,8 @@
 import type { PriceType } from '@/types/price'
 import { getUSDateStringFromTimestamp } from '@/utils/dateUtils'
 import { getPriceString } from '@/utils/priceUtils'
-import { Loader, Tooltip } from '@mantine/core'
 import { MdDelete, MdDeleteForever, MdEdit, MdUndo } from 'react-icons/md'
+import { IconAction } from '@/components/common/IconAction'
 import { useRestorePrice } from '@/hooks/price/useRestorePrice'
 
 interface Price {
@@ -25,70 +25,35 @@ export const Price = ({ price, openEditPriceModal, openDeletePriceModal, openPer
             <div className={`pl-2 ${deletedClassName}`}>{priceStartedDateString}</div>
             <div className="pr-2 flex items-center gap-1">
                 <div className={deletedClassName}>{getPriceString(price)}</div>
-                <div
-                    className="cursor-pointer"
-                    role="img"
-                    aria-label="Edit price"
-                    onClick={(e) => {
-                        openEditPriceModal(price)
-                        e.stopPropagation()
-                    }}
-                >
-                    <Tooltip withArrow label="Edit Price">
-                        <MdEdit />
-                    </Tooltip>
-                </div>
+                <IconAction label="Edit price" icon={<MdEdit />} size="sm" onClick={() => openEditPriceModal(price)} />
 
                 {price.deletedAt === null && (
-                    <div
-                        className="cursor-pointer"
-                        role="img"
-                        aria-label="Delete price"
-                        onClick={(e) => {
-                            openDeletePriceModal(price)
-                            e.stopPropagation()
-                        }}
-                    >
-                        <Tooltip withArrow label="Delete Price">
-                            <MdDelete />
-                        </Tooltip>
-                    </div>
+                    <IconAction
+                        label="Delete price"
+                        icon={<MdDelete />}
+                        size="sm"
+                        onClick={() => openDeletePriceModal(price)}
+                    />
+                )}
+
+                {/* While restoring, the button shows a loader and is disabled, so a second click can't restore twice */}
+                {price.deletedAt !== null && (
+                    <IconAction
+                        label="Restore price"
+                        icon={<MdUndo />}
+                        size="sm"
+                        loading={restoreMutation.isPending}
+                        onClick={() => restoreMutation.mutate()}
+                    />
                 )}
 
                 {price.deletedAt !== null && (
-                    <div
-                        className="cursor-pointer"
-                        role="img"
-                        aria-label="Restore price"
-                        onClick={(e) => {
-                            if (!restoreMutation.isPending) restoreMutation.mutate()
-                            e.stopPropagation()
-                        }}
-                    >
-                        {restoreMutation.isPending ? (
-                            <Loader size={16} />
-                        ) : (
-                            <Tooltip withArrow label="Restore Price">
-                                <MdUndo />
-                            </Tooltip>
-                        )}
-                    </div>
-                )}
-
-                {price.deletedAt !== null && (
-                    <div
-                        className="cursor-pointer"
-                        role="img"
-                        aria-label="Permanently delete price"
-                        onClick={(e) => {
-                            openPermanentlyDeletePriceModal(price)
-                            e.stopPropagation()
-                        }}
-                    >
-                        <Tooltip withArrow label="Permanently Delete Price">
-                            <MdDeleteForever />
-                        </Tooltip>
-                    </div>
+                    <IconAction
+                        label="Permanently delete price"
+                        icon={<MdDeleteForever />}
+                        size="sm"
+                        onClick={() => openPermanentlyDeletePriceModal(price)}
+                    />
                 )}
             </div>
         </div>

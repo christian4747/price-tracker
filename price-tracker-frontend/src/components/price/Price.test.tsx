@@ -38,21 +38,21 @@ describe('Price Component', () => {
     test('should render delete price button', async () => {
         renderPrice(price)
 
-        const deletePriceButton = screen.getByRole('img', { name: /delete price/i })
+        const deletePriceButton = screen.getByRole('button', { name: /delete price/i })
         await expect.element(deletePriceButton).toBeInTheDocument()
     })
 
     test('should not render delete price button', async () => {
         renderPrice(deletedPrice)
 
-        const deletePriceButton = screen.queryByRole('img', { name: 'Delete price' })
+        const deletePriceButton = screen.queryByRole('button', { name: 'Delete price' })
         await expect.element(deletePriceButton).not.toBeInTheDocument()
     })
 
     test('should not render restore price button', async () => {
         renderPrice(price)
 
-        const restorePriceButton = screen.queryByRole('img', { name: /restore price/i })
+        const restorePriceButton = screen.queryByRole('button', { name: /restore price/i })
         await expect.element(restorePriceButton).not.toBeInTheDocument()
     })
 
@@ -67,7 +67,7 @@ describe('Price Component', () => {
         const user = userEvent.setup()
         renderPrice(deletedPrice)
 
-        await user.click(screen.getByRole('img', { name: /restore price/i }))
+        await user.click(screen.getByRole('button', { name: /restore price/i }))
 
         await waitFor(() => expect(restoredPriceIds).toEqual(['1']))
     })
@@ -86,7 +86,7 @@ describe('Price Component', () => {
         const user = userEvent.setup()
         renderPrice(deletedPrice)
 
-        const restoreButton = screen.getByRole('img', { name: /restore price/i })
+        const restoreButton = screen.getByRole('button', { name: /restore price/i })
         await user.click(restoreButton)
 
         await waitFor(() => expect(restoreButton.querySelector('.mantine-Loader-root')).toBeInTheDocument())
@@ -101,7 +101,7 @@ describe('Price Component', () => {
     test('should not render permanently delete price button for a price that is not deleted', async () => {
         renderPrice(price)
 
-        expect(screen.queryByRole('img', { name: 'Permanently delete price' })).not.toBeInTheDocument()
+        expect(screen.queryByRole('button', { name: 'Permanently delete price' })).not.toBeInTheDocument()
     })
 
     test('should open the permanently delete modal for a deleted price', async () => {
@@ -109,9 +109,57 @@ describe('Price Component', () => {
         const user = userEvent.setup()
         renderPrice(deletedPrice, { openPermanentlyDeletePriceModal })
 
-        await user.click(screen.getByRole('img', { name: 'Permanently delete price' }))
+        await user.click(screen.getByRole('button', { name: 'Permanently delete price' }))
 
         expect(openPermanentlyDeletePriceModal).toHaveBeenCalledWith(deletedPrice)
+    })
+
+    // The order Tab moves through a row's actions, so each one can be reached without a mouse
+    test.for([
+        ['a price', price, ['Edit price', 'Delete price']],
+        ['a deleted price', deletedPrice, ['Edit price', 'Restore price', 'Permanently delete price']]
+    ] as const)('should reach each action of %s with Tab', async ([, priceToRender, actions]) => {
+        const user = userEvent.setup()
+        renderPrice(priceToRender)
+
+        const reached: (string | null)[] = []
+        for (let i = 0; i < actions.length; i++) {
+            await user.tab()
+            reached.push(document.activeElement?.getAttribute('aria-label') ?? null)
+        }
+
+        expect(reached).toEqual(actions)
+    })
+
+    test('should open the edit modal with Enter', async () => {
+        const openEditPriceModal = vi.fn()
+        const user = userEvent.setup()
+        renderPrice(price, { openEditPriceModal })
+
+        screen.getByRole('button', { name: 'Edit price' }).focus()
+        await user.keyboard('{Enter}')
+
+        expect(openEditPriceModal).toHaveBeenCalledWith(price)
+    })
+
+    test('should open the delete modal with Space', async () => {
+        const openDeletePriceModal = vi.fn()
+        const user = userEvent.setup()
+        renderPrice(price, { openDeletePriceModal })
+
+        screen.getByRole('button', { name: 'Delete price' }).focus()
+        await user.keyboard(' ')
+
+        expect(openDeletePriceModal).toHaveBeenCalledWith(price)
+    })
+
+    test('should name an action in its tooltip', async () => {
+        const user = userEvent.setup()
+        renderPrice(price)
+
+        await user.hover(screen.getByRole('button', { name: 'Edit price' }))
+
+        await expect.element(screen.getByRole('tooltip')).toHaveTextContent('Edit price')
     })
 
     test('should strike through and gray out the date and amount of a deleted price', async () => {

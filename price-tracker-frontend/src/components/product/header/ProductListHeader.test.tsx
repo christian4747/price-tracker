@@ -149,4 +149,37 @@ describe('Product List Header Component', () => {
         expect(searchSearchTerm).toHaveBeenCalledTimes(1)
         expect(searchSearchTerm).toHaveBeenCalledWith('milk')
     })
+
+    // The search button comes just before the search box, so Shift+Tab from the box reaches it
+    test('should reach the search button with the keyboard from the search box', async () => {
+        const user = userEvent.setup()
+        renderProductListHeader()
+
+        await user.click(screen.getByPlaceholderText('Search'))
+        await user.tab({ shift: true })
+
+        expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Search' }))
+    })
+
+    test('should search the typed text immediately with Enter on the search button', async () => {
+        const user = userEvent.setup()
+        const searchSearchTerm = vi.fn()
+        renderProductListHeader('false', searchSearchTerm)
+
+        await user.type(screen.getByPlaceholderText('Search'), 'milk')
+        await user.tab({ shift: true })
+        await user.keyboard('{Enter}')
+
+        expect(searchSearchTerm).toHaveBeenCalledTimes(1)
+        expect(searchSearchTerm).toHaveBeenCalledWith('milk')
+    })
+
+    test('should name the search button in its tooltip', async () => {
+        const user = userEvent.setup()
+        renderProductListHeader()
+
+        await user.hover(screen.getByRole('button', { name: 'Search' }))
+
+        await expect.element(screen.getByRole('tooltip')).toHaveTextContent('Search')
+    })
 })

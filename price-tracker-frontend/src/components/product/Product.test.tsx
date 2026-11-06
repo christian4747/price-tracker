@@ -1,9 +1,12 @@
 import { describe, expect } from 'vitest'
-import { createPrice, createProduct, createProductBody, renderWithClient, screen, test } from '@/test-utils'
+import { userEvent as pointer } from 'vitest/browser'
+import { createPrice, createProduct, createProductBody, renderWithClient, screen, test, userEvent } from '@/test-utils'
 import type { ProductBody } from '@/types/product'
 import { Product } from './Product'
 import { Accordion } from '@mantine/core'
 import { useState } from 'react'
+// The actions button fades in and out with Tailwind classes, so the visibility tests need the app's styles
+import '@/styles/index.css'
 
 const product = createProduct(1, { name: 'Product 1' })
 
@@ -72,5 +75,93 @@ describe('Product Component', () => {
         await expect.element(screen.getByText('Product 1')).toBeInTheDocument()
         // A closed panel keeps its content mounted, just hidden
         await expect.element(screen.getByText(datesText)).not.toBeVisible()
+    })
+
+    // A button or link inside the row's own button is invalid HTML, and can't be reached properly with the keyboard
+    test("should keep buttons and links out of the row's toggle", async () => {
+        renderWithAccordion(
+            <Product productBody={productBody} setDateToday={() => {}} dateToday={new Date()} value={'item-1'} />
+        )
+
+        const toggle = document.querySelector('.mantine-Accordion-control')!
+        expect(toggle.querySelectorAll('button, a, [role="button"]')).toHaveLength(0)
+    })
+
+    test('should keep the row open when its actions menu is opened', async () => {
+        const user = userEvent.setup()
+        renderWithAccordion(
+            <Product productBody={productBody} setDateToday={() => {}} dateToday={new Date()} value={'item-1'} />
+        )
+
+        await user.click(screen.getByRole('button', { name: 'Product actions' }))
+        await screen.findByRole('menu')
+
+        await expect
+            .element(document.querySelector<HTMLElement>('.mantine-Accordion-control')!)
+            .toHaveAttribute('aria-expanded', 'true')
+    })
+
+    describe('actions button visibility', () => {
+        // The button's opacity once any fade has finished
+        const actionsOpacity = () =>
+            expect.poll(() => getComputedStyle(screen.getByRole('button', { name: 'Product actions' })).opacity)
+
+        // A closed row, since an open row always shows its actions
+        const renderClosedRow = () =>
+            renderWithAccordion(
+                <Product productBody={productBody} setDateToday={() => {}} dateToday={new Date()} value={'item-2'} />
+            )
+
+        // Faint rather than hidden, so it's still clear each row has actions
+        test('should show the actions button faintly while the row is closed and not hovered', async () => {
+            renderClosedRow()
+
+            await actionsOpacity().toBe('0.3')
+        })
+
+        // Moves the real mouse, since CSS :hover only follows the real pointer, not the events userEvent sends. The
+        // mouse stays put between tests, so it's moved off the row before the row is removed, even if the check fails
+        test('should show the actions button fully while the row is hovered', async () => {
+            renderClosedRow()
+            const name = screen.getByText('Product 1')
+
+            await pointer.hover(name)
+            try {
+                await actionsOpacity().toBe('1')
+            } finally {
+                await pointer.unhover(name)
+            }
+        })
+
+        test('should show the actions button fully while the row is open', async () => {
+            renderWithAccordion(
+                <Product productBody={productBody} setDateToday={() => {}} dateToday={new Date()} value={'item-1'} />
+            )
+
+            await actionsOpacity().toBe('1')
+        })
+
+        // Tab can reach a faint button, so it has to show fully once it has focus
+        test('should show the actions button fully when Tab reaches it', async () => {
+            const user = userEvent.setup()
+            renderClosedRow()
+
+            await user.tab()
+            await user.tab()
+
+            expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Product actions' }))
+            await actionsOpacity().toBe('1')
+        })
+
+        test('should keep the actions button showing fully while its menu is open', async () => {
+            const user = userEvent.setup()
+            renderClosedRow()
+
+            await user.click(screen.getByRole('button', { name: 'Product actions' }))
+            // Moving into the menu leaves the row, which is drawn apart from it
+            await user.hover(await screen.findByRole('menu'))
+
+            await actionsOpacity().toBe('1')
+        })
     })
 })

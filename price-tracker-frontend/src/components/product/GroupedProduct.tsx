@@ -1,14 +1,10 @@
 import type { ProductBody } from '@/types/product'
-import { Accordion, Box, Combobox, Input, InputBase, Tooltip, useCombobox } from '@mantine/core'
-import { FaLink } from 'react-icons/fa6'
-import { Fragment, useContext, useState } from 'react'
+import { Accordion, Box, Combobox, Input, InputBase, useCombobox } from '@mantine/core'
+import { useState } from 'react'
 import { ProductTitleBar } from './ProductTitleBar'
 import { PriceBanner } from '@/components/price/PriceBanner'
-import { MdEdit, MdDelete } from 'react-icons/md'
-import { DeleteProductContext, EditProductContext } from './ProductContext'
 import { ProductDetails } from './ProductDetails'
-import { PermanentlyDeleteProductButton } from './PermanentlyDeleteProductButton'
-import { RestoreProductButton } from './RestoreProductButton'
+import { ProductRowControl } from './ProductRowControl'
 
 export interface GroupedProduct {
     productBodies: ProductBody[]
@@ -24,9 +20,6 @@ export const GroupedProduct = ({ productBodies, dateToday, setDateToday }: Group
         onDropdownClose: () => combobox.resetSelectedOption()
     })
 
-    const openEditProductModal = useContext(EditProductContext)
-    const openDeleteProductModal = useContext(DeleteProductContext)
-
     if (!productBodies || productBodies.length === 0) {
         return <></>
     }
@@ -35,6 +28,11 @@ export const GroupedProduct = ({ productBodies, dateToday, setDateToday }: Group
     const selectedStore = productBodies.some((productBody) => productBody.product.store === chosenStore)
         ? chosenStore
         : productBodies[0].product.store
+
+    // The product at the selected store, whose actions the menu offers
+    const selectedProduct = (
+        productBodies.find((productBody) => productBody.product.store === selectedStore) ?? productBodies[0]
+    ).product
 
     // Store options for the combobox
     const storeOptions = productBodies.map((productBody) => (
@@ -64,56 +62,6 @@ export const GroupedProduct = ({ productBodies, dateToday, setDateToday }: Group
                     setDateToday={setDateToday}
                     otherStoresText={otherStoresText}
                 />
-            )
-        }
-    })
-
-    // Product action bar (link, edit, delete) for each product
-    const productActionBars = productBodies.map((productBody) => {
-        if (productBody.product.store === selectedStore) {
-            return (
-                <Fragment key={productBody.product.productId}>
-                    <a className="cursor-pointer" href={productBody.product.link} target="_blank">
-                        <Tooltip withArrow label={productBody.product.link}>
-                            <FaLink />
-                        </Tooltip>
-                    </a>
-                    <div
-                        className="cursor-pointer"
-                        role="img"
-                        aria-label="Edit product"
-                        onClick={(e) => {
-                            openEditProductModal(productBody.product)
-                            e.stopPropagation()
-                        }}
-                    >
-                        <Tooltip withArrow label="Edit Product">
-                            <MdEdit />
-                        </Tooltip>
-                    </div>
-
-                    {productBody.product.deletedAt === null && (
-                        <div
-                            className="cursor-pointer"
-                            role="img"
-                            aria-label="Delete product"
-                            onClick={(e) => {
-                                openDeleteProductModal(productBody.product)
-                                e.stopPropagation()
-                            }}
-                        >
-                            <Tooltip withArrow label="Delete Product">
-                                <MdDelete />
-                            </Tooltip>
-                        </div>
-                    )}
-
-                    {productBody.product.deletedAt !== null && <RestoreProductButton product={productBody.product} />}
-
-                    {productBody.product.deletedAt !== null && (
-                        <PermanentlyDeleteProductButton product={productBody.product} />
-                    )}
-                </Fragment>
             )
         }
     })
@@ -159,7 +107,6 @@ export const GroupedProduct = ({ productBodies, dateToday, setDateToday }: Group
                                 </Combobox.Dropdown>
                             </Combobox>
                         </Box>
-                        {productActionBars}
                     </div>
                 </ProductDetails>
             )
@@ -167,11 +114,11 @@ export const GroupedProduct = ({ productBodies, dateToday, setDateToday }: Group
     })
 
     return (
-        <div className="h-full w-full border-b border-smoke flex flex-col group">
-            <Accordion.Control>
+        <div className="h-full w-full border-b border-smoke flex flex-col">
+            <ProductRowControl product={selectedProduct}>
                 {/* Top content */}
                 {productTitleBars}
-            </Accordion.Control>
+            </ProductRowControl>
 
             <Accordion.Panel>
                 {/* Lower content */}

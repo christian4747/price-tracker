@@ -1,19 +1,16 @@
-import { describe, expect } from 'vitest'
+import { describe, expect, vi } from 'vitest'
 import { createPrice, createProduct, createProductBody, renderWithClient, screen, test, userEvent } from '@/test-utils'
 import { GroupedProduct } from './GroupedProduct'
 import { Accordion } from '@mantine/core'
 import { useState } from 'react'
 import type { ProductBody } from '@/types/product'
+import { EditProductContext } from './ProductContext'
 
 const product = createProduct(1, { name: 'Product 1' })
-
-const product2 = createProduct(1, { name: 'Product 1', deletedAt: new Date(2026, 8, 6, 12).toISOString() })
 
 const price1 = createPrice(1)
 
 const productBody = createProductBody(product, { priceToday: price1 })
-
-const productBody2 = createProductBody(product2, { priceToday: price1 })
 
 const renderWithAccordion = (ui: React.ReactNode) => {
     function AccordionWrapper({ children }: { children: React.ReactNode }) {
@@ -88,69 +85,42 @@ describe('Grouped Product Component', () => {
         await expect.element(productName).toBeInTheDocument()
     })
 
-    test('should render delete product button', async () => {
-        renderWithAccordion(
-            <Accordion.Item value="item-1">
-                <GroupedProduct productBodies={[productBody]} dateToday={new Date()} setDateToday={() => {}} />
-            </Accordion.Item>
-        )
+    // A button or link inside the row's own button is invalid HTML, and can't be reached properly with the keyboard
+    test("should keep buttons and links out of the row's toggle", async () => {
+        renderWithAccordion(<StoreSelectionHarness initialBodies={[storeABody, storeBBody]} />)
 
-        const deleteProductButton = screen.getByRole('img', { name: /delete product/i })
-        await expect.element(deleteProductButton).toBeInTheDocument()
+        const toggle = document.querySelector('.mantine-Accordion-control')!
+        expect(toggle.querySelectorAll('button, a, [role="button"]')).toHaveLength(0)
     })
 
-    test('should not render delete product button', async () => {
-        renderWithAccordion(
-            <Accordion.Item value="item-1">
-                <GroupedProduct productBodies={[productBody2]} dateToday={new Date()} setDateToday={() => {}} />
-            </Accordion.Item>
-        )
+    test('should keep the row open when its actions menu is opened', async () => {
+        const user = userEvent.setup()
+        renderWithAccordion(<StoreSelectionHarness initialBodies={[storeABody, storeBBody]} />)
 
-        const deleteProductButton = screen.queryByRole('img', { name: 'Delete product' })
-        await expect.element(deleteProductButton).not.toBeInTheDocument()
+        await user.click(screen.getByRole('button', { name: 'Product actions' }))
+        await screen.findByRole('menu')
+
+        await expect
+            .element(document.querySelector<HTMLElement>('.mantine-Accordion-control')!)
+            .toHaveAttribute('aria-expanded', 'true')
     })
 
-    test('should render permanently delete button for a deleted product', async () => {
+    // One menu for the whole group, so the panel doesn't repeat the product's actions
+    test('should offer one actions menu, for the chosen store', async () => {
+        const openEditProductModal = vi.fn()
+        const user = userEvent.setup()
         renderWithAccordion(
-            <Accordion.Item value="item-1">
-                <GroupedProduct productBodies={[productBody2]} dateToday={new Date()} setDateToday={() => {}} />
-            </Accordion.Item>
+            <EditProductContext value={openEditProductModal}>
+                <StoreSelectionHarness initialBodies={[storeABody, storeBBody]} />
+            </EditProductContext>
         )
 
-        const permanentlyDeleteButton = screen.getByRole('img', { name: 'Permanently delete product' })
-        await expect.element(permanentlyDeleteButton).toBeInTheDocument()
-    })
+        await chooseStore(user, 'Store A', 'Store B')
+        expect(screen.getAllByRole('button', { name: 'Product actions' })).toHaveLength(1)
+        await user.click(screen.getByRole('button', { name: 'Product actions' }))
+        await user.click(await screen.findByRole('menuitem', { name: 'Edit' }))
 
-    test('should not render permanently delete button for a product that is not deleted', async () => {
-        renderWithAccordion(
-            <Accordion.Item value="item-1">
-                <GroupedProduct productBodies={[productBody]} dateToday={new Date()} setDateToday={() => {}} />
-            </Accordion.Item>
-        )
-
-        expect(screen.queryByRole('img', { name: 'Permanently delete product' })).not.toBeInTheDocument()
-    })
-
-    test('should render restore product button for a deleted product', async () => {
-        renderWithAccordion(
-            <Accordion.Item value="item-1">
-                <GroupedProduct productBodies={[productBody2]} dateToday={new Date()} setDateToday={() => {}} />
-            </Accordion.Item>
-        )
-
-        const restoreProductButton = screen.getByRole('img', { name: /restore product/i })
-        await expect.element(restoreProductButton).toBeInTheDocument()
-    })
-
-    test('should not render restore product button', async () => {
-        renderWithAccordion(
-            <Accordion.Item value="item-1">
-                <GroupedProduct productBodies={[productBody]} dateToday={new Date()} setDateToday={() => {}} />
-            </Accordion.Item>
-        )
-
-        const restoreProductButton = screen.queryByRole('img', { name: /restore product/i })
-        await expect.element(restoreProductButton).not.toBeInTheDocument()
+        expect(openEditProductModal).toHaveBeenCalledWith(storeBBody.product)
     })
 
     test('should keep the chosen store when the product list is refetched', async () => {
