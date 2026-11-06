@@ -2,6 +2,7 @@ import type { ProductBody } from '@/types/product'
 import { Accordion } from '@mantine/core'
 import { ProductTitleBar } from './ProductTitleBar'
 import { ProductDetails } from './ProductDetails'
+import { ProductRowControl } from './ProductRowControl'
 
 export interface Product {
     dateToday: Date
@@ -13,11 +14,11 @@ export interface Product {
 export const Product = ({ productBody, dateToday, setDateToday, value }: Product) => {
     return (
         <Accordion.Item value={value}>
-            <div className="h-full w-full border-b border-smoke flex flex-col group">
-                <Accordion.Control>
+            <div className="h-full w-full border-b border-smoke flex flex-col">
+                <ProductRowControl product={productBody.product}>
                     {/* Top content */}
                     <ProductTitleBar productBody={productBody} dateToday={dateToday} setDateToday={setDateToday} />
-                </Accordion.Control>
+                </ProductRowControl>
 
                 <Accordion.Panel>
                     {/* Lower content */}

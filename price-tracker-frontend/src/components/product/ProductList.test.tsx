@@ -50,11 +50,12 @@ const renderList = (
     renderWithClient(<List filter={filter} />)
 }
 
-// Clicks the given action on the last product in the list
+// Opens the last product's actions menu and chooses the given item
 const clickLastProductAction = async (name: string) => {
     const user = userEvent.setup()
-    const buttons = await screen.findAllByRole('img', { name })
-    await user.click(buttons[buttons.length - 1])
+    const menuButtons = await screen.findAllByRole('button', { name: 'Product actions' })
+    await user.click(menuButtons[menuButtons.length - 1])
+    await user.click(await screen.findByRole('menuitem', { name }))
 }
 
 // Serves a count that needs two pages, and records the page and name of each request
@@ -131,7 +132,7 @@ describe.for(productLists)('$name product modals', ({ List }) => {
     test('should open the edit modal for the chosen product', async ({ worker }) => {
         renderList(worker, List, [productA, productB])
 
-        await clickLastProductAction('Edit product')
+        await clickLastProductAction('Edit')
 
         const nameInput = (await screen.findByRole('textbox', { name: 'Name' })) as HTMLInputElement
         await waitFor(() => expect(nameInput.value).toBe('Product B'))
@@ -140,7 +141,7 @@ describe.for(productLists)('$name product modals', ({ List }) => {
     test('should open the delete modal for the chosen product', async ({ worker }) => {
         renderList(worker, List, [productA, productB])
 
-        await clickLastProductAction('Delete product')
+        await clickLastProductAction('Delete')
 
         await expect
             .element(await screen.findByText('Are you sure you want to delete Product Product B?'))
@@ -155,7 +156,7 @@ describe.for(productLists)('$name product modals', ({ List }) => {
         }))
         renderList(worker, List, deletedProducts)
 
-        await clickLastProductAction('Permanently delete product')
+        await clickLastProductAction('Permanently delete')
 
         await expect
             .element(await screen.findByText(/permanently delete Product Product B at Store 1\?/))
