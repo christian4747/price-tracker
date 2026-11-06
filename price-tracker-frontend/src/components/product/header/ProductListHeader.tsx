@@ -7,6 +7,7 @@ import type { ProductFilterDTO } from '@/types/product'
 import { ACTIVE_INACTIVE_PRODUCTS, ACTIVE_PRODUCTS, INACTIVE_PRODUCTS } from '@/utils/filterConstants'
 import { useDebouncedCallback } from '@mantine/hooks'
 import { DefaultSortMenu } from './DefaultSortMenu'
+import { IconAction } from '@/components/common/IconAction'
 
 interface ProductListHeader {
     searchSearchTerm: (searchTerm: string) => void
@@ -141,14 +142,12 @@ export const ProductListHeader = ({
                                     placeholder="Search"
                                     leftSectionPointerEvents="all"
                                     leftSection={
-                                        <div
-                                            className="cursor-pointer pl-2"
-                                            role="button"
-                                            aria-label="Search"
+                                        <IconAction
+                                            label="Search"
+                                            icon={<MdSearch size={24} />}
+                                            round
                                             onClick={searchNow}
-                                        >
-                                            <MdSearch size={24} />
-                                        </div>
+                                        />
                                     }
                                     rightSectionPointerEvents="all"
                                     rightSection={
