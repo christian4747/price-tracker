@@ -1,5 +1,5 @@
 import type { ProductBody } from '@/types/product'
-import PriceHistoryChart from '@/components/price/PriceHistoryChart'
+import PriceHistoryChart, { PRICE_CHART_BOX_CLASS, PRICE_CHART_HEIGHT } from '@/components/price/PriceHistoryChart'
 import { PriceList } from '@/components/price/PriceList'
 import { usePricePage } from '@/hooks/price/usePricePage'
 import { Button, Skeleton } from '@mantine/core'
@@ -31,11 +31,13 @@ export const ProductDetails = ({ productBody, dateToday, setDateToday, children 
     if (pricesQuery.isPending) {
         return (
             <div className="w-full h-full flex flex-col">
+                {/* Sized like the chart's box (the skeleton covers the spacer inside it), and the price list side
+                    stretches to match, so the panel doesn't change height when the prices arrive */}
                 <div className="w-full flex-1 flex justify-between gap-2">
-                    <Skeleton className="mt-1 max-w-7/10" height={245} />
-                    <div className="w-3/10">
-                        <Skeleton className="mt-1" height={245} />
-                    </div>
+                    <Skeleton className={`${PRICE_CHART_BOX_CLASS} border-transparent`}>
+                        <div style={{ height: PRICE_CHART_HEIGHT }} />
+                    </Skeleton>
+                    <Skeleton className="w-3/10" />
                 </div>
                 {productDates}
             </div>
@@ -61,7 +63,9 @@ export const ProductDetails = ({ productBody, dateToday, setDateToday, children 
         <div className="w-full h-full flex flex-col">
             <div className="w-full flex-1 flex justify-between gap-2">
                 <PriceHistoryChart prices={pricesQuery.data} dateToday={dateToday} />
-                <div className="flex flex-col w-3/10 gap-2">
+                {/* contain-size stops this column's contents from setting its height, so the chart alone sets the
+                    panel's height and every product's panel matches; the price list scrolls in the room left */}
+                <div className="flex flex-col w-3/10 gap-2 contain-size">
                     {children}
                     <PriceList
                         productBody={productBody}
