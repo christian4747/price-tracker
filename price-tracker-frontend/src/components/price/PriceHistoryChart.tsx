@@ -33,6 +33,12 @@ function ChartTooltip({ label, payload }: ChartTooltipProps) {
     )
 }
 
+// Sets the height of every product's details panel, so its loading placeholder uses it too
+export const PRICE_CHART_HEIGHT = 280
+
+// The box around the chart, shared with the loading placeholder so both are the same size
+export const PRICE_CHART_BOX_CLASS = 'w-7/10 border rounded-sm p-5'
+
 type PriceHistoryChartProps = {
     prices: PriceType[]
     dateToday: Date
@@ -42,11 +48,11 @@ const PriceHistoryChart = ({ prices, dateToday }: PriceHistoryChartProps) => {
     const priceData = usePriceData(dateToday).createPriceData(prices)
 
     return (
-        <div className="w-7/10 border border-smoke rounded-sm p-5">
+        <div className={`${PRICE_CHART_BOX_CLASS} border-smoke`}>
             <LineChart
                 attributes={{
                     container: {
-                        height: 230
+                        height: PRICE_CHART_HEIGHT
                     }
                 }}
                 data={priceData}

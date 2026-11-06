@@ -46,7 +46,7 @@ export const PriceList = ({ productBody, setDateToday, prices, showDeleted, setS
     return (
         <>
             <div className="flex flex-col h-full border border-smoke rounded-sm overflow-hidden justify-between">
-                <div className="flex flex-col bg-smoke font-bold max-h-45 overflow-auto">
+                <div className="flex flex-col bg-smoke font-bold min-h-0 overflow-auto">
                     {prices.map((price) => {
                         if (price.today === true) return
                         return (
