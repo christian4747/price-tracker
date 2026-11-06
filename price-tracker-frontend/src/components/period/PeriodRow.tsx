@@ -1,6 +1,7 @@
-import { ActionIcon, Button, Collapse, Text, Tooltip } from '@mantine/core'
+import { Button, Collapse, Text } from '@mantine/core'
 import { useState } from 'react'
 import { MdDelete, MdDeleteForever, MdEdit, MdExpandLess, MdExpandMore, MdUndo } from 'react-icons/md'
+import { IconAction } from '@/components/common/IconAction'
 import { TitleSeparator } from '@/components/common/TitleSeparator'
 import { PeriodForm } from './PeriodForm'
 import { PeriodMatches } from './PeriodMatches'
@@ -17,31 +18,6 @@ const periodKindText: Record<PeriodKind, string> = {
 
 // What opens below the row. Only one at a time, so the row never grows two panels
 type RowPanel = 'none' | 'edit' | 'delete' | 'permanentlyDelete' | 'matches'
-
-interface RowAction {
-    label: string
-    icon: React.ReactNode
-    onClick: () => void
-    // Set on the actions that open a panel, so screen readers announce whether it's open
-    expanded?: boolean
-    loading?: boolean
-}
-
-// Real buttons rather than clickable icons, so they can be reached with the keyboard
-const RowAction = ({ label, icon, onClick, expanded, loading }: RowAction) => (
-    <Tooltip withArrow label={label}>
-        <ActionIcon
-            variant="subtle"
-            color="var(--color-raisin)"
-            aria-label={label}
-            aria-expanded={expanded}
-            loading={loading}
-            onClick={onClick}
-        >
-            {icon}
-        </ActionIcon>
-    </Tooltip>
-)
 
 interface ConfirmPanel {
     text: string
@@ -111,7 +87,7 @@ export const PeriodRow = ({ period }: { period: PeriodType }) => {
                 </div>
 
                 <div className="flex shrink-0 gap-1">
-                    <RowAction
+                    <IconAction
                         label="Edit period"
                         icon={<MdEdit />}
                         expanded={panel === 'edit'}
@@ -120,13 +96,13 @@ export const PeriodRow = ({ period }: { period: PeriodType }) => {
                     {deleted ? (
                         <>
                             {/* Restores straight away, since it can be deleted again just as easily */}
-                            <RowAction
+                            <IconAction
                                 label="Restore period"
                                 icon={<MdUndo />}
                                 loading={restoreMutation.isPending}
                                 onClick={() => restoreMutation.mutate()}
                             />
-                            <RowAction
+                            <IconAction
                                 label="Permanently delete period"
                                 icon={<MdDeleteForever />}
                                 expanded={panel === 'permanentlyDelete'}
@@ -134,7 +110,7 @@ export const PeriodRow = ({ period }: { period: PeriodType }) => {
                             />
                         </>
                     ) : (
-                        <RowAction
+                        <IconAction
                             label="Delete period"
                             icon={<MdDelete />}
                             expanded={panel === 'delete'}
@@ -142,7 +118,7 @@ export const PeriodRow = ({ period }: { period: PeriodType }) => {
                         />
                     )}
                     {/* Last, since it opens the period's details rather than changing the period */}
-                    <RowAction
+                    <IconAction
                         label="Show matching prices"
                         icon={panel === 'matches' ? <MdExpandLess /> : <MdExpandMore />}
                         expanded={panel === 'matches'}

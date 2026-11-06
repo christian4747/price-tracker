@@ -38,7 +38,7 @@ const emptyRecentPriceData = {
 const openEditForProduct7 = async () => {
     const user = userEvent.setup()
     renderPriceList(createProductBody(createProduct(7)))
-    await user.click(screen.getAllByRole('img', { name: 'Edit price' })[0])
+    await user.click(screen.getAllByRole('button', { name: 'Edit price' })[0])
     return user
 }
 
