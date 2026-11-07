@@ -1,6 +1,15 @@
 import { describe, expect, onTestFinished, vi } from 'vitest'
 import type { SetupWorker } from 'msw/browser'
-import { createPeriod, createProduct, renderWithClient, screen, test, userEvent, waitFor } from '@/test-utils'
+import {
+    createPeriod,
+    createProduct,
+    problemDetailResponse,
+    renderWithClient,
+    screen,
+    test,
+    userEvent,
+    waitFor
+} from '@/test-utils'
 import { http, HttpResponse } from 'msw'
 import type { PeriodDTO, PeriodType } from '@/types/period'
 import { AddPriceForm } from './AddPriceForm'
@@ -518,7 +527,7 @@ describe('Add Price Form Component', () => {
         let saveRejected = false
         const rejectSave = () => {
             saveRejected = true
-            return HttpResponse.text('Price is invalid', { status: 400 })
+            return problemDetailResponse(400, 'Price is invalid')
         }
         worker.use(http.post(pricesApiUrl, rejectSave), http.post(pricesApiUrl + '/range', rejectSave))
         const close = vi.fn()

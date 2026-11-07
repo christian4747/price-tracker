@@ -1,6 +1,6 @@
 import { describe, expect } from 'vitest'
 import type { SetupWorker } from 'msw/browser'
-import { renderWithClient, screen, test, userEvent, waitFor } from '@/test-utils'
+import { problemDetailResponse, renderWithClient, screen, test, userEvent, waitFor } from '@/test-utils'
 import { http, HttpResponse } from 'msw'
 import type { PeriodDTO } from '@/types/period'
 import { AddSalePeriodPanel } from './AddSalePeriodPanel'
@@ -20,7 +20,7 @@ const recordSavedPeriods = (worker: SetupWorker, status = 200) => {
         http.post(periodsApiUrl, async ({ request }) => {
             const body = (await request.json()) as PeriodDTO
             savedPeriods.push(body)
-            if (status !== 200) return HttpResponse.text('A period with this name already exists!', { status })
+            if (status !== 200) return problemDetailResponse(status, 'A period with this name already exists!')
             return HttpResponse.json({ periodId: 1, ...body })
         })
     )
@@ -176,7 +176,7 @@ describe('AddSalePeriodPanel', () => {
     })
 
     test('should stay open with its values when the save is rejected', async ({ worker }) => {
-        const savedPeriods = recordSavedPeriods(worker, 400)
+        const savedPeriods = recordSavedPeriods(worker, 409)
         const user = userEvent.setup()
         renderPanel()
 

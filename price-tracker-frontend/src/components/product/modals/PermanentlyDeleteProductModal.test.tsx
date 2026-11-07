@@ -4,6 +4,7 @@ import {
     act,
     createProduct,
     getModalSize,
+    problemDetailResponse,
     renderWithClient,
     screen,
     test,
@@ -255,7 +256,7 @@ describe('Permanently Delete Product Modal Component', () => {
         worker.use(
             http.delete(productsApiUrl + '/:productId/permanent', () => {
                 deleteRejected = true
-                return HttpResponse.text('Only deleted products can be permanently deleted!', { status: 400 })
+                return problemDetailResponse(409, 'Only deleted products can be permanently deleted!')
             })
         )
         const closeModal = vi.fn()

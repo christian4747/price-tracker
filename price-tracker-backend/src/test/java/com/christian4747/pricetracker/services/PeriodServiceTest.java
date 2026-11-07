@@ -1,5 +1,7 @@
 package com.christian4747.pricetracker.services;
 
+import com.christian4747.pricetracker.exceptions.ConflictException;
+import com.christian4747.pricetracker.exceptions.NotFoundException;
 import com.christian4747.pricetracker.daos.PeriodDAO;
 import com.christian4747.pricetracker.daos.PriceDAO;
 import com.christian4747.pricetracker.models.MatchingPeriodPrice;
@@ -84,16 +86,14 @@ public class PeriodServiceTest {
         when(periodDAO.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
     }
 
-    private void assertAddRejected(String message) {
-        IllegalArgumentException exception =
-                assertThrows(IllegalArgumentException.class, () -> periodService.addPeriod(periodDTO));
+    private void assertAddRejected(Class<? extends RuntimeException> exceptionType, String message) {
+        RuntimeException exception = assertThrows(exceptionType, () -> periodService.addPeriod(periodDTO));
         assertEquals(message, exception.getMessage());
         verify(periodDAO, never()).save(any());
     }
 
-    private void assertUpdateRejected(String message) {
-        IllegalArgumentException exception =
-                assertThrows(IllegalArgumentException.class, () -> periodService.updatePeriod(1, periodDTO));
+    private void assertUpdateRejected(Class<? extends RuntimeException> exceptionType, String message) {
+        RuntimeException exception = assertThrows(exceptionType, () -> periodService.updatePeriod(1, periodDTO));
         assertEquals(message, exception.getMessage());
         verify(periodDAO, never()).save(any());
     }
@@ -136,8 +136,8 @@ public class PeriodServiceTest {
     public void getPeriodPrices_missingPeriod_throwException() {
         when(periodDAO.findById(1)).thenReturn(Optional.empty());
 
-        IllegalArgumentException exception =
-                assertThrows(IllegalArgumentException.class, () -> periodService.getPeriodPrices(1, PageRequest.of(0, 20)));
+        NotFoundException exception =
+                assertThrows(NotFoundException.class, () -> periodService.getPeriodPrices(1, PageRequest.of(0, 20)));
         assertEquals("Period with ID 1 does not exist!", exception.getMessage());
     }
 
@@ -213,14 +213,14 @@ public class PeriodServiceTest {
     public void addPeriod_nullName_throwException() {
         periodDTO.setName(null);
 
-        assertAddRejected("Name is required!");
+        assertAddRejected(IllegalArgumentException.class, "Name is required!");
     }
 
     @Test
     public void addPeriod_blankName_throwException() {
         periodDTO.setName("  ");
 
-        assertAddRejected("Name is required!");
+        assertAddRejected(IllegalArgumentException.class, "Name is required!");
     }
 
     @Test
@@ -237,28 +237,28 @@ public class PeriodServiceTest {
     public void addPeriod_nullType_throwException() {
         periodDTO.setType(null);
 
-        assertAddRejected("Type is required!");
+        assertAddRejected(IllegalArgumentException.class, "Type is required!");
     }
 
     @Test
     public void addPeriod_nullStart_throwException() {
         periodDTO.setPeriodStarted(null);
 
-        assertAddRejected("Start date is required!");
+        assertAddRejected(IllegalArgumentException.class, "Start date is required!");
     }
 
     @Test
     public void addPeriod_nullEnd_throwException() {
         periodDTO.setPeriodEnded(null);
 
-        assertAddRejected("End date is required!");
+        assertAddRejected(IllegalArgumentException.class, "End date is required!");
     }
 
     @Test
     public void addPeriod_endSameAsStart_throwException() {
         periodDTO.setPeriodEnded(START);
 
-        assertAddRejected("Period end date must be after its start date!");
+        assertAddRejected(IllegalArgumentException.class, "Period end date must be after its start date!");
     }
 
     @Test
@@ -266,7 +266,7 @@ public class PeriodServiceTest {
         periodDTO.setPeriodStarted(END);
         periodDTO.setPeriodEnded(START);
 
-        assertAddRejected("Period end date must be after its start date!");
+        assertAddRejected(IllegalArgumentException.class, "Period end date must be after its start date!");
     }
 
     @Test
@@ -293,7 +293,7 @@ public class PeriodServiceTest {
     public void addPeriod_nameExists_throwException() {
         when(periodDAO.findAllByNameIgnoreCase(anyString())).thenReturn(List.of(period(2, "Black Friday", null)));
 
-        assertAddRejected("A period with this name already exists!");
+        assertAddRejected(ConflictException.class, "A period with this name already exists!");
     }
 
     @Test
@@ -301,7 +301,7 @@ public class PeriodServiceTest {
         Timestamp deletedAt = Timestamp.valueOf("2026-09-14 00:00:00");
         when(periodDAO.findAllByNameIgnoreCase(anyString())).thenReturn(List.of(period(2, "Black Friday", deletedAt)));
 
-        assertAddRejected("A deleted period has this name. Restore it instead!");
+        assertAddRejected(ConflictException.class, "A deleted period has this name. Restore it instead!");
     }
 
     @Test
@@ -318,7 +318,7 @@ public class PeriodServiceTest {
     public void updatePeriod_missingPeriod_throwException() {
         when(periodDAO.findById(1)).thenReturn(Optional.empty());
 
-        assertUpdateRejected("Period with ID 1 does not exist!");
+        assertUpdateRejected(NotFoundException.class, "Period with ID 1 does not exist!");
     }
 
     @Test
@@ -343,7 +343,7 @@ public class PeriodServiceTest {
         storePeriod(null, null);
         periodDTO.setName("  ");
 
-        assertUpdateRejected("Name is required!");
+        assertUpdateRejected(IllegalArgumentException.class, "Name is required!");
     }
 
     @Test
@@ -352,7 +352,7 @@ public class PeriodServiceTest {
         periodDTO.setPeriodStarted(END);
         periodDTO.setPeriodEnded(START);
 
-        assertUpdateRejected("Period end date must be after its start date!");
+        assertUpdateRejected(IllegalArgumentException.class, "Period end date must be after its start date!");
     }
 
     @Test
@@ -371,7 +371,7 @@ public class PeriodServiceTest {
         storePeriod(null, null);
         when(periodDAO.findAllByNameIgnoreCase("Black Friday")).thenReturn(List.of(period(2, "Black Friday", null)));
 
-        assertUpdateRejected("A period with this name already exists!");
+        assertUpdateRejected(ConflictException.class, "A period with this name already exists!");
     }
 
     @Test
@@ -412,8 +412,8 @@ public class PeriodServiceTest {
     public void deletePeriod_missingPeriod_throwException() {
         when(periodDAO.findById(1)).thenReturn(Optional.empty());
 
-        IllegalArgumentException exception =
-                assertThrows(IllegalArgumentException.class, () -> periodService.deletePeriod(1));
+        NotFoundException exception =
+                assertThrows(NotFoundException.class, () -> periodService.deletePeriod(1));
         assertEquals("Period with ID 1 does not exist!", exception.getMessage());
         verify(periodDAO, never()).deleteById(anyInt());
     }
@@ -438,8 +438,8 @@ public class PeriodServiceTest {
     public void restorePeriod_missingPeriod_throwException() {
         when(periodDAO.findById(1)).thenReturn(Optional.empty());
 
-        IllegalArgumentException exception =
-                assertThrows(IllegalArgumentException.class, () -> periodService.restorePeriod(1));
+        NotFoundException exception =
+                assertThrows(NotFoundException.class, () -> periodService.restorePeriod(1));
         assertEquals("Period with ID 1 does not exist!", exception.getMessage());
         verify(periodDAO, never()).save(any());
     }
@@ -458,8 +458,8 @@ public class PeriodServiceTest {
     public void permanentlyDeletePeriod_missingPeriod_throwException() {
         when(periodDAO.findById(1)).thenReturn(Optional.empty());
 
-        IllegalArgumentException exception =
-                assertThrows(IllegalArgumentException.class, () -> periodService.permanentlyDeletePeriod(1));
+        NotFoundException exception =
+                assertThrows(NotFoundException.class, () -> periodService.permanentlyDeletePeriod(1));
         assertEquals("Period with ID 1 does not exist!", exception.getMessage());
         verify(periodDAO, never()).permanentlyDeleteById(anyInt());
     }
@@ -468,8 +468,8 @@ public class PeriodServiceTest {
     public void permanentlyDeletePeriod_periodNotDeleted_throwException() {
         storePeriod(null, null);
 
-        IllegalArgumentException exception =
-                assertThrows(IllegalArgumentException.class, () -> periodService.permanentlyDeletePeriod(1));
+        ConflictException exception =
+                assertThrows(ConflictException.class, () -> periodService.permanentlyDeletePeriod(1));
         assertEquals("Only deleted periods can be permanently deleted!", exception.getMessage());
         verify(periodDAO, never()).permanentlyDeleteById(anyInt());
     }
@@ -489,8 +489,8 @@ public class PeriodServiceTest {
         storePeriod(null, DELETED);
         when(periodDAO.permanentlyDeleteById(1)).thenReturn(0);
 
-        IllegalArgumentException exception =
-                assertThrows(IllegalArgumentException.class, () -> periodService.permanentlyDeletePeriod(1));
+        ConflictException exception =
+                assertThrows(ConflictException.class, () -> periodService.permanentlyDeletePeriod(1));
         assertEquals("Only deleted periods can be permanently deleted!", exception.getMessage());
     }
 

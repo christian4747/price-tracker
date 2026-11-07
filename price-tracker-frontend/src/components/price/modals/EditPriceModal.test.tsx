@@ -3,6 +3,7 @@ import {
     createPrice,
     modalCloseActions,
     getModalSize,
+    problemDetailResponse,
     renderWithClient,
     screen,
     test,
@@ -66,7 +67,7 @@ describe('Edit Price Modal Component', () => {
         worker.use(
             http.put(pricesApiUrl + '/:priceId', () => {
                 saveRejected = true
-                return HttpResponse.text('Price is invalid', { status: 400 })
+                return problemDetailResponse(400, 'Price is invalid')
             })
         )
         const closeEditPrice = vi.fn()

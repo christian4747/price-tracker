@@ -1,5 +1,7 @@
 package com.christian4747.pricetracker.services;
 
+import com.christian4747.pricetracker.exceptions.ConflictException;
+import com.christian4747.pricetracker.exceptions.NotFoundException;
 import com.christian4747.pricetracker.daos.PriceDAO;
 import com.christian4747.pricetracker.daos.ProductDAO;
 import com.christian4747.pricetracker.models.Price;
@@ -138,7 +140,7 @@ public class PriceService {
 
         if (existingPrice.isEmpty()) {
             logger.info("Attempted to delete a Price that doesn't exist: {}", priceId);
-            throw new IllegalArgumentException("Price with ID " + priceId + " does not exist!");
+            throw new NotFoundException("Price with ID " + priceId + " does not exist!");
         }
 
         priceDAO.deleteById(priceId);
@@ -157,7 +159,7 @@ public class PriceService {
 
         if (existingPrice.isEmpty()) {
             logger.info("Attempted to restore a Price that doesn't exist: {}", priceId);
-            throw new IllegalArgumentException("Price with ID " + priceId + " does not exist!");
+            throw new NotFoundException("Price with ID " + priceId + " does not exist!");
         }
 
         Price priceToRestore = existingPrice.get();
@@ -179,12 +181,12 @@ public class PriceService {
 
         if (existingPrice.isEmpty()) {
             logger.info("Attempted to permanently delete a Price that doesn't exist: {}", priceId);
-            throw new IllegalArgumentException("Price with ID " + priceId + " does not exist!");
+            throw new NotFoundException("Price with ID " + priceId + " does not exist!");
         }
 
         if (existingPrice.get().getDeletedAt() == null) {
             logger.info("Attempted to permanently delete a Price that isn't deleted: {}", priceId);
-            throw new IllegalArgumentException("Only deleted prices can be permanently deleted!");
+            throw new ConflictException("Only deleted prices can be permanently deleted!");
         }
 
         priceDAO.permanentlyDeleteById(priceId);
@@ -220,7 +222,7 @@ public class PriceService {
 
         if (existingPrice.isEmpty()) {
             logger.info("Attempted to get a Price that doesn't exist: {}", priceId);
-            throw new IllegalArgumentException("Price with ID " + priceId + " does not exist!");
+            throw new NotFoundException("Price with ID " + priceId + " does not exist!");
         }
 
         return existingPrice.get();
@@ -377,7 +379,7 @@ public class PriceService {
 
         if (existingPrice.isEmpty()) {
             logger.info("Attempted to update a Price that doesn't exist: {}", priceId);
-            throw new IllegalArgumentException("Price with ID " + priceId + " does not exist!");
+            throw new NotFoundException("Price with ID " + priceId + " does not exist!");
         }
 
         Price priceToUpdate = existingPrice.get();

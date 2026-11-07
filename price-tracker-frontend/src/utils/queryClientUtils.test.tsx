@@ -1,6 +1,6 @@
 import { describe, expect, onTestFinished } from 'vitest'
-import { RenderClientWrapper, createPrice, render, screen, test, userEvent } from '@/test-utils'
-import { http, HttpResponse } from 'msw'
+import { RenderClientWrapper, createPrice, problemDetailResponse, render, screen, test, userEvent } from '@/test-utils'
+import { http } from 'msw'
 import { notifications, Notifications } from '@mantine/notifications'
 import { EditPriceModal } from '@/components/price/modals/EditPriceModal'
 import { createQueryClient } from './queryClientUtils'
@@ -14,7 +14,7 @@ describe('createQueryClient', () => {
     test('should show the error notification when a save is rejected', async ({ worker }) => {
         // Notifications are shared across tests, so this one can't carry over into others
         onTestFinished(() => notifications.clean())
-        worker.use(http.put(pricesApiUrl + '/:priceId', () => HttpResponse.text('Price is invalid', { status: 400 })))
+        worker.use(http.put(pricesApiUrl + '/:priceId', () => problemDetailResponse(400, 'Price is invalid')))
         const user = userEvent.setup()
         const queryClient = createQueryClient()
         render(

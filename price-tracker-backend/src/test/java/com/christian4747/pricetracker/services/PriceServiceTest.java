@@ -1,5 +1,7 @@
 package com.christian4747.pricetracker.services;
 
+import com.christian4747.pricetracker.exceptions.ConflictException;
+import com.christian4747.pricetracker.exceptions.NotFoundException;
 import com.christian4747.pricetracker.daos.PriceDAO;
 import com.christian4747.pricetracker.daos.ProductDAO;
 import com.christian4747.pricetracker.models.Price;
@@ -281,7 +283,7 @@ public class PriceServiceTest {
         price.setDeletedAt(null);
         when(priceDAO.findById(1)).thenReturn(Optional.of(price));
 
-        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> priceService.permanentlyDeletePrice(1));
+        ConflictException ex = assertThrows(ConflictException.class, () -> priceService.permanentlyDeletePrice(1));
         assertEquals("Only deleted prices can be permanently deleted!", ex.getMessage());
         verify(priceDAO, never()).permanentlyDeleteById(anyInt());
     }
@@ -290,7 +292,7 @@ public class PriceServiceTest {
     public void permanentlyDeletePrice_nonExistentPrice_throwException() {
         when(priceDAO.findById(1)).thenReturn(Optional.empty());
 
-        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> priceService.permanentlyDeletePrice(1));
+        NotFoundException ex = assertThrows(NotFoundException.class, () -> priceService.permanentlyDeletePrice(1));
         assertEquals("Price with ID 1 does not exist!", ex.getMessage());
         verify(priceDAO, never()).permanentlyDeleteById(anyInt());
     }
@@ -314,7 +316,7 @@ public class PriceServiceTest {
     public void deletePrice_nonExistentPrice_throwException() {
         when(priceDAO.findById(anyInt())).thenReturn(Optional.empty());
 
-        assertThrows(IllegalArgumentException.class, () -> priceService.deletePrice(1));
+        assertThrows(NotFoundException.class, () -> priceService.deletePrice(1));
     }
 
     @Test
@@ -331,7 +333,7 @@ public class PriceServiceTest {
     public void restorePrice_nonExistentPrice_throwException() {
         when(priceDAO.findById(anyInt())).thenReturn(Optional.empty());
 
-        assertThrows(IllegalArgumentException.class, () -> priceService.restorePrice(1));
+        assertThrows(NotFoundException.class, () -> priceService.restorePrice(1));
         verify(priceDAO, never()).save(any());
     }
 
@@ -362,7 +364,7 @@ public class PriceServiceTest {
     public void getPriceById_nonExistentPrice_throwException() {
         when(priceDAO.findById(anyInt())).thenReturn(Optional.empty());
 
-        assertThrows(IllegalArgumentException.class, () -> priceService.getPriceById(1));
+        assertThrows(NotFoundException.class, () -> priceService.getPriceById(1));
     }
 
     @Test
@@ -428,7 +430,7 @@ public class PriceServiceTest {
     public void updatePrice_nonExistentPrice_throwException() {
         when(priceDAO.findById(anyInt())).thenReturn(Optional.empty());
 
-        assertThrows(IllegalArgumentException.class, () -> priceService.updatePrice(1, priceDTO));
+        assertThrows(NotFoundException.class, () -> priceService.updatePrice(1, priceDTO));
     }
 
     @Test

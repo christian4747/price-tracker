@@ -1,5 +1,7 @@
 package com.christian4747.pricetracker.services;
 
+import com.christian4747.pricetracker.exceptions.ConflictException;
+import com.christian4747.pricetracker.exceptions.NotFoundException;
 import com.christian4747.pricetracker.daos.PriceDAO;
 import com.christian4747.pricetracker.daos.ProductDAO;
 import com.christian4747.pricetracker.models.Price;
@@ -85,7 +87,7 @@ public class ProductService {
             return existingProduct.get();
         } else {
             logger.info("Attempted to delete a Product that doesn't exist: {}", productId);
-            throw new IllegalArgumentException("Product with ID " + productId + " does not exist!");
+            throw new NotFoundException("Product with ID " + productId + " does not exist!");
         }
     }
 
@@ -101,12 +103,12 @@ public class ProductService {
 
         if (existingProduct.isEmpty()) {
             logger.info("Attempted to permanently delete a Product that doesn't exist: {}", productId);
-            throw new IllegalArgumentException("Product with ID " + productId + " does not exist!");
+            throw new NotFoundException("Product with ID " + productId + " does not exist!");
         }
 
         if (existingProduct.get().getDeletedAt() == null) {
             logger.info("Attempted to permanently delete a Product that isn't deleted: {}", productId);
-            throw new IllegalArgumentException("Only deleted products can be permanently deleted!");
+            throw new ConflictException("Only deleted products can be permanently deleted!");
         }
 
         int removedPriceCount = priceDAO.permanentlyDeleteByProductId(productId);
@@ -114,7 +116,7 @@ public class ProductService {
         // Throwing rolls back the removed Prices if the Product was restored after it was checked
         if (productDAO.permanentlyDeleteById(productId) == 0) {
             logger.info("Attempted to permanently delete a Product that was restored: {}", productId);
-            throw new IllegalArgumentException("Only deleted products can be permanently deleted!");
+            throw new ConflictException("Only deleted products can be permanently deleted!");
         }
         logger.info("Successfully permanently deleted Product with ID: {}", productId);
 
@@ -133,7 +135,7 @@ public class ProductService {
 
         if (existingProduct.isEmpty()) {
             logger.info("Attempted to restore a Product that doesn't exist: {}", productId);
-            throw new IllegalArgumentException("Product with ID " + productId + " does not exist!");
+            throw new NotFoundException("Product with ID " + productId + " does not exist!");
         }
 
         Product productToRestore = existingProduct.get();
@@ -143,7 +145,7 @@ public class ProductService {
                     .anyMatch(product -> product.getDeletedAt() == null);
             if (activeDuplicateExists) {
                 logger.info("Attempted to restore a Product that would duplicate another Product: {}", productId);
-                throw new IllegalArgumentException("Another product with the same name and store already exists!");
+                throw new ConflictException("Another product with the same name and store already exists!");
             }
 
             int restoredPriceCount = priceDAO.restoreByProductIdAndDeletedAt(productId, productToRestore.getDeletedAt());
@@ -184,9 +186,9 @@ public class ProductService {
 
         logger.info("Attempted to save a Product that already exists: {}, {}", name, store);
         if (otherProducts.stream().allMatch(product -> product.getDeletedAt() != null)) {
-            throw new IllegalArgumentException("Product already exists as a deleted product. Restore it instead!");
+            throw new ConflictException("Product already exists as a deleted product. Restore it instead!");
         }
-        throw new IllegalArgumentException("Product already exists!");
+        throw new ConflictException("Product already exists!");
     }
 
     /**
@@ -312,7 +314,7 @@ public class ProductService {
 
         if (existingProduct.isEmpty()) {
             logger.info("Attempted to get a Product that doesn't exist: {}", productId);
-            throw new IllegalArgumentException("Product with ID " + productId + " does not exist!");
+            throw new NotFoundException("Product with ID " + productId + " does not exist!");
         }
 
         return getProductWithPriceToday(existingProduct.get());
@@ -480,7 +482,7 @@ public class ProductService {
 
         if (existingProduct.isEmpty()) {
             logger.info("Attempted to update a Product that doesn't exist: {}", productId);
-            throw new IllegalArgumentException("Product with ID " + productId + " does not exist!");
+            throw new NotFoundException("Product with ID " + productId + " does not exist!");
         }
 
         checkRequiredFields(productDTO);
