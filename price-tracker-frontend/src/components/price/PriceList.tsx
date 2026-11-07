@@ -20,6 +20,8 @@ interface PriceList {
 
 export const PriceList = ({ productBody, setDateToday, prices, showDeleted, setShowDeleted }: PriceList) => {
     const { product } = productBody
+    // The backend rejects adding, editing, and restoring prices until the product is restored
+    const productDeleted = product.deletedAt !== null
     // Track state for currently selected price
     const [currentPrice, setCurrentPrice] = useState(prices[0])
     // Track state of modal open/close
@@ -56,6 +58,7 @@ export const PriceList = ({ productBody, setDateToday, prices, showDeleted, setS
                                 openDeletePriceModal={openDeletePriceModal}
                                 openPermanentlyDeletePriceModal={openPermanentlyDeletePriceModal}
                                 openEditPriceModal={openEditPriceModal}
+                                productDeleted={productDeleted}
                             />
                         )
                     })}
@@ -69,12 +72,14 @@ export const PriceList = ({ productBody, setDateToday, prices, showDeleted, setS
                         checked={showDeleted}
                         onChange={(e) => setShowDeleted(e.currentTarget.checked)}
                     />
-                    <div className="flex gap-1 justify-center">
-                        <AddPriceModal product={product} setDateToday={setDateToday} />
-                        {prices && prices.length > 0 && (
-                            <AddPriceModal product={product} setDateToday={setDateToday} quickAdd={true} />
-                        )}
-                    </div>
+                    {!productDeleted && (
+                        <div className="flex gap-1 justify-center">
+                            <AddPriceModal product={product} setDateToday={setDateToday} />
+                            {prices && prices.length > 0 && (
+                                <AddPriceModal product={product} setDateToday={setDateToday} quickAdd={true} />
+                            )}
+                        </div>
+                    )}
                 </div>
 
                 {/* Modal Zone */}

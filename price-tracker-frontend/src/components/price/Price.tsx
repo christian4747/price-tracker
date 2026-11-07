@@ -10,9 +10,17 @@ interface Price {
     openEditPriceModal: (price: PriceType) => void
     openDeletePriceModal: (price: PriceType) => void
     openPermanentlyDeletePriceModal: (price: PriceType) => void
+    // A deleted product's prices can't be edited or restored until the product is restored, which restores them too
+    productDeleted: boolean
 }
 
-export const Price = ({ price, openEditPriceModal, openDeletePriceModal, openPermanentlyDeletePriceModal }: Price) => {
+export const Price = ({
+    price,
+    openEditPriceModal,
+    openDeletePriceModal,
+    openPermanentlyDeletePriceModal,
+    productDeleted
+}: Price) => {
     // Constructing the string to show the date on the PriceList
     const priceStartedDateString = getUSDateStringFromTimestamp(price.priceStarted)
     // Hook for restoring deleted prices
@@ -25,7 +33,14 @@ export const Price = ({ price, openEditPriceModal, openDeletePriceModal, openPer
             <div className={`pl-2 ${deletedClassName}`}>{priceStartedDateString}</div>
             <div className="pr-2 flex items-center gap-1">
                 <div className={deletedClassName}>{getPriceString(price)}</div>
-                <IconAction label="Edit price" icon={<MdEdit />} size="sm" onClick={() => openEditPriceModal(price)} />
+                {!productDeleted && (
+                    <IconAction
+                        label="Edit price"
+                        icon={<MdEdit />}
+                        size="sm"
+                        onClick={() => openEditPriceModal(price)}
+                    />
+                )}
 
                 {price.deletedAt === null && (
                     <IconAction
@@ -37,7 +52,7 @@ export const Price = ({ price, openEditPriceModal, openDeletePriceModal, openPer
                 )}
 
                 {/* While restoring, the button shows a loader and is disabled, so a second click can't restore twice */}
-                {price.deletedAt !== null && (
+                {price.deletedAt !== null && !productDeleted && (
                     <IconAction
                         label="Restore price"
                         icon={<MdUndo />}
