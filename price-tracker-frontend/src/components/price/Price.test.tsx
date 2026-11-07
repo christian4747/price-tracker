@@ -14,7 +14,7 @@ const deletedPrice = createPrice(1, {
     deletedAt: new Date(2026, 8, 6, 12).toISOString()
 })
 
-// Renders the price with modal handlers that do nothing, unless a test passes its own
+// Renders the price of a product that isn't deleted, with modal handlers that do nothing, unless a test passes its own
 const renderPrice = (priceToRender: PriceType, handlers: Partial<ComponentProps<typeof Price>> = {}) => {
     return renderWithClient(
         <Price
@@ -22,6 +22,7 @@ const renderPrice = (priceToRender: PriceType, handlers: Partial<ComponentProps<
             openEditPriceModal={() => {}}
             openDeletePriceModal={() => {}}
             openPermanentlyDeletePriceModal={() => {}}
+            productDeleted={false}
             {...handlers}
         />
     )
@@ -96,6 +97,29 @@ describe('Price Component', () => {
 
         await waitFor(() => expect(restoreButton.querySelector('.mantine-Loader-root')).not.toBeInTheDocument())
         expect(requestCount).toBe(1)
+    })
+
+    // Restoring the product restores its prices, so a deleted product's price can't be restored on its own
+    test("should not render restore price button for a deleted product's price", async () => {
+        renderPrice(deletedPrice, { productDeleted: true })
+
+        expect(screen.queryByRole('button', { name: 'Restore price' })).not.toBeInTheDocument()
+    })
+
+    test("should not render edit price button for a deleted product's price", async () => {
+        renderPrice(deletedPrice, { productDeleted: true })
+
+        expect(screen.queryByRole('button', { name: 'Edit price' })).not.toBeInTheDocument()
+    })
+
+    test("should open the permanently delete modal for a deleted product's price", async () => {
+        const openPermanentlyDeletePriceModal = vi.fn()
+        const user = userEvent.setup()
+        renderPrice(deletedPrice, { productDeleted: true, openPermanentlyDeletePriceModal })
+
+        await user.click(screen.getByRole('button', { name: 'Permanently delete price' }))
+
+        expect(openPermanentlyDeletePriceModal).toHaveBeenCalledWith(deletedPrice)
     })
 
     test('should not render permanently delete price button for a price that is not deleted', async () => {

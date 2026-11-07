@@ -20,6 +20,7 @@ const price1 = createPrice(1, { priceStarted: new Date(2026, 8, 4, 12).toISOStri
 const price2 = createPrice(2, { priceStarted: new Date(2026, 8, 5, 12).toISOString() })
 
 const product = createProduct(1)
+const deletedProduct = createProduct(1, { deletedAt: new Date(2026, 8, 6, 12).toISOString() })
 
 const averages = { averagePrice: 15, weightedAveragePrice: 17.5 }
 
@@ -76,6 +77,22 @@ describe('Price List Component', () => {
 
         const price1Date = screen.getByText(/add price/i)
         await expect.element(price1Date).toBeInTheDocument()
+    })
+
+    // The backend rejects adding a price to a deleted product until the product is restored
+    test('should not render the add price buttons for a deleted product', async () => {
+        renderPriceList(createProductBody(deletedProduct))
+
+        await expect.element(screen.getByText('9/4/2026')).toBeInTheDocument()
+        expect(screen.queryByRole('button', { name: 'Add Price' })).not.toBeInTheDocument()
+        expect(screen.queryByRole('button', { name: 'Quick Price' })).not.toBeInTheDocument()
+    })
+
+    test("should not offer to edit a deleted product's prices", async () => {
+        renderPriceList(createProductBody(deletedProduct))
+
+        await expect.element(screen.getByText('9/4/2026')).toBeInTheDocument()
+        expect(screen.queryByRole('button', { name: 'Edit price' })).not.toBeInTheDocument()
     })
 
     test('should render show deleted prices checkbox', async () => {
