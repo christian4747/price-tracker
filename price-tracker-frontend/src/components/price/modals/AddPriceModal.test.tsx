@@ -4,6 +4,7 @@ import {
     createProduct,
     modalCloseActions,
     getModalSize,
+    problemDetailResponse,
     renderWithClient,
     screen,
     test,
@@ -83,7 +84,7 @@ describe('Add Price Modal Component', () => {
         worker.use(
             http.post(pricesApiUrl, () => {
                 saveRejected = true
-                return HttpResponse.text('Price is invalid', { status: 400 })
+                return problemDetailResponse(400, 'Price is invalid')
             })
         )
         const { submitButton, user } = await openWithDates('Start Date Only')

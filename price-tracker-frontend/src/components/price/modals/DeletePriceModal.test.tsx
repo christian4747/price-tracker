@@ -3,6 +3,7 @@ import type { SetupWorker } from 'msw/browser'
 import {
     createPrice,
     getModalSize,
+    problemDetailResponse,
     renderWithClient,
     screen,
     test,
@@ -74,7 +75,7 @@ describe('Delete Price Modal Component', () => {
         worker.use(
             http.delete(pricesApiUrl + '/:priceId', () => {
                 deleteRejected = true
-                return HttpResponse.text('Price not found', { status: 404 })
+                return problemDetailResponse(404, 'Price not found')
             })
         )
         const closeDeletePrice = vi.fn()

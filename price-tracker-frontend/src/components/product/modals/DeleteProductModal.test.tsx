@@ -3,6 +3,7 @@ import type { SetupWorker } from 'msw/browser'
 import {
     createProduct,
     getModalSize,
+    problemDetailResponse,
     renderWithClient,
     screen,
     test,
@@ -74,7 +75,7 @@ describe('Delete Product Modal Component', () => {
         worker.use(
             http.delete(productsApiUrl + '/:productId', () => {
                 deleteRejected = true
-                return HttpResponse.text('Product not found', { status: 404 })
+                return problemDetailResponse(404, 'Product not found')
             })
         )
         const closeDeleteProduct = vi.fn()

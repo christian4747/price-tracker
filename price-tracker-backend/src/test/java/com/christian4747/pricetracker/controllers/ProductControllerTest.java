@@ -1,15 +1,18 @@
 package com.christian4747.pricetracker.controllers;
 
+import com.christian4747.pricetracker.exceptions.ConflictException;
 import com.christian4747.pricetracker.models.Product;
 import com.christian4747.pricetracker.services.ProductService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -35,12 +38,33 @@ public class ProductControllerTest {
     }
 
     @Test
-    public void permanentlyDeleteProduct_rejectedProduct_return400WithMessage() throws Exception {
+    public void permanentlyDeleteProduct_productNotDeleted_return409WithMessage() throws Exception {
         when(productService.permanentlyDeleteProduct(1))
-                .thenThrow(new IllegalArgumentException("Only deleted products can be permanently deleted!"));
+                .thenThrow(new ConflictException("Only deleted products can be permanently deleted!"));
 
         mockMvc.perform(delete("/products/1/permanent"))
-                .andExpect(status().isBadRequest())
-                .andExpect(content().string("Only deleted products can be permanently deleted!"));
+                .andExpect(status().isConflict())
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.detail").value("Only deleted products can be permanently deleted!"));
+    }
+
+    @Test
+    public void postProductById_methodNotSupported_return405ProblemDetail() throws Exception {
+        // Spring rejects the request before any controller runs, so this checks Spring's own errors share the format
+        mockMvc.perform(post("/products/1"))
+                .andExpect(status().isMethodNotAllowed())
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.status").value(405));
+    }
+
+    @Test
+    public void permanentlyDeleteProduct_unexpectedError_return500WithGenericMessage() throws Exception {
+        // The exception's own message can hold internal details, such as SQL, so it mustn't reach the response
+        when(productService.permanentlyDeleteProduct(1)).thenThrow(new RuntimeException("SQL error in products"));
+
+        mockMvc.perform(delete("/products/1/permanent"))
+                .andExpect(status().isInternalServerError())
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.detail").value("Something went wrong on the server."));
     }
 }

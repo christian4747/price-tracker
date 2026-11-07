@@ -3,6 +3,7 @@ import type { SetupWorker } from 'msw/browser'
 import type { ProductDTO } from '@/types/product'
 import {
     getModalSize,
+    problemDetailResponse,
     renderWithClient,
     screen,
     test,
@@ -225,7 +226,7 @@ describe('Add Product Modal Component', () => {
         worker.use(
             http.post(productsApiUrl, () => {
                 saveRejected = true
-                return HttpResponse.text('Product already exists!', { status: 400 })
+                return problemDetailResponse(409, 'Product already exists!')
             })
         )
         const user = userEvent.setup()

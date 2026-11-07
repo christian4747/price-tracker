@@ -1,5 +1,7 @@
 package com.christian4747.pricetracker.services;
 
+import com.christian4747.pricetracker.exceptions.ConflictException;
+import com.christian4747.pricetracker.exceptions.NotFoundException;
 import com.christian4747.pricetracker.daos.PriceDAO;
 import com.christian4747.pricetracker.daos.ProductDAO;
 import com.christian4747.pricetracker.models.Price;
@@ -103,7 +105,7 @@ public class ProductServiceTest {
     public void addProduct_productExists_throwException() {
         when(productDAO.findAllByName(anyString())).thenReturn(List.of(addedProduct));
 
-        assertThrows(IllegalArgumentException.class, () -> productService.addProduct(productDTO));
+        assertThrows(ConflictException.class, () -> productService.addProduct(productDTO));
     }
 
     @Test
@@ -111,8 +113,8 @@ public class ProductServiceTest {
         addedProduct.setDeletedAt(Timestamp.valueOf("2026-09-14 00:00:00"));
         when(productDAO.findAllByName(anyString())).thenReturn(List.of(addedProduct));
 
-        IllegalArgumentException exception =
-                assertThrows(IllegalArgumentException.class, () -> productService.addProduct(productDTO));
+        ConflictException exception =
+                assertThrows(ConflictException.class, () -> productService.addProduct(productDTO));
         assertEquals("Product already exists as a deleted product. Restore it instead!", exception.getMessage());
         verify(productDAO, never()).save(any());
     }
@@ -237,8 +239,8 @@ public class ProductServiceTest {
     public void permanentlyDeleteProduct_productNotDeleted_throwException() {
         when(productDAO.findById(1)).thenReturn(Optional.of(addedProduct));
 
-        IllegalArgumentException exception =
-                assertThrows(IllegalArgumentException.class, () -> productService.permanentlyDeleteProduct(1));
+        ConflictException exception =
+                assertThrows(ConflictException.class, () -> productService.permanentlyDeleteProduct(1));
         assertEquals("Only deleted products can be permanently deleted!", exception.getMessage());
         verify(priceDAO, never()).permanentlyDeleteByProductId(anyInt());
         verify(productDAO, never()).permanentlyDeleteById(anyInt());
@@ -248,8 +250,8 @@ public class ProductServiceTest {
     public void permanentlyDeleteProduct_nonExistentProduct_throwException() {
         when(productDAO.findById(1)).thenReturn(Optional.empty());
 
-        IllegalArgumentException exception =
-                assertThrows(IllegalArgumentException.class, () -> productService.permanentlyDeleteProduct(1));
+        NotFoundException exception =
+                assertThrows(NotFoundException.class, () -> productService.permanentlyDeleteProduct(1));
         assertEquals("Product with ID 1 does not exist!", exception.getMessage());
         verify(priceDAO, never()).permanentlyDeleteByProductId(anyInt());
         verify(productDAO, never()).permanentlyDeleteById(anyInt());
@@ -262,8 +264,8 @@ public class ProductServiceTest {
         when(productDAO.findById(1)).thenReturn(Optional.of(addedProduct));
         when(productDAO.permanentlyDeleteById(1)).thenReturn(0);
 
-        IllegalArgumentException exception =
-                assertThrows(IllegalArgumentException.class, () -> productService.permanentlyDeleteProduct(1));
+        ConflictException exception =
+                assertThrows(ConflictException.class, () -> productService.permanentlyDeleteProduct(1));
         assertEquals("Only deleted products can be permanently deleted!", exception.getMessage());
     }
 
@@ -295,7 +297,7 @@ public class ProductServiceTest {
     public void deleteProduct_productNonExistent_throwException() {
         when(productDAO.findById(anyInt())).thenReturn(Optional.empty());
 
-        assertThrows(IllegalArgumentException.class, () -> productService.deleteProduct(1));
+        assertThrows(NotFoundException.class, () -> productService.deleteProduct(1));
     }
 
     @Test
@@ -334,7 +336,7 @@ public class ProductServiceTest {
     public void restoreProduct_productNonExistent_throwException() {
         when(productDAO.findById(anyInt())).thenReturn(Optional.empty());
 
-        assertThrows(IllegalArgumentException.class, () -> productService.restoreProduct(1));
+        assertThrows(NotFoundException.class, () -> productService.restoreProduct(1));
         verify(productDAO, never()).save(any());
     }
 
@@ -366,7 +368,7 @@ public class ProductServiceTest {
     public void getProductById_nonExistentProduct_throwException() {
         when(productDAO.findById(anyInt())).thenReturn(Optional.empty());
 
-        assertThrows(IllegalArgumentException.class, () -> productService.getProductById(1));
+        assertThrows(NotFoundException.class, () -> productService.getProductById(1));
     }
 
     @Test
@@ -604,7 +606,7 @@ public class ProductServiceTest {
     public void updateProduct_nonExistentProduct_throwException() {
         when(productDAO.findById(anyInt())).thenReturn(Optional.empty());
 
-        assertThrows(IllegalArgumentException.class, () -> productService.updateProduct(1, new IncomingProductDTO()));
+        assertThrows(NotFoundException.class, () -> productService.updateProduct(1, new IncomingProductDTO()));
     }
 
     @Test
@@ -663,8 +665,8 @@ public class ProductServiceTest {
         when(productDAO.findById(anyInt())).thenReturn(Optional.of(addedProduct));
         when(productDAO.findAllByName("Product")).thenReturn(List.of(addedProduct, otherProduct));
 
-        IllegalArgumentException exception =
-                assertThrows(IllegalArgumentException.class, () -> productService.updateProduct(1, productDTO));
+        ConflictException exception =
+                assertThrows(ConflictException.class, () -> productService.updateProduct(1, productDTO));
         assertEquals("Product already exists!", exception.getMessage());
         verify(productDAO, never()).save(any());
     }
@@ -692,8 +694,8 @@ public class ProductServiceTest {
         when(productDAO.findById(anyInt())).thenReturn(Optional.of(addedProduct));
         when(productDAO.findAllByName("Product")).thenReturn(List.of(addedProduct, activeProduct));
 
-        IllegalArgumentException exception =
-                assertThrows(IllegalArgumentException.class, () -> productService.restoreProduct(1));
+        ConflictException exception =
+                assertThrows(ConflictException.class, () -> productService.restoreProduct(1));
         assertEquals("Another product with the same name and store already exists!", exception.getMessage());
         verify(productDAO, never()).save(any());
         verify(priceDAO, never()).restoreByProductIdAndDeletedAt(anyInt(), any());

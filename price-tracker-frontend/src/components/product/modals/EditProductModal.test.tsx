@@ -5,6 +5,7 @@ import {
     createProduct,
     modalCloseActions,
     getModalSize,
+    problemDetailResponse,
     renderWithClient,
     screen,
     test,
@@ -214,7 +215,7 @@ describe('Edit Product Modal Component', () => {
             worker.use(
                 http.put(productsApiUrl + '/:productId', () => {
                     saveRejected = true
-                    return HttpResponse.text('Product already exists!', { status: 400 })
+                    return problemDetailResponse(409, 'Product already exists!')
                 })
             )
             const closeEditProduct = vi.fn()
@@ -236,7 +237,7 @@ describe('Edit Product Modal Component', () => {
         worker.use(
             http.put(productsApiUrl + '/:productId', () => {
                 saveRejected = true
-                return HttpResponse.text('Product already exists!', { status: 400 })
+                return problemDetailResponse(409, 'Product already exists!')
             })
         )
         const closeEditProduct = vi.fn()

@@ -1,5 +1,7 @@
 package com.christian4747.pricetracker.services;
 
+import com.christian4747.pricetracker.exceptions.ConflictException;
+import com.christian4747.pricetracker.exceptions.NotFoundException;
 import com.christian4747.pricetracker.daos.PeriodDAO;
 import com.christian4747.pricetracker.daos.PriceDAO;
 import com.christian4747.pricetracker.models.MatchingPeriodPrice;
@@ -163,13 +165,13 @@ public class PeriodService {
 
         if (periodToRemove.getDeletedAt() == null) {
             logger.info("Attempted to permanently delete a Period that isn't deleted: {}", periodId);
-            throw new IllegalArgumentException("Only deleted periods can be permanently deleted!");
+            throw new ConflictException("Only deleted periods can be permanently deleted!");
         }
 
         // The query only removes deleted Periods, so nothing is removed if the Period was restored after it was checked
         if (periodDAO.permanentlyDeleteById(periodId) == 0) {
             logger.info("Attempted to permanently delete a Period that was restored: {}", periodId);
-            throw new IllegalArgumentException("Only deleted periods can be permanently deleted!");
+            throw new ConflictException("Only deleted periods can be permanently deleted!");
         }
         logger.info("Successfully permanently deleted Period with ID: {}", periodId);
 
@@ -187,7 +189,7 @@ public class PeriodService {
 
         if (existingPeriod.isEmpty()) {
             logger.info("Attempted to {} a Period that doesn't exist: {}", action, periodId);
-            throw new IllegalArgumentException("Period with ID " + periodId + " does not exist!");
+            throw new NotFoundException("Period with ID " + periodId + " does not exist!");
         }
 
         return existingPeriod.get();
@@ -241,9 +243,9 @@ public class PeriodService {
 
         logger.info("Attempted to save a Period with a name that already exists: {}", name);
         if (otherPeriods.stream().allMatch(period -> period.getDeletedAt() != null)) {
-            throw new IllegalArgumentException("A deleted period has this name. Restore it instead!");
+            throw new ConflictException("A deleted period has this name. Restore it instead!");
         }
-        throw new IllegalArgumentException("A period with this name already exists!");
+        throw new ConflictException("A period with this name already exists!");
     }
 
     /**
