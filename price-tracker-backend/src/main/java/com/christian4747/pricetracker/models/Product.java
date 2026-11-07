@@ -186,7 +186,6 @@ public class Product {
                 ", createdAt=" + createdAt +
                 ", deletedAt=" + deletedAt +
                 ", updatedAt=" + updatedAt +
-                ", prices=" + prices +
                 '}';
     }
 }
