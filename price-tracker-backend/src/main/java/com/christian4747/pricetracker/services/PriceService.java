@@ -60,6 +60,8 @@ public class PriceService {
             throw new IllegalArgumentException("Product with ID " + priceDTO.getProductId() + " does not exist!");
         }
 
+        requireActiveProduct(existingProduct.get());
+
         Price newPrice = new Price(
                 0,
                 priceDTO.getAmount(),
@@ -122,6 +124,18 @@ public class PriceService {
         return List.of(savedPrice, savedEndPrice);
     }
 
+    /**
+     * Rejects a change that would leave an active Price on a deleted Product. Restoring the Product restores the Prices
+     * deleted with it, so its Prices can't be added, edited, or restored on their own until then.
+     * @param product The Product the Price belongs to, or is being moved to
+     */
+    private void requireActiveProduct(Product product) {
+        if (product.getDeletedAt() != null) {
+            logger.info("Attempted to change a Price of a deleted Product: {}", product.getProductId());
+            throw new ConflictException("Restore the product first!");
+        }
+    }
+
     private double calculateTotalPercentage(double discountAmount, double returnAmount, double amount) {
         double totalPercentage = 1.0;
         if (amount > 0) {
@@ -163,6 +177,7 @@ public class PriceService {
         }
 
         Price priceToRestore = existingPrice.get();
+        requireActiveProduct(priceToRestore.getProduct());
         priceToRestore.setDeletedAt(null);
         Price restoredPrice = priceDAO.save(priceToRestore);
         logger.info("Successfully restored Price with ID: {}", priceId);
@@ -383,6 +398,7 @@ public class PriceService {
         }
 
         Price priceToUpdate = existingPrice.get();
+        requireActiveProduct(priceToUpdate.getProduct());
         priceToUpdate.setAmount(priceDTO.getAmount());
         priceToUpdate.setCurrency(priceDTO.getCurrency());
         priceToUpdate.setDescription(priceDTO.getDescription());
@@ -401,6 +417,7 @@ public class PriceService {
                 logger.info("Attempted to update a Price with a Product ID that doesn't exist: {}", priceDTO.getProductId());
                 throw new IllegalArgumentException("Product with ID " + priceDTO.getProductId() + " does not exist!");
             }
+            requireActiveProduct(existingProduct.get());
             priceToUpdate.setProduct(existingProduct.get());
         }
 

@@ -96,6 +96,16 @@ public class PriceServiceTest {
     }
 
     @Test
+    public void addPrice_deletedProduct_throwException() {
+        product.setDeletedAt(Timestamp.valueOf("2026-09-14 00:00:00"));
+        when(productDAO.findById(anyInt())).thenReturn(Optional.of(product));
+
+        ConflictException ex = assertThrows(ConflictException.class, () -> priceService.addPrice(priceDTO));
+        assertEquals("Restore the product first!", ex.getMessage());
+        verify(priceDAO, never()).save(any());
+    }
+
+    @Test
     public void addPrice_validPrice_returnPrice() {
         when(productDAO.findById(anyInt())).thenReturn(Optional.of(product));
         when(priceDAO.save(any())).thenReturn(price);
@@ -246,6 +256,16 @@ public class PriceServiceTest {
     }
 
     @Test
+    public void addPriceRange_deletedProduct_throwException() {
+        product.setDeletedAt(Timestamp.valueOf("2026-09-14 00:00:00"));
+        when(productDAO.findById(anyInt())).thenReturn(Optional.of(product));
+
+        ConflictException ex = assertThrows(ConflictException.class, () -> priceService.addPriceRange(createRangeDTO()));
+        assertEquals("Restore the product first!", ex.getMessage());
+        verify(priceDAO, never()).save(any());
+    }
+
+    @Test
     public void addPriceRange_endPriceFails_throwException() {
         when(productDAO.findById(anyInt())).thenReturn(Optional.of(product));
         when(priceDAO.save(any())).thenReturn(price).thenThrow(new IllegalStateException("Save failed"));
@@ -270,6 +290,18 @@ public class PriceServiceTest {
 
     @Test
     public void permanentlyDeletePrice_deletedPrice_removeAndReturnPrice() {
+        price.setDeletedAt(Timestamp.valueOf("2026-09-10 12:00:00"));
+        when(priceDAO.findById(1)).thenReturn(Optional.of(price));
+        when(priceDAO.permanentlyDeleteById(1)).thenReturn(1);
+
+        assertEquals(price, priceService.permanentlyDeletePrice(1));
+        verify(priceDAO).permanentlyDeleteById(1);
+    }
+
+    // Unlike adding, editing, and restoring, removing a price can't leave an active price on a deleted product
+    @Test
+    public void permanentlyDeletePrice_deletedProduct_removeAndReturnPrice() {
+        product.setDeletedAt(Timestamp.valueOf("2026-09-10 12:00:00"));
         price.setDeletedAt(Timestamp.valueOf("2026-09-10 12:00:00"));
         when(priceDAO.findById(1)).thenReturn(Optional.of(price));
         when(priceDAO.permanentlyDeleteById(1)).thenReturn(1);
@@ -327,6 +359,17 @@ public class PriceServiceTest {
 
         assertNull(priceService.restorePrice(1).getDeletedAt());
         verify(priceDAO).save(price);
+    }
+
+    @Test
+    public void restorePrice_deletedProduct_throwException() {
+        product.setDeletedAt(Timestamp.valueOf("2026-09-14 00:00:00"));
+        price.setDeletedAt(Timestamp.valueOf("2026-09-14 00:00:00"));
+        when(priceDAO.findById(anyInt())).thenReturn(Optional.of(price));
+
+        ConflictException ex = assertThrows(ConflictException.class, () -> priceService.restorePrice(1));
+        assertEquals("Restore the product first!", ex.getMessage());
+        verify(priceDAO, never()).save(any());
     }
 
     @Test
@@ -443,6 +486,31 @@ public class PriceServiceTest {
         when(productDAO.findById(anyInt())).thenReturn(Optional.empty());
 
         assertThrows(IllegalArgumentException.class, () -> priceService.updatePrice(1, priceDTO));
+    }
+
+    @Test
+    public void updatePrice_deletedProduct_throwException() {
+        product.setDeletedAt(Timestamp.valueOf("2026-09-14 00:00:00"));
+        when(priceDAO.findById(anyInt())).thenReturn(Optional.of(price));
+
+        ConflictException ex = assertThrows(ConflictException.class, () -> priceService.updatePrice(1, priceDTO));
+        assertEquals("Restore the product first!", ex.getMessage());
+        verify(priceDAO, never()).save(any());
+    }
+
+    @Test
+    public void updatePrice_moveToDeletedProduct_throwException() {
+        priceDTO.setProductId(2);
+        Product deletedProduct = new Product();
+        deletedProduct.setProductId(2);
+        deletedProduct.setDeletedAt(Timestamp.valueOf("2026-09-14 00:00:00"));
+
+        when(priceDAO.findById(anyInt())).thenReturn(Optional.of(price));
+        when(productDAO.findById(2)).thenReturn(Optional.of(deletedProduct));
+
+        ConflictException ex = assertThrows(ConflictException.class, () -> priceService.updatePrice(1, priceDTO));
+        assertEquals("Restore the product first!", ex.getMessage());
+        verify(priceDAO, never()).save(any());
     }
 
     @Test
