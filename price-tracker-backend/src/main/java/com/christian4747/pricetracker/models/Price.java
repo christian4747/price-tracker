@@ -242,7 +242,7 @@ public class Price {
                 ", createdAt=" + createdAt +
                 ", deletedAt=" + deletedAt +
                 ", updatedAt=" + updatedAt +
-                ", product=" + product +
+                ", productId=" + (product == null ? null : product.getProductId()) +
                 '}';
     }
 }
