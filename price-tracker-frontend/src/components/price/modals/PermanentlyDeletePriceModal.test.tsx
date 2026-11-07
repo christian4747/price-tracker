@@ -3,6 +3,7 @@ import type { SetupWorker } from 'msw/browser'
 import {
     createPrice,
     getModalSize,
+    problemDetailResponse,
     renderWithClient,
     screen,
     test,
@@ -107,7 +108,7 @@ describe('Permanently Delete Price Modal Component', () => {
         worker.use(
             http.delete(pricesApiUrl + '/:priceId/permanent', () => {
                 deleteRejected = true
-                return HttpResponse.text('Only deleted prices can be permanently deleted!', { status: 400 })
+                return problemDetailResponse(409, 'Only deleted prices can be permanently deleted!')
             })
         )
         const closeModal = vi.fn()

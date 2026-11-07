@@ -1,5 +1,6 @@
 package com.christian4747.pricetracker.controllers;
 
+import com.christian4747.pricetracker.exceptions.ConflictException;
 import com.christian4747.pricetracker.models.Price;
 import com.christian4747.pricetracker.models.dtos.IncomingPriceRangeDTO;
 import com.christian4747.pricetracker.services.PriceService;
@@ -86,7 +87,8 @@ public class PriceControllerTest {
 
         postRange()
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string("Price end date is required!"));
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.detail").value("Price end date is required!"));
     }
 
     @Test
@@ -108,12 +110,13 @@ public class PriceControllerTest {
     }
 
     @Test
-    public void permanentlyDeletePrice_rejectedPrice_return400WithMessage() throws Exception {
+    public void permanentlyDeletePrice_priceNotDeleted_return409WithMessage() throws Exception {
         when(priceService.permanentlyDeletePrice(1))
-                .thenThrow(new IllegalArgumentException("Only deleted prices can be permanently deleted!"));
+                .thenThrow(new ConflictException("Only deleted prices can be permanently deleted!"));
 
         mockMvc.perform(delete("/prices/1/permanent"))
-                .andExpect(status().isBadRequest())
-                .andExpect(content().string("Only deleted prices can be permanently deleted!"));
+                .andExpect(status().isConflict())
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.detail").value("Only deleted prices can be permanently deleted!"));
     }
 }

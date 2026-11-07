@@ -16,14 +16,26 @@ const createAxiosError = (data: unknown) => {
 
 describe('getErrorMessage', () => {
     test("should return the backend's message for a rejected request", () => {
-        expect(getErrorMessage(createAxiosError('Product already exists!'))).toBe('Product already exists!')
+        const problemDetail = { type: 'about:blank', status: 400, detail: 'Name is required!' }
+
+        expect(getErrorMessage(createAxiosError(problemDetail))).toBe('Name is required!')
     })
 
-    test('should return a generic message when the response has no text', () => {
+    test('should return a generic message when the response has no detail', () => {
         expect(getErrorMessage(createAxiosError(''))).toBe(
             'An error has occurred: AxiosError: Request failed with status code 400'
         )
+        expect(getErrorMessage(createAxiosError({ type: 'about:blank', status: 400, detail: '' }))).toBe(
+            'An error has occurred: AxiosError: Request failed with status code 400'
+        )
         expect(getErrorMessage(createAxiosError({ error: 'Bad Request' }))).toBe(
+            'An error has occurred: AxiosError: Request failed with status code 400'
+        )
+    })
+
+    // The backend always sends a ProblemDetail, so a text body came from somewhere else, such as a proxy's error page
+    test('should return a generic message for a plain text response', () => {
+        expect(getErrorMessage(createAxiosError('<html>Bad Gateway</html>'))).toBe(
             'An error has occurred: AxiosError: Request failed with status code 400'
         )
     })

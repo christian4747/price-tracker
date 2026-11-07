@@ -1,6 +1,6 @@
 import { describe, expect, onTestFinished, vi } from 'vitest'
 import type { SetupWorker } from 'msw/browser'
-import { createPeriod, renderWithClient, screen, test, userEvent, waitFor } from '@/test-utils'
+import { createPeriod, problemDetailResponse, renderWithClient, screen, test, userEvent, waitFor } from '@/test-utils'
 import { http, HttpResponse } from 'msw'
 import { notifications } from '@mantine/notifications'
 import dayjs from 'dayjs'
@@ -17,7 +17,7 @@ const recordSavedPeriods = (worker: SetupWorker, status = 200) => {
         http.post(periodsApiUrl, async ({ request }) => {
             const body = (await request.json()) as PeriodDTO
             savedPeriods.push(body)
-            if (status !== 200) return HttpResponse.text('A period with this name already exists!', { status })
+            if (status !== 200) return problemDetailResponse(status, 'A period with this name already exists!')
             return HttpResponse.json(createPeriod(1, { ...body }))
         })
     )
@@ -203,7 +203,7 @@ describe('PeriodForm', () => {
     })
 
     test('should keep its values when the save is rejected', async ({ worker }) => {
-        const savedPeriods = recordSavedPeriods(worker, 400)
+        const savedPeriods = recordSavedPeriods(worker, 409)
         const onSaved = vi.fn()
         const user = userEvent.setup()
         renderWithClient(<PeriodForm onSaved={onSaved} />)

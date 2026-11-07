@@ -1,6 +1,6 @@
 import { describe, expect, onTestFinished, vi } from 'vitest'
 import type { SetupWorker } from 'msw/browser'
-import { createPrice, renderWithClient, screen, test, userEvent, waitFor } from '@/test-utils'
+import { createPrice, problemDetailResponse, renderWithClient, screen, test, userEvent, waitFor } from '@/test-utils'
 import { http, HttpResponse } from 'msw'
 import { EditPriceForm } from './EditPriceForm'
 
@@ -106,7 +106,7 @@ describe('Edit Price Form Component', () => {
         worker.use(
             http.put(pricesApiUrl + '/:priceId', () => {
                 saveRejected = true
-                return HttpResponse.text('Price is invalid', { status: 400 })
+                return problemDetailResponse(400, 'Price is invalid')
             })
         )
         const closeEditPrice = vi.fn()

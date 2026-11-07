@@ -1,5 +1,6 @@
 package com.christian4747.pricetracker.controllers;
 
+import com.christian4747.pricetracker.exceptions.NotFoundException;
 import com.christian4747.pricetracker.models.MatchingPeriodPrice;
 import com.christian4747.pricetracker.models.Period;
 import com.christian4747.pricetracker.models.PeriodType;
@@ -104,12 +105,13 @@ public class PeriodControllerTest {
     }
 
     @Test
-    public void getPeriodPrices_rejected_return400WithMessage() throws Exception {
-        when(periodService.getPeriodPrices(eq(1), any())).thenThrow(new IllegalArgumentException("Period with ID 1 does not exist!"));
+    public void getPeriodPrices_missingPeriod_return404WithMessage() throws Exception {
+        when(periodService.getPeriodPrices(eq(1), any())).thenThrow(new NotFoundException("Period with ID 1 does not exist!"));
 
         mockMvc.perform(get("/periods/1/prices"))
-                .andExpect(status().isBadRequest())
-                .andExpect(content().string("Period with ID 1 does not exist!"));
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.detail").value("Period with ID 1 does not exist!"));
     }
 
     @Test
@@ -148,7 +150,8 @@ public class PeriodControllerTest {
 
         mockMvc.perform(post("/periods").contentType(MediaType.APPLICATION_JSON).content(PERIOD_JSON))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string("Name is required!"));
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.detail").value("Name is required!"));
     }
 
     @Test
