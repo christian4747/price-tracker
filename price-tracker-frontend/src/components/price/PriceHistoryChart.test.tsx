@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, vi } from 'vitest'
 import { page, userEvent as pointer } from 'vitest/browser'
-import { createPrice, renderWithClient, screen, test } from '@/test-utils'
+import { createPrice, renderWithClient, screen, test, within } from '@/test-utils'
 import type { PriceType } from '@/types/price'
 import PriceHistoryChart from './PriceHistoryChart'
 import '@/styles/index.css'
@@ -17,7 +17,7 @@ const createRisingPrices = (amounts: number[]): PriceType[] => {
 
 const renderChart = (prices: PriceType[]) =>
     renderWithClient(
-        <div style={{ width: 1000, display: 'flex' }}>
+        <div data-testid="chart-wrapper" style={{ width: 1000, display: 'flex' }}>
             <PriceHistoryChart
                 prices={prices}
                 dateToday={new Date(2026, 10, 9, 12)}
@@ -26,6 +26,22 @@ const renderChart = (prices: PriceType[]) =>
             />
         </div>
     )
+
+// Hovers low near the chart's right edge and waits for the tooltip there. The mouse stays where the last test left
+// it, so it starts from the opposite corner to make sure it moves. It hovers the wrapper, found by its test ID,
+// since the chart itself is only found by its text, which a tooltip changes.
+const showTooltip = async (container: HTMLElement) => {
+    const wrapper = screen.getByTestId('chart-wrapper')
+    const chart = container.querySelector('.recharts-wrapper')!.getBoundingClientRect()
+    const offset = wrapper.getBoundingClientRect()
+    const left = chart.left - offset.left
+    const top = chart.top - offset.top
+    await pointer.hover(wrapper, { position: { x: left + 20, y: top + 20 } })
+    await pointer.hover(wrapper, { position: { x: left + chart.width - 20, y: top + chart.height - 40 } })
+    return (await vi.waitUntil(() =>
+        container.querySelector('.recharts-tooltip-wrapper .mantine-Paper-root')
+    )) as HTMLElement
+}
 
 describe('Price History Chart Layout', () => {
     // Below 1024 px wide the root font drops to 16 px, so use a desktop width to get desktop sizes
@@ -63,12 +79,7 @@ describe('Price History Chart Layout', () => {
         const control = screen.getByRole('radiogroup', { name: 'Time range' })
         await getLineTop(container)
 
-        const chart = container.querySelector('.recharts-wrapper') as HTMLElement
-        const { width, height } = chart.getBoundingClientRect()
-        await pointer.hover(chart, { position: { x: width - 20, y: height - 40 } })
-        const tooltip = await vi.waitUntil(() =>
-            container.querySelector('.recharts-tooltip-wrapper .mantine-Paper-root')
-        )
+        const tooltip = await showTooltip(container)
 
         // The middle of where the tooltip and control overlap, which shows whichever is drawn on top
         const tooltipBox = tooltip.getBoundingClientRect()
@@ -88,5 +99,16 @@ describe('Price History Chart Layout', () => {
         tooltipWrapper.style.pointerEvents = 'auto'
         const shown = document.elementFromPoint((overlap.left + overlap.right) / 2, (overlap.top + overlap.bottom) / 2)
         expect(tooltip.contains(shown)).toBe(true)
+    })
+
+    test("should keep a price's description in its own paragraph in the tooltip", async () => {
+        const prices = createRisingPrices([10, 15, 20]).map((price) => ({ ...price, description: 'Holiday sale' }))
+        const { container } = renderChart(prices)
+        await getLineTop(container)
+
+        const tooltip = await showTooltip(container)
+
+        expect(within(tooltip).getByText('Holiday sale')).toBeInTheDocument()
+        expect(tooltip.querySelector('p p')).toBeNull()
     })
 })

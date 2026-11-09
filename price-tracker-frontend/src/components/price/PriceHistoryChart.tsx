@@ -21,14 +21,18 @@ function ChartTooltip({ label, payload }: ChartTooltipProps) {
                 {label}
             </Text>
             {payload.map((item: any) => (
-                <Text key={item.name} c={item.color} fz="sm">
-                    Price: {getPriceWithCurrency(item.value, item.payload.currency)}
-                    {item.payload.description ? (
-                        <p className="text-raincloud max-w-75 wrap-break-word">{`${item.payload.description}`}</p>
-                    ) : (
-                        <></>
+                // The price and description are separate paragraphs, one under the other, since a paragraph can't
+                // hold another
+                <div key={item.name}>
+                    <Text c={item.color} fz="sm">
+                        Price: {getPriceWithCurrency(item.value, item.payload.currency)}
+                    </Text>
+                    {item.payload.description && (
+                        <Text fz="sm" className="text-raincloud max-w-75 wrap-break-word">
+                            {item.payload.description}
+                        </Text>
                     )}
-                </Text>
+                </div>
             ))}
         </Paper>
     )
