@@ -309,6 +309,31 @@ class DevSeederTest {
     }
 
     @Test
+    void seedAddsTheWholeDevDataSet() {
+        SeedData devData = DevSeedData.build(Instant.now());
+        int priceCount = devData.products().stream().mapToInt(product -> product.prices().stream()
+                .mapToInt(price -> price.range() ? 2 : 1).sum()).sum();
+
+        SeedResult result = devSeeder.seed(devData);
+
+        assertThat(result).isEqualTo(new SeedResult(devData.products().size(), priceCount, devData.periods().size()));
+        assertThat(productDAO.count()).isEqualTo(devData.products().size());
+        assertThat(priceDAO.count()).isEqualTo(priceCount);
+    }
+
+    @Test
+    void devDataHasProductsAtTheirLowestDiscountOfAllTimeTwoYearsAndOneYearToday() {
+        devSeeder.seed(DevSeedData.build(Instant.now()));
+
+        assertThat(productService.getProductWithPriceToday(findProduct("E-reader", DevSeedData.CORNER)).priceCategory())
+                .isEqualTo("all-time");
+        assertThat(productService.getProductWithPriceToday(findProduct("Air fryer", DevSeedData.HARBOR)).priceCategory())
+                .isEqualTo("two-year");
+        assertThat(productService.getProductWithPriceToday(findProduct("Robot vacuum", DevSeedData.HARBOR)).priceCategory())
+                .isEqualTo("one-year");
+    }
+
+    @Test
     void seedLeavesAProductWithTheSameNameAtAnotherStoreAlone() {
         Product ownProduct = productService.addProduct(
                 new IncomingProductDTO(null, "Wireless mouse", "", "Harbor Mart", true));
