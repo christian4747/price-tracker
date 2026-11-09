@@ -7,6 +7,7 @@ import com.christian4747.pricetracker.models.StartedPrice;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -17,7 +18,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface PriceDAO extends JpaRepository<Price, Integer> {
+public interface PriceDAO extends JpaRepository<Price, Integer>, JpaSpecificationExecutor<Price> {
 
     /**
      * Finds prices whose deletedAt is null (not deleted).
@@ -136,26 +137,6 @@ public interface PriceDAO extends JpaRepository<Price, Integer> {
      */
     @Query(value = "SELECT p.returnPercentage FROM Price p WHERE p.priceId IN (SELECT MAX(p.priceId) FROM Price p WHERE p.deletedAt IS NULL GROUP BY p.returnPercentage) ORDER BY p.createdAt DESC")
     Page<Double> findDistinctReturnPercentages(Pageable pageable);
-
-    /**
-     * Gets a list of Prices in the 'prices' database table with the given productId ordered by descending price started
-     * timestamp that are not deleted.
-     * @param pageable Pagination settings
-     * @param productId productId of the Prices to get
-     * @return The Prices associated with the given productId
-     */
-    @Query(value = "SELECT p FROM Price p WHERE p.product.productId = :productId AND p.deletedAt IS NULL ORDER BY p.priceStarted DESC")
-    Page<Price> findByProductProductIdOrderByPriceStartedDesc(Pageable pageable, @Param("productId") Integer productId);
-
-    /**
-     * Gets a list of Prices in the 'prices' database table with the given productId ordered by descending price started
-     * timestamp (includes deleted prices).
-     * @param pageable Pagination settings
-     * @param productId productId of the Prices to get
-     * @return The Prices associated with the given productId
-     */
-    @Query(value = "SELECT p FROM Price p WHERE p.product.productId = :productId ORDER BY p.priceStarted DESC")
-    Page<Price> findByProductProductIdOrderByPriceStartedDescDeleted(Pageable pageable, @Param("productId") Integer productId);
 
     /**
      * Gets the closest Price before today with the given productId that is not deleted.

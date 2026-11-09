@@ -34,17 +34,14 @@ export default {
         return res.data
     },
 
-    getPrices: async (
-        productId: number,
-        pageNumber: number = 0,
-        pageSize: number = 20,
-        showDeleted: boolean = false
-    ) => {
+    // Gets every price of the product that started on or after the start date, plus the one active when it began.
+    // Without a start date, gets every price.
+    getPrices: async (productId: number, showDeleted: boolean = false, startDate?: Date) => {
         const res = await apiClient.get<PriceType[]>(apiPath + '/product/' + productId, {
             params: {
-                page: pageNumber,
-                size: pageSize,
-                showDeleted: showDeleted
+                showDeleted: showDeleted,
+                // The backend reads ISO dates in UTC, and Axios leaves out a parameter that's undefined
+                startDate: startDate?.toISOString()
             }
         })
         return res.data

@@ -127,32 +127,32 @@ public class ProductSpecification {
 
             // Filter by minimum price
             if (filter.minPrice() != null) {
-                subqueryPredicates.add(criteriaBuilder.greaterThanOrEqualTo(currentPriceRoot.get("totalAmount"), filter.minPrice()));
+                subqueryPredicates.add(NumberBounds.atLeast(criteriaBuilder, currentPriceRoot.get("totalAmount"), filter.minPrice()));
             }
 
             // Filter by maximum price
             if (filter.maxPrice() != null) {
-                subqueryPredicates.add(criteriaBuilder.lessThan(currentPriceRoot.get("totalAmount"), filter.maxPrice()));
+                subqueryPredicates.add(NumberBounds.atMost(criteriaBuilder, currentPriceRoot.get("totalAmount"), filter.maxPrice()));
             }
 
             // Filter by minimum discount (total) percentage
             if (filter.minDiscountPercent() != null) {
-                subqueryPredicates.add(criteriaBuilder.greaterThanOrEqualTo(currentPriceRoot.get("totalPercentage"), filter.minDiscountPercent()));
+                subqueryPredicates.add(NumberBounds.atLeast(criteriaBuilder, currentPriceRoot.get("totalPercentage"), filter.minDiscountPercent()));
             }
 
             // Filter by maximum discount (total) percentage
             if (filter.maxDiscountPercent() != null) {
-                subqueryPredicates.add(criteriaBuilder.lessThan(currentPriceRoot.get("totalPercentage"), filter.maxDiscountPercent()));
+                subqueryPredicates.add(NumberBounds.atMost(criteriaBuilder, currentPriceRoot.get("totalPercentage"), filter.maxDiscountPercent()));
             }
 
             // Filter by start date
             if (filter.startDate() != null) {
-                subqueryPredicates.add(criteriaBuilder.greaterThanOrEqualTo(currentPriceRoot.get("priceStarted"), Timestamp.valueOf(filter.startDate())));
+                subqueryPredicates.add(criteriaBuilder.greaterThanOrEqualTo(currentPriceRoot.get("priceStarted"), Timestamp.from(filter.startDate())));
             }
 
             // Filter by end date
             if (filter.endDate() != null) {
-                subqueryPredicates.add(criteriaBuilder.lessThan(currentPriceRoot.get("priceStarted"), Timestamp.valueOf(filter.endDate())));
+                subqueryPredicates.add(criteriaBuilder.lessThan(currentPriceRoot.get("priceStarted"), Timestamp.from(filter.endDate())));
             }
 
             // Only use price filter predicates if price filter exists

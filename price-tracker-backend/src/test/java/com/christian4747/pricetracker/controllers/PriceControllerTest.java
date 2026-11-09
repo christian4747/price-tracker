@@ -3,6 +3,7 @@ package com.christian4747.pricetracker.controllers;
 import com.christian4747.pricetracker.exceptions.ConflictException;
 import com.christian4747.pricetracker.models.Price;
 import com.christian4747.pricetracker.models.dtos.IncomingPriceRangeDTO;
+import com.christian4747.pricetracker.models.dtos.PriceFilterDTO;
 import com.christian4747.pricetracker.services.PriceService;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -20,6 +21,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -89,6 +91,46 @@ public class PriceControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
                 .andExpect(jsonPath("$.detail").value("Price end date is required!"));
+    }
+
+    @Test
+    public void getPricesByProductId_noParameters_passEmptyFilterToService() throws Exception {
+        when(priceService.getPricesByProductId(any(), any(), any())).thenReturn(List.of(createPrice(1)));
+
+        mockMvc.perform(get("/prices/product/1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].priceId").value(1));
+
+        verify(priceService).getPricesByProductId(1, new PriceFilterDTO(null, null, null, null, null, null), false);
+    }
+
+    @Test
+    public void getPricesByProductId_filterParameters_passFilterToService() throws Exception {
+        when(priceService.getPricesByProductId(any(), any(), any())).thenReturn(List.of());
+
+        // The same format the frontend sends: an ISO date in UTC from toISOString()
+        mockMvc.perform(get("/prices/product/1")
+                        .param("minPrice", "1.5")
+                        .param("maxPrice", "20")
+                        .param("minDiscountPercent", "0.1")
+                        .param("maxDiscountPercent", "0.5")
+                        .param("startDate", "2025-11-08T03:00:00.000Z")
+                        .param("endDate", "2026-11-08T03:00:00.000Z")
+                        .param("showDeleted", "true"))
+                .andExpect(status().isOk());
+
+        PriceFilterDTO expectedFilter = new PriceFilterDTO(1.5, 20.0, 0.1, 0.5,
+                Instant.parse("2025-11-08T03:00:00Z"), Instant.parse("2026-11-08T03:00:00Z"));
+        verify(priceService).getPricesByProductId(1, expectedFilter, true);
+    }
+
+    @Test
+    public void getPricesByProductId_dateNotInIsoFormat_return400ProblemDetail() throws Exception {
+        mockMvc.perform(get("/prices/product/1").param("startDate", "2025-11-08 03:00:00"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
+
+        verify(priceService, never()).getPricesByProductId(any(), any(), any());
     }
 
     @Test

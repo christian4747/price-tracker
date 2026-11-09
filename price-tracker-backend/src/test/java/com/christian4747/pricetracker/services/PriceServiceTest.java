@@ -9,6 +9,7 @@ import com.christian4747.pricetracker.models.PricePeriod;
 import com.christian4747.pricetracker.models.Product;
 import com.christian4747.pricetracker.models.dtos.IncomingPriceDTO;
 import com.christian4747.pricetracker.models.dtos.IncomingPriceRangeDTO;
+import com.christian4747.pricetracker.models.dtos.PriceFilterDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,6 +19,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.lang.reflect.Method;
@@ -38,6 +41,13 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class PriceServiceTest {
+
+    private static final PriceFilterDTO NO_FILTER = new PriceFilterDTO(null, null, null, null, null, null);
+
+    @SuppressWarnings("unchecked")
+    private static Specification<Price> anyPriceSpecification() {
+        return any(Specification.class);
+    }
 
     @InjectMocks
     private PriceService priceService;
@@ -412,41 +422,18 @@ public class PriceServiceTest {
 
     @Test
     public void getPricesByProductId_threePrices_returnThreePricesAndToday() {
-        when(pricePage.getContent()).thenReturn(priceList);
+        when(priceDAO.findAll(anyPriceSpecification(), any(Sort.class))).thenReturn(priceList);
         when(priceDAO.findPriceToday(anyInt())).thenReturn(Optional.of(price));
-        when(priceDAO.findByProductProductIdOrderByPriceStartedDesc(pageable, 0)).thenReturn(pricePage);
 
-        assertEquals(4, priceService.getPricesByProductId(pageable, 0, false).size());
-    }
-
-    @Test
-    public void getPricesByProductId_threePrices_returnThreePricesAndTodayWithDeleted() {
-        when(pricePage.getContent()).thenReturn(priceList);
-        when(priceDAO.findPriceToday(anyInt())).thenReturn(Optional.of(price));
-        when(priceDAO.findByProductProductIdOrderByPriceStartedDescDeleted(pageable, 0)).thenReturn(pricePage);
-
-        assertEquals(4, priceService.getPricesByProductId(pageable, 0, true).size());
+        assertEquals(4, priceService.getPricesByProductId(0, NO_FILTER, false).size());
     }
 
     @Test
     public void getPricesByProductId_noStartedPrice_returnNoTodayPrice() {
-        when(pricePage.getContent()).thenReturn(priceList);
+        when(priceDAO.findAll(anyPriceSpecification(), any(Sort.class))).thenReturn(priceList);
         when(priceDAO.findPriceToday(anyInt())).thenReturn(Optional.empty());
-        when(priceDAO.findByProductProductIdOrderByPriceStartedDesc(pageable, 0)).thenReturn(pricePage);
 
-        List<Price> prices = priceService.getPricesByProductId(pageable, 0, false);
-
-        assertEquals(priceList.size(), prices.size());
-        assertTrue(prices.stream().noneMatch(Price::isToday));
-    }
-
-    @Test
-    public void getPricesByProductId_noStartedPriceWithDeleted_returnNoTodayPrice() {
-        when(pricePage.getContent()).thenReturn(priceList);
-        when(priceDAO.findPriceToday(anyInt())).thenReturn(Optional.empty());
-        when(priceDAO.findByProductProductIdOrderByPriceStartedDescDeleted(pageable, 0)).thenReturn(pricePage);
-
-        List<Price> prices = priceService.getPricesByProductId(pageable, 0, true);
+        List<Price> prices = priceService.getPricesByProductId(0, NO_FILTER, false);
 
         assertEquals(priceList.size(), prices.size());
         assertTrue(prices.stream().noneMatch(Price::isToday));
@@ -460,11 +447,10 @@ public class PriceServiceTest {
         futurePrice.setPriceId(2);
         futurePrice.setPriceStarted(Timestamp.valueOf("2999-01-01 00:00:00"));
 
-        when(pricePage.getContent()).thenReturn(List.of(futurePrice, startedPrice));
+        when(priceDAO.findAll(anyPriceSpecification(), any(Sort.class))).thenReturn(List.of(futurePrice, startedPrice));
         when(priceDAO.findPriceToday(anyInt())).thenReturn(Optional.of(startedPrice));
-        when(priceDAO.findByProductProductIdOrderByPriceStartedDesc(pageable, 0)).thenReturn(pricePage);
 
-        List<Price> prices = priceService.getPricesByProductId(pageable, 0, false);
+        List<Price> prices = priceService.getPricesByProductId(0, NO_FILTER, false);
 
         assertEquals(1, prices.stream().filter(Price::isToday).findFirst().orElseThrow().getPriceId());
     }

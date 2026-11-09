@@ -5,6 +5,7 @@ import type { ProductBody } from '@/types/product'
 import { Product } from './Product'
 import { Accordion } from '@mantine/core'
 import { useState } from 'react'
+import { http, HttpResponse } from 'msw'
 // The actions button fades in and out with Tailwind classes, so the visibility tests need the app's styles
 import '@/styles/index.css'
 
@@ -57,6 +58,33 @@ describe('Product Component', () => {
 
         const productName = screen.getByText('Product 1')
         await expect.element(productName).toBeInTheDocument()
+    })
+
+    // Both come from the product's whole price history, so a shorter time range doesn't change them
+    test('should keep the average price and sparkle when the time range changes', async ({ worker }) => {
+        const cheapOldPrice = createPrice(3, { totalAmount: 1, priceStarted: new Date(2020, 0, 1, 12).toISOString() })
+        worker.use(
+            http.get(import.meta.env.VITE_BACKEND_ROOT_URL + '/prices/product/:productId', ({ request }) => {
+                const isAll = !new URL(request.url).searchParams.has('startDate')
+                return HttpResponse.json(isAll ? [price1, cheapOldPrice] : [price1])
+            })
+        )
+        const user = userEvent.setup()
+        renderWithAccordion(
+            <Product
+                productBody={{ ...productBody, averagePrice: 15, weightedAveragePrice: 17.5, belowAverage: true }}
+                setDateToday={() => {}}
+                dateToday={new Date()}
+                value={'item-1'}
+            />
+        )
+        await screen.findByText('Average price: $15.00')
+
+        await user.click(screen.getByText('All'))
+        await screen.findByText('1/1/2020')
+
+        expect(screen.getByText('Average price: $15.00')).toBeInTheDocument()
+        expect(screen.getByRole('img', { name: 'Below average price' })).toBeInTheDocument()
     })
 
     test('should show when the product was added and last updated while opened', async () => {

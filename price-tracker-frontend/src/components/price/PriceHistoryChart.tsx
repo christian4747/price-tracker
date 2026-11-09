@@ -1,7 +1,8 @@
 import { usePriceData } from '@/hooks/price/usePriceData'
-import type { PriceType } from '@/types/price'
+import type { PriceTimeRange, PriceType } from '@/types/price'
+import { PRICE_TIME_RANGE_OPTIONS } from '@/utils/priceTimeRange'
 import { LineChart, type ChartTooltipProps } from '@mantine/charts'
-import { Paper, Text } from '@mantine/core'
+import { Paper, SegmentedControl, Text } from '@mantine/core'
 
 const getPriceWithCurrency = (amount: number, currency: string) => {
     try {
@@ -39,16 +40,31 @@ export const PRICE_CHART_HEIGHT = 280
 // The box around the chart, shared with the loading placeholder so both are the same size
 export const PRICE_CHART_BOX_CLASS = 'w-7/10 border rounded-sm p-5'
 
+// The top of the chart's scale, as a multiple of the highest price
+const PRICE_CHART_HEADROOM = 1.25
+
 type PriceHistoryChartProps = {
     prices: PriceType[]
     dateToday: Date
+    timeRange: PriceTimeRange
+    setTimeRange: (newVal: PriceTimeRange) => void
 }
 
-const PriceHistoryChart = ({ prices, dateToday }: PriceHistoryChartProps) => {
+const PriceHistoryChart = ({ prices, dateToday, timeRange, setTimeRange }: PriceHistoryChartProps) => {
     const priceData = usePriceData(dateToday).createPriceData(prices)
 
     return (
-        <div className={`${PRICE_CHART_BOX_CLASS} border-smoke`}>
+        <div className={`${PRICE_CHART_BOX_CLASS} border-smoke relative`}>
+            {/* Placed over the chart's corner, so it doesn't change the panel's height */}
+            <SegmentedControl
+                aria-label="Time range"
+                size="xs"
+                radius="xl"
+                value={timeRange}
+                onChange={(value) => setTimeRange(value as PriceTimeRange)}
+                data={PRICE_TIME_RANGE_OPTIONS}
+                className="absolute top-2 right-2 z-10"
+            />
             <LineChart
                 attributes={{
                     container: {
@@ -60,10 +76,15 @@ const PriceHistoryChart = ({ prices, dateToday }: PriceHistoryChartProps) => {
                 series={[{ name: 'totalAmount', color: 'blue.6' }]}
                 referenceLines={[{ x: 'Now' }]}
                 tooltipProps={{
-                    content: ({ label, payload }) => <ChartTooltip label={label} payload={payload} />
+                    content: ({ label, payload }) => <ChartTooltip label={label} payload={payload} />,
+                    // Above the time range control (z-10), which a tall tooltip can move up over
+                    wrapperStyle: { zIndex: 20 }
                 }}
                 gridAxis="none"
                 withYAxis={false}
+                // Leaves the top fifth of the chart above the highest price, so the line never runs under the time
+                // range control in the corner
+                yAxisProps={{ domain: [0, (highest: number) => highest * PRICE_CHART_HEADROOM] }}
                 curveType="stepAfter"
             />
         </div>
