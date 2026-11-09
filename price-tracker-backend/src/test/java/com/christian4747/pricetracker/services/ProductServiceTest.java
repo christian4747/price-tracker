@@ -60,9 +60,6 @@ public class ProductServiceTest {
     private PriceDAO priceDAO;
 
     @Mock
-    private Page<Product> productPage;
-
-    @Mock
     private Page<String> namePage;
 
     @Mock
@@ -77,7 +74,6 @@ public class ProductServiceTest {
     private Product addedProduct;
     private IncomingProductDTO productDTO;
     private List<Product> productList;
-    private List<Product> productList2;
 
     @BeforeEach
     public void setUp() {
@@ -98,7 +94,6 @@ public class ProductServiceTest {
         productDTO.setStore("Store");
 
         productList = List.of(addedProduct, addedProduct2, addedProduct3);
-        productList2 = List.of(addedProduct, addedProduct2);
     }
 
     @Test
@@ -341,27 +336,37 @@ public class ProductServiceTest {
     }
 
     @Test
-    public void getAllProducts_threeProductsOneDeleted_returnTwoProducts() {
-        when(productPage.getContent()).thenReturn(productList2);
-        when(productPage.getTotalElements()).thenReturn((long) 2);
-        when(pageable.getPageNumber()).thenReturn(0);
-        when(pageable.getPageSize()).thenReturn(10);
-        when(pageable.getSort()).thenReturn(Sort.by("name"));
-        when(productDAO.findAll(ArgumentMatchers.<Specification<Product>>any(), any(Pageable.class))).thenReturn(productPage);
-
-        assertEquals(2, productService.getAllProductsFiltered(productFilterDTO, priceFilterDTO, pageable).content().size());
+    public void getAllProductsFiltered_noSort_sortsByNameThenStore() {
+        expectSortForPlainList(Sort.unsorted(), Sort.by("name").ascending().and(Sort.by("store").ascending()));
     }
 
     @Test
-    public void getAllProducts_threeProductsOneDeleted_returnThreeProducts() {
-        when(productPage.getContent()).thenReturn(productList);
-        when(productPage.getTotalElements()).thenReturn((long) 3);
-        when(pageable.getPageNumber()).thenReturn(0);
-        when(pageable.getPageSize()).thenReturn(10);
-        when(pageable.getSort()).thenReturn(Sort.by("name"));
-        when(productDAO.findAll(ArgumentMatchers.<Specification<Product>>any(), any(Pageable.class))).thenReturn(productPage);
+    public void getAllProductsFiltered_otherSort_keepsThatSortFirstThenNameThenStore() {
+        expectSortForPlainList(Sort.by("createdAt").descending(),
+                Sort.by("createdAt").descending().and(Sort.by("name").ascending()).and(Sort.by("store").ascending()));
+    }
 
-        assertEquals(3, productService.getAllProductsFiltered(productFilterDTO, priceFilterDTO, pageable).content().size());
+    @Test
+    public void getAllProductsFiltered_nameSort_doesNotAddASecondNameSort() {
+        expectSortForPlainList(Sort.by("name").descending(), Sort.by("name").descending().and(Sort.by("store").ascending()));
+    }
+
+    @Test
+    public void getAllProductsFiltered_storeSort_doesNotAddASecondStoreSort() {
+        expectSortForPlainList(Sort.by("store").descending(), Sort.by("store").descending().and(Sort.by("name").ascending()));
+    }
+
+    /**
+     * Requests page 2 of the plain list with the given sort, and checks that the DAO was asked for the same page with
+     * the expected sort.
+     */
+    private void expectSortForPlainList(Sort requestedSort, Sort expectedSort) {
+        when(productDAO.findAll(ArgumentMatchers.<Specification<Product>>any(), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of()));
+
+        productService.getAllProductsFiltered(productFilterDTO, priceFilterDTO, PageRequest.of(2, 10, requestedSort));
+
+        verify(productDAO).findAll(ArgumentMatchers.<Specification<Product>>any(), eq(PageRequest.of(2, 10, expectedSort)));
     }
 
     @Test
