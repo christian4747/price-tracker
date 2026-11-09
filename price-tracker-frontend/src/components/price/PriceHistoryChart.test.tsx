@@ -67,6 +67,17 @@ describe('Price History Chart Average', () => {
         expect(Number(averageLine.getAttribute('y1'))).toBeCloseTo(Number(dotAtAverage.getAttribute('cy')), 0)
     })
 
+    // SVG draws later elements on top, so the average line has to come first to sit behind the prices
+    test('should draw the average line behind the price line', async () => {
+        const { container } = renderChart(createRisingPrices([10, 20, 30]), 20)
+        await getLineTop(container)
+
+        const [averageLine] = getHorizontalLines(container)
+        const priceLine = container.querySelector('.recharts-line-curve')!
+
+        expect(averageLine.compareDocumentPosition(priceLine) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    })
+
     test('should show a legend with the average in the product currency', async () => {
         const { container } = renderChart(createRisingPrices([10, 20, 30]), 20, 'EUR')
         await getLineTop(container)

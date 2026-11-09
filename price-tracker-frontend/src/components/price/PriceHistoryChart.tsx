@@ -63,9 +63,21 @@ const PriceHistoryChart = ({
 }: PriceHistoryChartProps) => {
     const priceData = usePriceData(dateToday).createPriceData(prices)
 
-    // A dashed line at the average. The legend in the corner labels it, since a label on the line itself would clash
-    // with a price close to the average.
-    const averageLine = averagePrice === null ? [] : [{ y: averagePrice, color: 'gray.6', strokeDasharray: '4 4' }]
+    // A dashed line at the average, as thick as the price line. The legend in the corner labels it, since a label on
+    // the line itself would clash with a price close to the average.
+    const averageLine =
+        averagePrice === null
+            ? []
+            : [
+                  {
+                      y: averagePrice,
+                      color: 'gray.6',
+                      strokeWidth: 2,
+                      strokeDasharray: '6 4',
+                      // Below the price line's layer (400 by default, like reference lines), so it's drawn behind
+                      zIndex: 300
+                  }
+              ]
 
     return (
         <div className={`${PRICE_CHART_BOX_CLASS} border-smoke relative`}>
@@ -83,7 +95,7 @@ const PriceHistoryChart = ({
                 above the highest price keeps the price line clear of it. */}
             {averagePrice !== null && (
                 <div className="absolute top-3 left-5 z-10 flex items-center gap-1.5 text-xs text-(--mantine-color-gray-6)">
-                    <span className="w-5 border-t border-dashed border-(--mantine-color-gray-6)" />
+                    <span className="w-5 border-t-2 border-dashed border-(--mantine-color-gray-6)" />
                     {`Average ${getPriceWithCurrency(averagePrice, currency)}`}
                 </div>
             )}
