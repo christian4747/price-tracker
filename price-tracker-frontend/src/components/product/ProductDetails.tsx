@@ -5,8 +5,17 @@ import { useProductPrices } from '@/hooks/price/useProductPrices'
 import { Button, Skeleton } from '@mantine/core'
 import { useState } from 'react'
 import { AddedUpdatedText } from '@/components/common/AddedUpdatedText'
+import { ResizableSplit } from '@/components/common/ResizableSplit'
 import type { PriceTimeRange } from '@/types/price'
 import { DEFAULT_PRICE_TIME_RANGE, getPriceTimeRangeStart } from '@/utils/priceTimeRange'
+
+// Every product's panel shares one remembered split between the chart and the price list
+const DETAILS_SPLIT_STORAGE_KEY = 'product-details-split'
+const DETAILS_SPLIT_DEFAULT_SHARE = 0.7
+// Room for the time range control and the dates under the chart
+const PRICE_CHART_MIN_WIDTH = 360
+// Room for the Add Price and Quick Price buttons side by side
+const PRICE_LIST_MIN_WIDTH = 240
 
 export interface ProductDetails {
     dateToday: Date
@@ -39,14 +48,11 @@ export const ProductDetails = ({ productBody, dateToday, setDateToday, children 
     if (pricesQuery.isPending) {
         return (
             <div className="w-full h-full flex flex-col">
-                {/* Sized like the chart's box (the skeleton covers the spacer inside it), and the price list side
-                    stretches to match, so the panel doesn't change height when the prices arrive */}
-                <div className="w-full flex-1 flex justify-between gap-2">
-                    <Skeleton className={`${PRICE_CHART_BOX_CLASS} border-transparent`}>
-                        <div style={{ height: PRICE_CHART_HEIGHT }} />
-                    </Skeleton>
-                    <Skeleton className="w-3/10" />
-                </div>
+                {/* Sized like the box around the chart and price list (the skeleton covers the spacer inside it), so
+                    the panel doesn't change height when the prices arrive */}
+                <Skeleton className={`${PRICE_CHART_BOX_CLASS} w-full flex-1 border border-transparent`}>
+                    <div style={{ height: PRICE_CHART_HEIGHT }} />
+                </Skeleton>
                 {productDates}
             </div>
         )
@@ -69,25 +75,40 @@ export const ProductDetails = ({ productBody, dateToday, setDateToday, children 
 
     return (
         <div className="w-full h-full flex flex-col">
-            <div className="w-full flex-1 flex justify-between gap-2">
-                <PriceHistoryChart
-                    prices={pricesQuery.data}
-                    dateToday={dateToday}
-                    timeRange={timeRange}
-                    setTimeRange={setTimeRange}
+            {/* One box around the chart and price list. The border sits outside the split, which measures its own
+                width with any border included. */}
+            <div className="w-full flex-1 border border-smoke rounded-sm overflow-hidden">
+                <ResizableSplit
+                    className="h-full"
+                    separatorLabel="Resize chart and price list"
+                    defaultShare={DETAILS_SPLIT_DEFAULT_SHARE}
+                    minStartWidth={PRICE_CHART_MIN_WIDTH}
+                    minEndWidth={PRICE_LIST_MIN_WIDTH}
+                    storageKey={DETAILS_SPLIT_STORAGE_KEY}
+                    start={
+                        <PriceHistoryChart
+                            prices={pricesQuery.data}
+                            dateToday={dateToday}
+                            timeRange={timeRange}
+                            setTimeRange={setTimeRange}
+                        />
+                    }
+                    // contain-size stops the list's contents from setting its height, so the chart alone sets the
+                    // panel's height and every product's panel matches; the price list scrolls in the room left
+                    endClassName="flex flex-col gap-2 contain-size"
+                    end={
+                        <>
+                            {children}
+                            <PriceList
+                                productBody={productBody}
+                                prices={pricesQuery.data}
+                                setDateToday={setDateToday}
+                                showDeleted={showDeleted}
+                                setShowDeleted={setShowDeleted}
+                            />
+                        </>
+                    }
                 />
-                {/* contain-size stops this column's contents from setting its height, so the chart alone sets the
-                    panel's height and every product's panel matches; the price list scrolls in the room left */}
-                <div className="flex flex-col w-3/10 gap-2 contain-size">
-                    {children}
-                    <PriceList
-                        productBody={productBody}
-                        prices={pricesQuery.data}
-                        setDateToday={setDateToday}
-                        showDeleted={showDeleted}
-                        setShowDeleted={setShowDeleted}
-                    />
-                </div>
             </div>
             {productDates}
         </div>
