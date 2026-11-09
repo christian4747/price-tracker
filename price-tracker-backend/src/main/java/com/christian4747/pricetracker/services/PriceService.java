@@ -9,12 +9,15 @@ import com.christian4747.pricetracker.models.PricePeriod;
 import com.christian4747.pricetracker.models.Product;
 import com.christian4747.pricetracker.models.dtos.IncomingPriceDTO;
 import com.christian4747.pricetracker.models.dtos.IncomingPriceRangeDTO;
+import com.christian4747.pricetracker.models.dtos.PriceFilterDTO;
 import com.christian4747.pricetracker.models.dtos.RecentPriceData;
+import com.christian4747.pricetracker.specification.PriceSpecification;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,6 +33,10 @@ import java.util.Optional;
 public class PriceService {
 
     private static final Logger logger = LoggerFactory.getLogger(PriceService.class);
+
+    // A product's prices, newest first. Prices that start at the same moment are newest first by ID, so their order
+    // doesn't change between requests.
+    public static final Sort NEWEST_FIRST = Sort.by(Sort.Direction.DESC, "priceStarted", "priceId");
 
     private final PriceDAO priceDAO;
     private final ProductDAO productDAO;
@@ -254,13 +261,19 @@ public class PriceService {
 
     /**
      * Gets a list of Prices in the 'prices' database table with the given productId ordered by descending price started
-     * timestamp. Adds an extra Price to the list signifying today's price, if a non-deleted Price has started.
-     * @param pageable Pagination settings
+     * timestamp. Adds an extra Price to the list signifying today's price, if a non-deleted Price has started. Every
+     * matching Price is returned, since a product's history is only as long as the filter allows.
      * @param productId productId of the Prices to get
+     * @param filter Limits the Prices by amount, percentage, and when they started (see PriceSpecification)
+     * @param showDeleted Whether to include soft deleted Prices
      * @return The Prices associated with the given productId descending by priceStarted
      */
-    public List<Price> getPricesByProductId(Pageable pageable, Integer productId, Boolean showDeleted) {
-        List<Price> prices = new ArrayList<>(findPricesByProductId(pageable, productId, showDeleted).getContent());
+    public List<Price> getPricesByProductId(Integer productId, PriceFilterDTO filter, Boolean showDeleted) {
+        // The sort below keeps NEWEST_FIRST's order for prices that start together, since List.sort is stable
+        List<Price> prices = new ArrayList<>(priceDAO.findAll(
+                PriceSpecification.filterPricesBy(productId, filter, showDeleted),
+                NEWEST_FIRST
+        ));
         if (prices.isEmpty()) return List.of();
 
         Optional<Price> todayPrice = priceDAO.findPriceToday(productId);
@@ -278,14 +291,6 @@ public class PriceService {
         ).reversed());
 
         return prices;
-    }
-
-    private Page<Price> findPricesByProductId(Pageable pageable, Integer productId, Boolean showDeleted) {
-        if (showDeleted) {
-            return priceDAO.findByProductProductIdOrderByPriceStartedDescDeleted(pageable, productId);
-        } else {
-            return priceDAO.findByProductProductIdOrderByPriceStartedDesc(pageable, productId);
-        }
     }
 
     /**

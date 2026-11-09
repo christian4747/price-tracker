@@ -3,6 +3,7 @@ package com.christian4747.pricetracker.controllers;
 import com.christian4747.pricetracker.models.Price;
 import com.christian4747.pricetracker.models.dtos.IncomingPriceDTO;
 import com.christian4747.pricetracker.models.dtos.IncomingPriceRangeDTO;
+import com.christian4747.pricetracker.models.dtos.PriceFilterDTO;
 import com.christian4747.pricetracker.models.dtos.RecentPriceData;
 import com.christian4747.pricetracker.services.PriceService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -99,16 +100,17 @@ public class PriceController {
 
     /**
      * Gets a list of Prices in the 'prices' database table with the given productId ordered by descending price started
-     * timestamp.
-     * @param pageable Pagination settings
+     * timestamp. Returns every matching Price, without pages.
      * @param productId productId of the Prices to get
+     * @param priceFilterDTO Limits the Prices by amount, percentage, and when they started, with dates as ISO dates in UTC
+     * @param showDeleted Whether to include soft deleted Prices
      * @return The Prices associated with the given productId
      */
     @GetMapping("/product/{productId}")
     public ResponseEntity<List<Price>> getPricesByProductId(
-            Pageable pageable, @PathVariable Integer productId,
+            @PathVariable Integer productId, PriceFilterDTO priceFilterDTO,
             @RequestParam(defaultValue = "false") Boolean showDeleted) {
-        return ResponseEntity.ok(priceService.getPricesByProductId(pageable, productId, showDeleted));
+        return ResponseEntity.ok(priceService.getPricesByProductId(productId, priceFilterDTO, showDeleted));
     }
 
     /**

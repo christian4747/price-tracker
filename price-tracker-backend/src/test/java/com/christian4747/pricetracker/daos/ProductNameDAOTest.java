@@ -15,6 +15,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,6 +26,7 @@ class ProductNameDAOTest {
 
     private static final Timestamp PAST = Timestamp.valueOf("2020-01-01 00:00:00");
     private static final Timestamp LATER_PAST = Timestamp.valueOf("2020-02-01 00:00:00");
+    private static final Instant BOUNDARY = Instant.parse("2025-06-01T00:00:00Z");
 
     @Autowired
     private ProductDAO productDAO;
@@ -162,6 +164,64 @@ class ProductNameDAOTest {
 
         assertThat(names.getContent()).containsExactly("Apple");
         assertThat(names.getTotalElements()).isEqualTo(1);
+    }
+
+    // 1 - 0.93 is stored as 0.06999999999999995 and 1 - 0.7 as 0.30000000000000004, just past the bounds a user would type
+    @Test
+    void priceBoundsIncludeTheirBoundariesAndAmountsStoredJustPastThem() {
+        addCurrentPrice(addProduct("Apple", null), 1 - 0.93, PAST);
+        addCurrentPrice(addProduct("Banana", null), 1 - 0.7, PAST);
+        addCurrentPrice(addProduct("Cherry", null), 0.3, PAST);
+        addCurrentPrice(addProduct("Date", null), 0.06, PAST);
+        addCurrentPrice(addProduct("Elderberry", null), 0.31, PAST);
+        saveFixtures();
+
+        Page<String> names = findNames(productFilter(null, false), priceFilter(0.07, 0.3), page(0, 10));
+
+        assertThat(names.getContent()).containsExactly("Apple", "Banana", "Cherry");
+    }
+
+    @Test
+    void discountBoundsIncludeTheirBoundariesAndPercentagesStoredJustPastThem() {
+        addCurrentPrice(addProduct("Apple", null), 10, PAST).setTotalPercentage(1 - 0.93);
+        addCurrentPrice(addProduct("Banana", null), 10, PAST).setTotalPercentage(1 - 0.7);
+        addCurrentPrice(addProduct("Cherry", null), 10, PAST).setTotalPercentage(0.3);
+        addCurrentPrice(addProduct("Date", null), 10, PAST).setTotalPercentage(0.06);
+        addCurrentPrice(addProduct("Elderberry", null), 10, PAST).setTotalPercentage(0.31);
+        saveFixtures();
+
+        PriceFilterDTO discountFilter = new PriceFilterDTO(null, null, 0.07, 0.3, null, null);
+        Page<String> names = findNames(productFilter(null, false), discountFilter, page(0, 10));
+
+        assertThat(names.getContent()).containsExactly("Apple", "Banana", "Cherry");
+    }
+
+    // The dates are exact moments in UTC. Prices one second either side of the boundary catch a date read in the
+    // server's time zone instead, since the tests run in the machine's own time zone
+    @Test
+    void startDateMatchesProductsWhoseCurrentPriceStartedOnOrAfterIt() {
+        addCurrentPrice(addProduct("Apple", null), 10, Timestamp.from(BOUNDARY.minusSeconds(1)));
+        addCurrentPrice(addProduct("Banana", null), 10, Timestamp.from(BOUNDARY));
+        addCurrentPrice(addProduct("Cherry", null), 10, Timestamp.from(BOUNDARY.plusSeconds(1)));
+        saveFixtures();
+
+        PriceFilterDTO filter = new PriceFilterDTO(null, null, null, null, BOUNDARY, null);
+        Page<String> names = findNames(productFilter(null, false), filter, page(0, 10));
+
+        assertThat(names.getContent()).containsExactly("Banana", "Cherry");
+    }
+
+    @Test
+    void endDateMatchesProductsWhoseCurrentPriceStartedBeforeIt() {
+        addCurrentPrice(addProduct("Apple", null), 10, Timestamp.from(BOUNDARY.minusSeconds(1)));
+        addCurrentPrice(addProduct("Banana", null), 10, Timestamp.from(BOUNDARY));
+        addCurrentPrice(addProduct("Cherry", null), 10, Timestamp.from(BOUNDARY.plusSeconds(1)));
+        saveFixtures();
+
+        PriceFilterDTO filter = new PriceFilterDTO(null, null, null, null, null, BOUNDARY);
+        Page<String> names = findNames(productFilter(null, false), filter, page(0, 10));
+
+        assertThat(names.getContent()).containsExactly("Apple");
     }
 
     @Test
