@@ -48,6 +48,13 @@ describe('Delete Price Modal Component', () => {
         expect(getModalSize(await screen.findByRole('dialog'))).toBe('md')
     })
 
+    test('should show a free price as $0.00', async () => {
+        const freePrice = createPrice(1, { amount: 0, discountAmount: 0, totalAmount: 0 })
+        renderWithClient(<DeletePriceModal price={freePrice} closeDeletePrice={() => {}} opened />)
+
+        await expect.element(screen.getByText(/delete Price 9\/4\/2026 \(\$0\.00\)\?/)).toBeInTheDocument()
+    })
+
     test('should show the delete in progress', async ({ worker }) => {
         const { submitButton } = await startDelete(worker)
 

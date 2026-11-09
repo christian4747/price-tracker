@@ -59,6 +59,13 @@ describe('Permanently Delete Price Modal Component', () => {
         await expect.element(screen.getByText("This can't be undone.")).toBeInTheDocument()
     })
 
+    test('should show a free price as $0.00', async () => {
+        const freePrice = createPrice(1, { ...price, amount: 0, discountAmount: 0, totalAmount: 0 })
+        renderWithClient(<PermanentlyDeletePriceModal price={freePrice} closeModal={() => {}} opened />)
+
+        await expect.element(screen.getByText(/permanently delete price 9\/4\/2026 \(\$0\.00\)\?/i)).toBeInTheDocument()
+    })
+
     test('should send the delete to the permanent endpoint for the price', async ({ worker }) => {
         const deletedPriceIds: string[] = []
         let softDeleteRequests = 0

@@ -22,7 +22,7 @@ export const DeletePriceModal = ({ price, closeDeletePrice, opened }: DeletePric
     }
 
     const priceStartedString = price?.priceStarted ? getUSDateStringFromTimestamp(price.priceStarted) : ''
-    const priceAmountString = price?.amount ? getPriceString(price) : 0
+    const priceAmountString = getPriceString(price)
 
     return (
         <>
