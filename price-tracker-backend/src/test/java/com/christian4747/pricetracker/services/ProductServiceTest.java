@@ -50,6 +50,8 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 public class ProductServiceTest {
 
+    private static final Pageable FIRST_PAGE = PageRequest.of(0, 10, Sort.by("name"));
+
     @InjectMocks
     private ProductService productService;
 
@@ -60,12 +62,19 @@ public class ProductServiceTest {
     private PriceDAO priceDAO;
 
     @Mock
+    private Page<Product> productPage;
+
+    @Mock
+    private Page<String> namePage;
+
+    @Mock
     private ProductFilterDTO productFilterDTO;
 
     @Mock
     private PriceFilterDTO priceFilterDTO;
 
-    private static final Pageable FIRST_PAGE = PageRequest.of(0, 10, Sort.by("name"));
+    @Mock
+    private Pageable pageable;
 
     private Product addedProduct;
     private IncomingProductDTO productDTO;
@@ -335,18 +344,26 @@ public class ProductServiceTest {
 
     @Test
     public void getAllProducts_threeProductsOneDeleted_returnTwoProducts() {
-        when(productDAO.findAll(ArgumentMatchers.<Specification<Product>>any(), any(Pageable.class)))
-                .thenReturn(new PageImpl<>(productList2, FIRST_PAGE, 2));
+        when(productPage.getContent()).thenReturn(productList2);
+        when(productPage.getTotalElements()).thenReturn((long) 2);
+        when(pageable.getPageNumber()).thenReturn(0);
+        when(pageable.getPageSize()).thenReturn(10);
+        when(pageable.getSort()).thenReturn(Sort.by("name"));
+        when(productDAO.findAll(ArgumentMatchers.<Specification<Product>>any(), any(Pageable.class))).thenReturn(productPage);
 
-        assertEquals(2, productService.getAllProductsFiltered(productFilterDTO, priceFilterDTO, FIRST_PAGE).content().size());
+        assertEquals(2, productService.getAllProductsFiltered(productFilterDTO, priceFilterDTO, pageable).content().size());
     }
 
     @Test
     public void getAllProducts_threeProductsOneDeleted_returnThreeProducts() {
-        when(productDAO.findAll(ArgumentMatchers.<Specification<Product>>any(), any(Pageable.class)))
-                .thenReturn(new PageImpl<>(productList, FIRST_PAGE, 3));
+        when(productPage.getContent()).thenReturn(productList);
+        when(productPage.getTotalElements()).thenReturn((long) 3);
+        when(pageable.getPageNumber()).thenReturn(0);
+        when(pageable.getPageSize()).thenReturn(10);
+        when(pageable.getSort()).thenReturn(Sort.by("name"));
+        when(productDAO.findAll(ArgumentMatchers.<Specification<Product>>any(), any(Pageable.class))).thenReturn(productPage);
 
-        assertEquals(3, productService.getAllProductsFiltered(productFilterDTO, priceFilterDTO, FIRST_PAGE).content().size());
+        assertEquals(3, productService.getAllProductsFiltered(productFilterDTO, priceFilterDTO, pageable).content().size());
     }
 
     @Test
