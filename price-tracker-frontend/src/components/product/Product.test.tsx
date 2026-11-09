@@ -81,7 +81,7 @@ describe('Product Component', () => {
         await screen.findByText('Average price: $15.00')
 
         await user.click(screen.getByText('All'))
-        await screen.findByText('1/1/2020')
+        await screen.findByText('Jan 1, 2020')
 
         expect(screen.getByText('Average price: $15.00')).toBeInTheDocument()
         expect(screen.getByRole('img', { name: 'Below average price' })).toBeInTheDocument()

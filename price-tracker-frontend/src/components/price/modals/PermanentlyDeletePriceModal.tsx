@@ -1,5 +1,5 @@
 import type { PriceType } from '@/types/price'
-import { getUSDateStringFromTimestamp } from '@/utils/dateUtils'
+import { getPriceDateString } from '@/utils/priceListUtils'
 import { Center } from '@mantine/core'
 import { usePermanentlyDeletePrice } from '@/hooks/price/usePermanentlyDeletePrice'
 import { SaveModal } from '@/components/common/SaveModal'
@@ -10,9 +10,16 @@ interface PermanentlyDeletePriceModal {
     price: PriceType
     closeModal: () => void
     opened: boolean
+    // Names the price by its start time too, as its row does when another price starts on the same day
+    showTime?: boolean
 }
 
-export const PermanentlyDeletePriceModal = ({ price, closeModal, opened }: PermanentlyDeletePriceModal) => {
+export const PermanentlyDeletePriceModal = ({
+    price,
+    closeModal,
+    opened,
+    showTime = false
+}: PermanentlyDeletePriceModal) => {
     // Hook for permanently deleting prices
     const { mutation } = usePermanentlyDeletePrice(price)
 
@@ -21,7 +28,7 @@ export const PermanentlyDeletePriceModal = ({ price, closeModal, opened }: Perma
         e.stopPropagation()
     }
 
-    const priceStartedString = price?.priceStarted ? getUSDateStringFromTimestamp(price.priceStarted) : ''
+    const priceStartedString = price?.priceStarted ? getPriceDateString(price, showTime) : ''
     const priceAmountString = getPriceString(price)
 
     return (

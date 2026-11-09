@@ -1,9 +1,9 @@
 import type { PriceType } from '@/types/price'
-import { getUSDateStringFromTimestamp } from '@/utils/dateUtils'
+import { getPriceDetailsString, getPriceRowDateString, type PriceChange } from '@/utils/priceListUtils'
 import { getPriceString } from '@/utils/priceUtils'
-import { MdDelete, MdDeleteForever, MdEdit, MdUndo } from 'react-icons/md'
-import { IconAction } from '@/components/common/IconAction'
-import { useRestorePrice } from '@/hooks/price/useRestorePrice'
+import { rowActionsButtonClassName } from '@/components/common/rowActionsButtonClassName'
+import { PriceActionsMenu } from './PriceActionsMenu'
+import { PriceChangeArrow } from './PriceChangeArrow'
 
 interface Price {
     price: PriceType
@@ -12,6 +12,10 @@ interface Price {
     openPermanentlyDeletePriceModal: (price: PriceType) => void
     // A deleted product's prices can't be edited or restored until the product is restored, which restores them too
     productDeleted: boolean
+    // Whether another price in the list starts on the same day, so the date alone wouldn't tell them apart
+    showTime?: boolean
+    // How the price changed from the one before it in the list, if it can be compared
+    change?: PriceChange
 }
 
 export const Price = ({
@@ -19,58 +23,39 @@ export const Price = ({
     openEditPriceModal,
     openDeletePriceModal,
     openPermanentlyDeletePriceModal,
-    productDeleted
+    productDeleted,
+    showTime = false,
+    change
 }: Price) => {
-    // Constructing the string to show the date on the PriceList
-    const priceStartedDateString = getUSDateStringFromTimestamp(price.priceStarted)
-    // Hook for restoring deleted prices
-    const { mutation: restoreMutation } = useRestorePrice(price)
+    const priceStartedDateString = getPriceRowDateString(price, showTime)
+    const detailsString = getPriceDetailsString(price)
     // Strike through and gray out deleted prices so they stand out when deleted prices are shown
     const deletedClassName = price.deletedAt !== null ? 'line-through text-raincloud' : ''
 
     return (
-        <div className="flex justify-between even:bg-cloud group/product">
-            <div className={`pl-2 ${deletedClassName}`}>{priceStartedDateString}</div>
-            <div className="pr-2 flex items-center gap-1">
-                <div className={deletedClassName}>{getPriceString(price)}</div>
-                {!productDeleted && (
-                    <IconAction
-                        label="Edit price"
-                        icon={<MdEdit />}
-                        size="sm"
-                        onClick={() => openEditPriceModal(price)}
-                    />
-                )}
-
-                {price.deletedAt === null && (
-                    <IconAction
-                        label="Delete price"
-                        icon={<MdDelete />}
-                        size="sm"
-                        onClick={() => openDeletePriceModal(price)}
-                    />
-                )}
-
-                {/* While restoring, the button shows a loader and is disabled, so a second click can't restore twice */}
-                {price.deletedAt !== null && !productDeleted && (
-                    <IconAction
-                        label="Restore price"
-                        icon={<MdUndo />}
-                        size="sm"
-                        loading={restoreMutation.isPending}
-                        onClick={() => restoreMutation.mutate()}
-                    />
-                )}
-
-                {price.deletedAt !== null && (
-                    <IconAction
-                        label="Permanently delete price"
-                        icon={<MdDeleteForever />}
-                        size="sm"
-                        onClick={() => openPermanentlyDeletePriceModal(price)}
-                    />
-                )}
-            </div>
-        </div>
+        // Takes its columns from the list (a subgrid), so the date, arrow, amount, and actions button line up with every
+        // other row
+        <li className="group/row col-span-full grid grid-cols-subgrid items-center px-2 py-1">
+            {/* A size down from the amount, which is what the list is scanned for, so the date fits the narrow column */}
+            <div className={`min-w-0 pr-1 text-sm ${deletedClassName}`}>{priceStartedDateString}</div>
+            <PriceChangeArrow change={change} />
+            {/* Bold, since it's the number the list is scanned for, right-aligned so amounts of any width line up */}
+            <div className={`text-right font-bold tabular-nums ${deletedClassName}`}>{getPriceString(price)}</div>
+            <PriceActionsMenu
+                price={price}
+                openEditPriceModal={openEditPriceModal}
+                openDeletePriceModal={openDeletePriceModal}
+                openPermanentlyDeletePriceModal={openPermanentlyDeletePriceModal}
+                productDeleted={productDeleted}
+                className={rowActionsButtonClassName}
+            />
+            {/* Under the whole row, amount and actions button included, so less of it is cut off, with all of it on
+                hover */}
+            {detailsString && (
+                <div className="col-span-full truncate text-xs text-raincloud" title={detailsString}>
+                    {detailsString}
+                </div>
+            )}
+        </li>
     )
 }

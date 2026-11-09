@@ -1,10 +1,13 @@
 import type { ComponentProps } from 'react'
 import { describe, expect, vi } from 'vitest'
+import { userEvent as pointer } from 'vitest/browser'
 import { createPrice, renderWithClient, screen, test, userEvent, waitFor } from '@/test-utils'
 import { http, HttpResponse } from 'msw'
 import type { PriceType } from '@/types/price'
 import { Price } from './Price'
 import { getPriceString } from '@/utils/priceUtils'
+// The actions button fades in and out with Tailwind classes, so the visibility tests need the app's styles
+import '@/styles/index.css'
 
 const pricesApiUrl = import.meta.env.VITE_BACKEND_ROOT_URL + '/prices'
 
@@ -14,17 +17,20 @@ const deletedPrice = createPrice(1, {
     deletedAt: new Date(2026, 8, 6, 12).toISOString()
 })
 
-// Renders the price of a product that isn't deleted, with modal handlers that do nothing, unless a test passes its own
+// Renders the price row, a list item, inside a list, for a product that isn't deleted, with modal handlers that do
+// nothing unless a test passes its own
 const renderPrice = (priceToRender: PriceType, handlers: Partial<ComponentProps<typeof Price>> = {}) => {
     return renderWithClient(
-        <Price
-            price={priceToRender}
-            openEditPriceModal={() => {}}
-            openDeletePriceModal={() => {}}
-            openPermanentlyDeletePriceModal={() => {}}
-            productDeleted={false}
-            {...handlers}
-        />
+        <ul>
+            <Price
+                price={priceToRender}
+                openEditPriceModal={() => {}}
+                openDeletePriceModal={() => {}}
+                openPermanentlyDeletePriceModal={() => {}}
+                productDeleted={false}
+                {...handlers}
+            />
+        </ul>
     )
 }
 
@@ -32,29 +38,81 @@ describe('Price Component', () => {
     test('should render price', async () => {
         renderPrice(price)
 
-        const price1Date = await screen.findByText('9/4/2026')
+        const price1Date = await screen.findByText('Sep 4, 2026')
         await expect.element(price1Date).toBeInTheDocument()
     })
 
-    test('should render delete price button', async () => {
-        renderPrice(price)
-
-        const deletePriceButton = screen.getByRole('button', { name: /delete price/i })
-        await expect.element(deletePriceButton).toBeInTheDocument()
-    })
-
-    test('should not render delete price button', async () => {
+    test('should strike through and gray out the date and amount of a deleted price', async () => {
         renderPrice(deletedPrice)
 
-        const deletePriceButton = screen.queryByRole('button', { name: 'Delete price' })
-        await expect.element(deletePriceButton).not.toBeInTheDocument()
+        await expect.element(screen.getByText('Sep 4, 2026')).toHaveClass('line-through', 'text-raincloud')
+        await expect
+            .element(screen.getByText(getPriceString(deletedPrice)))
+            .toHaveClass('line-through', 'text-raincloud')
     })
 
-    test('should not render restore price button', async () => {
+    test('should not strike through the date and amount of a price', async () => {
         renderPrice(price)
 
-        const restorePriceButton = screen.queryByRole('button', { name: /restore price/i })
-        await expect.element(restorePriceButton).not.toBeInTheDocument()
+        await expect.element(screen.getByText('Sep 4, 2026')).not.toHaveClass('line-through')
+        await expect.element(screen.getByText(getPriceString(price))).not.toHaveClass('line-through')
+    })
+})
+
+// Opens the row's actions menu with a click and returns the names of its items
+const openMenu = async (user: ReturnType<typeof userEvent.setup>) => {
+    await user.click(screen.getByRole('button', { name: 'Price actions' }))
+    await screen.findByRole('menu')
+    return screen.getAllByRole('menuitem').map((item) => item.innerText)
+}
+
+describe('Price actions menu', () => {
+    // One button, rather than one for each action, so the row has room for the date
+    test('should show one actions button for a price', async () => {
+        renderPrice(deletedPrice)
+
+        expect(screen.getAllByRole('button')).toEqual([screen.getByRole('button', { name: 'Price actions' })])
+    })
+
+    test.for([
+        ['a price', price, false, ['Edit', 'Delete']],
+        ['a deleted price', deletedPrice, false, ['Edit', 'Restore', 'Permanently delete']],
+        // Restoring the product restores its prices, so a deleted product's prices can't be edited or restored alone
+        ["a deleted product's price", price, true, ['Delete']],
+        ["a deleted product's deleted price", deletedPrice, true, ['Permanently delete']]
+    ] as const)('should offer the actions for %s', async ([, priceToRender, productDeleted, items]) => {
+        const user = userEvent.setup()
+        renderPrice(priceToRender, { productDeleted })
+
+        expect(await openMenu(user)).toEqual(items)
+    })
+
+    test.for([
+        ['edit modal for a price', 'Edit', 'openEditPriceModal', price, false],
+        ['delete modal for a price', 'Delete', 'openDeletePriceModal', price, false],
+        [
+            'permanently delete modal for a deleted price',
+            'Permanently delete',
+            'openPermanentlyDeletePriceModal',
+            deletedPrice,
+            false
+        ],
+        [
+            "permanently delete modal for a deleted product's price",
+            'Permanently delete',
+            'openPermanentlyDeletePriceModal',
+            deletedPrice,
+            true
+        ]
+    ] as const)('should open the %s', async ([, item, handler, priceToRender, productDeleted]) => {
+        const open = vi.fn()
+        const user = userEvent.setup()
+        renderPrice(priceToRender, { productDeleted, [handler]: open })
+
+        await openMenu(user)
+        await user.click(screen.getByRole('menuitem', { name: item }))
+
+        expect(open).toHaveBeenCalledWith(priceToRender)
     })
 
     test('should restore a deleted price', async ({ worker }) => {
@@ -68,18 +126,17 @@ describe('Price Component', () => {
         const user = userEvent.setup()
         renderPrice(deletedPrice)
 
-        await user.click(screen.getByRole('button', { name: /restore price/i }))
+        await openMenu(user)
+        await user.click(screen.getByRole('menuitem', { name: 'Restore' }))
 
         await waitFor(() => expect(restoredPriceIds).toEqual(['1']))
     })
 
-    test('should show the restore in progress and ignore clicks until it finishes', async ({ worker }) => {
-        let requestCount = 0
+    test('should not offer Restore again while a restore is still running', async ({ worker }) => {
         let finishRestore = () => {}
         const restoreFinished = new Promise<void>((resolve) => (finishRestore = resolve))
         worker.use(
             http.put(pricesApiUrl + '/:priceId/restore', async () => {
-                requestCount++
                 await restoreFinished
                 return HttpResponse.json({ ...deletedPrice, deletedAt: null })
             })
@@ -87,118 +144,226 @@ describe('Price Component', () => {
         const user = userEvent.setup()
         renderPrice(deletedPrice)
 
-        const restoreButton = screen.getByRole('button', { name: /restore price/i })
-        await user.click(restoreButton)
+        await openMenu(user)
+        await user.click(screen.getByRole('menuitem', { name: 'Restore' }))
+        await openMenu(user)
 
-        await waitFor(() => expect(restoreButton.querySelector('.mantine-Loader-root')).toBeInTheDocument())
-        await user.click(restoreButton)
-
+        await expect.element(screen.getByRole('menuitem', { name: 'Restore' })).toBeDisabled()
         finishRestore()
-
-        await waitFor(() => expect(restoreButton.querySelector('.mantine-Loader-root')).not.toBeInTheDocument())
-        expect(requestCount).toBe(1)
     })
 
-    // Restoring the product restores its prices, so a deleted product's price can't be restored on its own
-    test("should not render restore price button for a deleted product's price", async () => {
-        renderPrice(deletedPrice, { productDeleted: true })
-
-        expect(screen.queryByRole('button', { name: 'Restore price' })).not.toBeInTheDocument()
-    })
-
-    test("should not render edit price button for a deleted product's price", async () => {
-        renderPrice(deletedPrice, { productDeleted: true })
-
-        expect(screen.queryByRole('button', { name: 'Edit price' })).not.toBeInTheDocument()
-    })
-
-    test("should open the permanently delete modal for a deleted product's price", async () => {
-        const openPermanentlyDeletePriceModal = vi.fn()
-        const user = userEvent.setup()
-        renderPrice(deletedPrice, { productDeleted: true, openPermanentlyDeletePriceModal })
-
-        await user.click(screen.getByRole('button', { name: 'Permanently delete price' }))
-
-        expect(openPermanentlyDeletePriceModal).toHaveBeenCalledWith(deletedPrice)
-    })
-
-    test('should not render permanently delete price button for a price that is not deleted', async () => {
-        renderPrice(price)
-
-        expect(screen.queryByRole('button', { name: 'Permanently delete price' })).not.toBeInTheDocument()
-    })
-
-    test('should open the permanently delete modal for a deleted price', async () => {
-        const openPermanentlyDeletePriceModal = vi.fn()
-        const user = userEvent.setup()
-        renderPrice(deletedPrice, { openPermanentlyDeletePriceModal })
-
-        await user.click(screen.getByRole('button', { name: 'Permanently delete price' }))
-
-        expect(openPermanentlyDeletePriceModal).toHaveBeenCalledWith(deletedPrice)
-    })
-
-    // The order Tab moves through a row's actions, so each one can be reached without a mouse
-    test.for([
-        ['a price', price, ['Edit price', 'Delete price']],
-        ['a deleted price', deletedPrice, ['Edit price', 'Restore price', 'Permanently delete price']]
-    ] as const)('should reach each action of %s with Tab', async ([, priceToRender, actions]) => {
-        const user = userEvent.setup()
-        renderPrice(priceToRender)
-
-        const reached: (string | null)[] = []
-        for (let i = 0; i < actions.length; i++) {
-            await user.tab()
-            reached.push(document.activeElement?.getAttribute('aria-label') ?? null)
-        }
-
-        expect(reached).toEqual(actions)
-    })
-
-    test('should open the edit modal with Enter', async () => {
-        const openEditPriceModal = vi.fn()
-        const user = userEvent.setup()
-        renderPrice(price, { openEditPriceModal })
-
-        screen.getByRole('button', { name: 'Edit price' }).focus()
-        await user.keyboard('{Enter}')
-
-        expect(openEditPriceModal).toHaveBeenCalledWith(price)
-    })
-
-    test('should open the delete modal with Space', async () => {
+    test('should open with Enter and choose an item with the arrow keys', async () => {
         const openDeletePriceModal = vi.fn()
         const user = userEvent.setup()
         renderPrice(price, { openDeletePriceModal })
 
-        screen.getByRole('button', { name: 'Delete price' }).focus()
-        await user.keyboard(' ')
+        screen.getByRole('button', { name: 'Price actions' }).focus()
+        await user.keyboard('{Enter}')
+        await screen.findByRole('menu')
+        // Moves down until Delete is focused, so the test doesn't depend on which item is focused first
+        for (let i = 0; i < 5 && document.activeElement?.textContent !== 'Delete'; i++) {
+            await user.keyboard('{ArrowDown}')
+        }
+        await user.keyboard('{Enter}')
 
         expect(openDeletePriceModal).toHaveBeenCalledWith(price)
     })
 
-    test('should name an action in its tooltip', async () => {
+    test('should close with Escape and go back to the menu button', async () => {
         const user = userEvent.setup()
         renderPrice(price)
 
-        await user.hover(screen.getByRole('button', { name: 'Edit price' }))
+        await openMenu(user)
+        await user.keyboard('{Escape}')
 
-        await expect.element(screen.getByRole('tooltip')).toHaveTextContent('Edit price')
+        await waitFor(() => expect(screen.queryByRole('menu')).not.toBeInTheDocument())
+        expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Price actions' }))
     })
 
-    test('should strike through and gray out the date and amount of a deleted price', async () => {
-        renderPrice(deletedPrice)
-
-        await expect.element(screen.getByText('9/4/2026')).toHaveClass('line-through', 'text-raincloud')
-        await expect
-            .element(screen.getByText(getPriceString(deletedPrice)))
-            .toHaveClass('line-through', 'text-raincloud')
-    })
-
-    test('should not strike through the date and amount of a price', async () => {
+    test('should name the menu button in its tooltip', async () => {
+        const user = userEvent.setup()
         renderPrice(price)
 
-        await expect.element(screen.getByText('9/4/2026')).not.toHaveClass('line-through')
-        await expect.element(screen.getByText(getPriceString(price))).not.toHaveClass('line-through')
+        await user.hover(screen.getByRole('button', { name: 'Price actions' }))
+
+        await expect.element(screen.getByRole('tooltip')).toHaveTextContent('Price actions')
+    })
+
+    // So screen readers say the button opens a menu, and whether the menu is open
+    test('should mark the menu button as opening a menu, and as open while it is', async () => {
+        const user = userEvent.setup()
+        renderPrice(price)
+        const button = screen.getByRole('button', { name: 'Price actions' })
+
+        await expect.element(button).toHaveAttribute('aria-haspopup', 'menu')
+        await expect.element(button).toHaveAttribute('aria-expanded', 'false')
+        await openMenu(user)
+
+        await expect.element(button).toHaveAttribute('aria-expanded', 'true')
+    })
+})
+
+// Like a product row's actions button: faint until the row is hovered, so the list looks calm but still shows each
+// price has actions
+describe('Price actions button visibility', () => {
+    // The button's opacity once any fade has finished
+    const actionsOpacity = () =>
+        expect.poll(() => getComputedStyle(screen.getByRole('button', { name: 'Price actions' })).opacity)
+
+    test('should show the actions button faintly while the row is not hovered', async () => {
+        renderPrice(price)
+
+        await actionsOpacity().toBe('0.3')
+    })
+
+    // Moves the real mouse, since CSS :hover only follows the real pointer, not the events userEvent sends. The mouse
+    // stays put between tests, so it's moved off the row before the row is removed, even if the check fails
+    test('should show the actions button fully while the row is hovered', async () => {
+        renderPrice(price)
+        const date = screen.getByText('Sep 4, 2026')
+
+        await pointer.hover(date)
+        try {
+            await actionsOpacity().toBe('1')
+        } finally {
+            await pointer.unhover(date)
+        }
+    })
+
+    // Tab can reach a faint button, so it has to show fully once it has focus
+    test('should show the actions button fully when Tab reaches it', async () => {
+        const user = userEvent.setup()
+        renderPrice(price)
+
+        await user.tab()
+
+        expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Price actions' }))
+        await actionsOpacity().toBe('1')
+    })
+
+    test('should keep the actions button showing fully while its menu is open', async () => {
+        const user = userEvent.setup()
+        renderPrice(price)
+
+        await user.click(screen.getByRole('button', { name: 'Price actions' }))
+        // Moving into the menu leaves the row, which is drawn apart from it
+        await user.hover(await screen.findByRole('menu'))
+
+        await actionsOpacity().toBe('1')
+    })
+})
+
+// A $100.00 price with the given changes, starting on Sep 4, 2026 like the other fixtures
+const priceWith = (changes: Partial<PriceType>) => createPrice(1, { ...price, ...changes })
+const twentyPercentOff = { discountAmount: 80, discountPercentage: 0.2, totalAmount: 80 }
+
+describe('Price details line', () => {
+    test('should not show a details line for a plain full price', async () => {
+        renderPrice(price)
+
+        // Only the date and the amount, with no details line under them
+        await expect.element(screen.getByRole('listitem')).toHaveTextContent(/^Sep 4, 2026\$100\.00$/)
+    })
+
+    test('should not show a discount or return made of floating-point leftovers', async () => {
+        renderPrice(priceWith({ discountAmount: 99.9999999, returnAmount: 0.0000001, totalAmount: 99.9999998 }))
+
+        // The total rounds to $100.00, with no details line under it
+        await expect.element(screen.getByRole('listitem')).toHaveTextContent(/^Sep 4, 2026\$100\.00$/)
+    })
+
+    test('should show the base price and the discount', async () => {
+        renderPrice(priceWith(twentyPercentOff))
+
+        await expect.element(screen.getByText('$100.00 base · 20% off')).toBeInTheDocument()
+    })
+
+    test('should show the base price and the return of a full price with a return', async () => {
+        renderPrice(priceWith({ returnAmount: 5, returnPercentage: 0.05, totalAmount: 95 }))
+
+        await expect.element(screen.getByText('$100.00 base · $5.00 back')).toBeInTheDocument()
+    })
+
+    test('should show the description without a base price on a full price', async () => {
+        renderPrice(priceWith({ description: 'Black Friday' }))
+
+        await expect.element(screen.getByText('Black Friday')).toBeInTheDocument()
+    })
+
+    test('should leave out a description that is only spaces', async () => {
+        renderPrice(priceWith({ ...twentyPercentOff, description: '   ' }))
+
+        await expect.element(screen.getByText('$100.00 base · 20% off')).toBeInTheDocument()
+    })
+
+    test('should show when a price with an end date ends', async () => {
+        renderPrice(priceWith({ priceEnded: new Date(2026, 8, 30, 23, 59).toISOString() }))
+
+        await expect.element(screen.getByText('until Sep 30')).toBeInTheDocument()
+    })
+
+    // The date alone would repeat the row's own date
+    test('should show the end time of a price that ends on the day it starts', async () => {
+        renderPrice(priceWith({ priceEnded: new Date(2026, 8, 4, 23, 59).toISOString() }))
+
+        await expect.element(screen.getByText('until 11:59 PM')).toBeInTheDocument()
+    })
+
+    test('should show the year of an end date in a later year than the start', async () => {
+        renderPrice(priceWith({ priceEnded: new Date(2027, 0, 2, 12).toISOString() }))
+
+        await expect.element(screen.getByText('until Jan 2, 2027')).toBeInTheDocument()
+    })
+
+    test('should show every part in order', async () => {
+        renderPrice(
+            priceWith({
+                ...twentyPercentOff,
+                returnAmount: 4,
+                returnPercentage: 0.05,
+                totalAmount: 76,
+                description: 'Black Friday',
+                priceEnded: new Date(2026, 8, 30, 23, 59).toISOString()
+            })
+        )
+
+        await expect
+            .element(screen.getByText('$100.00 base · 20% off · $4.00 back · Black Friday · until Sep 30'))
+            .toBeInTheDocument()
+    })
+
+    test("should show amounts in the price's currency", async () => {
+        renderPrice(priceWith({ currency: 'EUR', returnAmount: 4, returnPercentage: 0.04, totalAmount: 96 }))
+
+        await expect.element(screen.getByText('€100.00 base · €4.00 back')).toBeInTheDocument()
+    })
+
+    test('should show amounts in USD when the price has no currency', async () => {
+        renderPrice(priceWith({ ...twentyPercentOff, currency: '' }))
+
+        await expect.element(screen.getByText('$100.00 base · 20% off')).toBeInTheDocument()
+    })
+
+    // Matches how the rest of the app shows a discount below 1%, which would otherwise round to 0%
+    test('should keep the decimals of a discount below 1%', async () => {
+        renderPrice(priceWith({ discountAmount: 99.5, discountPercentage: 0.005, totalAmount: 99.5 }))
+
+        await expect.element(screen.getByText('$100.00 base · 0.5% off')).toBeInTheDocument()
+    })
+
+    test('should cut off a long details line and show all of it on hover', async () => {
+        const text = '$100.00 base · 20% off · A very long description that will not fit in the narrow price column'
+        renderPrice(priceWith({ ...twentyPercentOff, description: text.split(' · ')[2] }))
+
+        const details = screen.getByText(text)
+        await expect.element(details).toHaveClass('truncate')
+        await expect.element(details).toHaveAttribute('title', text)
+    })
+
+    test('should not strike through the details of a deleted price', async () => {
+        renderPrice(priceWith({ ...twentyPercentOff, deletedAt: deletedPrice.deletedAt }))
+
+        // A strike-through on any block around the line would draw through it too
+        expect(screen.getByText('$100.00 base · 20% off').closest('.line-through')).toBeNull()
     })
 })
