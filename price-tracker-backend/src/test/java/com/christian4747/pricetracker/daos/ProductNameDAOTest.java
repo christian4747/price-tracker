@@ -34,6 +34,9 @@ class ProductNameDAOTest {
     @Autowired
     private EntityManager entityManager;
 
+    @Autowired
+    private TestDatabase testDatabase;
+
     private Product addProduct(String name, Timestamp deletedAt) {
         Product product = new Product();
         product.setName(name);
@@ -49,11 +52,6 @@ class ProductNameDAOTest {
         price.setTotalAmount(totalAmount);
         entityManager.persist(price);
         return price;
-    }
-
-    private void saveFixtures() {
-        entityManager.flush();
-        entityManager.clear();
     }
 
     private ProductFilterDTO productFilter(String name, Boolean deleted) {
@@ -99,7 +97,7 @@ class ProductNameDAOTest {
         addProduct("Apple", null);
         addProduct("Banana", null);
         addProduct("Cherry", null);
-        saveFixtures();
+        testDatabase.saveFixtures();
 
         Page<String> names = findNames(productFilter("cherry", false), priceFilter(null, null), page(0, 1));
 
@@ -110,7 +108,7 @@ class ProductNameDAOTest {
     @Test
     void searchWithNoMatchesFindsNoNames() {
         addProduct("Apple", null);
-        saveFixtures();
+        testDatabase.saveFixtures();
 
         Page<String> names = findNames(productFilter("cherry", false), priceFilter(null, null), page(0, 10));
 
@@ -122,7 +120,7 @@ class ProductNameDAOTest {
     void namesWithOnlyDeletedProductsAreLeftOutWhenDeletedProductsAreHidden() {
         addProduct("Apple", null);
         addProduct("Banana", PAST);
-        saveFixtures();
+        testDatabase.saveFixtures();
 
         Page<String> names = findNames(productFilter(null, false), priceFilter(null, null), page(0, 10));
 
@@ -134,7 +132,7 @@ class ProductNameDAOTest {
     void namesWithOnlyDeletedProductsAreIncludedWhenDeletedProductsAreShown() {
         addProduct("Apple", null);
         addProduct("Banana", PAST);
-        saveFixtures();
+        testDatabase.saveFixtures();
 
         Page<String> names = findNames(productFilter(null, true), priceFilter(null, null), page(0, 10));
 
@@ -146,7 +144,7 @@ class ProductNameDAOTest {
     void minimumPriceLimitsTheNamesAndTheCount() {
         addCurrentPrice(addProduct("Apple", null), 10, PAST);
         addCurrentPrice(addProduct("Banana", null), 100, LATER_PAST);
-        saveFixtures();
+        testDatabase.saveFixtures();
 
         Page<String> names = findNames(productFilter(null, false), priceFilter(50.0, null), page(0, 10));
 
@@ -158,7 +156,7 @@ class ProductNameDAOTest {
     void maximumPriceLimitsTheNamesAndTheCount() {
         addCurrentPrice(addProduct("Apple", null), 10, PAST);
         addCurrentPrice(addProduct("Banana", null), 100, LATER_PAST);
-        saveFixtures();
+        testDatabase.saveFixtures();
 
         Page<String> names = findNames(productFilter(null, false), priceFilter(null, 50.0), page(0, 10));
 
@@ -174,7 +172,7 @@ class ProductNameDAOTest {
         addCurrentPrice(addProduct("Cherry", null), 0.3, PAST);
         addCurrentPrice(addProduct("Date", null), 0.06, PAST);
         addCurrentPrice(addProduct("Elderberry", null), 0.31, PAST);
-        saveFixtures();
+        testDatabase.saveFixtures();
 
         Page<String> names = findNames(productFilter(null, false), priceFilter(0.07, 0.3), page(0, 10));
 
@@ -188,7 +186,7 @@ class ProductNameDAOTest {
         addCurrentPrice(addProduct("Cherry", null), 10, PAST).setTotalPercentage(0.3);
         addCurrentPrice(addProduct("Date", null), 10, PAST).setTotalPercentage(0.06);
         addCurrentPrice(addProduct("Elderberry", null), 10, PAST).setTotalPercentage(0.31);
-        saveFixtures();
+        testDatabase.saveFixtures();
 
         PriceFilterDTO discountFilter = new PriceFilterDTO(null, null, 0.07, 0.3, null, null);
         Page<String> names = findNames(productFilter(null, false), discountFilter, page(0, 10));
@@ -203,7 +201,7 @@ class ProductNameDAOTest {
         addCurrentPrice(addProduct("Apple", null), 10, Timestamp.from(BOUNDARY.minusSeconds(1)));
         addCurrentPrice(addProduct("Banana", null), 10, Timestamp.from(BOUNDARY));
         addCurrentPrice(addProduct("Cherry", null), 10, Timestamp.from(BOUNDARY.plusSeconds(1)));
-        saveFixtures();
+        testDatabase.saveFixtures();
 
         PriceFilterDTO filter = new PriceFilterDTO(null, null, null, null, BOUNDARY, null);
         Page<String> names = findNames(productFilter(null, false), filter, page(0, 10));
@@ -216,7 +214,7 @@ class ProductNameDAOTest {
         addCurrentPrice(addProduct("Apple", null), 10, Timestamp.from(BOUNDARY.minusSeconds(1)));
         addCurrentPrice(addProduct("Banana", null), 10, Timestamp.from(BOUNDARY));
         addCurrentPrice(addProduct("Cherry", null), 10, Timestamp.from(BOUNDARY.plusSeconds(1)));
-        saveFixtures();
+        testDatabase.saveFixtures();
 
         PriceFilterDTO filter = new PriceFilterDTO(null, null, null, null, null, BOUNDARY);
         Page<String> names = findNames(productFilter(null, false), filter, page(0, 10));
@@ -228,7 +226,7 @@ class ProductNameDAOTest {
     void priceFilterIgnoresAnotherProductsPriceWithTheSameStartTime() {
         addCurrentPrice(addProduct("Apple", null), 10, PAST);
         addCurrentPrice(addProduct("Banana", null), 100, PAST);
-        saveFixtures();
+        testDatabase.saveFixtures();
 
         Page<String> names = findNames(productFilter(null, false), priceFilter(50.0, null), page(0, 10));
 
@@ -241,7 +239,7 @@ class ProductNameDAOTest {
         Product product = addProduct("Apple", null);
         addCurrentPrice(product, 100, PAST);
         addCurrentPrice(product, 10, LATER_PAST).setDeletedAt(LATER_PAST);
-        saveFixtures();
+        testDatabase.saveFixtures();
 
         Page<String> names = findNames(productFilter(null, false), priceFilter(50.0, null), page(0, 10));
 
@@ -253,7 +251,7 @@ class ProductNameDAOTest {
         Product product = addProduct("Apple", null);
         addCurrentPrice(product, 10, PAST);
         addCurrentPrice(product, 100, LATER_PAST).setDeletedAt(LATER_PAST);
-        saveFixtures();
+        testDatabase.saveFixtures();
 
         Page<String> names = findNames(productFilter(null, false), priceFilter(50.0, null), page(0, 10));
 
@@ -265,7 +263,7 @@ class ProductNameDAOTest {
         Product product = addProduct("Apple", null);
         addCurrentPrice(product, 10, PAST);
         addCurrentPrice(product, 100, PAST).setDeletedAt(LATER_PAST);
-        saveFixtures();
+        testDatabase.saveFixtures();
 
         Page<String> names = findNames(productFilter(null, false), priceFilter(50.0, null), page(0, 10));
 
@@ -277,7 +275,7 @@ class ProductNameDAOTest {
         Product product = addProduct("Apple", LATER_PAST);
         addCurrentPrice(product, 10, PAST).setDeletedAt(LATER_PAST);
         addCurrentPrice(product, 100, LATER_PAST).setDeletedAt(LATER_PAST);
-        saveFixtures();
+        testDatabase.saveFixtures();
 
         Page<String> names = findNames(productFilter(null, true), priceFilter(50.0, null), page(0, 10));
 
@@ -294,7 +292,7 @@ class ProductNameDAOTest {
         addProduct("Damson", null);
         addProduct("Elderberry", null);
         addProduct("Fig", PAST);
-        saveFixtures();
+        testDatabase.saveFixtures();
 
         List<String> pagedNames = new ArrayList<>();
         Page<String> names = findNames(productFilter(null, false), priceFilter(null, null), page(0, 2));
@@ -311,7 +309,7 @@ class ProductNameDAOTest {
     void descendingNameSortReversesTheNames() {
         addProduct("Apple", null);
         addProduct("Banana", null);
-        saveFixtures();
+        testDatabase.saveFixtures();
 
         Pageable pageable = PageRequest.of(0, 10, Sort.by("name").descending());
 
@@ -324,7 +322,7 @@ class ProductNameDAOTest {
         addProductCreatedAt("Apple", PAST);
         addProductCreatedAt("Banana", PAST);
         addProductCreatedAt("Cherry", LATER_PAST);
-        saveFixtures();
+        testDatabase.saveFixtures();
 
         assertThat(findSortedNames(0, 1, Sort.by("createdAt").descending())).containsExactly("Cherry");
     }
@@ -334,7 +332,7 @@ class ProductNameDAOTest {
         addProductWithBrand("Apple", "C");
         addProductWithBrand("Banana", "B");
         addProductWithBrand("Banana", "Z");
-        saveFixtures();
+        testDatabase.saveFixtures();
 
         assertThat(findSortedNames(0, 10, Sort.by("brand").ascending())).containsExactly("Banana", "Apple");
     }
@@ -344,7 +342,7 @@ class ProductNameDAOTest {
         addProductWithBrand("Apple", "Y");
         addProductWithBrand("Banana", "A");
         addProductWithBrand("Banana", "Z");
-        saveFixtures();
+        testDatabase.saveFixtures();
 
         assertThat(findSortedNames(0, 10, Sort.by("brand").descending())).containsExactly("Banana", "Apple");
     }
@@ -354,7 +352,7 @@ class ProductNameDAOTest {
         addProductWithBrand("Apple", "A").setDeletedAt(PAST);
         addProductWithBrand("Apple", "C");
         addProductWithBrand("Banana", "B");
-        saveFixtures();
+        testDatabase.saveFixtures();
 
         assertThat(findSortedNames(0, 10, Sort.by("brand").ascending())).containsExactly("Banana", "Apple");
     }
@@ -368,7 +366,7 @@ class ProductNameDAOTest {
         addProductWithBrand("Damson", "B");
         addProductWithBrand("Damson", "G");
         addProductWithBrand("Elderberry", "A");
-        saveFixtures();
+        testDatabase.saveFixtures();
 
         Sort sort = Sort.by("brand").ascending();
         List<String> pagedNames = new ArrayList<>();
@@ -386,7 +384,7 @@ class ProductNameDAOTest {
         addProductWithBrand("Cherry", "A");
         addProductWithBrand("Apple", "A");
         addProductWithBrand("Banana", "A");
-        saveFixtures();
+        testDatabase.saveFixtures();
 
         Sort sort = Sort.by("brand").descending();
 
@@ -400,7 +398,7 @@ class ProductNameDAOTest {
         addProductWithBrand("Apple", "B");
         addProductWithBrand("Banana", null);
         addProductWithBrand("Banana", "C");
-        saveFixtures();
+        testDatabase.saveFixtures();
 
         assertThat(findSortedNames(0, 10, Sort.by("brand").descending())).containsExactly("Banana", "Apple");
     }
@@ -409,7 +407,7 @@ class ProductNameDAOTest {
     void nameWithOnlyEmptyValuesComesLastInADescendingSort() {
         addProductWithBrand("Apple", null);
         addProductWithBrand("Banana", "B");
-        saveFixtures();
+        testDatabase.saveFixtures();
 
         assertThat(findSortedNames(0, 10, Sort.by("brand").descending())).containsExactly("Banana", "Apple");
     }
@@ -419,7 +417,7 @@ class ProductNameDAOTest {
         addProductWithActive("Apple", false);
         addProductWithActive("Banana", false);
         addProductWithActive("Banana", true);
-        saveFixtures();
+        testDatabase.saveFixtures();
 
         assertThat(findSortedNames(0, 10, Sort.by("active").descending())).containsExactly("Banana", "Apple");
     }
@@ -429,7 +427,7 @@ class ProductNameDAOTest {
         addProductWithActive("Apple", true);
         addProductWithActive("Banana", false);
         addProductWithActive("Banana", true);
-        saveFixtures();
+        testDatabase.saveFixtures();
 
         assertThat(findSortedNames(0, 10, Sort.by("active").ascending())).containsExactly("Banana", "Apple");
     }
@@ -438,7 +436,7 @@ class ProductNameDAOTest {
     void currentPriceSortPositionsANameByItsCurrentPrice() {
         addCurrentPrice(addProduct("Apple", null), 100, PAST);
         addCurrentPrice(addProduct("Banana", null), 10, PAST);
-        saveFixtures();
+        testDatabase.saveFixtures();
 
         assertThat(findSortedNames(0, 10, Sort.by("currentPrice").ascending())).containsExactly("Banana", "Apple");
     }
@@ -447,7 +445,7 @@ class ProductNameDAOTest {
     void currentDiscountSortPositionsANameByItsCurrentDiscount() {
         addCurrentPrice(addProduct("Apple", null), 100, PAST).setTotalPercentage(0.1);
         addCurrentPrice(addProduct("Banana", null), 100, PAST).setTotalPercentage(0.5);
-        saveFixtures();
+        testDatabase.saveFixtures();
 
         assertThat(findSortedNames(0, 10, Sort.by("currentDiscount").descending())).containsExactly("Banana", "Apple");
     }
@@ -456,7 +454,7 @@ class ProductNameDAOTest {
     void timeRemainingSortPositionsANameByItsNextPrice() {
         addCurrentPrice(addProduct("Apple", null), 100, Timestamp.valueOf("2999-02-01 00:00:00"));
         addCurrentPrice(addProduct("Banana", null), 100, Timestamp.valueOf("2999-01-01 00:00:00"));
-        saveFixtures();
+        testDatabase.saveFixtures();
 
         assertThat(findSortedNames(0, 10, Sort.by("timeRemaining").ascending())).containsExactly("Banana", "Apple");
     }

@@ -35,6 +35,9 @@ class PriceDAOTest {
     @Autowired
     private EntityManager entityManager;
 
+    @Autowired
+    private TestDatabase testDatabase;
+
     private Product addProduct() {
         Product product = new Product();
         product.setName("Apple");
@@ -60,24 +63,13 @@ class PriceDAOTest {
         return price;
     }
 
-    /** createdAt is set automatically on insert, so a fixed value has to be written afterwards. */
-    private void setCreatedAt(Price price, Timestamp createdAt) {
-        entityManager.flush();
-        entityManager.createQuery("UPDATE Price p SET p.createdAt = :createdAt WHERE p.priceId = :id")
-                .setParameter("createdAt", createdAt)
-                .setParameter("id", price.getPriceId())
-                .executeUpdate();
-    }
-
     private List<PricePeriod> findPeriods() {
-        entityManager.flush();
-        entityManager.clear();
+        testDatabase.saveFixtures();
         return priceDAO.findDistinctPricePeriods(FIRST_PAGE).getContent();
     }
 
     private PriceTotalPercentages findPercentages(Product product) {
-        entityManager.flush();
-        entityManager.clear();
+        testDatabase.saveFixtures();
         return priceDAO.findPriceTotalPercentages(product.getProductId(), ONE_YEAR_AGO, TWO_YEARS_AGO).orElseThrow();
     }
 
@@ -165,8 +157,8 @@ class PriceDAOTest {
         // The later sale is added first, so the order can't come from the dates themselves
         Price older = addPeriodPrice(product, HOLIDAY_SALE, null);
         Price newer = addPeriodPrice(product, BLACK_FRIDAY, null);
-        setCreatedAt(older, TWO_YEARS_AGO);
-        setCreatedAt(newer, ONE_YEAR_AGO);
+        testDatabase.setCreatedAt(older, TWO_YEARS_AGO);
+        testDatabase.setCreatedAt(newer, ONE_YEAR_AGO);
 
         assertThat(findPeriods()).containsExactly(BLACK_FRIDAY, HOLIDAY_SALE);
     }
@@ -176,10 +168,9 @@ class PriceDAOTest {
         Product product = addProduct();
         Price older = addPeriodPrice(product, HOLIDAY_SALE, null);
         Price newer = addPeriodPrice(product, BLACK_FRIDAY, null);
-        setCreatedAt(older, TWO_YEARS_AGO);
-        setCreatedAt(newer, ONE_YEAR_AGO);
-        entityManager.flush();
-        entityManager.clear();
+        testDatabase.setCreatedAt(older, TWO_YEARS_AGO);
+        testDatabase.setCreatedAt(newer, ONE_YEAR_AGO);
+        testDatabase.saveFixtures();
 
         Page<PricePeriod> periods = priceDAO.findDistinctPricePeriods(PageRequest.of(0, 1));
 
@@ -199,8 +190,7 @@ class PriceDAOTest {
     }
 
     private List<Price> findWithinBlackFriday(String store) {
-        entityManager.flush();
-        entityManager.clear();
+        testDatabase.saveFixtures();
         return priceDAO.findAllWithinPeriod(
                 FIRST_PAGE, BLACK_FRIDAY.priceStarted(), BLACK_FRIDAY.priceEnded(), store).getContent();
     }
@@ -302,8 +292,7 @@ class PriceDAOTest {
     }
 
     private List<StartedPrice> findStartedPrices(Product product) {
-        entityManager.flush();
-        entityManager.clear();
+        testDatabase.saveFixtures();
         return priceDAO.findStartedPrices(product.getProductId());
     }
 
