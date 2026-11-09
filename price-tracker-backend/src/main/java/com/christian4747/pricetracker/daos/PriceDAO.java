@@ -172,17 +172,19 @@ public interface PriceDAO extends JpaRepository<Price, Integer>, JpaSpecificatio
 
     /**
      * Gets the values needed to average the started Price(s) for the given productId that are not deleted, from oldest
-     * to newest. Selects only those values because loading a Price also loads its Product.
+     * to newest, with ties in start order kept in the order they were added. Selects only those values because loading
+     * a Price also loads its Product.
      * @param productId productId of the Price(s) to get
      * @return The started Price(s) for the given productId
      */
     @Query(value = """
-        SELECT new com.christian4747.pricetracker.models.StartedPrice(p.totalAmount, p.currency, p.priceStarted)
+        SELECT new com.christian4747.pricetracker.models.StartedPrice(
+            p.totalAmount, p.currency, p.priceStarted, p.amount, p.discountAmount, p.description)
         FROM Price p
         WHERE p.priceStarted <= CURRENT_TIMESTAMP
             AND p.product.productId = :productId
             AND p.deletedAt IS NULL
-        ORDER BY p.priceStarted
+        ORDER BY p.priceStarted, p.priceId
     """)
     List<StartedPrice> findStartedPrices(@Param("productId") Integer productId);
 

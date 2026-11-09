@@ -379,9 +379,18 @@ public class ProductServiceTest {
         assertEquals("Product", productService.getProductById(1).product().getName());
     }
 
-    // A price that started the given number of days ago
+    // A full price, with no discount or description, that started the given number of days ago
     private StartedPrice createPrice(double totalAmount, String currency, double daysAgo) {
-        return new StartedPrice(totalAmount, currency, Timestamp.from(Instant.now().minusSeconds((long) (daysAgo * 86400))));
+        return new StartedPrice(totalAmount, currency, daysAgo(daysAgo), totalAmount, totalAmount, "");
+    }
+
+    // A USD price with the given base amount, discounted amount, and description, which together tell its sale apart
+    private StartedPrice createSalePrice(double amount, double discountAmount, String description, double totalAmount, double daysAgo) {
+        return new StartedPrice(totalAmount, "USD", daysAgo(daysAgo), amount, discountAmount, description);
+    }
+
+    private static Timestamp daysAgo(double days) {
+        return Timestamp.from(Instant.now().minusSeconds((long) (days * 86400)));
     }
 
     // Stubs the given started prices from oldest to newest, with the last one as today's price
@@ -400,6 +409,106 @@ public class ProductServiceTest {
         OutgoingProductDTO product = getProductWithPrices(createPrice(10, "USD", 4), createPrice(20, "USD", 3));
 
         assertEquals(15, product.averagePrice());
+    }
+
+    // A return inside a sale splits it into three rows, and the rows on either side of the return have the same price
+    @Test
+    public void getProductById_returnInsideASale_averageCountsEachPriceInTheSaleOnce() {
+        OutgoingProductDTO product = getProductWithPrices(
+                createSalePrice(100, 80, "Sale", 80, 10),
+                createSalePrice(100, 80, "Sale", 76, 8),
+                createSalePrice(100, 80, "Sale", 80, 6),
+                createSalePrice(100, 100, "", 100, 4));
+
+        // $80, $76, and $100
+        assertEquals(85.333, product.averagePrice(), 0.001);
+    }
+
+    @Test
+    public void getProductById_samePriceInSalesThatAreNotBackToBack_averageCountsBoth() {
+        OutgoingProductDTO product = getProductWithPrices(
+                createSalePrice(100, 80, "Sale", 80, 6),
+                createSalePrice(100, 100, "", 100, 4),
+                createSalePrice(100, 80, "Sale", 80, 2));
+
+        assertEquals(86.667, product.averagePrice(), 0.001);
+    }
+
+    @Test
+    public void getProductById_backToBackPricesWithDifferentDescriptions_averageCountsBoth() {
+        OutgoingProductDTO product = getProductWithPrices(
+                createSalePrice(100, 80, "Sale A", 80, 6),
+                createSalePrice(100, 80, "Sale B", 80, 4),
+                createSalePrice(100, 100, "", 100, 2));
+
+        assertEquals(86.667, product.averagePrice(), 0.001);
+    }
+
+    @Test
+    public void getProductById_backToBackPricesWithDifferentBaseAmounts_averageCountsBoth() {
+        OutgoingProductDTO product = getProductWithPrices(
+                createSalePrice(100, 80, "Sale", 80, 6),
+                createSalePrice(90, 80, "Sale", 80, 4),
+                createSalePrice(100, 100, "", 100, 2));
+
+        assertEquals(86.667, product.averagePrice(), 0.001);
+    }
+
+    // The second price has a smaller discount and a return that brings its total to the same price
+    @Test
+    public void getProductById_backToBackPricesWithDifferentDiscounts_averageCountsBoth() {
+        OutgoingProductDTO product = getProductWithPrices(
+                createSalePrice(100, 80, "Sale", 80, 6),
+                createSalePrice(100, 84, "Sale", 80, 4),
+                createSalePrice(100, 100, "", 100, 2));
+
+        assertEquals(86.667, product.averagePrice(), 0.001);
+    }
+
+    @Test
+    public void getProductById_backToBackPricesWithNullAndEmptyDescriptions_averageCountsOnce() {
+        OutgoingProductDTO product = getProductWithPrices(
+                createSalePrice(100, 80, null, 80, 6),
+                createSalePrice(100, 80, "", 80, 4),
+                createSalePrice(100, 100, "", 100, 2));
+
+        assertEquals(90, product.averagePrice(), 0.001);
+    }
+
+    // A price without a currency displays as USD, so it's the same sale as a USD price
+    @Test
+    public void getProductById_backToBackPricesWithBlankAndUsdCurrencies_averageCountsOnce() {
+        OutgoingProductDTO product = getProductWithPrices(
+                createPrice(80, "", 6),
+                createPrice(80, "USD", 4),
+                createPrice(100, "USD", 2));
+
+        assertEquals(90, product.averagePrice(), 0.001);
+    }
+
+    // Splitting doesn't change how long each price lasted, so every row still counts by its duration
+    @Test
+    public void getProductById_returnInsideASale_weightedAverageCountsEveryRow() {
+        // $80, $76, and $80 for two days each, then $100 for four days up to now
+        OutgoingProductDTO product = getProductWithPrices(
+                createSalePrice(100, 80, "Sale", 80, 10),
+                createSalePrice(100, 80, "Sale", 76, 8),
+                createSalePrice(100, 80, "Sale", 80, 6),
+                createSalePrice(100, 100, "", 100, 4));
+
+        assertEquals(87.2, product.weightedAveragePrice(), 0.001);
+    }
+
+    // Counting the sale's $60 rows twice would make the average $73.75, which today's $75 isn't below
+    @Test
+    public void getProductById_priceTodayBelowAverageCountingEachPriceInASaleOnce_belowAverageTrue() {
+        OutgoingProductDTO product = getProductWithPrices(
+                createSalePrice(100, 60, "Sale", 60, 8),
+                createSalePrice(100, 60, "Sale", 60, 6),
+                createSalePrice(100, 100, "", 100, 4),
+                createSalePrice(100, 75, "Other sale", 75, 2));
+
+        assertTrue(product.belowAverage());
     }
 
     @Test
@@ -463,8 +572,11 @@ public class ProductServiceTest {
 
     @Test
     public void getProductById_averageDiffersOnlyByRounding_belowAverageFalse() {
-        // Three prices of 0.1 average to 0.10000000000000002 with doubles
-        OutgoingProductDTO product = getProductWithPrices(createPrice(0.1, "USD", 4), createPrice(0.1, "USD", 3), createPrice(0.1, "USD", 2));
+        // Three prices of 0.1 average to 0.10000000000000002 with doubles. Each is its own sale, so all three count
+        OutgoingProductDTO product = getProductWithPrices(
+                createSalePrice(0.1, 0.1, "Sale A", 0.1, 4),
+                createSalePrice(0.1, 0.1, "Sale B", 0.1, 3),
+                createSalePrice(0.1, 0.1, "Sale C", 0.1, 2));
 
         assertFalse(product.belowAverage());
     }

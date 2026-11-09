@@ -373,18 +373,53 @@ public class ProductService {
      */
     private static boolean canAverage(List<StartedPrice> startedPrices) {
         return startedPrices.stream()
-                .map(price -> price.currency() == null || price.currency().isEmpty() ? "USD" : price.currency())
+                .map(ProductService::getDisplayCurrency)
                 .distinct()
                 .count() == 1;
     }
 
+    private static String getDisplayCurrency(StartedPrice price) {
+        return price.currency() == null || price.currency().isEmpty() ? "USD" : price.currency();
+    }
+
     /**
-     * Gets the average total amount of the given prices, counting each price once however long it lasted.
-     * @param startedPrices The prices to average
+     * Gets the average total amount of the given prices, counting each price once however long it lasted. Within a
+     * sale, each distinct total counts once, so a return that splits a sale into several rows doesn't count the sale's
+     * price more than once, while the return's lower price still counts.
+     * @param startedPrices The prices to average, from oldest to newest
      * @return The average
      */
     private static double getAveragePrice(List<StartedPrice> startedPrices) {
-        return startedPrices.stream().mapToDouble(StartedPrice::totalAmount).sum() / startedPrices.size();
+        double countedTotal = 0;
+        int countedPrices = 0;
+        Set<Double> saleTotals = new HashSet<>();
+        StartedPrice previousPrice = null;
+
+        for (StartedPrice price : startedPrices) {
+            if (previousPrice == null || !isSameSale(previousPrice, price)) saleTotals.clear();
+            if (saleTotals.add(price.totalAmount())) {
+                countedTotal += price.totalAmount();
+                countedPrices++;
+            }
+            previousPrice = price;
+        }
+
+        return countedTotal / countedPrices;
+    }
+
+    /**
+     * Checks whether two back-to-back prices belong to the same sale, which is when they share a base amount,
+     * discounted amount, currency, and description. A return isn't compared, since it's what splits a sale into rows.
+     * @param previousPrice The earlier price
+     * @param price The price that started next
+     * @return Whether they're the same sale
+     */
+    private static boolean isSameSale(StartedPrice previousPrice, StartedPrice price) {
+        return previousPrice.amount() == price.amount()
+                && previousPrice.discountAmount() == price.discountAmount()
+                && getDisplayCurrency(previousPrice).equals(getDisplayCurrency(price))
+                && Objects.requireNonNullElse(previousPrice.description(), "")
+                        .equals(Objects.requireNonNullElse(price.description(), ""));
     }
 
     /**
