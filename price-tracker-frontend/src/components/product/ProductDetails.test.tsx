@@ -8,7 +8,8 @@ import {
     renderWithClient,
     screen,
     test,
-    userEvent
+    userEvent,
+    within
 } from '@/test-utils'
 import { http, HttpResponse } from 'msw'
 import type { SetupWorker } from 'msw/browser'
@@ -116,6 +117,113 @@ describe('Product Details Component', () => {
 
         await expect.element(await screen.findByText('9/4/2026')).toBeInTheDocument()
         expect(screen.queryByText("Couldn't load prices")).not.toBeInTheDocument()
+    })
+})
+
+describe('Product Details Time Range', () => {
+    // Noon in local time, so each range starts at a local midnight that doesn't depend on the test machine's time
+    // zone. A fixed day, so the ranges are known to count back from dateToday rather than the real date.
+    const dateToday = new Date(2026, 9, 15, 12)
+    const oneYearStart = new Date(2025, 9, 15).toISOString()
+    const twoYearsStart = new Date(2024, 9, 15).toISOString()
+
+    // Each range answers with one more, older price, so the rows show which range was asked for
+    const recentPrice = createPrice(1, { priceStarted: new Date(2026, 8, 1, 12).toISOString() })
+    const olderPrice = createPrice(2, { priceStarted: new Date(2025, 2, 1, 12).toISOString() })
+    const oldestPrice = createPrice(3, { priceStarted: new Date(2023, 0, 1, 12).toISOString() })
+    const pricesByStartDate = new Map<string | null, PriceType[]>([
+        [oneYearStart, [recentPrice]],
+        [twoYearsStart, [recentPrice, olderPrice]],
+        [null, [recentPrice, olderPrice, oldestPrice]]
+    ])
+
+    // Answers price requests by their start date and keeps each request's query parameters
+    const answerByStartDate = (worker: SetupWorker) => {
+        const requests: URLSearchParams[] = []
+        worker.use(
+            http.get(pricesApiUrl + '/product/:productId', ({ request }) => {
+                const params = new URL(request.url).searchParams
+                requests.push(params)
+                return HttpResponse.json(pricesByStartDate.get(params.get('startDate')) ?? [])
+            })
+        )
+        return requests
+    }
+
+    // The details of the product with the given ID, on the fixed dateToday, ready to render
+    const detailsForProduct = (productId: number = 1) => (
+        <ProductDetails
+            productBody={createProductBody(createProduct(productId))}
+            dateToday={dateToday}
+            setDateToday={() => {}}
+        />
+    )
+
+    test('should open on 1 year and ask for prices from midnight a year ago', async ({ worker }) => {
+        const requests = answerByStartDate(worker)
+        renderWithClient(detailsForProduct())
+
+        await screen.findByText('9/1/2026')
+
+        expect(screen.getByRole('radio', { name: '1 year' })).toBeChecked()
+        expect(requests.map((params) => params.get('startDate'))).toEqual([oneYearStart])
+    })
+
+    test('should not ask for a page of prices', async ({ worker }) => {
+        const requests = answerByStartDate(worker)
+        renderWithClient(detailsForProduct())
+
+        await screen.findByText('9/1/2026')
+
+        expect(requests[0].has('page')).toBe(false)
+        expect(requests[0].has('size')).toBe(false)
+    })
+
+    test('should show two years of prices in the list and chart after choosing 2 years', async ({ worker }) => {
+        const requests = answerByStartDate(worker)
+        const user = userEvent.setup()
+        renderWithClient(detailsForProduct())
+        await screen.findByText('9/1/2026')
+
+        await user.click(screen.getByText('2 years'))
+
+        await expect.element(await screen.findByText('3/1/2025')).toBeInTheDocument()
+        await expect.element(await screen.findByText('Mar 1, 2025 12:00 PM')).toBeInTheDocument()
+        expect(requests.at(-1)?.get('startDate')).toBe(twoYearsStart)
+    })
+
+    test('should show every price after choosing All', async ({ worker }) => {
+        const requests = answerByStartDate(worker)
+        const user = userEvent.setup()
+        renderWithClient(detailsForProduct())
+        await screen.findByText('9/1/2026')
+
+        await user.click(screen.getByText('All'))
+
+        await expect.element(await screen.findByText('1/1/2023')).toBeInTheDocument()
+        await expect.element(await screen.findByText('Jan 1, 2023 12:00 PM')).toBeInTheDocument()
+        expect(requests.at(-1)?.has('startDate')).toBe(false)
+    })
+
+    test('should keep each product to its own time range', async ({ worker }) => {
+        answerByStartDate(worker)
+        const user = userEvent.setup()
+        renderWithClient(
+            <>
+                <div data-testid="first">{detailsForProduct(1)}</div>
+                <div data-testid="second">{detailsForProduct(2)}</div>
+            </>
+        )
+        const first = within(screen.getByTestId('first'))
+        const second = within(screen.getByTestId('second'))
+        await first.findByText('9/1/2026')
+        await second.findByText('9/1/2026')
+
+        await user.click(first.getByText('All'))
+
+        await expect.element(await first.findByText('1/1/2023')).toBeInTheDocument()
+        expect(second.getByRole('radio', { name: '1 year' })).toBeChecked()
+        expect(second.queryByText('1/1/2023')).not.toBeInTheDocument()
     })
 })
 

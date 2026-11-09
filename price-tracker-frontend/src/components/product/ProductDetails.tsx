@@ -1,10 +1,12 @@
 import type { ProductBody } from '@/types/product'
 import PriceHistoryChart, { PRICE_CHART_BOX_CLASS, PRICE_CHART_HEIGHT } from '@/components/price/PriceHistoryChart'
 import { PriceList } from '@/components/price/PriceList'
-import { usePricePage } from '@/hooks/price/usePricePage'
+import { useProductPrices } from '@/hooks/price/useProductPrices'
 import { Button, Skeleton } from '@mantine/core'
 import { useState } from 'react'
 import { AddedUpdatedText } from '@/components/common/AddedUpdatedText'
+import type { PriceTimeRange } from '@/types/price'
+import { DEFAULT_PRICE_TIME_RANGE, getPriceTimeRangeStart } from '@/utils/priceTimeRange'
 
 export interface ProductDetails {
     dateToday: Date
@@ -16,7 +18,13 @@ export interface ProductDetails {
 export const ProductDetails = ({ productBody, dateToday, setDateToday, children }: ProductDetails) => {
     const { product } = productBody
     const [showDeleted, setShowDeleted] = useState(false)
-    const { query: pricesQuery } = usePricePage(product.productId, showDeleted)
+    // Each product keeps its own time range until the page reloads
+    const [timeRange, setTimeRange] = useState<PriceTimeRange>(DEFAULT_PRICE_TIME_RANGE)
+    const { query: pricesQuery } = useProductPrices(
+        product.productId,
+        showDeleted,
+        getPriceTimeRangeStart(timeRange, dateToday)
+    )
 
     // Shown on their own line under the chart and price list, inside the panel, so they open and close with the
     // rest of the details without changing the height of the chart or price list
@@ -62,7 +70,12 @@ export const ProductDetails = ({ productBody, dateToday, setDateToday, children 
     return (
         <div className="w-full h-full flex flex-col">
             <div className="w-full flex-1 flex justify-between gap-2">
-                <PriceHistoryChart prices={pricesQuery.data} dateToday={dateToday} />
+                <PriceHistoryChart
+                    prices={pricesQuery.data}
+                    dateToday={dateToday}
+                    timeRange={timeRange}
+                    setTimeRange={setTimeRange}
+                />
                 {/* contain-size stops this column's contents from setting its height, so the chart alone sets the
                     panel's height and every product's panel matches; the price list scrolls in the room left */}
                 <div className="flex flex-col w-3/10 gap-2 contain-size">

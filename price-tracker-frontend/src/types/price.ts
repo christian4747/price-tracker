@@ -18,6 +18,9 @@ export interface PriceType {
     updatedAt: string
 }
 
+// How far back the price chart and list go
+export type PriceTimeRange = 'oneYear' | 'twoYears' | 'all'
+
 export interface PriceDTO {
     amount: number
     currency: string
