@@ -64,33 +64,33 @@ public class ProductSpecification {
 
             // Filter by product updatedAt timestamp (start)
             if (filter.startUpdatedAt() != null) {
-                predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("updatedAt"), Timestamp.valueOf(filter.startUpdatedAt())));
+                predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("updatedAt"), Timestamp.from(filter.startUpdatedAt())));
             }
 
             // Filter by product updatedAt timestamp (end)
             if (filter.endUpdatedAt() != null) {
-                predicates.add(criteriaBuilder.lessThan(root.get("updatedAt"), Timestamp.valueOf(filter.endUpdatedAt())));
+                predicates.add(criteriaBuilder.lessThan(root.get("updatedAt"), Timestamp.from(filter.endUpdatedAt())));
             }
 
             // Filter by product createdAt timestamp (start)
             if (filter.startCreatedAt() != null) {
-                predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("createdAt"), Timestamp.valueOf(filter.startCreatedAt())));
+                predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("createdAt"), Timestamp.from(filter.startCreatedAt())));
             }
 
             // Filter by product createdAt timestamp (end)
             if (filter.endCreatedAt() != null) {
-                predicates.add(criteriaBuilder.lessThan(root.get("createdAt"), Timestamp.valueOf(filter.endCreatedAt())));
+                predicates.add(criteriaBuilder.lessThan(root.get("createdAt"), Timestamp.from(filter.endCreatedAt())));
             }
 
             // Filter by deleted products
             if (filter.deleted() != null && filter.deleted()) {
                 // Filter by product deletedAt timestamp (start)
                 if (filter.startDeletedAt() != null) {
-                    predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("deletedAt"), Timestamp.valueOf(filter.startDeletedAt())));
+                    predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("deletedAt"), Timestamp.from(filter.startDeletedAt())));
                 }
                 // Filter by product deletedAt timestamp (end)
                 if (filter.endDeletedAt() != null) {
-                    predicates.add(criteriaBuilder.lessThan(root.get("deletedAt"), Timestamp.valueOf(filter.endDeletedAt())));
+                    predicates.add(criteriaBuilder.lessThan(root.get("deletedAt"), Timestamp.from(filter.endDeletedAt())));
                 }
             } else {
                 predicates.add(criteriaBuilder.isNull(root.get("deletedAt")));

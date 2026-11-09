@@ -7,6 +7,8 @@ import com.christian4747.pricetracker.models.dtos.ProductFilterDTO;
 import com.christian4747.pricetracker.specification.ProductSpecification;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -92,6 +94,51 @@ class ProductNameDAOTest {
 
     private Pageable page(int number, int size) {
         return PageRequest.of(number, size, Sort.by("name").ascending());
+    }
+
+    // The three product dates the list can filter by, named as the Product fields they filter
+    enum ProductDate {
+        CREATED_AT("createdAt"),
+        UPDATED_AT("updatedAt"),
+        DELETED_AT("deletedAt");
+
+        private final String field;
+
+        ProductDate(String field) {
+            this.field = field;
+        }
+    }
+
+    // A filter on one of the product dates. Deleted products are shown, since the deletedAt dates only apply then
+    private ProductFilterDTO productDateFilter(ProductDate date, Instant start, Instant end) {
+        return new ProductFilterDTO(
+                null, null, null, null,
+                date == ProductDate.UPDATED_AT ? start : null, date == ProductDate.UPDATED_AT ? end : null,
+                date == ProductDate.CREATED_AT ? start : null, date == ProductDate.CREATED_AT ? end : null,
+                true,
+                date == ProductDate.DELETED_AT ? start : null, date == ProductDate.DELETED_AT ? end : null
+        );
+    }
+
+    // Apple's date is one second before the boundary, Banana's is on it, and Cherry's one second after. The dates are
+    // set by an update once the products are saved, since Hibernate sets updatedAt itself whenever it saves a product
+    private void addProductsAroundBoundary(ProductDate date) {
+        addProduct("Apple", null);
+        addProduct("Banana", null);
+        addProduct("Cherry", null);
+        saveFixtures();
+        setProductDate("Apple", date, BOUNDARY.minusSeconds(1));
+        setProductDate("Banana", date, BOUNDARY);
+        setProductDate("Cherry", date, BOUNDARY.plusSeconds(1));
+    }
+
+    private void setProductDate(String name, ProductDate date, Instant at) {
+        int updated = entityManager
+                .createQuery("UPDATE Product p SET p." + date.field + " = :at WHERE p.name = :name")
+                .setParameter("at", Timestamp.from(at))
+                .setParameter("name", name)
+                .executeUpdate();
+        assertThat(updated).isEqualTo(1);
     }
 
     @Test
@@ -220,6 +267,28 @@ class ProductNameDAOTest {
 
         PriceFilterDTO filter = new PriceFilterDTO(null, null, null, null, null, BOUNDARY);
         Page<String> names = findNames(productFilter(null, false), filter, page(0, 10));
+
+        assertThat(names.getContent()).containsExactly("Apple");
+    }
+
+    // Like the price dates above, products one second either side of the boundary catch a date read in the server's
+    // time zone instead of as an exact moment in UTC
+    @ParameterizedTest
+    @EnumSource(ProductDate.class)
+    void productStartDateMatchesProductsOnOrAfterIt(ProductDate date) {
+        addProductsAroundBoundary(date);
+
+        Page<String> names = findNames(productDateFilter(date, BOUNDARY, null), priceFilter(null, null), page(0, 10));
+
+        assertThat(names.getContent()).containsExactly("Banana", "Cherry");
+    }
+
+    @ParameterizedTest
+    @EnumSource(ProductDate.class)
+    void productEndDateMatchesProductsBeforeIt(ProductDate date) {
+        addProductsAroundBoundary(date);
+
+        Page<String> names = findNames(productDateFilter(date, null, BOUNDARY), priceFilter(null, null), page(0, 10));
 
         assertThat(names.getContent()).containsExactly("Apple");
     }
