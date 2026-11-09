@@ -40,7 +40,7 @@ export const PRICE_CHART_HEIGHT = 280
 // The box around the chart, shared with the loading placeholder so both are the same size
 export const PRICE_CHART_BOX_CLASS = 'w-7/10 border rounded-sm p-5'
 
-// The top of the chart's scale, as a multiple of the highest price
+// The top of the chart's scale, as a multiple of the highest price or the average, whichever is higher
 const PRICE_CHART_HEADROOM = 1.25
 
 type PriceHistoryChartProps = {
@@ -48,10 +48,24 @@ type PriceHistoryChartProps = {
     dateToday: Date
     timeRange: PriceTimeRange
     setTimeRange: (newVal: PriceTimeRange) => void
+    // The plain average of the product's whole history, or null when it has none
+    averagePrice: number | null
+    currency: string
 }
 
-const PriceHistoryChart = ({ prices, dateToday, timeRange, setTimeRange }: PriceHistoryChartProps) => {
+const PriceHistoryChart = ({
+    prices,
+    dateToday,
+    timeRange,
+    setTimeRange,
+    averagePrice,
+    currency
+}: PriceHistoryChartProps) => {
     const priceData = usePriceData(dateToday).createPriceData(prices)
+
+    // A dashed line at the average. The legend in the corner labels it, since a label on the line itself would clash
+    // with a price close to the average.
+    const averageLine = averagePrice === null ? [] : [{ y: averagePrice, color: 'gray.6', strokeDasharray: '4 4' }]
 
     return (
         <div className={`${PRICE_CHART_BOX_CLASS} border-smoke relative`}>
@@ -65,6 +79,14 @@ const PriceHistoryChart = ({ prices, dateToday, timeRange, setTimeRange }: Price
                 data={PRICE_TIME_RANGE_OPTIONS}
                 className="absolute top-2 right-2 z-10"
             />
+            {/* The average line's legend, in the top-left corner across from the time range control. The headroom
+                above the highest price keeps the price line clear of it. */}
+            {averagePrice !== null && (
+                <div className="absolute top-3 left-5 z-10 flex items-center gap-1.5 text-xs text-(--mantine-color-gray-6)">
+                    <span className="w-5 border-t border-dashed border-(--mantine-color-gray-6)" />
+                    {`Average ${getPriceWithCurrency(averagePrice, currency)}`}
+                </div>
+            )}
             <LineChart
                 attributes={{
                     container: {
@@ -74,7 +96,7 @@ const PriceHistoryChart = ({ prices, dateToday, timeRange, setTimeRange }: Price
                 data={priceData}
                 dataKey="priceStarted"
                 series={[{ name: 'totalAmount', color: 'blue.6' }]}
-                referenceLines={[{ x: 'Now' }]}
+                referenceLines={[{ x: 'Now' }, ...averageLine]}
                 tooltipProps={{
                     content: ({ label, payload }) => <ChartTooltip label={label} payload={payload} />,
                     // Above the time range control (z-10), which a tall tooltip can move up over
@@ -83,8 +105,11 @@ const PriceHistoryChart = ({ prices, dateToday, timeRange, setTimeRange }: Price
                 gridAxis="none"
                 withYAxis={false}
                 // Leaves the top fifth of the chart above the highest price, so the line never runs under the time
-                // range control in the corner
-                yAxisProps={{ domain: [0, (highest: number) => highest * PRICE_CHART_HEADROOM] }}
+                // range control in the corner. A shorter time range can leave the average above every price in view,
+                // so the scale makes room for it too.
+                yAxisProps={{
+                    domain: [0, (highest: number) => Math.max(highest, averagePrice ?? 0) * PRICE_CHART_HEADROOM]
+                }}
                 curveType="stepAfter"
             />
         </div>
