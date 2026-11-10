@@ -62,16 +62,10 @@ public class ProductServiceTest {
     private PriceDAO priceDAO;
 
     @Mock
-    private Page<String> namePage;
-
-    @Mock
     private ProductFilterDTO productFilterDTO;
 
     @Mock
     private PriceFilterDTO priceFilterDTO;
-
-    @Mock
-    private Pageable pageable;
 
     private Product addedProduct;
     private IncomingProductDTO productDTO;
