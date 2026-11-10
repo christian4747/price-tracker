@@ -4,6 +4,7 @@ import com.christian4747.pricetracker.models.Price;
 import com.christian4747.pricetracker.models.PricePeriod;
 import com.christian4747.pricetracker.models.PriceTotalPercentages;
 import com.christian4747.pricetracker.models.Product;
+import com.christian4747.pricetracker.models.StartedPrice;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -285,5 +286,49 @@ class PriceDAOTest {
         assertThat(findWithinBlackFriday(null))
                 .extracting(Price::getPriceId)
                 .containsExactly(newer.getPriceId(), older.getPriceId());
+    }
+
+    private Price addSalePrice(Product product, Timestamp priceStarted, String description) {
+        Price price = new Price();
+        price.setProduct(product);
+        price.setPriceStarted(priceStarted);
+        price.setAmount(100);
+        price.setDiscountAmount(80);
+        price.setTotalAmount(76);
+        price.setCurrency("EUR");
+        price.setDescription(description);
+        entityManager.persist(price);
+        return price;
+    }
+
+    private List<StartedPrice> findStartedPrices(Product product) {
+        entityManager.flush();
+        entityManager.clear();
+        return priceDAO.findStartedPrices(product.getProductId());
+    }
+
+    // The amounts are all doubles, so values passed to the constructor in the wrong order would still compile
+    @Test
+    void findStartedPricesReturnsEachValueTheAveragesUse() {
+        Product product = addProduct();
+        addSalePrice(product, ONE_YEAR_AGO, "Sale");
+
+        assertThat(findStartedPrices(product)).containsExactly(
+                new StartedPrice(76, "EUR", ONE_YEAR_AGO, 100, 80, "Sale"));
+    }
+
+    // Prices that start together keep the order they were added, so which ones are back to back doesn't change
+    @Test
+    void findStartedPricesKeepsPricesThatStartTogetherInTheOrderTheyWereAdded() {
+        Product product = addProduct();
+        Price first = addSalePrice(product, ONE_YEAR_AGO, "First");
+        addSalePrice(product, ONE_YEAR_AGO, "Second");
+        entityManager.flush();
+        // Updating a row moves it to the end of the table, so without a tie-break it would come back last
+        first.setDescription("First, updated");
+
+        assertThat(findStartedPrices(product))
+                .extracting(StartedPrice::description)
+                .containsExactly("First, updated", "Second");
     }
 }
