@@ -336,13 +336,23 @@ describe('Product Details Layout', () => {
         expect(deletedDate.scrollWidth).toBeLessThanOrEqual(deletedDate.clientWidth)
     })
 
-    test('should cut off a long details line instead of wrapping it', async ({ worker }) => {
+    // Two lines fit a sale's end date after its description, which a single cut-off line would hide
+    test('should wrap a long details line onto a second line and show all of it', async ({ worker }) => {
         const description = 'A description far too long to fit beside the amount in the narrow price column'
         await renderDetailsWithPrices(worker, [createPrice(1, { ...createDailyPrices(1)[0], description })])
 
         const details = screen.getByText(description)
-        expect(countLines(details)).toBe(1)
-        expect(details.scrollWidth).toBeGreaterThan(details.clientWidth)
+        expect(countLines(details)).toBe(2)
+        expect(details.scrollHeight).toBeLessThanOrEqual(details.clientHeight)
+    })
+
+    test('should cut off a details line after two lines', async ({ worker }) => {
+        const description = 'A description far too long to fit beside the amount in the narrow price column. '.repeat(3)
+        await renderDetailsWithPrices(worker, [createPrice(1, { ...createDailyPrices(1)[0], description })])
+
+        const details = screen.getByText(description.trim())
+        expect(details.clientHeight).toBe(2 * parseFloat(getComputedStyle(details).lineHeight))
+        expect(details.scrollHeight).toBeGreaterThan(details.clientHeight)
     })
 
     // Under the amount and icons too, rather than only the date's part of the row, so less of it is cut off

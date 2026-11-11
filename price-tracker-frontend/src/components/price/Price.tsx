@@ -49,10 +49,10 @@ export const Price = ({
                 productDeleted={productDeleted}
                 className={rowActionsButtonClassName}
             />
-            {/* Under the whole row, amount and actions button included, so less of it is cut off, with all of it on
-                hover */}
+            {/* Under the whole row, amount and actions button included, so it has room to wrap. Two lines fit the end
+                date of a sale with a description, and anything longer is cut off, with all of it on hover */}
             {detailsString && (
-                <div className="col-span-full truncate text-xs text-raincloud" title={detailsString}>
+                <div className="col-span-full line-clamp-2 text-xs text-raincloud" title={detailsString}>
                     {detailsString}
                 </div>
             )}

@@ -351,12 +351,13 @@ describe('Price details line', () => {
         await expect.element(screen.getByText('$100.00 base · 0.5% off')).toBeInTheDocument()
     })
 
-    test('should cut off a long details line and show all of it on hover', async () => {
+    test('should wrap a long details line onto at most two lines and show all of it on hover', async () => {
         const text = '$100.00 base · 20% off · A very long description that will not fit in the narrow price column'
         renderPrice(priceWith({ ...twentyPercentOff, description: text.split(' · ')[2] }))
 
         const details = screen.getByText(text)
-        await expect.element(details).toHaveClass('truncate')
+        await expect.element(details).toHaveClass('line-clamp-2')
+        await expect.element(details).not.toHaveClass('truncate')
         await expect.element(details).toHaveAttribute('title', text)
     })
 
