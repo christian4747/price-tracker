@@ -45,6 +45,12 @@ const watchNotifications = () => {
     return () => show.mock.calls.map(([notification]) => notification.message)
 }
 
+// Cancelling hides a confirmation at once, but it only leaves the page when its closing slide ends, and a busy test run
+// can skip the slide entirely, leaving it on the page hidden. So check that it's hidden: its buttons are gone from role
+// queries.
+const waitForConfirmationToHide = () =>
+    waitFor(() => expect(screen.queryByRole('button', { name: 'Cancel' })).not.toBeInTheDocument())
+
 const renderRow = (period: PeriodType) =>
     renderWithClient(
         <ul>
@@ -129,7 +135,7 @@ describe('PeriodRow', () => {
         await screen.findByText(deleteText)
         await user.click(screen.getByRole('button', { name: 'Cancel' }))
 
-        await waitFor(() => expect(screen.queryByText(deleteText)).not.toBeInTheDocument())
+        await waitForConfirmationToHide()
         expect(requests).toHaveLength(0)
     })
 
@@ -169,7 +175,7 @@ describe('PeriodRow', () => {
         await screen.findByText(permanentText)
         await user.click(screen.getByRole('button', { name: 'Cancel' }))
 
-        await waitFor(() => expect(screen.queryByText(permanentText)).not.toBeInTheDocument())
+        await waitForConfirmationToHide()
         expect(requests).toHaveLength(0)
     })
 
