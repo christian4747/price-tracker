@@ -225,6 +225,25 @@ describe('Product Details Time Range', () => {
         expect(second.getByRole('radio', { name: '1 year' })).toBeChecked()
         expect(second.queryByText('1/1/2023')).not.toBeInTheDocument()
     })
+
+    // The chart shows the plain average, like the price list, from the product's whole history
+    test('should keep the plain average line when the time range changes', async ({ worker }) => {
+        answerByStartDate(worker)
+        const user = userEvent.setup()
+        const productBody = createProductBody(createProduct(1), {
+            priceToday: recentPrice,
+            averagePrice: 15,
+            weightedAveragePrice: 17.5
+        })
+        renderWithClient(<ProductDetails productBody={productBody} dateToday={dateToday} setDateToday={() => {}} />)
+        await expect.element(await screen.findByText('Average $15.00')).toBeInTheDocument()
+
+        await user.click(screen.getByText('All'))
+        await screen.findByText('1/1/2023')
+
+        expect(screen.getByText('Average $15.00')).toBeInTheDocument()
+        expect(screen.queryByText('Average $17.50')).not.toBeInTheDocument()
+    })
 })
 
 describe('Product Details Layout', () => {

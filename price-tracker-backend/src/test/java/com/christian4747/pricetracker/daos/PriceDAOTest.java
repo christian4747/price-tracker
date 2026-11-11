@@ -4,6 +4,7 @@ import com.christian4747.pricetracker.models.Price;
 import com.christian4747.pricetracker.models.PricePeriod;
 import com.christian4747.pricetracker.models.PriceTotalPercentages;
 import com.christian4747.pricetracker.models.Product;
+import com.christian4747.pricetracker.models.StartedPrice;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +35,9 @@ class PriceDAOTest {
     @Autowired
     private EntityManager entityManager;
 
+    @Autowired
+    private TestDatabase testDatabase;
+
     private Product addProduct() {
         Product product = new Product();
         product.setName("Apple");
@@ -59,24 +63,13 @@ class PriceDAOTest {
         return price;
     }
 
-    /** createdAt is set automatically on insert, so a fixed value has to be written afterwards. */
-    private void setCreatedAt(Price price, Timestamp createdAt) {
-        entityManager.flush();
-        entityManager.createQuery("UPDATE Price p SET p.createdAt = :createdAt WHERE p.priceId = :id")
-                .setParameter("createdAt", createdAt)
-                .setParameter("id", price.getPriceId())
-                .executeUpdate();
-    }
-
     private List<PricePeriod> findPeriods() {
-        entityManager.flush();
-        entityManager.clear();
+        testDatabase.saveFixtures();
         return priceDAO.findDistinctPricePeriods(FIRST_PAGE).getContent();
     }
 
     private PriceTotalPercentages findPercentages(Product product) {
-        entityManager.flush();
-        entityManager.clear();
+        testDatabase.saveFixtures();
         return priceDAO.findPriceTotalPercentages(product.getProductId(), ONE_YEAR_AGO, TWO_YEARS_AGO).orElseThrow();
     }
 
@@ -164,8 +157,8 @@ class PriceDAOTest {
         // The later sale is added first, so the order can't come from the dates themselves
         Price older = addPeriodPrice(product, HOLIDAY_SALE, null);
         Price newer = addPeriodPrice(product, BLACK_FRIDAY, null);
-        setCreatedAt(older, TWO_YEARS_AGO);
-        setCreatedAt(newer, ONE_YEAR_AGO);
+        testDatabase.setCreatedAt(older, TWO_YEARS_AGO);
+        testDatabase.setCreatedAt(newer, ONE_YEAR_AGO);
 
         assertThat(findPeriods()).containsExactly(BLACK_FRIDAY, HOLIDAY_SALE);
     }
@@ -175,10 +168,9 @@ class PriceDAOTest {
         Product product = addProduct();
         Price older = addPeriodPrice(product, HOLIDAY_SALE, null);
         Price newer = addPeriodPrice(product, BLACK_FRIDAY, null);
-        setCreatedAt(older, TWO_YEARS_AGO);
-        setCreatedAt(newer, ONE_YEAR_AGO);
-        entityManager.flush();
-        entityManager.clear();
+        testDatabase.setCreatedAt(older, TWO_YEARS_AGO);
+        testDatabase.setCreatedAt(newer, ONE_YEAR_AGO);
+        testDatabase.saveFixtures();
 
         Page<PricePeriod> periods = priceDAO.findDistinctPricePeriods(PageRequest.of(0, 1));
 
@@ -198,8 +190,7 @@ class PriceDAOTest {
     }
 
     private List<Price> findWithinBlackFriday(String store) {
-        entityManager.flush();
-        entityManager.clear();
+        testDatabase.saveFixtures();
         return priceDAO.findAllWithinPeriod(
                 FIRST_PAGE, BLACK_FRIDAY.priceStarted(), BLACK_FRIDAY.priceEnded(), store).getContent();
     }
@@ -285,5 +276,48 @@ class PriceDAOTest {
         assertThat(findWithinBlackFriday(null))
                 .extracting(Price::getPriceId)
                 .containsExactly(newer.getPriceId(), older.getPriceId());
+    }
+
+    private Price addSalePrice(Product product, Timestamp priceStarted, String description) {
+        Price price = new Price();
+        price.setProduct(product);
+        price.setPriceStarted(priceStarted);
+        price.setAmount(100);
+        price.setDiscountAmount(80);
+        price.setTotalAmount(76);
+        price.setCurrency("EUR");
+        price.setDescription(description);
+        entityManager.persist(price);
+        return price;
+    }
+
+    private List<StartedPrice> findStartedPrices(Product product) {
+        testDatabase.saveFixtures();
+        return priceDAO.findStartedPrices(product.getProductId());
+    }
+
+    // The amounts are all doubles, so values passed to the constructor in the wrong order would still compile
+    @Test
+    void findStartedPricesReturnsEachValueTheAveragesUse() {
+        Product product = addProduct();
+        addSalePrice(product, ONE_YEAR_AGO, "Sale");
+
+        assertThat(findStartedPrices(product)).containsExactly(
+                new StartedPrice(76, "EUR", ONE_YEAR_AGO, 100, 80, "Sale"));
+    }
+
+    // Prices that start together keep the order they were added, so which ones are back to back doesn't change
+    @Test
+    void findStartedPricesKeepsPricesThatStartTogetherInTheOrderTheyWereAdded() {
+        Product product = addProduct();
+        Price first = addSalePrice(product, ONE_YEAR_AGO, "First");
+        addSalePrice(product, ONE_YEAR_AGO, "Second");
+        entityManager.flush();
+        // Updating a row moves it to the end of the table, so without a tie-break it would come back last
+        first.setDescription("First, updated");
+
+        assertThat(findStartedPrices(product))
+                .extracting(StartedPrice::description)
+                .containsExactly("First, updated", "Second");
     }
 }

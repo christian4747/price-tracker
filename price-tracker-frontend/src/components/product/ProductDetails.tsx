@@ -75,6 +75,9 @@ export const ProductDetails = ({ productBody, dateToday, setDateToday, children 
                     dateToday={dateToday}
                     timeRange={timeRange}
                     setTimeRange={setTimeRange}
+                    averagePrice={productBody.averagePrice}
+                    // The currency the price list shows the average in
+                    currency={productBody.priceToday?.currency || 'USD'}
                 />
                 {/* contain-size stops this column's contents from setting its height, so the chart alone sets the
                     panel's height and every product's panel matches; the price list scrolls in the room left */}

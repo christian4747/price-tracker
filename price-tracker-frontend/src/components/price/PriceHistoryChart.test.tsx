@@ -15,7 +15,7 @@ const createRisingPrices = (amounts: number[]): PriceType[] => {
     return [today, ...prices.toReversed()]
 }
 
-const renderChart = (prices: PriceType[]) =>
+const renderChart = (prices: PriceType[], averagePrice: number | null = null, currency: string = 'USD') =>
     renderWithClient(
         <div data-testid="chart-wrapper" style={{ width: 1000, display: 'flex' }}>
             <PriceHistoryChart
@@ -23,6 +23,8 @@ const renderChart = (prices: PriceType[]) =>
                 dateToday={new Date(2026, 10, 9, 12)}
                 timeRange="oneYear"
                 setTimeRange={() => {}}
+                averagePrice={averagePrice}
+                currency={currency}
             />
         </div>
     )
@@ -43,8 +45,8 @@ const showTooltip = async (container: HTMLElement) => {
     )) as HTMLElement
 }
 
-describe('Price History Chart Layout', () => {
-    // Below 1024 px wide the root font drops to 16 px, so use a desktop width to get desktop sizes
+// Below 1024 px wide the root font drops to 16 px, so use a desktop width to get desktop sizes
+const useDesktopViewport = () => {
     let defaultViewport = { width: 0, height: 0 }
     beforeEach(async () => {
         defaultViewport = { width: window.innerWidth, height: window.innerHeight }
@@ -53,12 +55,103 @@ describe('Price History Chart Layout', () => {
     afterEach(async () => {
         await page.viewport(defaultViewport.width, defaultViewport.height)
     })
+}
 
-    // The line's top edge, once the chart has drawn it
-    const getLineTop = async (container: HTMLElement) => {
-        await expect.poll(() => container.querySelector('.recharts-line-curve')).toBeTruthy()
-        return container.querySelector('.recharts-line-curve')!.getBoundingClientRect().top
-    }
+// The price line's top edge, once the chart has drawn it
+const getLineTop = async (container: HTMLElement) => {
+    await expect.poll(() => container.querySelector('.recharts-line-curve')).toBeTruthy()
+    return container.querySelector('.recharts-line-curve')!.getBoundingClientRect().top
+}
+
+// The chart's horizontal reference lines, which only the average draws (the Now line is vertical)
+const getHorizontalLines = (container: HTMLElement) =>
+    [...container.querySelectorAll('.recharts-reference-line line')].filter(
+        (line) => line.getAttribute('y1') === line.getAttribute('y2')
+    )
+
+describe('Price History Chart Average', () => {
+    useDesktopViewport()
+
+    test('should draw the average line at the height of a price with the same amount', async () => {
+        const { container } = renderChart(createRisingPrices([10, 20, 30]), 20)
+        await getLineTop(container)
+
+        const [averageLine] = getHorizontalLines(container)
+        // Oldest first on the chart, so the second dot is the price of 20
+        const dotAtAverage = container.querySelectorAll('.recharts-line-dots circle')[1]
+
+        expect(Number(averageLine.getAttribute('y1'))).toBeCloseTo(Number(dotAtAverage.getAttribute('cy')), 0)
+    })
+
+    // SVG draws later elements on top, so the average line has to come first to sit behind the prices
+    test('should draw the average line behind the price line', async () => {
+        const { container } = renderChart(createRisingPrices([10, 20, 30]), 20)
+        await getLineTop(container)
+
+        const [averageLine] = getHorizontalLines(container)
+        const priceLine = container.querySelector('.recharts-line-curve')!
+
+        expect(averageLine.compareDocumentPosition(priceLine) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    })
+
+    test('should show a legend with the average in the product currency', async () => {
+        const { container } = renderChart(createRisingPrices([10, 20, 30]), 20, 'EUR')
+        await getLineTop(container)
+
+        expect(screen.getByText('Average €20.00')).toBeInTheDocument()
+    })
+
+    // At the highest price, the price and average lines are as close to the top as they get
+    test('should put the legend in the top-left corner, above the price and average lines', async () => {
+        const { container } = renderChart(createRisingPrices([10, 20, 30]), 30)
+        const priceLineTop = await getLineTop(container)
+
+        const averageLine = getHorizontalLines(container)[0].getBoundingClientRect()
+        const legend = screen.getByText('Average $30.00').getBoundingClientRect()
+
+        expect(legend.right).toBeLessThan(averageLine.left + averageLine.width / 2)
+        expect(legend.bottom).toBeLessThan(priceLineTop)
+        expect(legend.bottom).toBeLessThan(averageLine.top)
+    })
+
+    test('should not draw a line or legend without an average', async () => {
+        const { container } = renderChart(createRisingPrices([10, 20, 30]))
+        await getLineTop(container)
+
+        expect(getHorizontalLines(container)).toHaveLength(0)
+        expect(screen.queryByText(/^Average/)).not.toBeInTheDocument()
+    })
+
+    // A shorter time range can leave the whole history's average above every price in view
+    test('should keep an average above every price inside the chart and below the time range control', async () => {
+        const { container } = renderChart(createRisingPrices([10, 20]), 100)
+        await getLineTop(container)
+        const control = screen.getByRole('radiogroup', { name: 'Time range' })
+
+        const averageTop = getHorizontalLines(container)[0].getBoundingClientRect().top
+
+        expect(averageTop).toBeGreaterThan(control.getBoundingClientRect().bottom)
+        expect(screen.getByText('Average $100.00')).toBeVisible()
+    })
+
+    test('should keep the legend clear of the time range control', async () => {
+        const { container } = renderChart(createRisingPrices([10, 20, 30]), 30)
+        await getLineTop(container)
+
+        const label = screen.getByText('Average $30.00').getBoundingClientRect()
+        const control = screen.getByRole('radiogroup', { name: 'Time range' }).getBoundingClientRect()
+        const overlaps =
+            label.left < control.right &&
+            control.left < label.right &&
+            label.top < control.bottom &&
+            control.top < label.bottom
+
+        expect(overlaps).toBe(false)
+    })
+})
+
+describe('Price History Chart Layout', () => {
+    useDesktopViewport()
 
     test.each([
         ['prices that change', [10, 15, 20]],
