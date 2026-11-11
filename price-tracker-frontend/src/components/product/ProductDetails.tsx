@@ -91,6 +91,9 @@ export const ProductDetails = ({ productBody, dateToday, setDateToday, children 
                             dateToday={dateToday}
                             timeRange={timeRange}
                             setTimeRange={setTimeRange}
+                            averagePrice={productBody.averagePrice}
+                            // The currency the price list shows the average in
+                            currency={productBody.priceToday?.currency || 'USD'}
                         />
                     }
                     // contain-size stops the list's contents from setting its height, so the chart alone sets the
