@@ -23,7 +23,7 @@ export const PriceChangeArrow = ({ change }: PriceChangeArrow) => {
     const arrow = change && ARROWS[change.direction]
 
     return (
-        <span className="flex w-4 shrink-0 justify-center">
+        <span className="flex w-4 justify-center">
             {change && arrow && (
                 <Tooltip withArrow label={change.label}>
                     <span role="img" aria-label={change.label} className={`flex ${arrow.className}`}>
