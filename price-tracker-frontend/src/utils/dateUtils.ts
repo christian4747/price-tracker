@@ -5,12 +5,6 @@ import localizedFormat from 'dayjs/plugin/localizedFormat'
 dayjs.extend(utc)
 dayjs.extend(localizedFormat)
 
-// Returns the given timestamp as a US date
-const getUSDateStringFromTimestamp = (timestamp: string) => {
-    const priceStartedDate = new Date(timestamp)
-    return `${priceStartedDate.getMonth() + 1}/${priceStartedDate.getDate()}/${priceStartedDate.getFullYear()}`
-}
-
 // Converts the UTC date to local dayjs.Dayjs
 const getLocalDateFromUTC = (utcDate: Date) => {
     return dayjs.utc(utcDate).local()
@@ -32,6 +26,15 @@ const getFormattedDateTimeString = (timeStamp: string) => {
 }
 
 /**
+ * Returns the UTC time stamp string as a local date in [MMM D, YYYY] format (ex. Aug 16, 2018)
+ * @param timeStamp Time stamp string to convert to a formatted string
+ * @returns The given UTC time stamp string converted to a formatted date string
+ */
+const getFormattedDateString = (timeStamp: string) => {
+    return localizeFormatDayjs(getLocalDateFromUTC(new Date(timeStamp)), 'MMM D, YYYY')
+}
+
+/**
  * Returns a start and end time stamp as one range of formatted dates and times
  * (ex. Nov 27, 2026 12:00 AM to Nov 30, 2026 11:59 PM)
  * @param started Time stamp string of the start
@@ -43,9 +46,9 @@ const getFormattedDateRangeString = (started: string, ended: string) => {
 }
 
 export {
-    getUSDateStringFromTimestamp,
     getLocalDateFromUTC,
     localizeFormatDayjs,
+    getFormattedDateString,
     getFormattedDateTimeString,
     getFormattedDateRangeString
 }

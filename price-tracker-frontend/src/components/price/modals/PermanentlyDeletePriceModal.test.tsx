@@ -55,8 +55,25 @@ describe('Permanently Delete Price Modal Component', () => {
     test('should say which price is being deleted and that it cannot be undone', async () => {
         renderWithClient(<PermanentlyDeletePriceModal price={price} closeModal={() => {}} opened />)
 
-        await expect.element(screen.getByText(/permanently delete price 9\/4\/2026/i)).toBeInTheDocument()
+        await expect.element(screen.getByText(/permanently delete price Sep 4, 2026 \(/i)).toBeInTheDocument()
         await expect.element(screen.getByText("This can't be undone.")).toBeInTheDocument()
+    })
+
+    // The price list asks for the time when another price starts on the same day, as its row shows it
+    test('should name the price by its start time when asked to', async () => {
+        renderWithClient(<PermanentlyDeletePriceModal price={price} closeModal={() => {}} opened showTime />)
+
+        await expect.element(screen.getByText(/permanently delete price Sep 4, 2026 12:00 PM/i)).toBeInTheDocument()
+    })
+
+    // A zero amount used to fall back to the number 0, so the confirmation said "(0)" (#227)
+    test('should show a free price as $0.00', async () => {
+        const freePrice = createPrice(1, { ...price, amount: 0, discountAmount: 0, totalAmount: 0 })
+        renderWithClient(<PermanentlyDeletePriceModal price={freePrice} closeModal={() => {}} opened />)
+
+        await expect
+            .element(screen.getByText(/permanently delete price Sep 4, 2026 \(\$0\.00\)\?/i))
+            .toBeInTheDocument()
     })
 
     test('should send the delete to the permanent endpoint for the price', async ({ worker }) => {

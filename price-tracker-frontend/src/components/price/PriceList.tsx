@@ -9,6 +9,7 @@ import { PermanentlyDeletePriceModal } from './modals/PermanentlyDeletePriceModa
 import { useDisclosure } from '@mantine/hooks'
 import { useState } from 'react'
 import { Checkbox } from '@mantine/core'
+import { getPriceChanges, getSameDayPriceIds } from '@/utils/priceListUtils'
 
 interface PriceList {
     productBody: ProductBody
@@ -18,12 +19,22 @@ interface PriceList {
     setShowDeleted: React.Dispatch<React.SetStateAction<boolean>>
 }
 
+/**
+ * A product's prices beside its chart, newest first, with the average price, the Show deleted prices checkbox, and the
+ * Add Price and Quick Price buttons underneath. It also holds the modals for adding, editing, and deleting a price.
+ */
 export const PriceList = ({ productBody, setDateToday, prices, showDeleted, setShowDeleted }: PriceList) => {
     const { product } = productBody
     // The backend rejects adding, editing, and restoring prices until the product is restored
     const productDeleted = product.deletedAt !== null
     // Track state for currently selected price
     const [currentPrice, setCurrentPrice] = useState(prices[0])
+    // Prices that start on the same day as another show their time, so the dates alone don't look like duplicates
+    const sameDayPriceIds = getSameDayPriceIds(prices)
+    // Each price's arrow compares it with the price before it
+    const priceChanges = getPriceChanges(prices)
+    // The delete confirmations name the price the same way as its row
+    const currentPriceShowsTime = currentPrice !== undefined && sameDayPriceIds.has(currentPrice.priceId)
     // Track state of modal open/close
     const [editPriceOpened, { open: openEditPrice, close: closeEditPrice }] = useDisclosure(false)
     const [deletePriceOpened, { open: openDeletePrice, close: closeDeletePrice }] = useDisclosure(false)
@@ -47,8 +58,14 @@ export const PriceList = ({ productBody, setDateToday, prices, showDeleted, setS
 
     return (
         <>
+            {/* No border of its own: the box it shares with the chart draws one around both */}
             <div className="flex flex-col h-full overflow-hidden justify-between">
-                <div className="flex flex-col bg-smoke font-bold min-h-0 overflow-auto">
+                {/* White rows with thin dividers, like the product rows. The columns, which every row shares, are the
+                    date, the change arrow, the amount, and the actions button, each as wide as its widest row. */}
+                <ul
+                    aria-label="Prices"
+                    className="grid grid-cols-[minmax(0,1fr)_auto_auto_auto] gap-x-1 content-start min-h-0 overflow-auto divide-y divide-smoke"
+                >
                     {prices.map((price) => {
                         if (price.today === true) return
                         return (
@@ -59,10 +76,12 @@ export const PriceList = ({ productBody, setDateToday, prices, showDeleted, setS
                                 openPermanentlyDeletePriceModal={openPermanentlyDeletePriceModal}
                                 openEditPriceModal={openEditPriceModal}
                                 productDeleted={productDeleted}
+                                showTime={sameDayPriceIds.has(price.priceId)}
+                                change={priceChanges.get(price.priceId)}
                             />
                         )
                     })}
-                </div>
+                </ul>
 
                 <div className="flex flex-col">
                     <PriceAverage productBody={productBody} />
@@ -89,11 +108,17 @@ export const PriceList = ({ productBody, setDateToday, prices, showDeleted, setS
                     closeEditPrice={closeEditPrice}
                     opened={editPriceOpened}
                 />
-                <DeletePriceModal price={currentPrice} closeDeletePrice={closeDeletePrice} opened={deletePriceOpened} />
+                <DeletePriceModal
+                    price={currentPrice}
+                    closeDeletePrice={closeDeletePrice}
+                    opened={deletePriceOpened}
+                    showTime={currentPriceShowsTime}
+                />
                 <PermanentlyDeletePriceModal
                     price={currentPrice}
                     closeModal={closePermanentlyDeletePrice}
                     opened={permanentlyDeletePriceOpened}
+                    showTime={currentPriceShowsTime}
                 />
             </div>
         </>
