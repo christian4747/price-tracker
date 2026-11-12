@@ -71,7 +71,10 @@ const clickLastProductAction = async (name: string) => {
     await user.click(await screen.findByRole('menuitem', { name }))
 }
 
-// Above 1024 px wide the root font is 18 px, so use a desktop width to get desktop sizes
+/**
+ * Run each test in the calling describe block at a desktop width, then put the browser's size back. Above 1024 px
+ * wide the root font is 18 px instead of 16 px, so this gives the sizes the app has on a desktop.
+ */
 const useDesktopViewport = () => {
     let defaultViewport = { width: 0, height: 0 }
     beforeEach(async () => {
@@ -83,8 +86,11 @@ const useDesktopViewport = () => {
     })
 }
 
-// Opens the named product and waits for its panel to finish sliding open. While it slides, the panel has a fixed
-// height that grows, so the space under its contents passes through every size on the way.
+/**
+ * Open the named product and wait for its panel to finish sliding open, so measurements see the panel's final layout.
+ * @param name The product's name, as its row shows it
+ * @returns The product's added and last updated dates line
+ */
 const openProductDetails = async (name: string) => {
     const control = await screen.findByRole('button', { name: new RegExp(name) })
     await userEvent.setup().click(control)
@@ -92,6 +98,8 @@ const openProductDetails = async (name: string) => {
     const item = control.closest<HTMLElement>('.mantine-Accordion-item')!
     const dates = await within(item).findByText(/^Added /)
     const panel = dates.closest<HTMLElement>('.mantine-Accordion-panel')!
+    // While it slides open, Mantine gives the panel a fixed height that grows, so the space under its contents passes
+    // through every size on the way. Once it's open, Mantine removes that height.
     await waitFor(() => expect(panel.style.height).toBe(''))
     return dates
 }
@@ -208,7 +216,9 @@ describe.for(productLists)('$name product details', ({ List }) => {
     // The dates line sits in its own row under the chart and price list, so it should be as far from them as from
     // the divider under the product
     test('should center the dates line between the details and the next divider', async ({ worker }) => {
+        // No prices: the chart and price list still draw their boxes, and only the space around them is measured
         worker.use(http.get(pricesApiUrl + '/product/:productId', () => HttpResponse.json([])))
+        // A second, closed product, so the test also checks it measures the open product's dates, not a hidden copy
         renderList(worker, List, [productA, productB])
 
         const dates = await openProductDetails('Product A')
@@ -222,6 +232,7 @@ describe.for(productLists)('$name product details', ({ List }) => {
 
         const above = lineTop - details.bottom
         const below = dividerTop - line.bottom
+        // Within a pixel, since rem sizes at an 18 px root font land on fractions of a pixel
         expect(Math.abs(above - below), `${above} px above, ${below} px below`).toBeLessThan(1)
     })
 })
