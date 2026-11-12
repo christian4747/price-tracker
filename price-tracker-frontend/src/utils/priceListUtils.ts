@@ -27,8 +27,13 @@ const getPriceDetailsString = (price: PriceType) => {
     return parts.join(' · ')
 }
 
-// When a price ends: the time if it ends on the day it starts, since the row already shows that date, or else the
-// month and day, with the year only when it's in a later year than the start
+/**
+ * Get when a price ends, for its details line: the time if it ends on the day it starts, since the row already shows
+ * that date, or else the month and day, with the year only when it's in a different year from the start.
+ * @param priceStarted When the price starts, in UTC
+ * @param priceEnded When the price ends, in UTC
+ * @returns The end time, or the end date
+ */
 const getEndDateString = (priceStarted: string, priceEnded: string) => {
     const started = getLocalDateFromUTC(new Date(priceStarted))
     const ended = getLocalDateFromUTC(new Date(priceEnded))
