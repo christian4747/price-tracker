@@ -466,5 +466,18 @@ describe('Product Details Layout', () => {
         const rowsHeight = [...priceList.children].reduce((total, row) => total + row.getBoundingClientRect().height, 0)
 
         expect(priceList.getBoundingClientRect().height).toBeCloseTo(rowsHeight, 1)
+        // Each row is only as tall as its tallest item needs. Without this, the check above would pass if the list
+        // grew and the grid stretched its rows to fill it, since the rows would still add up to the list's height.
+        for (const row of priceList.children) {
+            const { paddingTop, paddingBottom, borderTopWidth, borderBottomWidth } = getComputedStyle(row)
+            const tallestItem = Math.max(...[...row.children].map((item) => item.getBoundingClientRect().height))
+            const naturalHeight =
+                tallestItem +
+                [paddingTop, paddingBottom, borderTopWidth, borderBottomWidth].reduce(
+                    (total, value) => total + parseFloat(value),
+                    0
+                )
+            expect(row.getBoundingClientRect().height).toBeCloseTo(naturalHeight, 1)
+        }
     })
 })
