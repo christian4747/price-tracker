@@ -17,8 +17,12 @@ const deletedPrice = createPrice(1, {
     deletedAt: new Date(2026, 8, 6, 12).toISOString()
 })
 
-// Renders the price row, a list item, inside a list, for a product that isn't deleted, with modal handlers that do
-// nothing unless a test passes its own
+/**
+ * Render a price row inside a list, since the row is a list item, for a product that isn't deleted.
+ * @param priceToRender The price the row shows
+ * @param handlers Props to override, such as a modal handler a test wants to watch; the others do nothing
+ * @returns The render result
+ */
 const renderPrice = (priceToRender: PriceType, handlers: Partial<ComponentProps<typeof Price>> = {}) => {
     return renderWithClient(
         <ul>
@@ -59,7 +63,11 @@ describe('Price Component', () => {
     })
 })
 
-// Opens the row's actions menu with a click and returns the names of its items
+/**
+ * Open the row's actions menu with a click, and wait for it to show.
+ * @param user The user-event instance the test clicks with
+ * @returns The names of the menu's items, from the top
+ */
 const openMenu = async (user: ReturnType<typeof userEvent.setup>) => {
     await user.click(screen.getByRole('button', { name: 'Price actions' }))
     await screen.findByRole('menu')
@@ -116,6 +124,7 @@ describe('Price actions menu', () => {
     })
 
     test('should restore a deleted price', async ({ worker }) => {
+        // Records each restore request's price ID, so the test can check exactly one went out, for this price
         const restoredPriceIds: string[] = []
         worker.use(
             http.put(pricesApiUrl + '/:priceId/restore', ({ params }) => {
@@ -132,7 +141,9 @@ describe('Price actions menu', () => {
         await waitFor(() => expect(restoredPriceIds).toEqual(['1']))
     })
 
+    // A second click while the first restore is still on its way would send a second request
     test('should not offer Restore again while a restore is still running', async ({ worker }) => {
+        // Holds the restore's response until the test lets it go, so the restore stays running while the menu is checked
         let finishRestore = () => {}
         const restoreFinished = new Promise<void>((resolve) => (finishRestore = resolve))
         worker.use(
@@ -149,9 +160,11 @@ describe('Price actions menu', () => {
         await openMenu(user)
 
         await expect.element(screen.getByRole('menuitem', { name: 'Restore' })).toBeDisabled()
+        // Lets the held request finish, so it doesn't outlive the test
         finishRestore()
     })
 
+    // The menu has to work without a mouse
     test('should open with Enter and choose an item with the arrow keys', async () => {
         const openDeletePriceModal = vi.fn()
         const user = userEvent.setup()
@@ -169,6 +182,7 @@ describe('Price actions menu', () => {
         expect(openDeletePriceModal).toHaveBeenCalledWith(price)
     })
 
+    // Focus going back to the button keeps a keyboard user's place in the list
     test('should close with Escape and go back to the menu button', async () => {
         const user = userEvent.setup()
         renderPrice(price)
@@ -180,6 +194,7 @@ describe('Price actions menu', () => {
         expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Price actions' }))
     })
 
+    // The button shows only an icon, so the tooltip is what tells a mouse user what it does
     test('should name the menu button in its tooltip', async () => {
         const user = userEvent.setup()
         renderPrice(price)
@@ -206,7 +221,10 @@ describe('Price actions menu', () => {
 // Like a product row's actions button: faint until the row is hovered, so the list looks calm but still shows each
 // price has actions
 describe('Price actions button visibility', () => {
-    // The button's opacity once any fade has finished
+    /**
+     * Start checking the actions button's opacity, retrying until any fade has finished.
+     * @returns A poll to finish with the expected opacity, such as actionsOpacity().toBe('1')
+     */
     const actionsOpacity = () =>
         expect.poll(() => getComputedStyle(screen.getByRole('button', { name: 'Price actions' })).opacity)
 
@@ -241,6 +259,7 @@ describe('Price actions button visibility', () => {
         await actionsOpacity().toBe('1')
     })
 
+    // Otherwise the button would fade while the pointer is in its own menu
     test('should keep the actions button showing fully while its menu is open', async () => {
         const user = userEvent.setup()
         renderPrice(price)
@@ -253,8 +272,13 @@ describe('Price actions button visibility', () => {
     })
 })
 
-// A $100.00 price with the given changes, starting on Sep 4, 2026 like the other fixtures
+/**
+ * Make a $100.00 price, starting on Sep 4, 2026 like the other fixtures, with the given changes.
+ * @param changes The fields to change, such as a discount or a description
+ * @returns The price
+ */
 const priceWith = (changes: Partial<PriceType>) => createPrice(1, { ...price, ...changes })
+// $100.00 with 20% off. discountAmount is the price after the discount, not the amount taken off.
 const twentyPercentOff = { discountAmount: 80, discountPercentage: 0.2, totalAmount: 80 }
 
 describe('Price details line', () => {
@@ -265,6 +289,7 @@ describe('Price details line', () => {
         await expect.element(screen.getByRole('listitem')).toHaveTextContent(/^Sep 4, 2026\$100\.00$/)
     })
 
+    // Saved amounts can come back a hair off, such as 99.9999999 for 100, which isn't a real discount
     test('should not show a discount or return made of floating-point leftovers', async () => {
         renderPrice(priceWith({ discountAmount: 99.9999999, returnAmount: 0.0000001, totalAmount: 99.9999998 }))
 
@@ -290,6 +315,7 @@ describe('Price details line', () => {
         await expect.element(screen.getByText('Black Friday')).toBeInTheDocument()
     })
 
+    // Otherwise it would leave an empty part at the end of the line
     test('should leave out a description that is only spaces', async () => {
         renderPrice(priceWith({ ...twentyPercentOff, description: '   ' }))
 
@@ -319,6 +345,7 @@ describe('Price details line', () => {
         renderPrice(
             priceWith({
                 ...twentyPercentOff,
+                // 5% back of the $80.00 paid after the discount is $4.00, for a total of $76.00
                 returnAmount: 4,
                 returnPercentage: 0.05,
                 totalAmount: 76,
@@ -338,6 +365,7 @@ describe('Price details line', () => {
         await expect.element(screen.getByText('€100.00 base · €4.00 back')).toBeInTheDocument()
     })
 
+    // A blank currency counts as USD, as it does everywhere else in the app
     test('should show amounts in USD when the price has no currency', async () => {
         renderPrice(priceWith({ ...twentyPercentOff, currency: '' }))
 
@@ -353,8 +381,10 @@ describe('Price details line', () => {
 
     test('should wrap a long details line onto at most two lines and show all of it on hover', async () => {
         const text = '$100.00 base · 20% off · A very long description that will not fit in the narrow price column'
+        // The description is the third part of the expected line
         renderPrice(priceWith({ ...twentyPercentOff, description: text.split(' · ')[2] }))
 
+        // The wrapping itself is measured in ProductDetails' layout tests, where the row has its real width
         const details = screen.getByText(text)
         await expect.element(details).toHaveClass('line-clamp-2')
         await expect.element(details).not.toHaveClass('truncate')

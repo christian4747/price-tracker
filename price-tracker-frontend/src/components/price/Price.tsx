@@ -18,6 +18,10 @@ interface Price {
     change?: PriceChange
 }
 
+/**
+ * One row of a product's price list: the start date, the change arrow, the amount, and the actions menu, with a
+ * details line underneath when there's more to say about the price, such as a discount or an end date.
+ */
 export const Price = ({
     price,
     openEditPriceModal,

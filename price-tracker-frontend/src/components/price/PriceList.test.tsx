@@ -46,25 +46,51 @@ const openEditForProduct7 = async () => {
     return user
 }
 
-// A price starting at the given local time on Sep 4, 2026
+/**
+ * Make a price starting at the given local time on Sep 4, 2026, for tests of prices that share a day.
+ * @param priceId The price's ID
+ * @param hour The local hour it starts, from 0 to 23
+ * @param minute The minute it starts
+ * @param changes Any other fields to change
+ * @returns The price
+ */
 const priceOnSep4 = (priceId: number, hour: number, minute = 0, changes: Partial<PriceType> = {}) =>
     createPrice(priceId, { priceStarted: new Date(2026, 8, 4, hour, minute).toISOString(), ...changes })
 
-// A price with the given total, starting at noon on the given day of Sep 2026
+/**
+ * Make a price with the given total, starting at noon on the given day of Sep 2026, for tests of the change arrows.
+ * Noon keeps each price well inside its own local day.
+ * @param priceId The price's ID
+ * @param day The day of the month it starts
+ * @param totalAmount The total the arrows compare
+ * @param changes Any other fields to change
+ * @returns The price
+ */
 const priceOnSep = (priceId: number, day: number, totalAmount: number, changes: Partial<PriceType> = {}) =>
     createPrice(priceId, { priceStarted: new Date(2026, 8, day, 12).toISOString(), totalAmount, ...changes })
 
-// The names of the change arrows shown, from the top of the list
+/**
+ * Get the change arrows the list shows, by the names screen readers hear.
+ * @returns Each arrow's name, such as "Down $20.00 from $100.00", from the top of the list
+ */
 const changeArrows = () =>
     screen
         .queryAllByRole('img')
         .map((arrow) => arrow.getAttribute('aria-label'))
         .filter((name) => name !== null)
 
+// The arrows' colors: green for a drop, gray for a rise or no change
 const GREEN = 'text-green-600'
 const GRAY = 'text-raincloud'
 
+/**
+ * Render the price list, with the Show deleted prices checkbox working as it does in the app.
+ * @param productBody The product the prices belong to
+ * @param prices The prices to list, newest first, like the API sends them
+ * @returns The render result
+ */
 const renderPriceList = (productBody = createProductBody(product), prices = [price1, price2]) => {
+    // Holds the checkbox's state, which the list's parent keeps in the app
     function PriceListWithState() {
         const [checked, setChecked] = useState(false)
 
@@ -93,7 +119,9 @@ describe('Price List Component', () => {
         await expect.element(price2Date).toBeInTheDocument()
     })
 
+    // A real list, so screen readers announce how many prices there are
     test("should list the prices as a list, without today's entry", async () => {
+        // Today's entry is a copy of price 2, so only the two real prices should be listed
         renderPriceList(undefined, [priceOnSep(2, 6, 80, { today: true }), price2, price1])
 
         const list = screen.getByRole('list', { name: 'Prices' })
@@ -112,6 +140,8 @@ describe('Price List Component', () => {
     test('should only let a date and time break between the date and the time', async () => {
         renderPriceList(undefined, [priceOnSep4(2, 16, 30), priceOnSep4(1, 9, 5)])
 
+        // getByText treats every kind of space alike, so the exact characters are checked separately: non-breaking
+        // spaces inside the date and the time, and one ordinary space between them
         const date = screen.getByText('Sep 4, 2026 4:30 PM')
         expect(date.textContent).toBe('Sep 4, 2026 4:30 PM')
     })
@@ -122,6 +152,7 @@ describe('Price List Component', () => {
         await expect.element(screen.getByText('Sep 5, 2026')).toBeInTheDocument()
     })
 
+    // With deleted prices shown, a deleted price's row is on screen, so its date could look like a duplicate too
     test('should count a deleted price that is shown as starting on the same day', async () => {
         renderPriceList(undefined, [priceOnSep4(2, 16, 30, { deletedAt: price2.priceStarted }), priceOnSep4(1, 9, 5)])
 
@@ -135,6 +166,8 @@ describe('Price List Component', () => {
         await expect.element(screen.getByText('Sep 4, 2026')).toBeInTheDocument()
     })
 
+    // Days are counted in local time, so these an hour apart show as different dates, without times. In UTC they could
+    // fall on the same day.
     test('should treat prices on either side of local midnight as different days', async () => {
         renderPriceList(undefined, [
             createPrice(2, { priceStarted: new Date(2026, 8, 5, 0, 30).toISOString() }),
@@ -149,6 +182,7 @@ describe('Price List Component', () => {
         const user = userEvent.setup()
         renderPriceList(undefined, [priceOnSep4(2, 16, 30), priceOnSep4(1, 9, 5)])
 
+        // The second row, the 9:05 AM price
         await user.click(screen.getAllByRole('button', { name: 'Price actions' })[1])
         await user.click(await screen.findByRole('menuitem', { name: 'Delete' }))
 
@@ -173,7 +207,9 @@ describe('Price List Component', () => {
         await expect.element(screen.getByRole('img', { name: 'Same as the previous price' })).toHaveClass(GRAY)
     })
 
+    // Saved totals can be a hair off, which shouldn't show as a rise
     test('should compare prices to the cent', async () => {
+        // 100.004 rounds to the same cent as 100
         renderPriceList(undefined, [priceOnSep(2, 5, 100.004), priceOnSep(1, 4, 100)])
 
         await expect.element(screen.getByRole('img', { name: 'Same as the previous price' })).toBeInTheDocument()
@@ -189,14 +225,17 @@ describe('Price List Component', () => {
     })
 
     test('should compare each price with the one before it, and not show an arrow on the oldest', async () => {
+        // $100.00, then $80.00, then $90.00, listed newest first
         renderPriceList(undefined, [priceOnSep(3, 6, 90), priceOnSep(2, 5, 80), priceOnSep(1, 4, 100)])
 
+        // Two arrows for three prices: the oldest has nothing before it
         expect(changeArrows()).toEqual(['Up $10.00 from $80.00', 'Down $20.00 from $100.00'])
     })
 
     // The list comes newest first from the backend, which orders prices that start together by ID
     test('should compare prices that start at the same time in the order they were added', async () => {
         const started = new Date(2026, 8, 4, 12).toISOString()
+        // Price 1 was added first, so price 2 is compared with it, not the other way around
         renderPriceList(undefined, [
             createPrice(2, { priceStarted: started, totalAmount: 80 }),
             createPrice(1, { priceStarted: started, totalAmount: 100 })
@@ -213,7 +252,9 @@ describe('Price List Component', () => {
         expect(changeArrows()).toEqual(['Down $20.00 from $100.00'])
     })
 
+    // A deleted price no longer counts, so the next price compares with the one before the deleted one
     test('should skip deleted prices, and not show an arrow on them', async () => {
+        // $100.00, a deleted $50.00, then $90.00: $90.00 compares with $100.00, not $50.00
         renderPriceList(undefined, [
             priceOnSep(3, 6, 90),
             priceOnSep(2, 5, 50, { deletedAt: new Date(2026, 8, 7, 12).toISOString() }),
@@ -223,13 +264,16 @@ describe('Price List Component', () => {
         expect(changeArrows()).toEqual(['Down $10.00 from $100.00'])
     })
 
+    // €80.00 against $100.00 isn't a drop of 20 of anything
     test('should not compare prices in different currencies', async () => {
         renderPriceList(undefined, [priceOnSep(2, 5, 80, { currency: 'EUR' }), priceOnSep(1, 4, 100)])
 
+        // Waits for the list to show, so the empty check below isn't made before anything renders
         await expect.element(screen.getByText('€80.00')).toBeInTheDocument()
         expect(changeArrows()).toEqual([])
     })
 
+    // A blank currency counts as USD, as it does everywhere else in the app
     test('should compare a price with no currency as USD', async () => {
         renderPriceList(undefined, [priceOnSep(2, 5, 80, { currency: '' }), priceOnSep(1, 4, 100)])
 

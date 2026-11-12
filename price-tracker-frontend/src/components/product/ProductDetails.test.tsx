@@ -47,8 +47,14 @@ const renderDetails = (children?: React.ReactNode) =>
 // The panel is replaced once the prices load, so look it up again for each measurement
 const getPanel = () => screen.getByTestId('details-width').firstElementChild as HTMLElement
 
-// Renders the details with the given prices and waits for the first one to show. Returns the whole panel and the
-// scrolling list that holds the price rows.
+/**
+ * Render the details with the given prices, and wait for the first one to show in the price list.
+ * @param worker The test's mock service worker, which serves the prices
+ * @param prices The prices to serve, newest first like the API
+ * @param children Anything to show above the price list, as the grouped list's store picker does
+ * @param firstDate The date of the first row, to know the list has loaded
+ * @returns The whole panel, and the scrolling list that holds the price rows
+ */
 const renderDetailsWithPrices = async (
     worker: SetupWorker,
     prices: PriceType[],
@@ -64,16 +70,27 @@ const renderDetailsWithPrices = async (
     return { panel: getPanel(), priceList }
 }
 
-// The number of lines the element's text takes up on screen
+/**
+ * Count the lines an element's text takes up on screen, including any hidden past a line limit.
+ * @param element The element whose text to measure
+ * @returns The number of lines
+ */
 const countLines = (element: HTMLElement) => {
+    // A range over the text has one box for each line the text is laid out on, so the distinct tops are the lines
     const range = document.createRange()
     range.selectNodeContents(element)
     return new Set([...range.getClientRects()].map((rect) => Math.round(rect.top))).size
 }
 
-// Whether the given part of the element's text, such as "12:45 PM", shows on a single line
+/**
+ * Check whether part of an element's text shows on a single line, so it wasn't split by a wrap.
+ * @param element The element, whose first child is its text
+ * @param part The part to check, such as "12:45 PM", written with ordinary spaces
+ * @returns Whether the part sits on one line
+ */
 const staysOnOneLine = (element: HTMLElement, part: string) => {
     const text = element.firstChild!
+    // The text holds non-breaking spaces, so they're matched as ordinary ones to find where the part starts
     const start = text.textContent!.replace(/\s/g, ' ').indexOf(part)
     const range = document.createRange()
     range.setStart(text, start)
@@ -81,7 +98,10 @@ const staysOnOneLine = (element: HTMLElement, part: string) => {
     return new Set([...range.getClientRects()].map((rect) => Math.round(rect.top))).size === 1
 }
 
-// Fails the first price request, then answers later ones with the live price
+/**
+ * Serve a failed first price request, and the live price for every request after it, to test retrying.
+ * @returns The request handler
+ */
 const failFirstPriceRequest = () => {
     let requestCount = 0
     return http.get(pricesApiUrl + '/product/:productId', () => {
@@ -336,6 +356,8 @@ describe('Product Details Layout', () => {
     // date nor the time is split, and neither runs into the amount. A deleted price is shown too, since a deleted
     // price's actions once made every row's actions wider, leaving the dates too little room
     test('should keep a date and its time each whole, without running into the amount', async ({ worker }) => {
+        // Two prices on the same day, so their rows show times, on Sep 30 with its two-digit day and at 12:45 PM, about
+        // the widest date and time there are
         const prices = [
             createPrice(3, { priceStarted: new Date(2026, 8, 30, 12, 45).toISOString() }),
             createPrice(2, { priceStarted: new Date(2026, 8, 30, 9, 5).toISOString() }),
@@ -349,6 +371,7 @@ describe('Product Details Layout', () => {
         const date = within(priceList).getByText('Sep 30, 2026 12:45 PM')
         expect(staysOnOneLine(date, 'Sep 30, 2026')).toBe(true)
         expect(staysOnOneLine(date, '12:45 PM')).toBe(true)
+        // Text wider than its box would run under the amount beside it
         expect(date.scrollWidth).toBeLessThanOrEqual(date.clientWidth)
         const deletedDate = within(priceList).getByText('Sep 25, 2026')
         expect(countLines(deletedDate)).toBe(1)
@@ -365,16 +388,20 @@ describe('Product Details Layout', () => {
         expect(details.scrollHeight).toBeLessThanOrEqual(details.clientHeight)
     })
 
+    // A very long description stops after two lines, so it can't make its row much taller than the others
     test('should cut off a details line after two lines', async ({ worker }) => {
+        // Three times the description that takes two lines, so it needs about six
         const description = 'A description far too long to fit beside the amount in the narrow price column. '.repeat(3)
         await renderDetailsWithPrices(worker, [createPrice(1, { ...createDailyPrices(1)[0], description })])
 
+        // The text is trimmed on screen, so the trailing space from the repeat is dropped to find it
         const details = screen.getByText(description.trim())
+        // The line shows two lines' height, with the rest of the text hidden below
         expect(details.clientHeight).toBe(2 * parseFloat(getComputedStyle(details).lineHeight))
         expect(details.scrollHeight).toBeGreaterThan(details.clientHeight)
     })
 
-    // Under the amount and icons too, rather than only the date's part of the row, so less of it is cut off
+    // Under the amount and actions button too, rather than only the date's part of the row, so it has room to wrap
     test('should give the details line the whole width of its row', async ({ worker }) => {
         const description = 'A description far too long to fit beside the amount in the narrow price column'
         await renderDetailsWithPrices(worker, [createPrice(1, { ...createDailyPrices(1)[0], description })])
@@ -387,7 +414,8 @@ describe('Product Details Layout', () => {
 
     // Like a table: amounts of different widths, and a deleted price, don't move the columns
     test('should line up the arrows, amounts, and actions buttons of every row', async ({ worker }) => {
-        // Amounts of two widths, short enough to leave the rows spare width, which only the date should take
+        // Amounts of two widths, short enough to leave the rows spare width, which only the date should take. Price 3
+        // is deleted, since a deleted price's row once had a wider actions column than the others.
         const prices = [
             createPrice(4, { priceStarted: new Date(2026, 8, 4, 12).toISOString(), totalAmount: 9.5 }),
             createPrice(3, {
@@ -402,7 +430,9 @@ describe('Product Details Layout', () => {
         // A wide panel leaves the rows plenty of spare width, however wide the font makes the text
         screen.getByTestId('details-width').style.width = '1600px'
 
+        // Every amount in the list, such as "$9.50"
         const amounts = within(priceList).getAllByText(/^\$[\d,]+\.\d\d$/)
+        // The distinct positions of one edge across the boxes, to the pixel: a single one means they line up
         const edges = (rects: DOMRect[], edge: 'left' | 'right') => new Set(rects.map((rect) => Math.round(rect[edge])))
         const boxes = (elements: Element[]) => elements.map((element) => element.getBoundingClientRect())
         // Where the text itself ends, since an amount's box fills its column however its text is aligned

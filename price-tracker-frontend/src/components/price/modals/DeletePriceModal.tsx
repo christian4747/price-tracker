@@ -14,10 +14,19 @@ interface DeletePriceModal {
     showTime?: boolean
 }
 
+/**
+ * Asks before deleting a price, naming it the way its row does: its start date, with the time when another price in
+ * the list starts on the same day, and its amount. A deleted price can still be restored.
+ */
 export const DeletePriceModal = ({ price, closeDeletePrice, opened, showTime = false }: DeletePriceModal) => {
     // Hook for deleting prices
     const { mutation } = useDeletePrice(price)
 
+    /**
+     * Delete the price, and close the confirmation once the delete has worked.
+     * @param e The click on the confirm button, stopped so it doesn't also reach the product row behind the modal
+     * (React passes events up through a modal's portal to the component that rendered it)
+     */
     const finalizeDeletePrice = (e: React.MouseEvent) => {
         mutation.mutate(undefined, { onSuccess: closeDeletePrice })
         e.stopPropagation()

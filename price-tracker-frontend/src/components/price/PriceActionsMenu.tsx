@@ -14,7 +14,11 @@ interface PriceActionsMenu {
     className?: string
 }
 
-// A price's actions in one menu, like a product's, so the row needs only one button and leaves the date room to fit
+/**
+ * A price's actions in one menu, like a product's, so the row needs only one button and leaves the date room to fit.
+ * A live price offers Edit and Delete, and a deleted one Edit, Restore, and Permanently delete. A deleted product's
+ * prices leave out Edit and Restore.
+ */
 export const PriceActionsMenu = ({
     price,
     openEditPriceModal,

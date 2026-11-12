@@ -61,6 +61,11 @@ const getPriceDateString = (price: PriceType, showTime: boolean) => {
  * @returns The formatted start date, with the time when asked for
  */
 const getPriceRowDateString = (price: PriceType, showTime: boolean) => {
+    /**
+     * Swap each space for a non-breaking one, so the browser can't wrap the text partway through.
+     * @param text The date or time to hold together
+     * @returns The text with non-breaking spaces
+     */
     const keepTogether = (text: string) => text.replaceAll(' ', ' ')
     const date = keepTogether(getFormattedDateString(price.priceStarted))
     if (!showTime) return date

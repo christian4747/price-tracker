@@ -19,6 +19,10 @@ interface PriceList {
     setShowDeleted: React.Dispatch<React.SetStateAction<boolean>>
 }
 
+/**
+ * A product's prices beside its chart, newest first, with the average price, the Show deleted prices checkbox, and the
+ * Add Price and Quick Price buttons underneath. It also holds the modals for adding, editing, and deleting a price.
+ */
 export const PriceList = ({ productBody, setDateToday, prices, showDeleted, setShowDeleted }: PriceList) => {
     const { product } = productBody
     // The backend rejects adding, editing, and restoring prices until the product is restored

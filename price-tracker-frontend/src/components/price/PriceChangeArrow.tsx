@@ -15,8 +15,10 @@ const ARROWS = {
     same: { icon: <MdArrowForward />, className: 'text-raincloud' }
 }
 
-// An arrow beside a price's amount for how it changed, with what changed on hover. The space is kept when there's no
-// arrow, so the amounts stay lined up.
+/**
+ * An arrow beside a price's amount for how it changed, with what changed on hover. The space is kept when there's no
+ * arrow, so the amounts stay lined up.
+ */
 export const PriceChangeArrow = ({ change }: PriceChangeArrow) => {
     const arrow = change && ARROWS[change.direction]
 

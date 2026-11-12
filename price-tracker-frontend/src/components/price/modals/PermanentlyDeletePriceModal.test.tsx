@@ -66,6 +66,7 @@ describe('Permanently Delete Price Modal Component', () => {
         await expect.element(screen.getByText(/permanently delete price Sep 4, 2026 12:00 PM/i)).toBeInTheDocument()
     })
 
+    // A zero amount used to fall back to the number 0, so the confirmation said "(0)" (#227)
     test('should show a free price as $0.00', async () => {
         const freePrice = createPrice(1, { ...price, amount: 0, discountAmount: 0, totalAmount: 0 })
         renderWithClient(<PermanentlyDeletePriceModal price={freePrice} closeModal={() => {}} opened />)
