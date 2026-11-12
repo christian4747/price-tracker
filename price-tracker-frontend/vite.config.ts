@@ -20,7 +20,8 @@ export default defineConfig({
         setupFiles: './vitest.setup.mjs',
         browser: {
             enabled: true,
-            provider: playwright(),
+            // Every test runs in Tokyo time, on any machine, so tests of local dates catch code that reads the UTC date
+            provider: playwright({ contextOptions: { timezoneId: 'Asia/Tokyo' } }),
             headless: true,
             instances: [
                 { browser: 'chromium' }
