@@ -260,7 +260,7 @@ describe('Product Details Time Range', () => {
         await expect.element(await screen.findByText('Average $15.00')).toBeInTheDocument()
 
         await user.click(screen.getByText('All'))
-        await screen.findByText('1/1/2023')
+        await screen.findByText('Jan 1, 2023')
 
         expect(screen.getByText('Average $15.00')).toBeInTheDocument()
         expect(screen.queryByText('Average $17.50')).not.toBeInTheDocument()
