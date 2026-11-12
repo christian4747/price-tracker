@@ -18,6 +18,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
@@ -58,11 +59,7 @@ public class PriceServiceTest {
     @Mock
     private ProductDAO productDAO;
 
-    @Mock
-    private Page<Price> pricePage;
-
-    @Mock
-    private Pageable pageable;
+    private static final Pageable FIRST_PAGE = PageRequest.of(0, 10);
 
     private IncomingPriceDTO priceDTO;
     private Price price;
@@ -392,18 +389,16 @@ public class PriceServiceTest {
 
     @Test
     public void getAllPrices_threePrices_returnThreePrices() {
-        when(pricePage.getContent()).thenReturn(priceList);
-        when(priceDAO.findByDeletedAtNull(any(Pageable.class))).thenReturn(pricePage);
+        when(priceDAO.findByDeletedAtNull(any(Pageable.class))).thenReturn(new PageImpl<>(priceList, FIRST_PAGE, 3));
 
-        assertEquals(3, priceService.getAllPrices(pageable, false).size());
+        assertEquals(3, priceService.getAllPrices(FIRST_PAGE, false).size());
     }
 
     @Test
     public void getAllPrices_threePrices_returnThreePricesShowDeleted() {
-        when(pricePage.getContent()).thenReturn(priceList);
-        when(priceDAO.findAll(any(Pageable.class))).thenReturn(pricePage);
+        when(priceDAO.findAll(any(Pageable.class))).thenReturn(new PageImpl<>(priceList, FIRST_PAGE, 3));
 
-        assertEquals(3, priceService.getAllPrices(pageable, true).size());
+        assertEquals(3, priceService.getAllPrices(FIRST_PAGE, true).size());
     }
 
     @Test
@@ -526,15 +521,15 @@ public class PriceServiceTest {
     @Test
     public void getRecentData_pricePeriods_includePricePeriods() {
         PricePeriod period = new PricePeriod(Timestamp.valueOf("2026-11-27 00:00:00"), Timestamp.valueOf("2026-11-30 23:59:00"));
-        when(priceDAO.findDistinctBaseAmounts(pageable, 1)).thenReturn(Page.empty());
-        when(priceDAO.findDistinctCurrency(pageable)).thenReturn(Page.empty());
-        when(priceDAO.findDistinctDescription(pageable)).thenReturn(Page.empty());
-        when(priceDAO.findDistinctDiscountPercentages(pageable)).thenReturn(Page.empty());
-        when(priceDAO.findDistinctPriceStartedOrderByCreatedAtDesc(pageable)).thenReturn(Page.empty());
-        when(priceDAO.findDistinctPriceEndedOrderByCreatedAtDesc(pageable)).thenReturn(Page.empty());
-        when(priceDAO.findDistinctReturnPercentages(pageable)).thenReturn(Page.empty());
-        when(priceDAO.findDistinctPricePeriods(pageable)).thenReturn(new PageImpl<>(List.of(period)));
+        when(priceDAO.findDistinctBaseAmounts(FIRST_PAGE, 1)).thenReturn(Page.empty());
+        when(priceDAO.findDistinctCurrency(FIRST_PAGE)).thenReturn(Page.empty());
+        when(priceDAO.findDistinctDescription(FIRST_PAGE)).thenReturn(Page.empty());
+        when(priceDAO.findDistinctDiscountPercentages(FIRST_PAGE)).thenReturn(Page.empty());
+        when(priceDAO.findDistinctPriceStartedOrderByCreatedAtDesc(FIRST_PAGE)).thenReturn(Page.empty());
+        when(priceDAO.findDistinctPriceEndedOrderByCreatedAtDesc(FIRST_PAGE)).thenReturn(Page.empty());
+        when(priceDAO.findDistinctReturnPercentages(FIRST_PAGE)).thenReturn(Page.empty());
+        when(priceDAO.findDistinctPricePeriods(FIRST_PAGE)).thenReturn(new PageImpl<>(List.of(period)));
 
-        assertEquals(List.of(period), priceService.getRecentData(pageable, 1).pricePeriods());
+        assertEquals(List.of(period), priceService.getRecentData(FIRST_PAGE, 1).pricePeriods());
     }
 }

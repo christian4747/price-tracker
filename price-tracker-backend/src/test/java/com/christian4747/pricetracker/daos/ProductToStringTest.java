@@ -19,6 +19,9 @@ class ProductToStringTest {
     @Autowired
     private EntityManager entityManager;
 
+    @Autowired
+    private TestDatabase testDatabase;
+
     @Test
     void toStringDoesNotLoadThePrices() {
         Product product = new Product();
@@ -27,8 +30,7 @@ class ProductToStringTest {
         Price price = new Price();
         price.setProduct(product);
         entityManager.persist(price);
-        entityManager.flush();
-        entityManager.clear();
+        testDatabase.saveFixtures();
 
         Product loaded = productDAO.findById(product.getProductId()).orElseThrow();
         loaded.toString();
