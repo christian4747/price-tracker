@@ -12,8 +12,10 @@ export const ProductTitleDetails = ({ product, otherStoresText }: ProductTitleDe
     const deletedClassName = product.deletedAt !== null ? 'line-through text-raincloud' : ''
 
     return (
-        // Close together, so the dots between them read like the added and updated dates
-        <div className="flex gap-1.5 items-baseline-last">
+        // Close together, so the dots between them read like the added and updated dates. min-w-0 lets it shrink below
+        // its parts' maximum widths added up, which a flex item otherwise won't, so a long title gives up room to the
+        // icons and price beside it instead of pushing them out of the row.
+        <div className="flex min-w-0 gap-1.5 items-baseline-last">
             <div title={product.name} className={`text-lg max-w-100 truncate ${deletedClassName}`}>
                 {product.name}
             </div>
