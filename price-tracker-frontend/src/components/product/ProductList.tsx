@@ -6,6 +6,7 @@ import { useProductPage } from '@/hooks/product/useProductPage'
 import { ProductListFooter } from './ProductListFooter'
 import { ProductModals } from './ProductModals'
 import ProductListSkeleton from './ProductListSkeleton'
+import { productAccordionStyles } from './productAccordionStyles'
 
 export interface ProductList {
     filter: ProductFilterDTO
@@ -33,10 +34,7 @@ export const ProductList = ({ filter }: ProductList) => {
                     <Accordion
                         multiple
                         variant="unstyled"
-                        styles={{
-                            control: { cursor: 'default' },
-                            chevron: { cursor: 'pointer' }
-                        }}
+                        styles={productAccordionStyles}
                         chevronIconSize={24}
                         value={currentlyOpened}
                         onChange={setCurrentlyOpened}
