@@ -369,6 +369,9 @@ describe('Product Details Layout', () => {
         const { priceList } = await renderDetailsWithPrices(worker, prices, undefined, 'Sep 30, 2026 12:45 PM')
 
         const date = within(priceList).getByText('Sep 30, 2026 12:45 PM')
+        // The column is too narrow for both on one line, so the checks below also cover where the wrap happens. If a
+        // change ever made room for one line, they would pass without testing the wrap at all.
+        expect(countLines(date)).toBe(2)
         expect(staysOnOneLine(date, 'Sep 30, 2026')).toBe(true)
         expect(staysOnOneLine(date, '12:45 PM')).toBe(true)
         // Text wider than its box would spill into the next column and overlap the amount beside it
