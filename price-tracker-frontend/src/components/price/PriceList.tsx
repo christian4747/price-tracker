@@ -58,7 +58,8 @@ export const PriceList = ({ productBody, setDateToday, prices, showDeleted, setS
 
     return (
         <>
-            <div className="flex flex-col h-full border border-smoke rounded-sm overflow-hidden justify-between">
+            {/* No border of its own: the box it shares with the chart draws one around both */}
+            <div className="flex flex-col h-full overflow-hidden justify-between">
                 {/* White rows with thin dividers, like the product rows. The columns, which every row shares, are the
                     date, the change arrow, the amount, and the actions button, each as wide as its widest row. */}
                 <ul

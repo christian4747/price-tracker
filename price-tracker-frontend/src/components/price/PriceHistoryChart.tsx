@@ -41,8 +41,8 @@ function ChartTooltip({ label, payload }: ChartTooltipProps) {
 // Sets the height of every product's details panel, so its loading placeholder uses it too
 export const PRICE_CHART_HEIGHT = 280
 
-// The box around the chart, shared with the loading placeholder so both are the same size
-export const PRICE_CHART_BOX_CLASS = 'w-7/10 border rounded-sm p-5'
+// The room around the chart inside its pane, shared with the loading placeholder so both are the same size
+export const PRICE_CHART_BOX_CLASS = 'p-5'
 
 // The top of the chart's scale, as a multiple of the highest price or the average, whichever is higher
 const PRICE_CHART_HEADROOM = 1.25
@@ -86,7 +86,7 @@ const PriceHistoryChart = ({
               ]
 
     return (
-        <div className={`${PRICE_CHART_BOX_CLASS} border-smoke relative`}>
+        <div className={`${PRICE_CHART_BOX_CLASS} w-full relative`}>
             {/* Placed over the chart's corner, so it doesn't change the panel's height */}
             <SegmentedControl
                 aria-label="Time range"
