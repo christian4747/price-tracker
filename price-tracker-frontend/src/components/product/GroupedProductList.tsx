@@ -6,6 +6,7 @@ import { useProductPageGrouped } from '@/hooks/product/useProductPageGrouped'
 import { ProductModals } from './ProductModals'
 import ProductListSkeleton from './ProductListSkeleton'
 import { GroupedProduct } from './GroupedProduct'
+import { productAccordionStyles } from './productAccordionStyles'
 
 export interface GroupedProductList {
     filter: ProductFilterDTO
@@ -34,10 +35,7 @@ export const GroupedProductList = ({ filter }: GroupedProductList) => {
                     <Accordion
                         multiple
                         variant="unstyled"
-                        styles={{
-                            control: { cursor: 'default' },
-                            chevron: { cursor: 'pointer' }
-                        }}
+                        styles={productAccordionStyles}
                         chevronIconSize={24}
                         value={currentlyOpened}
                         onChange={setCurrentlyOpened}

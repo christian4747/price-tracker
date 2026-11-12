@@ -27,12 +27,13 @@ export const ProductDetails = ({ productBody, dateToday, setDateToday, children 
     )
 
     // Shown on their own line under the chart and price list, inside the panel, so they open and close with the
-    // rest of the details without changing the height of the chart or price list
+    // rest of the details without changing the height of the chart or price list. The space above matches the
+    // product lists' space under the panel (productAccordionStyles), so the dates sit centered in their row.
     const productDates = (
         <AddedUpdatedText
             createdAt={product.createdAt}
             updatedAt={product.updatedAt}
-            className="block pt-2 text-right"
+            className="block pt-3 text-right"
         />
     )
 

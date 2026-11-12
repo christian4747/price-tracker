@@ -1,14 +1,27 @@
 import type { ComponentType } from 'react'
-import { describe, expect } from 'vitest'
-import { act, createProduct, createProductBody, renderWithClient, screen, test, userEvent, waitFor } from '@/test-utils'
+import { afterEach, beforeEach, describe, expect } from 'vitest'
+import { page } from 'vitest/browser'
+import {
+    act,
+    createProduct,
+    createProductBody,
+    renderWithClient,
+    screen,
+    test,
+    userEvent,
+    waitFor,
+    within
+} from '@/test-utils'
 import { http, HttpResponse } from 'msw'
 import type { SetupWorker } from 'msw/browser'
 import type { ProductActiveStatus, ProductBody, ProductFilterDTO } from '@/types/product'
 import { ACTIVE_PRODUCTS } from '@/utils/filterConstants'
 import { ProductList } from './ProductList'
 import { GroupedProductList } from './GroupedProductList'
+import '@/styles/index.css'
 
 const productsApiUrl = import.meta.env.VITE_BACKEND_ROOT_URL + '/products'
+const pricesApiUrl = import.meta.env.VITE_BACKEND_ROOT_URL + '/prices'
 
 const filter: ProductFilterDTO = {
     active: ACTIVE_PRODUCTS as ProductActiveStatus,
@@ -56,6 +69,31 @@ const clickLastProductAction = async (name: string) => {
     const menuButtons = await screen.findAllByRole('button', { name: 'Product actions' })
     await user.click(menuButtons[menuButtons.length - 1])
     await user.click(await screen.findByRole('menuitem', { name }))
+}
+
+// Above 1024 px wide the root font is 18 px, so use a desktop width to get desktop sizes
+const useDesktopViewport = () => {
+    let defaultViewport = { width: 0, height: 0 }
+    beforeEach(async () => {
+        defaultViewport = { width: window.innerWidth, height: window.innerHeight }
+        await page.viewport(1280, 900)
+    })
+    afterEach(async () => {
+        await page.viewport(defaultViewport.width, defaultViewport.height)
+    })
+}
+
+// Opens the named product and waits for its panel to finish sliding open. While it slides, the panel has a fixed
+// height that grows, so the space under its contents passes through every size on the way.
+const openProductDetails = async (name: string) => {
+    const control = await screen.findByRole('button', { name: new RegExp(name) })
+    await userEvent.setup().click(control)
+    // Closed products keep their details in the page too, hidden, so look only inside the one that opened
+    const item = control.closest<HTMLElement>('.mantine-Accordion-item')!
+    const dates = await within(item).findByText(/^Added /)
+    const panel = dates.closest<HTMLElement>('.mantine-Accordion-panel')!
+    await waitFor(() => expect(panel.style.height).toBe(''))
+    return dates
 }
 
 // Serves a count that needs two pages, and records the page and name of each request
@@ -161,6 +199,30 @@ describe.for(productLists)('$name product modals', ({ List }) => {
         await expect
             .element(await screen.findByText(/permanently delete Product Product B at Store 1\?/))
             .toBeInTheDocument()
+    })
+})
+
+describe.for(productLists)('$name product details', ({ List }) => {
+    useDesktopViewport()
+
+    // The dates line sits in its own row under the chart and price list, so it should be as far from them as from
+    // the divider under the product
+    test('should center the dates line between the details and the next divider', async ({ worker }) => {
+        worker.use(http.get(pricesApiUrl + '/product/:productId', () => HttpResponse.json([])))
+        renderList(worker, List, [productA, productB])
+
+        const dates = await openProductDetails('Product A')
+        const details = dates.previousElementSibling!.getBoundingClientRect()
+        // The row's divider is its bottom border, one pixel tall
+        const dividerTop = dates.closest('.border-b')!.getBoundingClientRect().bottom - 1
+        // The dates' line itself, inside the space added above it. The text's own box isn't used, since the font
+        // leaves a little more of its line empty under the text than above it.
+        const line = dates.getBoundingClientRect()
+        const lineTop = line.top + parseFloat(getComputedStyle(dates).paddingTop)
+
+        const above = lineTop - details.bottom
+        const below = dividerTop - line.bottom
+        expect(Math.abs(above - below), `${above} px above, ${below} px below`).toBeLessThan(1)
     })
 })
 
