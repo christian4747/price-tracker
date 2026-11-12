@@ -18,3 +18,14 @@ Tests marked `@DatabaseTest` run against a throwaway Postgres container, so they
 ```bash
 ./mvnw test -Pdatabase-tests
 ```
+
+## Dummy data
+To fill a local database with about three years of made-up products, prices, and sale and return periods, start the backend with the `seed` profile alongside your usual one (for example `dev,seed`), then run:
+
+```bash
+curl -X POST http://localhost:7777/api/dev/seed
+```
+
+Dates are counted from the day you run it, so the same day always gives the same data, and a price live today stays live however long after you first seeded. Running it again permanently removes the seed's own records (products matching a seed product's name and store, and periods matching a seed period's name) and adds them again with new IDs. Records you added yourself are left alone. The data is in `DevSeedData`.
+
+The endpoint only exists with the `seed` profile, and never with `prod`.
