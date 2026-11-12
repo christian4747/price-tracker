@@ -74,11 +74,17 @@ export const ProductListHeader = ({
             <div className="sticky top-0 pt-5 z-50 bg-white flex flex-col gap-2">
                 <div className="text-5xl">My Products</div>
                 <div className="border-t border-b pb-0 pt-3 border-smoke">
-                    <div className="flex items-center gap-2 justify-between mb-3">
+                    {/* Wraps on a narrow window, so the right group moves to its own line instead of running past the
+                        page's edge and making the whole page scroll sideways */}
+                    <div className="flex flex-wrap items-center gap-2 justify-between mb-3">
+                        {/* The buttons share a minimum width on a desktop window, so they look even and a label
+                            change such as "Hide Deleted" to "Show Deleted" doesn't shift the others. On a narrower
+                            window each is only as wide as its label, so the toolbar keeps one line down to about a 856 px
+                            window instead of 965 px. */}
                         <div className="flex gap-2">
                             <Menu>
                                 <Menu.Target>
-                                    <Button className="min-w-30">{productFilterDTO.active}</Button>
+                                    <Button className="lg:min-w-30">{productFilterDTO.active}</Button>
                                 </Menu.Target>
 
                                 <Menu.Dropdown>
@@ -96,7 +102,7 @@ export const ProductListHeader = ({
 
                             <Menu>
                                 <Menu.Target>
-                                    <Button className="min-w-30">
+                                    <Button className="lg:min-w-30">
                                         {productsGroupBy.length > 0 ? `Group By: ${productsGroupBy}` : 'Group By'}
                                     </Button>
                                 </Menu.Target>
@@ -112,7 +118,7 @@ export const ProductListHeader = ({
 
                             <Menu>
                                 <Menu.Target>
-                                    <Button className="min-w-30">
+                                    <Button className="lg:min-w-30">
                                         {productFilterDTO.deleted === 'true' ? 'Show Deleted' : 'Hide Deleted'}
                                     </Button>
                                 </Menu.Target>

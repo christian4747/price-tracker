@@ -1,8 +1,11 @@
-import { describe, expect, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, vi } from 'vitest'
+import { page } from 'vitest/browser'
 import { renderWithClient, screen, test, userEvent, waitFor, within } from '@/test-utils'
 import { ProductListHeader } from './ProductListHeader'
 import { ACTIVE_PRODUCTS } from '@/utils/filterConstants'
 import type { ProductActiveStatus } from '@/types/product'
+// The layout tests measure the toolbar, so they need the app's styles
+import '@/styles/index.css'
 
 const productFilterDTO = {
     brand: '',
@@ -44,6 +47,90 @@ const lists = [
     { list: 'plain', productsGroupBy: '' },
     { list: 'grouped', productsGroupBy: 'name' }
 ]
+
+/**
+ * Render the header inside a page of the given width, at a browser size that gives the app's root font for it.
+ * @param viewportWidth The browser's width; above 1024 px the root font is 18 px, and 16 px below
+ * @param pageWidth The width of the page's content, which the toolbar has to fit inside
+ * @returns The page element, to measure the toolbar against
+ */
+const renderHeaderAtWidth = async (viewportWidth: number, pageWidth: number) => {
+    await page.viewport(viewportWidth, 900)
+    renderWithClient(
+        <div data-testid="page" style={{ width: pageWidth }}>
+            <ProductListHeader
+                searchSearchTerm={() => {}}
+                productsGroupBy=""
+                setProductsGroupBy={() => {}}
+                productFilterDTO={productFilterDTO}
+                setField={() => {}}
+            />
+        </div>
+    )
+    return screen.getByTestId('page')
+}
+
+/**
+ * Get the toolbar's buttons, from Active on the left to Add Product on the right.
+ * @returns The buttons
+ */
+const toolbarButtons = () =>
+    ['Active', 'Group By', 'Hide Deleted', 'Sort', 'Periods', 'Add Product'].map((name) =>
+        screen.getByRole('button', { name })
+    )
+
+describe('Product List Header toolbar layout', () => {
+    let defaultViewport = { width: 0, height: 0 }
+    beforeEach(() => {
+        defaultViewport = { width: window.innerWidth, height: window.innerHeight }
+    })
+    afterEach(async () => {
+        await page.viewport(defaultViewport.width, defaultViewport.height)
+    })
+
+    // A toolbar wider than the page makes the whole page scroll sideways
+    test('should keep every button inside a narrow page', async () => {
+        // An 800 px window, whose page is 785 px wide beside the scrollbar, narrower than the toolbar's one line
+        const pageBox = (await renderHeaderAtWidth(800, 785)).getBoundingClientRect()
+
+        for (const button of toolbarButtons()) {
+            const box = button.getBoundingClientRect()
+            expect(box.right, `${button.textContent} ends at ${box.right} px`).toBeLessThanOrEqual(pageBox.right)
+        }
+    })
+
+    // Below desktop width the left buttons are only as wide as their labels, so one row holds down to about a 856 px
+    // window, where buttons 120 px wide each would wrap below about 965 px. 900 px is between the two.
+    test('should keep the toolbar on one line on a 900 px window', async () => {
+        // 885 px of page beside the scrollbar
+        await renderHeaderAtWidth(900, 885)
+
+        const tops = new Set(toolbarButtons().map((button) => Math.round(button.getBoundingClientRect().top)))
+        expect(tops.size).toBe(1)
+    })
+
+    // Wrapping is only for narrow windows: with room to spare, the toolbar stays one row
+    test('should keep the toolbar on one line on a desktop page', async () => {
+        // The page's content is 1126 px wide at most, on any window wider than that
+        await renderHeaderAtWidth(1280, 1126)
+
+        const tops = new Set(toolbarButtons().map((button) => Math.round(button.getBoundingClientRect().top)))
+        expect(tops.size).toBe(1)
+    })
+
+    // Add Product had a margin of its own, which put it further from Periods than the other buttons are apart
+    test('should space Add Product from Periods like the other buttons', async () => {
+        await renderHeaderAtWidth(1280, 1126)
+        const [active, groupBy, , , periods, addProduct] = toolbarButtons().map((button) =>
+            button.getBoundingClientRect()
+        )
+
+        const gap = groupBy.left - active.right
+        expect(addProduct.left - periods.right).toBeCloseTo(gap, 0)
+        // Its top lines up with the others too, without the margin pushing it down
+        expect(addProduct.top).toBeCloseTo(periods.top, 0)
+    })
+})
 
 describe('Product List Header Component', () => {
     test('should render hide deleted menu button', async () => {
