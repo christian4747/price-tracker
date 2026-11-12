@@ -371,7 +371,7 @@ describe('Product Details Layout', () => {
         const date = within(priceList).getByText('Sep 30, 2026 12:45 PM')
         expect(staysOnOneLine(date, 'Sep 30, 2026')).toBe(true)
         expect(staysOnOneLine(date, '12:45 PM')).toBe(true)
-        // Text wider than its box would run under the amount beside it
+        // Text wider than its box would spill into the next column and overlap the amount beside it
         expect(date.scrollWidth).toBeLessThanOrEqual(date.clientWidth)
         const deletedDate = within(priceList).getByText('Sep 25, 2026')
         expect(countLines(deletedDate)).toBe(1)
