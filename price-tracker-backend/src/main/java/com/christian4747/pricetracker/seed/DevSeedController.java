@@ -20,6 +20,10 @@ public class DevSeedController {
 
     private final DevSeeder devSeeder;
 
+    /**
+     * Creates the controller.
+     * @param devSeeder Adds the dummy data to the database
+     */
     public DevSeedController(DevSeeder devSeeder) {
         this.devSeeder = devSeeder;
     }

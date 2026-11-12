@@ -14,7 +14,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+/**
+ * Checks the seed endpoint, with the seeder mocked, since DevSeederTest checks the seeding itself.
+ */
 @WebMvcTest(DevSeedController.class)
+// The controller only exists with the seed profile
 @ActiveProfiles("seed")
 class DevSeedControllerTest {
 
@@ -24,8 +28,12 @@ class DevSeedControllerTest {
     @MockitoBean
     private DevSeeder devSeeder;
 
+    /**
+     * A POST to /dev/seed runs the seeder once and answers with its counts, which is what the README tells you to run.
+     */
     @Test
     void seedRunsTheSeederAndReturnsHowManyRecordsItAdded() throws Exception {
+        // Counts that differ from each other, so each field's check can only pass with the right count
         when(devSeeder.seed(any())).thenReturn(new SeedResult(2, 5, 1));
 
         mockMvc.perform(post("/dev/seed"))
