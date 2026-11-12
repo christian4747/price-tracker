@@ -42,7 +42,7 @@ export function useAddPrice(product: ProductType, useEndDateDesc: boolean) {
             return priceService.addPrice({
                 ...priceDTO.value,
                 priceStarted: dayjs(priceDTO.value.priceStarted).format(),
-                priceEnded: ''
+                priceEnded: null
             })
         },
         onSuccess: (newPrice: PriceType) => {

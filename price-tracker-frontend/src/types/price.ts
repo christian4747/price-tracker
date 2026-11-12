@@ -27,7 +27,8 @@ export interface PriceDTO {
     description: string
     discountAmount: number
     discountPercentage: number
-    priceEnded: string
+    // Null for a price with only a start date, as the API returns it
+    priceEnded: string | null
     priceStarted: string
     productId: number
     returnAmount: number
