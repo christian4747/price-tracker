@@ -11,6 +11,8 @@ import {
     within
 } from '@/test-utils'
 import { http, HttpResponse } from 'msw'
+import type { SetupWorker } from 'msw/browser'
+import dayjs from 'dayjs'
 import type { PriceType } from '@/types/price'
 import { PriceList } from './PriceList'
 import { useState } from 'react'
@@ -106,6 +108,72 @@ const renderPriceList = (productBody = createProductBody(product), prices = [pri
     }
 
     return renderWithClient(<PriceListWithState />)
+}
+
+// The product's newest price, with every field Quick Price fills set apart from createPrice's defaults
+const newestPrice = createPrice(3, {
+    amount: 120,
+    currency: 'EUR',
+    discountPercentage: 0.25,
+    returnPercentage: 0.1,
+    priceStarted: new Date(2026, 8, 6, 12).toISOString(),
+    priceEnded: new Date(2026, 8, 8, 12).toISOString()
+})
+
+// Recent price data whose first entries all differ from newestPrice, like the recent values of other products' prices
+const otherRecentPriceData = {
+    baseAmounts: [50],
+    currencies: ['JPY'],
+    descriptions: ['Recent description'],
+    discountPercentages: [0.5],
+    pricesStarted: [new Date(2026, 8, 1, 12).toISOString()],
+    pricesEnded: [new Date(2026, 8, 2, 12).toISOString()],
+    returnPercentages: [0.3],
+    pricePeriods: []
+}
+
+/**
+ * Open Quick Price for a product with the given prices, with the recent price data offering other values, and show the
+ * end date. It waits for the recent data to load, so a field filled from it rather than from a listed price shows.
+ * @param worker The mock service worker, to serve the recent price data
+ * @param prices The prices to list, newest first, like the API sends them
+ */
+const openQuickPrice = async (worker: SetupWorker, prices: PriceType[]) => {
+    worker.use(http.get(pricesApiUrl + '/recent/:productId', () => HttpResponse.json(otherRecentPriceData)))
+    const user = userEvent.setup()
+    renderPriceList(createProductBody(product), prices)
+
+    await user.click(screen.getByRole('button', { name: 'Quick Price' }))
+    // The recent description's button shows once the recent data has loaded
+    await screen.findByRole('button', { name: 'Recent description' })
+    // The end date is only shown for a start and end date
+    await user.click(screen.getByRole('button', { name: 'Start and End Date' }))
+}
+
+/**
+ * Get what the add price form shows in each field Quick Price fills.
+ * @returns Each field's text, with the dates as the date pickers show them
+ */
+const quickPriceFields = () => {
+    const inputValue = (name: string) => (screen.getByRole('textbox', { name }) as HTMLInputElement).value
+    return {
+        basePrice: inputValue('Base Price'),
+        currency: inputValue('Currency'),
+        discountPercentage: inputValue('Discount %'),
+        returnPercentage: inputValue('Return %'),
+        priceStarted: screen.getByRole('button', { name: 'Start Date' }).textContent,
+        priceEnded: screen.getByRole('button', { name: 'End Date' }).textContent
+    }
+}
+
+// What the form shows when Quick Price fills it from newestPrice
+const newestPriceFields = {
+    basePrice: '120.00',
+    currency: 'EUR',
+    discountPercentage: '25.00',
+    returnPercentage: '10.00',
+    priceStarted: 'Sep 6, 2026 12:00 PM',
+    priceEnded: 'Sep 8, 2026 12:00 PM'
 }
 
 describe('Price List Component', () => {
@@ -302,6 +370,73 @@ describe('Price List Component', () => {
 
         await expect.element(screen.getByText('Sep 4, 2026')).toBeInTheDocument()
         expect(screen.queryByRole('button', { name: 'Add Price' })).not.toBeInTheDocument()
+        expect(screen.queryByRole('button', { name: 'Quick Price' })).not.toBeInTheDocument()
+    })
+
+    test("should fill every Quick Price field from the product's newest price", async ({ worker }) => {
+        await openQuickPrice(worker, [newestPrice, price2, price1])
+
+        await waitFor(() => expect(quickPriceFields()).toEqual(newestPriceFields))
+    })
+
+    // The recent price data lists values by when prices were entered, which isn't what the list goes by
+    test('should fill Quick Price from the price that started last, not the one entered last', async ({ worker }) => {
+        const enteredLast = createPrice(4, {
+            amount: 90,
+            priceStarted: new Date(2026, 8, 5, 12).toISOString(),
+            createdAt: new Date(2026, 8, 20, 12).toISOString()
+        })
+
+        await openQuickPrice(worker, [newestPrice, enteredLast, price1])
+
+        await waitFor(() => expect(quickPriceFields()).toEqual(newestPriceFields))
+    })
+
+    // Deleted prices are in the list while Show deleted prices is on
+    test('should skip deleted prices in Quick Price', async ({ worker }) => {
+        const deletedPrice = createPrice(4, {
+            amount: 90,
+            priceStarted: new Date(2026, 8, 7, 12).toISOString(),
+            deletedAt: new Date(2026, 8, 9, 12).toISOString()
+        })
+
+        await openQuickPrice(worker, [deletedPrice, newestPrice, price2])
+
+        await waitFor(() => expect(quickPriceFields()).toEqual(newestPriceFields))
+    })
+
+    // Today's entry is a copy of the price in effect now, starting now, so its start date isn't a real price's
+    test("should skip today's entry in Quick Price", async ({ worker }) => {
+        const todayEntry = { ...newestPrice, today: true, priceStarted: new Date(2026, 8, 10, 12).toISOString() }
+
+        await openQuickPrice(worker, [todayEntry, newestPrice, price2])
+
+        await waitFor(() => expect(quickPriceFields()).toEqual(newestPriceFields))
+    })
+
+    // The recent end dates leave out prices with no end date, so their first entry belongs to some other price
+    // Like a new price, it ends at the end of its start day, so a start and end date starts out valid
+    test('should end Quick Price on its start day when the newest price has no end date', async ({ worker }) => {
+        await openQuickPrice(worker, [{ ...newestPrice, priceEnded: null }, price2])
+
+        await waitFor(() =>
+            expect(quickPriceFields()).toEqual({ ...newestPriceFields, priceEnded: 'Sep 6, 2026 11:59 PM' })
+        )
+    })
+
+    // The form's own default end date is the end of today, which comes before a price that starts after today
+    test('should end Quick Price after it starts when the newest price starts after today', async ({ worker }) => {
+        const tomorrowNoon = dayjs().add(1, 'day').hour(12).startOf('hour')
+        await openQuickPrice(worker, [{ ...newestPrice, priceStarted: tomorrowNoon.toISOString(), priceEnded: null }])
+
+        await waitFor(() => expect(quickPriceFields().priceStarted).toBe(tomorrowNoon.format('MMM D, YYYY h:mm A')))
+        expect(screen.queryByText('End date must be after the start date')).not.toBeInTheDocument()
+    })
+
+    test('should not offer Quick Price when every listed price is deleted', async () => {
+        renderPriceList(createProductBody(product), [{ ...price1, deletedAt: new Date(2026, 8, 6, 12).toISOString() }])
+
+        await expect.element(screen.getByRole('button', { name: 'Add Price' })).toBeInTheDocument()
         expect(screen.queryByRole('button', { name: 'Quick Price' })).not.toBeInTheDocument()
     })
 
