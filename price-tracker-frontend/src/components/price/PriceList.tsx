@@ -7,9 +7,10 @@ import { EditPriceModal } from './modals/EditPriceModal'
 import { DeletePriceModal } from './modals/DeletePriceModal'
 import { PermanentlyDeletePriceModal } from './modals/PermanentlyDeletePriceModal'
 import { useDisclosure } from '@mantine/hooks'
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import { Checkbox } from '@mantine/core'
-import { getPriceChanges, getSameDayPriceIds } from '@/utils/priceListUtils'
+import { getPriceChanges, getPriceTimeline, getSameDayPriceIds } from '@/utils/priceListUtils'
+import { MdSchedule } from 'react-icons/md'
 
 interface PriceList {
     productBody: ProductBody
@@ -33,6 +34,12 @@ export const PriceList = ({ productBody, setDateToday, prices, showDeleted, setS
     const sameDayPriceIds = getSameDayPriceIds(prices)
     // Each price's arrow compares it with the price before it
     const priceChanges = getPriceChanges(prices)
+    // The prices that haven't started yet sit under an "Upcoming" label, and the price in effect now is tinted, so the
+    // past prices are the plain rows below it
+    const { currentPriceId, upcomingPriceIds } = getPriceTimeline(prices)
+    // The list is newest first, so the upcoming prices are all at the top and their label goes above the first one
+    // Today's entry is skipped, since it shares the current price's ID and the list doesn't draw it
+    const firstUpcomingPrice = prices.find((price) => !price.today && upcomingPriceIds.has(price.priceId))
     // The delete confirmations name the price the same way as its row
     const currentPriceShowsTime = currentPrice !== undefined && sameDayPriceIds.has(currentPrice.priceId)
     // Track state of modal open/close
@@ -68,16 +75,31 @@ export const PriceList = ({ productBody, setDateToday, prices, showDeleted, setS
                     {prices.map((price) => {
                         if (price.today === true) return
                         return (
-                            <Price
-                                key={price.priceId}
-                                price={price}
-                                openDeletePriceModal={openDeletePriceModal}
-                                openPermanentlyDeletePriceModal={openPermanentlyDeletePriceModal}
-                                openEditPriceModal={openEditPriceModal}
-                                productDeleted={productDeleted}
-                                showTime={sameDayPriceIds.has(price.priceId)}
-                                change={priceChanges.get(price.priceId)}
-                            />
+                            <Fragment key={price.priceId}>
+                                {/* A small gray label rather than graying the rows out, since gray rows already mean
+                                    deleted prices. No divider under it, so it reads as part of the rows it labels.
+                                    It's a presentation item, not a list item, so screen readers count only the prices,
+                                    but they still read its text before the upcoming ones. */}
+                                {price === firstUpcomingPrice && (
+                                    <li
+                                        role="presentation"
+                                        className="col-span-full flex items-center gap-1 border-b-0 px-2 pt-1.5 text-xs text-raincloud"
+                                    >
+                                        <MdSchedule aria-hidden="true" />
+                                        Upcoming
+                                    </li>
+                                )}
+                                <Price
+                                    price={price}
+                                    openDeletePriceModal={openDeletePriceModal}
+                                    openPermanentlyDeletePriceModal={openPermanentlyDeletePriceModal}
+                                    openEditPriceModal={openEditPriceModal}
+                                    productDeleted={productDeleted}
+                                    showTime={sameDayPriceIds.has(price.priceId)}
+                                    change={priceChanges.get(price.priceId)}
+                                    current={price.priceId === currentPriceId}
+                                />
+                            </Fragment>
                         )
                     })}
                 </ul>

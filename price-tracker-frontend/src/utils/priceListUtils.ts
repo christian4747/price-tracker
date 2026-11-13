@@ -91,6 +91,31 @@ const getSameDayPriceIds = (prices: PriceType[]) => {
     return new Set([...pricesByDay.values()].filter((priceIds) => priceIds.length > 1).flat())
 }
 
+type PriceTimeline = {
+    // The price in effect now, or null when no price has started yet
+    currentPriceId: number | null
+    // The prices that start after now, deleted ones included when they're shown
+    upcomingPriceIds: Set<number>
+}
+
+/**
+ * Get which listed price is in effect now and which haven't started yet. The backend marks the price in effect now by
+ * adding a copy of it to the list, flagged as today's and starting at the moment the list was fetched, so that copy
+ * gives both: its ID is the current price's, and its start is the "now" that later prices are upcoming from. Without
+ * it, when no price has started, the current time is used instead.
+ * @param prices The prices in the list
+ * @returns The current price's ID and the upcoming prices' IDs
+ */
+const getPriceTimeline = (prices: PriceType[]): PriceTimeline => {
+    const todayEntry = prices.find((price) => price.today)
+    const now = todayEntry ? Date.parse(todayEntry.priceStarted) : Date.now()
+    const upcomingPriceIds = new Set(
+        prices.filter((price) => !price.today && Date.parse(price.priceStarted) > now).map((price) => price.priceId)
+    )
+
+    return { currentPriceId: todayEntry?.priceId ?? null, upcomingPriceIds }
+}
+
 type PriceChange = {
     direction: 'down' | 'up' | 'same'
     // Says what changed, such as "Down $4.00 from $80.00"
@@ -134,5 +159,12 @@ const getPriceChanges = (prices: PriceType[]) => {
     return changes
 }
 
-export { getPriceChanges, getPriceDateString, getPriceDetailsString, getPriceRowDateString, getSameDayPriceIds }
-export type { PriceChange }
+export {
+    getPriceChanges,
+    getPriceDateString,
+    getPriceDetailsString,
+    getPriceRowDateString,
+    getPriceTimeline,
+    getSameDayPriceIds
+}
+export type { PriceChange, PriceTimeline }

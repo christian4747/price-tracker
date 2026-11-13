@@ -12,6 +12,10 @@ import '@/styles/index.css'
 const pricesApiUrl = import.meta.env.VITE_BACKEND_ROOT_URL + '/prices'
 
 const price = createPrice(1, { priceStarted: new Date(2026, 8, 4, 12).toISOString() })
+// The current price's tint and bar, Mantine's blue.0 and blue.6, as the browser reports them
+const CURRENT_TINT = 'rgb(231, 245, 255)'
+const CURRENT_BAR = 'rgb(34, 139, 230)'
+
 const deletedPrice = createPrice(1, {
     priceStarted: new Date(2026, 8, 4, 12).toISOString(),
     deletedAt: new Date(2026, 8, 6, 12).toISOString()
@@ -60,6 +64,36 @@ describe('Price Component', () => {
 
         await expect.element(screen.getByText('Sep 4, 2026')).not.toHaveClass('line-through')
         await expect.element(screen.getByText(getPriceString(price))).not.toHaveClass('line-through')
+    })
+
+    // Checked by the colors the browser draws, so a mistyped class or color name fails too
+    test('should tint the current price, with a bar down its left edge', async () => {
+        renderPrice(price, { current: true })
+
+        const row = screen.getByRole('listitem')
+        await expect.element(row).toHaveStyle({ backgroundColor: CURRENT_TINT })
+        expect(getComputedStyle(row).boxShadow).toContain(`${CURRENT_BAR} 3px 0px 0px 0px inset`)
+    })
+
+    test('should not tint a price that is not current', async () => {
+        renderPrice(price)
+
+        const row = screen.getByRole('listitem')
+        await expect.element(row).toHaveStyle({ backgroundColor: 'rgba(0, 0, 0, 0)' })
+        expect(getComputedStyle(row).boxShadow).not.toContain('inset')
+    })
+
+    // The tint has no words, so screen readers are told which row is current another way
+    test('should mark the current price as current for screen readers', async () => {
+        renderPrice(price, { current: true })
+
+        await expect.element(screen.getByRole('listitem')).toHaveAttribute('aria-current', 'true')
+    })
+
+    test('should not mark a price that is not current as current', async () => {
+        renderPrice(price)
+
+        await expect.element(screen.getByRole('listitem')).not.toHaveAttribute('aria-current')
     })
 })
 
