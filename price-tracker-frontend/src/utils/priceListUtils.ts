@@ -134,5 +134,22 @@ const getPriceChanges = (prices: PriceType[]) => {
     return changes
 }
 
-export { getPriceChanges, getPriceDateString, getPriceDetailsString, getPriceRowDateString, getSameDayPriceIds }
+/**
+ * Get the price Quick Price fills the add price form from: the newest listed price, which is the top row of the list.
+ * The list is already newest first by start date, with prices that start together in the order the backend breaks the
+ * tie, so the first price that counts is the newest. Deleted prices (listed while Show deleted prices is on) and
+ * today's entry (a copy of the price in effect now, starting now) don't count.
+ * @param prices The prices in the list, newest first
+ * @returns The newest live price, or undefined when every listed price is deleted
+ */
+const getQuickAddPrice = (prices: PriceType[]) => prices.find((price) => price.deletedAt === null && !price.today)
+
+export {
+    getPriceChanges,
+    getPriceDateString,
+    getPriceDetailsString,
+    getPriceRowDateString,
+    getQuickAddPrice,
+    getSameDayPriceIds
+}
 export type { PriceChange }

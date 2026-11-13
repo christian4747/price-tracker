@@ -2,6 +2,7 @@ import { describe, expect, onTestFinished, vi } from 'vitest'
 import type { SetupWorker } from 'msw/browser'
 import {
     createPeriod,
+    createPrice,
     createProduct,
     problemDetailResponse,
     renderWithClient,
@@ -154,21 +155,11 @@ const startSave = async (worker: SetupWorker, dateButton: string) => {
 }
 
 describe('Add Price Form Component', () => {
-    test('should prefill quick add with the most recent price and its derived amounts', async ({ worker }) => {
-        worker.use(
-            http.get(pricesApiUrl + '/recent/:productId', () =>
-                HttpResponse.json({
-                    baseAmounts: [100],
-                    currencies: ['USD'],
-                    descriptions: [],
-                    discountPercentages: [0.2],
-                    pricesEnded: [],
-                    pricesStarted: [],
-                    returnPercentages: [0.05]
-                })
-            )
+    test('should prefill quick add with the given price and its derived amounts', async () => {
+        const quickAddPrice = createPrice(1, { amount: 100, discountPercentage: 0.2, returnPercentage: 0.05 })
+        renderWithClient(
+            <AddPriceForm product={product} setDateToday={() => {}} close={() => {}} quickAddPrice={quickAddPrice} />
         )
-        renderWithClient(<AddPriceForm product={product} setDateToday={() => {}} close={() => {}} quickAdd />)
 
         const discountAmountInput = screen.getByRole('textbox', { name: /discount amount/i }) as HTMLInputElement
         const returnAmountInput = screen.getByRole('textbox', { name: /return amount/i }) as HTMLInputElement
@@ -217,22 +208,16 @@ describe('Add Price Form Component', () => {
         }
     )
 
-    test('should block adding a price that ends before it starts', async ({ worker }) => {
-        worker.use(
-            http.get(pricesApiUrl + '/recent/:productId', () =>
-                HttpResponse.json({
-                    baseAmounts: [100],
-                    currencies: ['USD'],
-                    descriptions: [],
-                    discountPercentages: [0],
-                    pricesEnded: [new Date(2026, 8, 5, 12).toISOString()],
-                    pricesStarted: [new Date(2026, 8, 10, 12).toISOString()],
-                    returnPercentages: [0]
-                })
-            )
-        )
+    test('should block adding a price that ends before it starts', async () => {
+        // Quick add fills in both dates, which is the quickest way to get an end date before the start date
+        const quickAddPrice = createPrice(1, {
+            priceStarted: new Date(2026, 8, 10, 12).toISOString(),
+            priceEnded: new Date(2026, 8, 5, 12).toISOString()
+        })
         const user = userEvent.setup()
-        renderWithClient(<AddPriceForm product={product} setDateToday={() => {}} close={() => {}} quickAdd />)
+        renderWithClient(
+            <AddPriceForm product={product} setDateToday={() => {}} close={() => {}} quickAddPrice={quickAddPrice} />
+        )
 
         const addButton = screen.getByRole('button', { name: 'Add Price' })
         await user.click(screen.getByRole('button', { name: 'Start and End Date' }))

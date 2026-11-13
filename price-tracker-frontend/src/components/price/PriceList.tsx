@@ -9,7 +9,7 @@ import { PermanentlyDeletePriceModal } from './modals/PermanentlyDeletePriceModa
 import { useDisclosure } from '@mantine/hooks'
 import { useState } from 'react'
 import { Checkbox } from '@mantine/core'
-import { getPriceChanges, getSameDayPriceIds } from '@/utils/priceListUtils'
+import { getPriceChanges, getQuickAddPrice, getSameDayPriceIds } from '@/utils/priceListUtils'
 
 interface PriceList {
     productBody: ProductBody
@@ -33,6 +33,8 @@ export const PriceList = ({ productBody, setDateToday, prices, showDeleted, setS
     const sameDayPriceIds = getSameDayPriceIds(prices)
     // Each price's arrow compares it with the price before it
     const priceChanges = getPriceChanges(prices)
+    // Quick Price copies the newest live price, so it's only offered when there is one
+    const quickAddPrice = getQuickAddPrice(prices)
     // The delete confirmations name the price the same way as its row
     const currentPriceShowsTime = currentPrice !== undefined && sameDayPriceIds.has(currentPrice.priceId)
     // Track state of modal open/close
@@ -93,8 +95,12 @@ export const PriceList = ({ productBody, setDateToday, prices, showDeleted, setS
                     {!productDeleted && (
                         <div className="flex gap-1 justify-center">
                             <AddPriceModal product={product} setDateToday={setDateToday} />
-                            {prices && prices.length > 0 && (
-                                <AddPriceModal product={product} setDateToday={setDateToday} quickAdd={true} />
+                            {quickAddPrice && (
+                                <AddPriceModal
+                                    product={product}
+                                    setDateToday={setDateToday}
+                                    quickAddPrice={quickAddPrice}
+                                />
                             )}
                         </div>
                     )}
