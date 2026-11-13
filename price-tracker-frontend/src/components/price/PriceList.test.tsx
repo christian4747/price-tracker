@@ -1,4 +1,5 @@
-import { describe, expect } from 'vitest'
+import { describe, expect, onTestFinished } from 'vitest'
+import { page } from 'vitest/browser'
 import {
     createPrice,
     createProduct,
@@ -119,6 +120,31 @@ const renderPriceList = (productBody = createProductBody(product), prices = [pri
  * @returns The element holding the whole "Average $X" text
  */
 const averagePriceLine = () => screen.getByText(/^Average\b/)
+
+/**
+ * Make the test window the given width until the test ends. Above 1024 px the root font is 18 px, and below it 16 px,
+ * which changes how much room the footer's text takes.
+ * @param width The window's width, in px
+ */
+const useViewportWidth = async (width: number) => {
+    const defaultViewport = { width: window.innerWidth, height: window.innerHeight }
+    await page.viewport(width, 900)
+    onTestFinished(() => page.viewport(defaultViewport.width, defaultViewport.height))
+}
+
+/**
+ * Measure the footer under the list inside its padding, where its lines start and end, for its layout tests.
+ * @returns The left and right edges of the footer's content
+ */
+const footerContentBox = () => {
+    const footer = screen.getByRole('list', { name: 'Prices' }).nextElementSibling!
+    const box = footer.getBoundingClientRect()
+    const style = getComputedStyle(footer)
+    return {
+        left: box.left + parseFloat(style.borderLeftWidth) + parseFloat(style.paddingLeft),
+        right: box.right - parseFloat(style.borderRightWidth) - parseFloat(style.paddingRight)
+    }
+}
 
 /**
  * Measure the Show deleted switch with its label, for the footer's layout tests.
@@ -308,11 +334,39 @@ describe('Price List Component', () => {
         expect(changeArrows()).toEqual(['Down €20.00 from €100.00'])
     })
 
-    test('should render add price button', async () => {
+    test('should open the add price modal from the Add Price button', async () => {
+        const user = userEvent.setup()
         renderPriceList()
 
-        const price1Date = screen.getByText(/add price/i)
-        await expect.element(price1Date).toBeInTheDocument()
+        await user.click(screen.getByRole('button', { name: 'Add Price' }))
+
+        await expect.element(await screen.findByRole('dialog', { name: 'Add Price' })).toBeInTheDocument()
+    })
+
+    test('should open the add price modal filled from the latest price from the Quick Price button', async ({
+        worker
+    }) => {
+        worker.use(
+            http.get(pricesApiUrl + '/recent/:productId', () =>
+                HttpResponse.json({ ...emptyRecentPriceData, baseAmounts: [100], currencies: ['USD'] })
+            )
+        )
+        const user = userEvent.setup()
+        renderPriceList()
+
+        await user.click(screen.getByRole('button', { name: 'Quick Price' }))
+
+        const dialog = within(await screen.findByRole('dialog', { name: 'Add Price' }))
+        const basePrice = dialog.getByRole('textbox', { name: /base price/i }) as HTMLInputElement
+        await waitFor(() => expect(basePrice.value).toBe('100.00'))
+    })
+
+    // Quick Price copies the latest price, so there's nothing to copy yet
+    test('should not show the Quick Price button for a product without prices', async () => {
+        renderPriceList(undefined, [])
+
+        expect(screen.getByRole('button', { name: 'Add Price' })).toBeInTheDocument()
+        expect(screen.queryByRole('button', { name: 'Quick Price' })).not.toBeInTheDocument()
     })
 
     // The backend rejects adding a price to a deleted product until the product is restored
@@ -410,6 +464,55 @@ describe('Price List Component', () => {
         renderPriceList(createProductBody(product, { ...averages, averagePrice: 12345.67 }), [price1, price2], 240)
 
         expect(showDeletedSwitchBox().top).toBeGreaterThanOrEqual(averagePriceLine().getBoundingClientRect().bottom)
+    })
+
+    test('should share the width of the footer between the Add Price and Quick Price buttons', async () => {
+        renderPriceList(undefined, [price1, price2], 400)
+
+        const add = screen.getByRole('button', { name: 'Add Price' }).getBoundingClientRect()
+        const quick = screen.getByRole('button', { name: 'Quick Price' }).getBoundingClientRect()
+        const footer = footerContentBox()
+        expect(add.left, 'Add Price starts at the left edge').toBeCloseTo(footer.left, 0)
+        expect(quick.right, 'Quick Price ends at the right edge').toBeCloseTo(footer.right, 0)
+        expect(add.width, 'both buttons are as wide').toBeCloseTo(quick.width, 0)
+    })
+
+    // 240 px is the narrowest the planned resizable split lets the list be, tried in a window above 1024 px, where the
+    // root font is 18 px and the buttons are at their widest. 220 px is about how wide the list is today in an 800 px
+    // window, where the root font is 16 px. 280 px is still a little too narrow for the icons, so it checks they go for
+    // every list too narrow for them, not just the narrowest.
+    test.for([
+        { windowWidth: 1280, listWidth: 240 },
+        { windowWidth: 1280, listWidth: 280 },
+        { windowWidth: 900, listWidth: 220 }
+    ])(
+        'should keep both buttons and their labels inside the footer in a $windowWidth px window with a $listWidth px list',
+        async ({ windowWidth, listWidth }) => {
+            await useViewportWidth(windowWidth)
+            renderPriceList(undefined, [price1, price2], listWidth)
+
+            const footer = footerContentBox()
+            const add = screen.getByRole('button', { name: 'Add Price' }).getBoundingClientRect()
+            const quick = screen.getByRole('button', { name: 'Quick Price' }).getBoundingClientRect()
+            expect(quick.right, 'Quick Price ends inside the footer').toBeLessThanOrEqual(footer.right + 0.5)
+            expect(add.width, 'both buttons are as wide').toBeCloseTo(quick.width, 0)
+            for (const name of ['Add Price', 'Quick Price']) {
+                const label = screen.getByRole('button', { name }).querySelector('.mantine-Button-label')!
+                expect(label, `${name}'s label shows`).toBeVisible()
+                expect(label.scrollWidth, `${name}'s label is cut off`).toBeLessThanOrEqual(label.clientWidth)
+            }
+        }
+    )
+
+    // The icons only go when the buttons would otherwise not fit
+    test("should show the buttons' icons when the list has room for them", async () => {
+        await useViewportWidth(1280)
+        renderPriceList(undefined, [price1, price2], 322)
+
+        for (const name of ['Add Price', 'Quick Price']) {
+            const icon = screen.getByRole('button', { name }).querySelector('svg')!
+            expect(icon, `${name}'s icon shows`).toBeVisible()
+        }
     })
 
     test("should ask for the product's recent prices when editing a price", async ({ worker }) => {

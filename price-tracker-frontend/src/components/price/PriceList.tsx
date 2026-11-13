@@ -99,7 +99,8 @@ export const PriceList = ({ productBody, setDateToday, prices, showDeleted, setS
                         />
                     </div>
                     {!productDeleted && (
-                        <div className="flex gap-1 justify-center">
+                        // A container, so the buttons can drop their icons when it's too narrow for them
+                        <div className="@container flex gap-2">
                             <AddPriceModal product={product} setDateToday={setDateToday} />
                             {prices && prices.length > 0 && (
                                 <AddPriceModal product={product} setDateToday={setDateToday} quickAdd={true} />
