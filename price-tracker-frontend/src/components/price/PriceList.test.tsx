@@ -1,4 +1,5 @@
-import { describe, expect } from 'vitest'
+import { describe, expect, onTestFinished } from 'vitest'
+import { page } from 'vitest/browser'
 import {
     createPrice,
     createProduct,
@@ -14,6 +15,8 @@ import { http, HttpResponse } from 'msw'
 import type { PriceType } from '@/types/price'
 import { PriceList } from './PriceList'
 import { useState } from 'react'
+// The footer's layout tests need the app's styles, for its flex layout and the font size
+import '@/styles/index.css'
 
 const pricesApiUrl = import.meta.env.VITE_BACKEND_ROOT_URL + '/prices'
 
@@ -84,29 +87,71 @@ const GREEN = 'text-green-600'
 const GRAY = 'text-raincloud'
 
 /**
- * Render the price list, with the Show deleted prices checkbox working as it does in the app.
+ * Render the price list, with the Show deleted switch working as it does in the app.
  * @param productBody The product the prices belong to
  * @param prices The prices to list, newest first, like the API sends them
+ * @param width How wide the list is, in px, for layout tests; it fills the page when left out
  * @returns The render result
  */
-const renderPriceList = (productBody = createProductBody(product), prices = [price1, price2]) => {
-    // Holds the checkbox's state, which the list's parent keeps in the app
+const renderPriceList = (productBody = createProductBody(product), prices = [price1, price2], width?: number) => {
+    // Holds the switch's state, which the list's parent keeps in the app
     function PriceListWithState() {
         const [checked, setChecked] = useState(false)
 
         return (
-            <PriceList
-                productBody={productBody}
-                prices={prices}
-                setDateToday={() => {}}
-                showDeleted={checked}
-                setShowDeleted={setChecked}
-            />
+            <div style={{ width }}>
+                <PriceList
+                    productBody={productBody}
+                    prices={prices}
+                    setDateToday={() => {}}
+                    showDeleted={checked}
+                    setShowDeleted={setChecked}
+                />
+            </div>
         )
     }
 
     return renderWithClient(<PriceListWithState />)
 }
+
+/**
+ * Find the average price under the list. Its amount sits in an element of its own, to take a stronger color, so the
+ * text is matched by how it starts and the whole line is checked with toHaveTextContent.
+ * @returns The element holding the whole "Average $X" text
+ */
+const averagePriceLine = () => screen.getByText(/^Average\b/)
+
+/**
+ * Make the test window the given width until the test ends. Above 1024 px the root font is 18 px, and below it 16 px,
+ * which changes how much room the footer's text takes.
+ * @param width The window's width, in px
+ */
+const useViewportWidth = async (width: number) => {
+    const defaultViewport = { width: window.innerWidth, height: window.innerHeight }
+    await page.viewport(width, 900)
+    onTestFinished(() => page.viewport(defaultViewport.width, defaultViewport.height))
+}
+
+/**
+ * Measure the footer under the list inside its padding, where its lines start and end, for its layout tests.
+ * @returns The left and right edges of the footer's content
+ */
+const footerContentBox = () => {
+    const footer = screen.getByRole('list', { name: 'Prices' }).nextElementSibling!
+    const box = footer.getBoundingClientRect()
+    const style = getComputedStyle(footer)
+    return {
+        left: box.left + parseFloat(style.borderLeftWidth) + parseFloat(style.paddingLeft),
+        right: box.right - parseFloat(style.borderRightWidth) - parseFloat(style.paddingRight)
+    }
+}
+
+/**
+ * Measure the Show deleted switch with its label, for the footer's layout tests.
+ * @returns The box around the switch and its label
+ */
+const showDeletedSwitchBox = () =>
+    screen.getByRole('switch', { name: 'Show deleted' }).closest('.mantine-Switch-root')!.getBoundingClientRect()
 
 describe('Price List Component', () => {
     test('should render product prices', async () => {
@@ -289,11 +334,39 @@ describe('Price List Component', () => {
         expect(changeArrows()).toEqual(['Down €20.00 from €100.00'])
     })
 
-    test('should render add price button', async () => {
+    test('should open the add price modal from the Add Price button', async () => {
+        const user = userEvent.setup()
         renderPriceList()
 
-        const price1Date = screen.getByText(/add price/i)
-        await expect.element(price1Date).toBeInTheDocument()
+        await user.click(screen.getByRole('button', { name: 'Add Price' }))
+
+        await expect.element(await screen.findByRole('dialog', { name: 'Add Price' })).toBeInTheDocument()
+    })
+
+    test('should open the add price modal filled from the latest price from the Quick Price button', async ({
+        worker
+    }) => {
+        worker.use(
+            http.get(pricesApiUrl + '/recent/:productId', () =>
+                HttpResponse.json({ ...emptyRecentPriceData, baseAmounts: [100], currencies: ['USD'] })
+            )
+        )
+        const user = userEvent.setup()
+        renderPriceList()
+
+        await user.click(screen.getByRole('button', { name: 'Quick Price' }))
+
+        const dialog = within(await screen.findByRole('dialog', { name: 'Add Price' }))
+        const basePrice = dialog.getByRole('textbox', { name: /base price/i }) as HTMLInputElement
+        await waitFor(() => expect(basePrice.value).toBe('100.00'))
+    })
+
+    // Quick Price copies the latest price, so there's nothing to copy yet
+    test('should not show the Quick Price button for a product without prices', async () => {
+        renderPriceList(undefined, [])
+
+        expect(screen.getByRole('button', { name: 'Add Price' })).toBeInTheDocument()
+        expect(screen.queryByRole('button', { name: 'Quick Price' })).not.toBeInTheDocument()
     })
 
     // The backend rejects adding a price to a deleted product until the product is restored
@@ -315,54 +388,44 @@ describe('Price List Component', () => {
         expect(screen.queryByRole('menuitem', { name: 'Edit' })).not.toBeInTheDocument()
     })
 
-    test('should render show deleted prices checkbox', async () => {
+    test('should show a Show deleted switch, turned off at first', async () => {
         renderPriceList()
 
-        const checkbox = screen.getByRole('checkbox', { name: /show deleted/i })
-        await expect.element(checkbox).toBeInTheDocument()
-
-        const price1Date = screen.getByText('Sep 4, 2026')
-        await expect.element(price1Date).toBeInTheDocument()
-
-        const price2Date = screen.getByText('Sep 5, 2026')
-        await expect.element(price2Date).toBeInTheDocument()
+        await expect.element(screen.getByRole('switch', { name: 'Show deleted' })).not.toBeChecked()
     })
 
-    test('should render checked checkbox', async () => {
+    test('should turn the Show deleted switch on when clicked', async () => {
         const user = userEvent.setup()
-
         renderPriceList()
 
-        const checkbox = screen.getByRole('checkbox', { name: /show deleted/i })
-        await expect.element(checkbox).toBeInTheDocument()
-        await expect.element(checkbox).not.toBeChecked()
-        await user.click(checkbox)
-        await expect.element(checkbox).toBeChecked()
+        await user.click(screen.getByRole('switch', { name: 'Show deleted' }))
+
+        await expect.element(screen.getByRole('switch', { name: 'Show deleted' })).toBeChecked()
     })
 
     test('should show the average price', async () => {
         renderPriceList(createProductBody(product, averages))
 
-        await expect.element(screen.getByText('Average price: $15.00')).toBeInTheDocument()
+        expect(averagePriceLine()).toHaveTextContent('Average $15.00')
     })
 
     test("should format the average price with the product's currency", async () => {
         renderPriceList(createProductBody(product, { ...averages, priceToday: createPrice(1, { currency: 'EUR' }) }))
 
-        await expect.element(screen.getByText('Average price: €15.00')).toBeInTheDocument()
+        expect(averagePriceLine()).toHaveTextContent('Average €15.00')
     })
 
     test("should format the average price as USD when the product's prices have no currency", async () => {
         renderPriceList(createProductBody(product, { ...averages, priceToday: createPrice(1, { currency: '' }) }))
 
-        await expect.element(screen.getByText('Average price: $15.00')).toBeInTheDocument()
+        expect(averagePriceLine()).toHaveTextContent('Average $15.00')
     })
 
     test('should show the weighted average price when hovering the average price', async () => {
         const user = userEvent.setup()
         renderPriceList(createProductBody(product, averages))
 
-        await user.hover(screen.getByText('Average price: $15.00'))
+        await user.hover(averagePriceLine())
 
         await expect
             .element(await screen.findByText('Weighted by how long each price lasted: $17.50'))
@@ -372,7 +435,84 @@ describe('Price List Component', () => {
     test('should not show the average price when the product has no average', async () => {
         renderPriceList(createProductBody(product, { averagePrice: null, weightedAveragePrice: null }))
 
-        expect(screen.queryByText(/average price/i)).not.toBeInTheDocument()
+        expect(screen.queryByText(/average/i)).not.toBeInTheDocument()
+    })
+
+    // The narrowest the planned resizable split lets the list be. The switch can wrap to a line of its own there, but
+    // the average shouldn't break between "Average" and its amount.
+    test('should keep the average price on one line when the list is narrow', async () => {
+        renderPriceList(createProductBody(product, { ...averages, averagePrice: 12345.67 }), [price1, price2], 240)
+
+        // The average is a flex item, so it's laid out as a block and has one box however many lines it takes. Its
+        // height tells them apart instead.
+        const line = averagePriceLine()
+        const lineHeight = parseFloat(getComputedStyle(line).lineHeight)
+        expect(line.getBoundingClientRect().height).toBeLessThan(lineHeight * 1.5)
+    })
+
+    test('should show the Show deleted switch at the right end of the average price line when there is room', async () => {
+        renderPriceList(createProductBody(product, { ...averages, averagePrice: 12345.67 }), [price1, price2], 400)
+
+        const average = averagePriceLine().getBoundingClientRect()
+        const showDeleted = showDeletedSwitchBox()
+        const footerLine = averagePriceLine().parentElement!.getBoundingClientRect()
+        expect(showDeleted.top, 'switch starts above the average ends').toBeLessThan(average.bottom)
+        expect(showDeleted.right, 'switch ends at the right edge').toBeCloseTo(footerLine.right, 0)
+    })
+
+    test('should move the Show deleted switch under the average price when the list is narrow', async () => {
+        renderPriceList(createProductBody(product, { ...averages, averagePrice: 12345.67 }), [price1, price2], 240)
+
+        expect(showDeletedSwitchBox().top).toBeGreaterThanOrEqual(averagePriceLine().getBoundingClientRect().bottom)
+    })
+
+    test('should share the width of the footer between the Add Price and Quick Price buttons', async () => {
+        renderPriceList(undefined, [price1, price2], 400)
+
+        const add = screen.getByRole('button', { name: 'Add Price' }).getBoundingClientRect()
+        const quick = screen.getByRole('button', { name: 'Quick Price' }).getBoundingClientRect()
+        const footer = footerContentBox()
+        expect(add.left, 'Add Price starts at the left edge').toBeCloseTo(footer.left, 0)
+        expect(quick.right, 'Quick Price ends at the right edge').toBeCloseTo(footer.right, 0)
+        expect(add.width, 'both buttons are as wide').toBeCloseTo(quick.width, 0)
+    })
+
+    // 240 px is the narrowest the planned resizable split lets the list be, tried in a window above 1024 px, where the
+    // root font is 18 px and the buttons are at their widest. 220 px is about how wide the list is today in an 800 px
+    // window, where the root font is 16 px. 280 px is still a little too narrow for the icons, so it checks they go for
+    // every list too narrow for them, not just the narrowest.
+    test.for([
+        { windowWidth: 1280, listWidth: 240 },
+        { windowWidth: 1280, listWidth: 280 },
+        { windowWidth: 900, listWidth: 220 }
+    ])(
+        'should keep both buttons and their labels inside the footer in a $windowWidth px window with a $listWidth px list',
+        async ({ windowWidth, listWidth }) => {
+            await useViewportWidth(windowWidth)
+            renderPriceList(undefined, [price1, price2], listWidth)
+
+            const footer = footerContentBox()
+            const add = screen.getByRole('button', { name: 'Add Price' }).getBoundingClientRect()
+            const quick = screen.getByRole('button', { name: 'Quick Price' }).getBoundingClientRect()
+            expect(quick.right, 'Quick Price ends inside the footer').toBeLessThanOrEqual(footer.right + 0.5)
+            expect(add.width, 'both buttons are as wide').toBeCloseTo(quick.width, 0)
+            for (const name of ['Add Price', 'Quick Price']) {
+                const label = screen.getByRole('button', { name }).querySelector('.mantine-Button-label')!
+                expect(label, `${name}'s label shows`).toBeVisible()
+                expect(label.scrollWidth, `${name}'s label is cut off`).toBeLessThanOrEqual(label.clientWidth)
+            }
+        }
+    )
+
+    // The icons only go when the buttons would otherwise not fit
+    test("should show the buttons' icons when the list has room for them", async () => {
+        await useViewportWidth(1280)
+        renderPriceList(undefined, [price1, price2], 322)
+
+        for (const name of ['Add Price', 'Quick Price']) {
+            const icon = screen.getByRole('button', { name }).querySelector('svg')!
+            expect(icon, `${name}'s icon shows`).toBeVisible()
+        }
     })
 
     test("should ask for the product's recent prices when editing a price", async ({ worker }) => {

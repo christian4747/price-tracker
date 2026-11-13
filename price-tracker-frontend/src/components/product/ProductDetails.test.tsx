@@ -9,6 +9,7 @@ import {
     screen,
     test,
     userEvent,
+    waitFor,
     within
 } from '@/test-utils'
 import { http, HttpResponse } from 'msw'
@@ -112,6 +113,16 @@ const failFirstPriceRequest = () => {
     })
 }
 
+/**
+ * Serve the live price, plus the deleted one when the list asks for deleted prices, to test the Show deleted switch.
+ * @returns The request handler
+ */
+const serveDeletedPriceWhenAsked = () =>
+    http.get(pricesApiUrl + '/product/:productId', ({ request }) => {
+        const showDeleted = new URL(request.url).searchParams.get('showDeleted') === 'true'
+        return HttpResponse.json(showDeleted ? [livePrice, deletedPrice] : [livePrice])
+    })
+
 describe('Product Details Component', () => {
     test('should render product prices', async () => {
         renderWithClient(<ProductDetails productBody={productBody} dateToday={new Date()} setDateToday={() => {}} />)
@@ -124,21 +135,30 @@ describe('Product Details Component', () => {
     })
 
     test('should still list deleted prices when they are shown', async ({ worker }) => {
-        worker.use(
-            http.get(pricesApiUrl + '/product/:productId', ({ request }) => {
-                const showDeleted = new URL(request.url).searchParams.get('showDeleted') === 'true'
-                return HttpResponse.json(showDeleted ? [livePrice, deletedPrice] : [livePrice])
-            })
-        )
+        worker.use(serveDeletedPriceWhenAsked())
         const user = userEvent.setup()
         renderWithClient(<ProductDetails productBody={productBody} dateToday={new Date()} setDateToday={() => {}} />)
 
         await screen.findByText('Sep 4, 2026')
         expect(screen.queryByText('Sep 5, 2026')).not.toBeInTheDocument()
 
-        await user.click(screen.getByRole('checkbox', { name: 'Show deleted prices' }))
+        await user.click(screen.getByRole('switch', { name: 'Show deleted' }))
 
         await expect.element(await screen.findByText('Sep 5, 2026')).toBeInTheDocument()
+    })
+
+    test('should hide deleted prices again when the Show deleted switch is turned off', async ({ worker }) => {
+        worker.use(serveDeletedPriceWhenAsked())
+        const user = userEvent.setup()
+        renderWithClient(<ProductDetails productBody={productBody} dateToday={new Date()} setDateToday={() => {}} />)
+        await screen.findByText('Sep 4, 2026')
+        await user.click(screen.getByRole('switch', { name: 'Show deleted' }))
+        await screen.findByText('Sep 5, 2026')
+
+        await user.click(screen.getByRole('switch', { name: 'Show deleted' }))
+
+        await waitFor(() => expect(screen.queryByText('Sep 5, 2026')).not.toBeInTheDocument())
+        expect(screen.getByText('Sep 4, 2026')).toBeInTheDocument()
     })
 
     test('should show a message with a retry button when the prices fail to load', async ({ worker }) => {
