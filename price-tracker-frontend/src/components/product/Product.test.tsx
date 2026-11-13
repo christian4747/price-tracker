@@ -50,6 +50,13 @@ const renderWithAccordion = (ui: React.ReactNode) => {
     return renderWithClient(<AccordionWrapper>{ui}</AccordionWrapper>)
 }
 
+/**
+ * Find the price list's column, which holds the list and the footer under it. The chart beside it shows an
+ * "Average $X" of its own, so checking inside the column makes sure the text is the list's.
+ * @returns The column, or null before the prices have loaded
+ */
+const priceListColumn = () => screen.queryByRole('list', { name: 'Prices' })?.parentElement ?? null
+
 describe('Product Component', () => {
     test('should render product name', async () => {
         renderWithAccordion(
@@ -78,14 +85,14 @@ describe('Product Component', () => {
                 value={'item-1'}
             />
         )
-        await screen.findByText('Average price: $15.00')
+        await expect.poll(() => priceListColumn()?.textContent).toContain('Average $15.00')
 
         await user.click(screen.getByText('All'))
         // The old price only arrives with the All range, so seeing its row means the new range's prices have loaded,
         // and the checks below aren't made against the old range
         await screen.findByText('Jan 1, 2020')
 
-        expect(screen.getByText('Average price: $15.00')).toBeInTheDocument()
+        expect(priceListColumn()).toHaveTextContent('Average $15.00')
         expect(screen.getByRole('img', { name: 'Below average price' })).toBeInTheDocument()
     })
 

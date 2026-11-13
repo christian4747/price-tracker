@@ -14,6 +14,8 @@ import { http, HttpResponse } from 'msw'
 import type { PriceType } from '@/types/price'
 import { PriceList } from './PriceList'
 import { useState } from 'react'
+// The footer's layout tests need the app's styles, for its flex layout and the font size
+import '@/styles/index.css'
 
 const pricesApiUrl = import.meta.env.VITE_BACKEND_ROOT_URL + '/prices'
 
@@ -84,29 +86,46 @@ const GREEN = 'text-green-600'
 const GRAY = 'text-raincloud'
 
 /**
- * Render the price list, with the Show deleted prices checkbox working as it does in the app.
+ * Render the price list, with the Show deleted switch working as it does in the app.
  * @param productBody The product the prices belong to
  * @param prices The prices to list, newest first, like the API sends them
+ * @param width How wide the list is, in px, for layout tests; it fills the page when left out
  * @returns The render result
  */
-const renderPriceList = (productBody = createProductBody(product), prices = [price1, price2]) => {
-    // Holds the checkbox's state, which the list's parent keeps in the app
+const renderPriceList = (productBody = createProductBody(product), prices = [price1, price2], width?: number) => {
+    // Holds the switch's state, which the list's parent keeps in the app
     function PriceListWithState() {
         const [checked, setChecked] = useState(false)
 
         return (
-            <PriceList
-                productBody={productBody}
-                prices={prices}
-                setDateToday={() => {}}
-                showDeleted={checked}
-                setShowDeleted={setChecked}
-            />
+            <div style={{ width }}>
+                <PriceList
+                    productBody={productBody}
+                    prices={prices}
+                    setDateToday={() => {}}
+                    showDeleted={checked}
+                    setShowDeleted={setChecked}
+                />
+            </div>
         )
     }
 
     return renderWithClient(<PriceListWithState />)
 }
+
+/**
+ * Find the average price under the list. Its amount sits in an element of its own, to take a stronger color, so the
+ * text is matched by how it starts and the whole line is checked with toHaveTextContent.
+ * @returns The element holding the whole "Average $X" text
+ */
+const averagePriceLine = () => screen.getByText(/^Average\b/)
+
+/**
+ * Measure the Show deleted switch with its label, for the footer's layout tests.
+ * @returns The box around the switch and its label
+ */
+const showDeletedSwitchBox = () =>
+    screen.getByRole('switch', { name: 'Show deleted' }).closest('.mantine-Switch-root')!.getBoundingClientRect()
 
 describe('Price List Component', () => {
     test('should render product prices', async () => {
@@ -315,54 +334,44 @@ describe('Price List Component', () => {
         expect(screen.queryByRole('menuitem', { name: 'Edit' })).not.toBeInTheDocument()
     })
 
-    test('should render show deleted prices checkbox', async () => {
+    test('should show a Show deleted switch, turned off at first', async () => {
         renderPriceList()
 
-        const checkbox = screen.getByRole('checkbox', { name: /show deleted/i })
-        await expect.element(checkbox).toBeInTheDocument()
-
-        const price1Date = screen.getByText('Sep 4, 2026')
-        await expect.element(price1Date).toBeInTheDocument()
-
-        const price2Date = screen.getByText('Sep 5, 2026')
-        await expect.element(price2Date).toBeInTheDocument()
+        await expect.element(screen.getByRole('switch', { name: 'Show deleted' })).not.toBeChecked()
     })
 
-    test('should render checked checkbox', async () => {
+    test('should turn the Show deleted switch on when clicked', async () => {
         const user = userEvent.setup()
-
         renderPriceList()
 
-        const checkbox = screen.getByRole('checkbox', { name: /show deleted/i })
-        await expect.element(checkbox).toBeInTheDocument()
-        await expect.element(checkbox).not.toBeChecked()
-        await user.click(checkbox)
-        await expect.element(checkbox).toBeChecked()
+        await user.click(screen.getByRole('switch', { name: 'Show deleted' }))
+
+        await expect.element(screen.getByRole('switch', { name: 'Show deleted' })).toBeChecked()
     })
 
     test('should show the average price', async () => {
         renderPriceList(createProductBody(product, averages))
 
-        await expect.element(screen.getByText('Average price: $15.00')).toBeInTheDocument()
+        expect(averagePriceLine()).toHaveTextContent('Average $15.00')
     })
 
     test("should format the average price with the product's currency", async () => {
         renderPriceList(createProductBody(product, { ...averages, priceToday: createPrice(1, { currency: 'EUR' }) }))
 
-        await expect.element(screen.getByText('Average price: €15.00')).toBeInTheDocument()
+        expect(averagePriceLine()).toHaveTextContent('Average €15.00')
     })
 
     test("should format the average price as USD when the product's prices have no currency", async () => {
         renderPriceList(createProductBody(product, { ...averages, priceToday: createPrice(1, { currency: '' }) }))
 
-        await expect.element(screen.getByText('Average price: $15.00')).toBeInTheDocument()
+        expect(averagePriceLine()).toHaveTextContent('Average $15.00')
     })
 
     test('should show the weighted average price when hovering the average price', async () => {
         const user = userEvent.setup()
         renderPriceList(createProductBody(product, averages))
 
-        await user.hover(screen.getByText('Average price: $15.00'))
+        await user.hover(averagePriceLine())
 
         await expect
             .element(await screen.findByText('Weighted by how long each price lasted: $17.50'))
@@ -372,7 +381,35 @@ describe('Price List Component', () => {
     test('should not show the average price when the product has no average', async () => {
         renderPriceList(createProductBody(product, { averagePrice: null, weightedAveragePrice: null }))
 
-        expect(screen.queryByText(/average price/i)).not.toBeInTheDocument()
+        expect(screen.queryByText(/average/i)).not.toBeInTheDocument()
+    })
+
+    // The narrowest the planned resizable split lets the list be. The switch can wrap to a line of its own there, but
+    // the average shouldn't break between "Average" and its amount.
+    test('should keep the average price on one line when the list is narrow', async () => {
+        renderPriceList(createProductBody(product, { ...averages, averagePrice: 12345.67 }), [price1, price2], 240)
+
+        // The average is a flex item, so it's laid out as a block and has one box however many lines it takes. Its
+        // height tells them apart instead.
+        const line = averagePriceLine()
+        const lineHeight = parseFloat(getComputedStyle(line).lineHeight)
+        expect(line.getBoundingClientRect().height).toBeLessThan(lineHeight * 1.5)
+    })
+
+    test('should show the Show deleted switch at the right end of the average price line when there is room', async () => {
+        renderPriceList(createProductBody(product, { ...averages, averagePrice: 12345.67 }), [price1, price2], 400)
+
+        const average = averagePriceLine().getBoundingClientRect()
+        const showDeleted = showDeletedSwitchBox()
+        const footerLine = averagePriceLine().parentElement!.getBoundingClientRect()
+        expect(showDeleted.top, 'switch starts above the average ends').toBeLessThan(average.bottom)
+        expect(showDeleted.right, 'switch ends at the right edge').toBeCloseTo(footerLine.right, 0)
+    })
+
+    test('should move the Show deleted switch under the average price when the list is narrow', async () => {
+        renderPriceList(createProductBody(product, { ...averages, averagePrice: 12345.67 }), [price1, price2], 240)
+
+        expect(showDeletedSwitchBox().top).toBeGreaterThanOrEqual(averagePriceLine().getBoundingClientRect().bottom)
     })
 
     test("should ask for the product's recent prices when editing a price", async ({ worker }) => {
