@@ -1,5 +1,6 @@
 import { usePriceData } from '@/hooks/price/usePriceData'
 import type { PriceTimeRange, PriceType } from '@/types/price'
+import { getPriceChartScale, getPriceChartTickString } from '@/utils/priceChartScale'
 import { PRICE_TIME_RANGE_OPTIONS } from '@/utils/priceTimeRange'
 import { LineChart, type ChartTooltipProps } from '@mantine/charts'
 import { Paper, SegmentedControl, Text } from '@mantine/core'
@@ -44,8 +45,9 @@ export const PRICE_CHART_HEIGHT = 280
 // The box around the chart, shared with the loading placeholder so both are the same size
 export const PRICE_CHART_BOX_CLASS = 'w-7/10 border rounded-sm p-5'
 
-// The top of the chart's scale, as a multiple of the highest price or the average, whichever is higher
-const PRICE_CHART_HEADROOM = 1.25
+// The space above the chart's plot area, in pixels, which the average legend and the time range control sit in, so
+// they stay clear of the line and the highest label
+const PRICE_CHART_TOP_MARGIN = 28
 
 type PriceHistoryChartProps = {
     prices: PriceType[]
@@ -66,6 +68,13 @@ const PriceHistoryChart = ({
     currency
 }: PriceHistoryChartProps) => {
     const priceData = usePriceData(dateToday).createPriceData(prices)
+
+    // The y scale, fitted to the prices in view and the average rather than starting from zero, so the line fills the
+    // chart's height and its steps are a visible size. It's null with neither, when the chart has nothing to draw.
+    const scale = getPriceChartScale(
+        priceData.map((point) => point.totalAmount),
+        averagePrice
+    )
 
     // A dashed line at the average, as thick as the price line but a lighter gray, so the prices stand out over it.
     // Two pixels keep at least one row of pixels at full strength wherever the average falls, while a one pixel line
@@ -97,8 +106,8 @@ const PriceHistoryChart = ({
                 data={PRICE_TIME_RANGE_OPTIONS}
                 className="absolute top-2 right-2 z-10"
             />
-            {/* The average line's legend, in the top-left corner across from the time range control. The headroom
-                above the highest price keeps the price line clear of it. */}
+            {/* The average line's legend, in the top-left corner across from the time range control. The chart's top
+                margin keeps the price line and the highest label clear of it. */}
             {averagePrice !== null && (
                 <div className="absolute top-3 left-5 z-10 flex items-center gap-1.5 text-xs text-(--mantine-color-gray-6)">
                     <span className="w-5 border-t-2 border-dashed border-(--mantine-color-gray-5)" />
@@ -121,13 +130,24 @@ const PriceHistoryChart = ({
                     wrapperStyle: { zIndex: 20 }
                 }}
                 gridAxis="none"
-                withYAxis={false}
-                // Leaves the top fifth of the chart above the highest price, so the line never runs under the time
-                // range control in the corner. A shorter time range can leave the average above every price in view,
-                // so the scale makes room for it too.
-                yAxisProps={{
-                    domain: [0, (highest: number) => Math.max(highest, averagePrice ?? 0) * PRICE_CHART_HEADROOM]
-                }}
+                // Keeps the highest label and the line below the legend and the time range control, which sit above
+                // the plot area. The other sides keep Recharts' default margin.
+                lineChartProps={{ margin: { top: PRICE_CHART_TOP_MARGIN, right: 5, bottom: 5, left: 5 } }}
+                // Labels each of the scale's round steps, so a step's size can be read off the side. Without a scale,
+                // there are no prices to draw, and the axis has no labels either.
+                yAxisProps={
+                    scale === null
+                        ? undefined
+                        : {
+                              domain: [scale.min, scale.max],
+                              ticks: scale.ticks,
+                              // Every tick gets a label, which the axis would otherwise thin out when they're close
+                              interval: 0,
+                              tickFormatter: (value: number) => getPriceChartTickString(value, scale.step, currency),
+                              // As wide as the longest label, rather than a fixed width that crops or wastes space
+                              width: 'auto'
+                          }
+                }
                 curveType="stepAfter"
             />
         </div>
