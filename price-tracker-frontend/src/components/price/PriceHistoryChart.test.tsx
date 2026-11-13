@@ -69,6 +69,53 @@ const getHorizontalLines = (container: HTMLElement) =>
         (line) => line.getAttribute('y1') === line.getAttribute('y2')
     )
 
+/**
+ * Get the y axis labels, once the chart has drawn its line.
+ * @param container The rendered chart
+ * @returns Each label's element, in the order the axis draws them
+ */
+const getYLabels = async (container: HTMLElement) => {
+    await getLineTop(container)
+    return [...container.querySelectorAll('.recharts-yAxis-tick-labels .recharts-cartesian-axis-tick-value')]
+}
+
+describe('Price History Chart Scale', () => {
+    useDesktopViewport()
+
+    // Prices of 10 to 30 fit a scale of 0 to 40 in steps of 10
+    test('should label the scale with round amounts in the product currency', async () => {
+        const { container } = renderChart(createRisingPrices([10, 20, 30]), 20, 'EUR')
+
+        const labels = (await getYLabels(container)).map((label) => label.textContent)
+
+        expect(labels.toSorted()).toEqual(['€0', '€10', '€20', '€30', '€40'])
+    })
+
+    // On a scale from zero, prices of 100 to 120 would all sit in the top quarter of the chart
+    test('should fit the scale to the prices rather than starting from zero', async () => {
+        const { container } = renderChart(createRisingPrices([100, 110, 120]))
+        await getLineTop(container)
+
+        // Oldest first on the chart, so the first dot is the lowest price
+        const lowestDot = container.querySelector('.recharts-line-dots circle')!.getBoundingClientRect()
+        const chart = container.querySelector('.recharts-wrapper')!.getBoundingClientRect()
+
+        expect(lowestDot.top).toBeGreaterThan(chart.top + chart.height / 2)
+    })
+
+    // At the highest price with the average there too, the top label is as close to the legend as it gets
+    test('should keep the highest label below the legend', async () => {
+        const { container } = renderChart(createRisingPrices([10, 20, 30]), 30)
+
+        const labelTops = (await getYLabels(container)).map((label) => label.getBoundingClientRect().top)
+        const legend = screen.getByText('Average $30.00').getBoundingClientRect()
+
+        // Without labels, the lowest top of none would be Infinity and pass
+        expect(labelTops.length).toBeGreaterThan(0)
+        expect(Math.min(...labelTops)).toBeGreaterThan(legend.bottom)
+    })
+})
+
 describe('Price History Chart Average', () => {
     useDesktopViewport()
 
