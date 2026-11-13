@@ -7,11 +7,13 @@ const HALF_CENT = 0.005
 
 /**
  * Get the details line shown under a price's date: the base price, discount, return, description, and end date, each
- * only when it applies, joined with " · ".
+ * only when it applies, joined with " · ". An end date says "ended" once it has passed, and "until" before then, since
+ * "until" reads as if the price were still running.
  * @param price The price to describe
+ * @param now The moment the end date is compared with, in milliseconds, the same one the list uses for what's upcoming
  * @returns The details, or an empty string for a plain full price
  */
-const getPriceDetailsString = (price: PriceType) => {
+const getPriceDetailsString = (price: PriceType, now: number) => {
     const currency = price.currency || 'USD'
     const discounted = price.amount > 0 && price.amount - price.discountAmount >= HALF_CENT
     const returned = price.returnAmount >= HALF_CENT
@@ -22,7 +24,11 @@ const getPriceDetailsString = (price: PriceType) => {
     if (discounted) parts.push(`${getPercentage(1 - price.discountAmount / price.amount)}% off`)
     if (returned) parts.push(`${getAmountString(price.returnAmount, currency)} back`)
     if (description) parts.push(description)
-    if (price.priceEnded) parts.push(`until ${getEndDateString(price.priceStarted, price.priceEnded)}`)
+    if (price.priceEnded) {
+        // A price has stopped at its very end, so an end exactly at now counts as ended
+        const endWord = Date.parse(price.priceEnded) <= now ? 'ended' : 'until'
+        parts.push(`${endWord} ${getEndDateString(price.priceStarted, price.priceEnded)}`)
+    }
 
     return parts.join(' · ')
 }
@@ -91,6 +97,33 @@ const getSameDayPriceIds = (prices: PriceType[]) => {
     return new Set([...pricesByDay.values()].filter((priceIds) => priceIds.length > 1).flat())
 }
 
+type PriceTimeline = {
+    // The price in effect now, or null when no price has started yet
+    currentPriceId: number | null
+    // The prices that start after now, deleted ones included when they're shown
+    upcomingPriceIds: Set<number>
+    // The moment that counts as now, in milliseconds, which end dates are also compared with
+    now: number
+}
+
+/**
+ * Get which listed price is in effect now and which haven't started yet. The backend marks the price in effect now by
+ * adding a copy of it to the list, flagged as today's and starting at the moment the list was fetched, so that copy
+ * gives both: its ID is the current price's, and its start is the "now" that later prices are upcoming from. Without
+ * it, when no price has started, the current time is used instead.
+ * @param prices The prices in the list
+ * @returns The current price's ID, the upcoming prices' IDs, and the moment that counts as now
+ */
+const getPriceTimeline = (prices: PriceType[]): PriceTimeline => {
+    const todayEntry = prices.find((price) => price.today)
+    const now = todayEntry ? Date.parse(todayEntry.priceStarted) : Date.now()
+    const upcomingPriceIds = new Set(
+        prices.filter((price) => !price.today && Date.parse(price.priceStarted) > now).map((price) => price.priceId)
+    )
+
+    return { currentPriceId: todayEntry?.priceId ?? null, upcomingPriceIds, now }
+}
+
 type PriceChange = {
     direction: 'down' | 'up' | 'same'
     // Says what changed, such as "Down $4.00 from $80.00"
@@ -134,5 +167,12 @@ const getPriceChanges = (prices: PriceType[]) => {
     return changes
 }
 
-export { getPriceChanges, getPriceDateString, getPriceDetailsString, getPriceRowDateString, getSameDayPriceIds }
-export type { PriceChange }
+export {
+    getPriceChanges,
+    getPriceDateString,
+    getPriceDetailsString,
+    getPriceRowDateString,
+    getPriceTimeline,
+    getSameDayPriceIds
+}
+export type { PriceChange, PriceTimeline }

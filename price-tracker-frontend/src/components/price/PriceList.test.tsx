@@ -84,6 +84,39 @@ const GREEN = 'text-green-600'
 const GRAY = 'text-raincloud'
 
 /**
+ * A list with past, current, and upcoming prices, newest first, like the API sends it. Today's entry, starting Sep 6,
+ * is a copy of price 2, the price in effect now, so prices 3 and 4 haven't started yet.
+ */
+const pricesAroundToday = [
+    priceOnSep(4, 10, 90),
+    priceOnSep(3, 8, 70),
+    priceOnSep(2, 6, 80, { today: true }),
+    priceOnSep(2, 5, 80),
+    priceOnSep(1, 4, 100)
+]
+
+/**
+ * Get the first line of a label or row's text, with plain spaces. Row dates hold together with non-breaking spaces,
+ * which wouldn't equal the dates typed in a test.
+ * @param line The label or row
+ * @returns Its first line, such as "Upcoming" or "Sep 5, 2026"
+ */
+const firstLineOf = (line: Element) => (line as HTMLElement).innerText.split('\n')[0].replace(/\s/g, ' ')
+
+/**
+ * Get what the list shows, one entry per line it draws: each label's text, and each row's date.
+ * @returns The labels and dates, from the top of the list
+ */
+const listLines = () => [...screen.getByRole('list', { name: 'Prices' }).children].map(firstLineOf)
+
+/**
+ * Get the dates of the rows marked as the price in effect now.
+ * @returns Each current row's date, from the top of the list
+ */
+const currentRowDates = () =>
+    [...screen.getByRole('list', { name: 'Prices' }).querySelectorAll('[aria-current="true"]')].map(firstLineOf)
+
+/**
  * Render the price list, with the Show deleted prices checkbox working as it does in the app.
  * @param productBody The product the prices belong to
  * @param prices The prices to list, newest first, like the API sends them
@@ -126,6 +159,113 @@ describe('Price List Component', () => {
 
         const list = screen.getByRole('list', { name: 'Prices' })
         expect(within(list).getAllByRole('listitem')).toHaveLength(2)
+    })
+
+    // The "Upcoming" label is a line in the list, but not a price, so screen readers shouldn't count it as one
+    test('should not count the Upcoming label as a price', async () => {
+        renderPriceList(undefined, pricesAroundToday)
+
+        const list = screen.getByRole('list', { name: 'Prices' })
+        expect(within(list).getAllByRole('listitem')).toHaveLength(4)
+    })
+
+    // Today's entry is a copy of the price in effect now, with the same ID, which is how the list knows which it is
+    test('should mark the price in effect now as current', async () => {
+        renderPriceList(undefined, pricesAroundToday)
+
+        await expect.element(screen.getByText('Sep 5, 2026')).toBeInTheDocument()
+        expect(currentRowDates()).toEqual(['Sep 5, 2026'])
+    })
+
+    // The backend leaves out today's entry when no price has started, such as when every price is deleted
+    test("should not mark any price as current without today's entry", async () => {
+        renderPriceList(undefined, [price2, price1])
+
+        await expect.element(screen.getByText('Sep 5, 2026')).toBeInTheDocument()
+        expect(currentRowDates()).toEqual([])
+    })
+
+    test('should show the Upcoming label once, above the prices that start after now', async () => {
+        renderPriceList(undefined, pricesAroundToday)
+
+        await expect.element(screen.getByText('Upcoming')).toBeInTheDocument()
+        expect(listLines()).toEqual(['Upcoming', 'Sep 10, 2026', 'Sep 8, 2026', 'Sep 5, 2026', 'Sep 4, 2026'])
+    })
+
+    test('should not show the Upcoming label without upcoming prices', async () => {
+        renderPriceList(undefined, [priceOnSep(2, 6, 80, { today: true }), priceOnSep(2, 5, 80), priceOnSep(1, 4, 100)])
+
+        await expect.element(screen.getByText('Sep 5, 2026')).toBeInTheDocument()
+        expect(screen.queryByText('Upcoming')).not.toBeInTheDocument()
+    })
+
+    // A deleted price that hasn't started yet still starts after now, so it sits with the others when it's shown
+    test('should put a deleted price that starts after now under the Upcoming label', async () => {
+        renderPriceList(undefined, [
+            priceOnSep(3, 8, 70, { deletedAt: new Date(2026, 8, 5, 12).toISOString() }),
+            priceOnSep(2, 6, 80, { today: true }),
+            priceOnSep(2, 5, 80),
+            priceOnSep(1, 4, 100)
+        ])
+
+        await expect.element(screen.getByText('Upcoming')).toBeInTheDocument()
+        expect(listLines()).toEqual(['Upcoming', 'Sep 8, 2026', 'Sep 5, 2026', 'Sep 4, 2026'])
+    })
+
+    // Without today's entry, the current time is the "now" that later prices are upcoming from. Years far from today
+    // keep these on the same side of it whenever the test runs.
+    test("should show the Upcoming label above prices that start in the future without today's entry", async () => {
+        renderPriceList(undefined, [
+            createPrice(2, { priceStarted: new Date(2100, 0, 1, 12).toISOString() }),
+            createPrice(1, { priceStarted: new Date(2020, 0, 1, 12).toISOString() })
+        ])
+
+        await expect.element(screen.getByText('Upcoming')).toBeInTheDocument()
+        expect(listLines()).toEqual(['Upcoming', 'Jan 1, 2100', 'Jan 1, 2020'])
+    })
+
+    test("should not show the Upcoming label for prices that started in the past without today's entry", async () => {
+        renderPriceList(undefined, [createPrice(1, { priceStarted: new Date(2020, 0, 1, 12).toISOString() })])
+
+        await expect.element(screen.getByText('Jan 1, 2020')).toBeInTheDocument()
+        expect(screen.queryByText('Upcoming')).not.toBeInTheDocument()
+    })
+
+    // Today's entry starts on Sep 6, so a sale ending Sep 7 is still running, even though Sep 7 is past by the real
+    // date. The same "now" decides what's upcoming, so the list can't call a price both upcoming and ended.
+    test("should compare end dates with today's entry's start", async () => {
+        renderPriceList(undefined, [
+            priceOnSep(2, 6, 80, { today: true, priceEnded: new Date(2026, 8, 7, 23, 59).toISOString() }),
+            priceOnSep(2, 5, 80, { priceEnded: new Date(2026, 8, 7, 23, 59).toISOString() }),
+            priceOnSep(1, 4, 100, { priceEnded: new Date(2026, 8, 4, 23, 59).toISOString() })
+        ])
+
+        await expect.element(screen.getByText('until Sep 7')).toBeInTheDocument()
+        await expect.element(screen.getByText('ended 11:59 PM')).toBeInTheDocument()
+    })
+
+    // Without today's entry, the current time is "now". Years far from today keep these on the same side of it
+    // whenever the test runs.
+    test("should say a price ended in the past ended without today's entry", async () => {
+        renderPriceList(undefined, [
+            createPrice(1, {
+                priceStarted: new Date(2020, 0, 1, 12).toISOString(),
+                priceEnded: new Date(2020, 0, 5, 23, 59).toISOString()
+            })
+        ])
+
+        await expect.element(screen.getByText('ended Jan 5')).toBeInTheDocument()
+    })
+
+    test("should say a price ending in the future lasts until then without today's entry", async () => {
+        renderPriceList(undefined, [
+            createPrice(1, {
+                priceStarted: new Date(2100, 0, 1, 12).toISOString(),
+                priceEnded: new Date(2100, 0, 5, 23, 59).toISOString()
+            })
+        ])
+
+        await expect.element(screen.getByText('until Jan 5')).toBeInTheDocument()
     })
 
     test('should show the start times of prices that start on the same day', async () => {

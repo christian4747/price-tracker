@@ -16,6 +16,11 @@ interface Price {
     showTime?: boolean
     // How the price changed from the one before it in the list, if it can be compared
     change?: PriceChange
+    // Whether this is the price in effect now, which is tinted so it stands out from past and upcoming ones
+    current?: boolean
+    // The moment that counts as now, in milliseconds, so the details line can say whether the price has ended. The
+    // list passes the same one it uses for what's upcoming.
+    now: number
 }
 
 /**
@@ -29,17 +34,26 @@ export const Price = ({
     openPermanentlyDeletePriceModal,
     productDeleted,
     showTime = false,
-    change
+    change,
+    current = false,
+    now
 }: Price) => {
     const priceStartedDateString = getPriceRowDateString(price, showTime)
-    const detailsString = getPriceDetailsString(price)
+    const detailsString = getPriceDetailsString(price, now)
     // Strike through and gray out deleted prices so they stand out when deleted prices are shown
     const deletedClassName = price.deletedAt !== null ? 'line-through text-raincloud' : ''
-
+    // The current price gets a pale tint with a bar down its left edge, in the chart line's blue. Green and red already
+    // mean a drop and a low, so blue doesn't read as either. The bar is an inset shadow, so it takes no space.
+    const currentClassName = current
+        ? 'bg-(--mantine-color-blue-0) shadow-[inset_3px_0_0_var(--mantine-color-blue-6)]'
+        : ''
     return (
         // Takes its columns from the list (a subgrid), so the date, arrow, amount, and actions button line up with every
-        // other row
-        <li className="group/row col-span-full grid grid-cols-subgrid items-center px-2 py-1">
+        // other row. The current price's tint says which row is current; aria-current says it to screen readers too.
+        <li
+            className={`group/row col-span-full grid grid-cols-subgrid items-center px-2 py-1 ${currentClassName}`}
+            aria-current={current ? 'true' : undefined}
+        >
             {/* A size down from the amount, which is what the list is scanned for, so the date fits the narrow column */}
             <div className={`min-w-0 pr-1 text-sm ${deletedClassName}`}>{priceStartedDateString}</div>
             <PriceChangeArrow change={change} />
