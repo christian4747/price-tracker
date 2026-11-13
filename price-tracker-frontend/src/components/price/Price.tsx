@@ -18,6 +18,9 @@ interface Price {
     change?: PriceChange
     // Whether this is the price in effect now, which is tinted so it stands out from past and upcoming ones
     current?: boolean
+    // The moment that counts as now, in milliseconds, so the details line can say whether the price has ended. The
+    // list passes the same one it uses for what's upcoming.
+    now: number
 }
 
 /**
@@ -32,10 +35,11 @@ export const Price = ({
     productDeleted,
     showTime = false,
     change,
-    current = false
+    current = false,
+    now
 }: Price) => {
     const priceStartedDateString = getPriceRowDateString(price, showTime)
-    const detailsString = getPriceDetailsString(price)
+    const detailsString = getPriceDetailsString(price, now)
     // Strike through and gray out deleted prices so they stand out when deleted prices are shown
     const deletedClassName = price.deletedAt !== null ? 'line-through text-raincloud' : ''
     // The current price gets a pale tint with a bar down its left edge, in the chart line's blue. Green and red already

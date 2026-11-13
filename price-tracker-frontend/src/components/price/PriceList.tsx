@@ -36,7 +36,7 @@ export const PriceList = ({ productBody, setDateToday, prices, showDeleted, setS
     const priceChanges = getPriceChanges(prices)
     // The prices that haven't started yet sit under an "Upcoming" label, and the price in effect now is tinted, so the
     // past prices are the plain rows below it
-    const { currentPriceId, upcomingPriceIds } = getPriceTimeline(prices)
+    const { currentPriceId, upcomingPriceIds, now } = getPriceTimeline(prices)
     // The list is newest first, so the upcoming prices are all at the top and their label goes above the first one
     // Today's entry is skipped, since it shares the current price's ID and the list doesn't draw it
     const firstUpcomingPrice = prices.find((price) => !price.today && upcomingPriceIds.has(price.priceId))
@@ -98,6 +98,7 @@ export const PriceList = ({ productBody, setDateToday, prices, showDeleted, setS
                                     showTime={sameDayPriceIds.has(price.priceId)}
                                     change={priceChanges.get(price.priceId)}
                                     current={price.priceId === currentPriceId}
+                                    now={now}
                                 />
                             </Fragment>
                         )

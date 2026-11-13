@@ -21,10 +21,14 @@ const deletedPrice = createPrice(1, {
     deletedAt: new Date(2026, 8, 6, 12).toISOString()
 })
 
+// The "now" a row's end date is compared with, unless a test gives its own: the moment the fixtures start, so every
+// end date is still to come. A fixed time keeps the tests from changing their answers as the real date moves on.
+const NOW_AT_START = Date.parse(price.priceStarted)
+
 /**
  * Render a price row inside a list, since the row is a list item, for a product that isn't deleted.
  * @param priceToRender The price the row shows
- * @param handlers Props to override, such as a modal handler a test wants to watch; the others do nothing
+ * @param handlers Props to override, such as a modal handler a test wants to watch, or "now"; the others do nothing
  * @returns The render result
  */
 const renderPrice = (priceToRender: PriceType, handlers: Partial<ComponentProps<typeof Price>> = {}) => {
@@ -36,6 +40,7 @@ const renderPrice = (priceToRender: PriceType, handlers: Partial<ComponentProps<
                 openDeletePriceModal={() => {}}
                 openPermanentlyDeletePriceModal={() => {}}
                 productDeleted={false}
+                now={NOW_AT_START}
                 {...handlers}
             />
         </ul>
@@ -367,6 +372,37 @@ describe('Price details line', () => {
         renderPrice(priceWith({ priceEnded: new Date(2026, 8, 4, 23, 59).toISOString() }))
 
         await expect.element(screen.getByText('until 11:59 PM')).toBeInTheDocument()
+    })
+
+    // "until" would read as if the price were still running
+    test('should say a price whose end has passed ended', async () => {
+        const ended = new Date(2026, 8, 30, 23, 59)
+        renderPrice(priceWith({ priceEnded: ended.toISOString() }), { now: ended.getTime() + 60_000 })
+
+        await expect.element(screen.getByText('ended Sep 30')).toBeInTheDocument()
+    })
+
+    // At its very end the price has stopped, so it counts as ended
+    test('should say a price ending exactly now ended', async () => {
+        const ended = new Date(2026, 8, 30, 23, 59)
+        renderPrice(priceWith({ priceEnded: ended.toISOString() }), { now: ended.getTime() })
+
+        await expect.element(screen.getByText('ended Sep 30')).toBeInTheDocument()
+    })
+
+    test('should say a price ending a moment from now lasts until then', async () => {
+        const ended = new Date(2026, 8, 30, 23, 59)
+        renderPrice(priceWith({ priceEnded: ended.toISOString() }), { now: ended.getTime() - 60_000 })
+
+        await expect.element(screen.getByText('until Sep 30')).toBeInTheDocument()
+    })
+
+    test('should show the end time of a price that ended on the day it started', async () => {
+        renderPrice(priceWith({ priceEnded: new Date(2026, 8, 4, 23, 59).toISOString() }), {
+            now: new Date(2026, 8, 5, 12).getTime()
+        })
+
+        await expect.element(screen.getByText('ended 11:59 PM')).toBeInTheDocument()
     })
 
     test('should show the year of an end date in a later year than the start', async () => {

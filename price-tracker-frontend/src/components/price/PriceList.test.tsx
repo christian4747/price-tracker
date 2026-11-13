@@ -231,6 +231,43 @@ describe('Price List Component', () => {
         expect(screen.queryByText('Upcoming')).not.toBeInTheDocument()
     })
 
+    // Today's entry starts on Sep 6, so a sale ending Sep 7 is still running, even though Sep 7 is past by the real
+    // date. The same "now" decides what's upcoming, so the list can't call a price both upcoming and ended.
+    test("should compare end dates with today's entry's start", async () => {
+        renderPriceList(undefined, [
+            priceOnSep(2, 6, 80, { today: true, priceEnded: new Date(2026, 8, 7, 23, 59).toISOString() }),
+            priceOnSep(2, 5, 80, { priceEnded: new Date(2026, 8, 7, 23, 59).toISOString() }),
+            priceOnSep(1, 4, 100, { priceEnded: new Date(2026, 8, 4, 23, 59).toISOString() })
+        ])
+
+        await expect.element(screen.getByText('until Sep 7')).toBeInTheDocument()
+        await expect.element(screen.getByText('ended 11:59 PM')).toBeInTheDocument()
+    })
+
+    // Without today's entry, the current time is "now". Years far from today keep these on the same side of it
+    // whenever the test runs.
+    test("should say a price ended in the past ended without today's entry", async () => {
+        renderPriceList(undefined, [
+            createPrice(1, {
+                priceStarted: new Date(2020, 0, 1, 12).toISOString(),
+                priceEnded: new Date(2020, 0, 5, 23, 59).toISOString()
+            })
+        ])
+
+        await expect.element(screen.getByText('ended Jan 5')).toBeInTheDocument()
+    })
+
+    test("should say a price ending in the future lasts until then without today's entry", async () => {
+        renderPriceList(undefined, [
+            createPrice(1, {
+                priceStarted: new Date(2100, 0, 1, 12).toISOString(),
+                priceEnded: new Date(2100, 0, 5, 23, 59).toISOString()
+            })
+        ])
+
+        await expect.element(screen.getByText('until Jan 5')).toBeInTheDocument()
+    })
+
     test('should show the start times of prices that start on the same day', async () => {
         renderPriceList(undefined, [priceOnSep4(2, 16, 30), priceOnSep4(1, 9, 5)])
 
