@@ -20,7 +20,6 @@ const renderChart = (prices: PriceType[], averagePrice: number | null = null, cu
         <div data-testid="chart-wrapper" style={{ width: 1000, display: 'flex' }}>
             <PriceHistoryChart
                 prices={prices}
-                dateToday={new Date(2026, 10, 9, 12)}
                 timeRange="oneYear"
                 setTimeRange={() => {}}
                 averagePrice={averagePrice}

@@ -7,7 +7,7 @@ const deletedAt = new Date(2026, 9, 1, 12).toISOString()
 
 // Returns the IDs of the prices the chart would draw
 const getChartPriceIds = (prices: PriceType[]) => {
-    const { result } = renderHook(() => usePriceData(new Date()))
+    const { result } = renderHook(() => usePriceData())
 
     return result.current.createPriceData(prices).map((price) => price.priceId)
 }

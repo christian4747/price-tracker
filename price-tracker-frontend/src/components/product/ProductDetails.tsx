@@ -72,7 +72,6 @@ export const ProductDetails = ({ productBody, dateToday, setDateToday, children 
             <div className="w-full flex-1 flex justify-between gap-2">
                 <PriceHistoryChart
                     prices={pricesQuery.data}
-                    dateToday={dateToday}
                     timeRange={timeRange}
                     setTimeRange={setTimeRange}
                     averagePrice={productBody.averagePrice}
