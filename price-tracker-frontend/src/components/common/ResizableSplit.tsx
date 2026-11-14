@@ -87,7 +87,7 @@ export const ResizableSplit = ({
     // from a wider window can be too large for this one.
     const share = clampShare(dragShare ?? savedShare)
 
-    // A drag still going when the split goes away stops with it, so its window listeners don't outlive the split
+    // A drag still going when the split goes away stops with it, so the body isn't left with the drag's cursor
     useEffect(() => () => stopDragRef.current?.(), [])
 
     /**
@@ -98,16 +98,19 @@ export const ResizableSplit = ({
     const startDrag = (event: React.PointerEvent<HTMLElement>) => {
         // Only the main button drags, and nothing can be dragged before the split has been measured
         if (event.button !== 0 || width === 0) return
+        const divider = event.currentTarget
         // Stops the drag from selecting text. It also stops the browser focusing the divider, so that's done by hand,
         // letting the arrow keys move it straight after
         event.preventDefault()
-        event.currentTarget.focus({ preventScroll: true })
+        divider.focus({ preventScroll: true })
+        // Sends the pointer's events to the divider until it's let go, wherever the pointer goes. The panes get none of
+        // them, so the chart doesn't show its price tooltip and hover line under a drag.
+        divider.setPointerCapture(event.pointerId)
         // Kept outside React's state, so finish can save the last share without waiting for a render
         let latestShare = share
 
         /**
-         * Move the divider to the pointer. Listens on the window, so the drag keeps going over the panes and their
-         * tooltips.
+         * Move the divider to the pointer. The divider gets every move while it holds the pointer, even over the panes.
          * @param moveEvent The pointer's move anywhere on the page
          */
         const move = (moveEvent: PointerEvent) => {
@@ -122,14 +125,13 @@ export const ResizableSplit = ({
          * mid-drag, where there's nothing left to save into.
          */
         const stop = () => {
-            window.removeEventListener('pointermove', move)
-            window.removeEventListener('pointerup', finish)
-            window.removeEventListener('pointercancel', finish)
+            divider.removeEventListener('pointermove', move)
+            divider.removeEventListener('lostpointercapture', finish)
             document.body.classList.remove(...DRAG_CURSOR_CLASSES)
             stopDragRef.current = null
         }
         /**
-         * End the drag when the pointer is let go or the browser cancels it, and save where the divider ended up.
+         * End the drag once the divider lets go of the pointer, and save where the divider ended up.
          */
         const finish = () => {
             stop()
@@ -137,9 +139,10 @@ export const ResizableSplit = ({
             setDragShare(null)
         }
 
-        window.addEventListener('pointermove', move)
-        window.addEventListener('pointerup', finish)
-        window.addEventListener('pointercancel', finish)
+        divider.addEventListener('pointermove', move)
+        // The divider lets go of the pointer however the drag ends: let go, cancelled by the browser (such as a touch
+        // turning into a scroll), or the capture taken away. So this one event covers pointerup and pointercancel too.
+        divider.addEventListener('lostpointercapture', finish)
         // Keeps the resize cursor while the pointer is over the panes
         document.body.classList.add(...DRAG_CURSOR_CLASSES)
         // Lets the unmount cleanup above stop this drag

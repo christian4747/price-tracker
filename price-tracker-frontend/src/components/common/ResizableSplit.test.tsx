@@ -1,6 +1,6 @@
-import { afterEach, beforeEach, describe, expect } from 'vitest'
+import { afterEach, beforeEach, describe, expect, onTestFinished } from 'vitest'
 import { page, userEvent as pointer } from 'vitest/browser'
-import { fireEvent, renderWithClient, screen, test, userEvent, within } from '@/test-utils'
+import { renderWithClient, screen, test, userEvent, within } from '@/test-utils'
 import { ResizableSplit } from './ResizableSplit'
 import '@/styles/index.css'
 
@@ -65,18 +65,23 @@ const waitForMeasuredSplit = async (testId = 'split') => {
 }
 
 /**
- * Press the divider, move the pointer, and let go, as one drag.
+ * Drag the divider with the real mouse: press it, move to a point over the split, and let go. Fired events won't do,
+ * since the divider captures the pointer, and a browser only lets a pointer that's really pressed be captured.
  * @param separator The divider to drag
- * @param startPane The split's start pane, whose left edge the distance is measured from
  * @param toX Where to let go, as a distance in pixels from the split's left edge
+ * @param testId The test ID on the split's wrapper, whose left edge is the split's
  */
-const dragDivider = (separator: HTMLElement, startPane: HTMLElement, toX: number) => {
-    const left = startPane.getBoundingClientRect().left
-    // Pressed where the divider is, at the start pane's right edge
-    fireEvent.pointerDown(separator, { pointerId: 1, button: 0, clientX: left + startPane.offsetWidth })
-    // Moved and let go on the window, where the split listens during a drag
-    fireEvent.pointerMove(window, { pointerId: 1, clientX: left + toX })
-    fireEvent.pointerUp(window, { pointerId: 1, clientX: left + toX })
+const dragDivider = async (separator: HTMLElement, toX: number, testId = 'split') => {
+    // A few pixels down, so the pointer stays over the panes' text
+    await pointer.dragAndDrop(separator, screen.getByTestId(testId), { targetPosition: { x: toX, y: 5 } })
+}
+
+/**
+ * Move the real mouse to a point over the split, without pressing anything.
+ * @param x The distance in pixels from the split's left edge
+ */
+const movePointerOverSplit = async (x: number) => {
+    await pointer.hover(screen.getByTestId('split'), { position: { x, y: 5 } })
 }
 
 describe('ResizableSplit', () => {
@@ -134,7 +139,7 @@ describe('ResizableSplit', () => {
         renderSplit()
         const { separator, startPane, endPane } = await waitForMeasuredSplit()
 
-        dragDivider(separator, startPane, 500)
+        await dragDivider(separator, 500)
 
         // The start pane follows the pointer, and the end pane takes what's left
         await expect.poll(() => startPane.offsetWidth).toBe(500)
@@ -147,54 +152,87 @@ describe('ResizableSplit', () => {
         const { separator, startPane } = await waitForMeasuredSplit()
 
         // Well past the 300 px minimum
-        dragDivider(separator, startPane, 50)
+        await dragDivider(separator, 50)
 
         await expect.poll(() => startPane.offsetWidth).toBe(minStartWidth)
     })
 
     test('should stop at the end pane minimum width', async () => {
         renderSplit()
-        const { separator, startPane, endPane } = await waitForMeasuredSplit()
+        const { separator, endPane } = await waitForMeasuredSplit()
 
         // Would leave the end pane 49 px, well under its 200 px minimum
-        dragDivider(separator, startPane, 950)
+        await dragDivider(separator, 950)
 
         await expect.poll(() => endPane.offsetWidth).toBe(minEndWidth)
     })
 
-    // A drag that kept its window listeners would keep resizing as the pointer moves over the page afterwards
+    // A drag that kept listening would keep resizing as the pointer moves afterwards. Without a pressed pointer, only
+    // moves over the divider's grab area (6 px each side) reach it, so the pointer moves within that.
     test('should stop resizing once the divider is let go', async () => {
         renderSplit()
         const { separator, startPane } = await waitForMeasuredSplit()
-        dragDivider(separator, startPane, 500)
+        await dragDivider(separator, 500)
         await expect.poll(() => startPane.offsetWidth).toBe(500)
 
-        // The pointer keeps moving after the drag let go
-        fireEvent.pointerMove(window, { pointerId: 1, clientX: startPane.getBoundingClientRect().left + 600 })
+        // The pointer keeps moving over the grab area after the drag let go
+        await movePointerOverSplit(505)
 
         expect(startPane.offsetWidth).toBe(500)
+    })
+
+    // The chart shows its price tooltip and a hover line for moves it gets, which would follow the pointer through a
+    // drag. Pressed moves are the only ones counted, since the pointer reaches the divider over the panes first.
+    test('should keep the pointer moves of a drag from the panes', async () => {
+        renderSplit()
+        const { separator, startPane, endPane } = await waitForMeasuredSplit()
+        const movesWhilePressed: string[] = []
+        for (const [name, pane] of [
+            ['start pane', startPane],
+            ['end pane', endPane]
+        ] as const) {
+            // The chart listens for mouse events, which the browser fires along with pointer ones
+            for (const type of ['pointermove', 'pointerover', 'mousemove', 'mouseover']) {
+                pane.addEventListener(type, (event) => {
+                    if ((event as PointerEvent).buttons !== 0) movesWhilePressed.push(`${type} on the ${name}`)
+                })
+            }
+        }
+
+        // Over the start pane, then over the end pane
+        await dragDivider(separator, 500)
+        await expect.poll(() => startPane.offsetWidth).toBe(500)
+        await dragDivider(separator, 750)
+        await expect.poll(() => startPane.offsetWidth).toBe(750)
+
+        expect(movesWhilePressed).toEqual([])
     })
 
     // The panes' own cursors would otherwise show partway through a drag, such as the arrow the chart sets
     test('should show the resize cursor over the panes while the divider is dragged', async () => {
         renderSplit()
-        const { separator, startPane } = await waitForMeasuredSplit()
+        const { separator } = await waitForMeasuredSplit()
         // Stand in for the chart's arrow and the price list's buttons, which set their own cursors
         const startText = screen.getByText('Start pane')
         const endText = screen.getByText('End pane')
         startText.style.cursor = 'default'
         endText.style.cursor = 'pointer'
+        // Read partway through the drag, at each move while the pointer is pressed. Listened for on the window as the
+        // move starts out, which comes before wherever the move goes.
+        const cursorsWhilePressed: string[] = []
+        const readCursors = (event: PointerEvent) => {
+            if (event.buttons !== 0) {
+                cursorsWhilePressed.push(getComputedStyle(startText).cursor, getComputedStyle(endText).cursor)
+            }
+        }
+        window.addEventListener('pointermove', readCursors, { capture: true })
+        onTestFinished(() => window.removeEventListener('pointermove', readCursors, { capture: true }))
 
-        // Pressed but not let go yet
-        fireEvent.pointerDown(separator, {
-            pointerId: 1,
-            button: 0,
-            clientX: startPane.getBoundingClientRect().left + startPane.offsetWidth
-        })
+        await dragDivider(separator, 500)
 
-        expect(getComputedStyle(startText).cursor).toBe('col-resize')
-        expect(getComputedStyle(endText).cursor).toBe('col-resize')
-        fireEvent.pointerUp(window, { pointerId: 1 })
+        // At least one move was read, and every read was the resize cursor
+        expect(cursorsWhilePressed).not.toEqual([])
+        expect(new Set(cursorsWhilePressed)).toEqual(new Set(['col-resize']))
     })
 
     test('should give the panes their own cursors back once the divider is let go', async () => {
@@ -204,7 +242,8 @@ describe('ResizableSplit', () => {
         const startText = screen.getByText('Start pane')
         startText.style.cursor = 'default'
 
-        dragDivider(separator, startPane, 500)
+        await dragDivider(separator, 500)
+        await expect.poll(() => startPane.offsetWidth).toBe(500)
 
         expect(getComputedStyle(startText).cursor).toBe('default')
     })
@@ -220,12 +259,13 @@ describe('ResizableSplit', () => {
         expect(separator).toHaveFocus()
     })
 
-    // Only a press on the divider starts a drag, so moving across the page leaves the panes alone
+    // Only a press on the divider starts a drag, so moving over it leaves the panes alone
     test('should not resize when the pointer moves without pressing the divider', async () => {
         renderSplit()
         const { startPane } = await waitForMeasuredSplit()
 
-        fireEvent.pointerMove(window, { pointerId: 1, clientX: startPane.getBoundingClientRect().left + 500 })
+        // Within the grab area of the divider at 700 px, where a pressed pointer would move it
+        await movePointerOverSplit(705)
 
         // Still the default 70%
         expect(startPane.offsetWidth).toBe(700)
@@ -272,23 +312,23 @@ describe('ResizableSplit', () => {
     })
 
     test('should go back to the default split when the divider is double-clicked', async () => {
-        const user = userEvent.setup()
         renderSplit()
         const { separator, startPane } = await waitForMeasuredSplit()
-        dragDivider(separator, startPane, 500)
+        await dragDivider(separator, 500)
         await expect.poll(() => startPane.offsetWidth).toBe(500)
 
-        await user.dblClick(separator)
+        // A real double-click, since each of its presses captures the pointer
+        await pointer.dblClick(separator)
 
         // Back to the default 70%
-        expect(startPane.offsetWidth).toBe(700)
+        await expect.poll(() => startPane.offsetWidth).toBe(700)
     })
 
     // Like closing a product's panel and opening it again
     test('should remember the split after it is closed and opened again', async () => {
         const { unmount } = renderSplit()
         const { separator, startPane } = await waitForMeasuredSplit()
-        dragDivider(separator, startPane, 500)
+        await dragDivider(separator, 500)
         await expect.poll(() => startPane.offsetWidth).toBe(500)
         unmount()
 
@@ -306,7 +346,7 @@ describe('ResizableSplit', () => {
         const first = await waitForMeasuredSplit('first')
         const second = await waitForMeasuredSplit('second')
 
-        dragDivider(first.separator, first.startPane, 500)
+        await dragDivider(first.separator, 500, 'first')
 
         await expect.poll(() => second.startPane.offsetWidth).toBe(500)
     })
