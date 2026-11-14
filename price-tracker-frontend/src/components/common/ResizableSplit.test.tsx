@@ -217,8 +217,8 @@ describe('ResizableSplit', () => {
         const endText = screen.getByText('End pane')
         startText.style.cursor = 'default'
         endText.style.cursor = 'pointer'
-        // Read partway through the drag, at each move while the pointer is pressed. Listened for on the window as the
-        // move starts out, which comes before wherever the move goes.
+        // Read partway through the drag, at each move while the pointer is pressed. Listened for on the window in the
+        // capture phase, as each move travels down to the divider, so no move can be stopped before the test sees it.
         const cursorsWhilePressed: string[] = []
         const readCursors = (event: PointerEvent) => {
             if (event.buttons !== 0) {
