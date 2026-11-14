@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect } from 'vitest'
-import { page } from 'vitest/browser'
+import { page, userEvent as pointer } from 'vitest/browser'
 import { fireEvent, renderWithClient, screen, test, userEvent, within } from '@/test-utils'
 import { ResizableSplit } from './ResizableSplit'
 import '@/styles/index.css'
@@ -173,6 +173,51 @@ describe('ResizableSplit', () => {
         fireEvent.pointerMove(window, { pointerId: 1, clientX: startPane.getBoundingClientRect().left + 600 })
 
         expect(startPane.offsetWidth).toBe(500)
+    })
+
+    // The panes' own cursors would otherwise show partway through a drag, such as the arrow the chart sets
+    test('should show the resize cursor over the panes while the divider is dragged', async () => {
+        renderSplit()
+        const { separator, startPane } = await waitForMeasuredSplit()
+        // Stand in for the chart's arrow and the price list's buttons, which set their own cursors
+        const startText = screen.getByText('Start pane')
+        const endText = screen.getByText('End pane')
+        startText.style.cursor = 'default'
+        endText.style.cursor = 'pointer'
+
+        // Pressed but not let go yet
+        fireEvent.pointerDown(separator, {
+            pointerId: 1,
+            button: 0,
+            clientX: startPane.getBoundingClientRect().left + startPane.offsetWidth
+        })
+
+        expect(getComputedStyle(startText).cursor).toBe('col-resize')
+        expect(getComputedStyle(endText).cursor).toBe('col-resize')
+        fireEvent.pointerUp(window, { pointerId: 1 })
+    })
+
+    test('should give the panes their own cursors back once the divider is let go', async () => {
+        renderSplit()
+        const { separator, startPane } = await waitForMeasuredSplit()
+        // Stands in for the chart's arrow
+        const startText = screen.getByText('Start pane')
+        startText.style.cursor = 'default'
+
+        dragDivider(separator, startPane, 500)
+
+        expect(getComputedStyle(startText).cursor).toBe('default')
+    })
+
+    // So the arrow keys can fine-tune a split straight after it's dragged
+    test('should take focus when the divider is pressed', async () => {
+        renderSplit()
+        const { separator } = await waitForMeasuredSplit()
+
+        // A real click, since a pressed divider stops the browser's own focusing, which fired events would skip
+        await pointer.click(separator)
+
+        expect(separator).toHaveFocus()
     })
 
     // Only a press on the divider starts a drag, so moving across the page leaves the panes alone

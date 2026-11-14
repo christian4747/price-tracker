@@ -343,6 +343,29 @@ describe('Product Details Layout', () => {
         expect(getPanel().offsetHeight).toBe(loadingHeight)
     })
 
+    // The chart alone sets the panel's height, so neither the narrowest chart nor the narrowest price list changes it
+    test('should be as tall after the divider between the chart and the price list moves', async ({ worker }) => {
+        // The split is remembered, so later tests start from the default again
+        onTestFinished(() => localStorage.removeItem('product-details-split'))
+        const user = userEvent.setup()
+        const { panel } = await renderDetailsWithPrices(worker, createDailyPrices(20))
+        const startHeight = panel.offsetHeight
+        const separator = screen.getByRole('separator', { name: 'Resize chart and price list' })
+        // Until the split measures its width its limits are 0 and 100%, and Home and End would ignore the minimums
+        await expect.poll(() => separator.getAttribute('aria-valuemin')).not.toBe('0')
+        separator.focus()
+
+        // The chart at its narrowest. The divider's value is checked too, so the test fails if it didn't move.
+        await user.keyboard('{Home}')
+        expect(separator).toHaveAttribute('aria-valuenow', separator.getAttribute('aria-valuemin'))
+        expect(getPanel().offsetHeight).toBe(startHeight)
+
+        // The price list at its narrowest
+        await user.keyboard('{End}')
+        expect(separator).toHaveAttribute('aria-valuenow', separator.getAttribute('aria-valuemax'))
+        expect(getPanel().offsetHeight).toBe(startHeight)
+    })
+
     test('should scroll a long price list inside the panel', async ({ worker }) => {
         const { priceList } = await renderDetailsWithPrices(worker, createDailyPrices(20))
 

@@ -31,6 +31,10 @@ const HOVER_HIGHLIGHT_CLASS =
     'hover:bg-(--mantine-color-blue-6) hover:shadow-[0_0_0_1px_var(--mantine-color-blue-6)] ' +
     'focus-visible:bg-(--mantine-color-blue-6) focus-visible:shadow-[0_0_0_1px_var(--mantine-color-blue-6)]'
 
+// Put on the page's body during a drag, so the resize cursor shows everywhere, even over things with cursors of their
+// own (the chart's arrow, the price list's buttons). The ! makes them important, so they beat those cursors.
+const DRAG_CURSOR_CLASSES = ['cursor-col-resize!', '[&_*]:cursor-col-resize!']
+
 /**
  * Two panes side by side, with a divider between them that can be dragged, moved with the keyboard, or double-clicked
  * to reset. The start pane's share of the width is remembered in local storage. The split is measured with its border,
@@ -91,11 +95,13 @@ export const ResizableSplit = ({
      * storage isn't written on every move.
      * @param event The pointer press on the divider
      */
-    const startDrag = (event: React.PointerEvent) => {
+    const startDrag = (event: React.PointerEvent<HTMLElement>) => {
         // Only the main button drags, and nothing can be dragged before the split has been measured
         if (event.button !== 0 || width === 0) return
-        // Stops the drag from selecting text
+        // Stops the drag from selecting text. It also stops the browser focusing the divider, so that's done by hand,
+        // letting the arrow keys move it straight after
         event.preventDefault()
+        event.currentTarget.focus({ preventScroll: true })
         // Kept outside React's state, so finish can save the last share without waiting for a render
         let latestShare = share
 
@@ -119,7 +125,7 @@ export const ResizableSplit = ({
             window.removeEventListener('pointermove', move)
             window.removeEventListener('pointerup', finish)
             window.removeEventListener('pointercancel', finish)
-            document.body.style.removeProperty('cursor')
+            document.body.classList.remove(...DRAG_CURSOR_CLASSES)
             stopDragRef.current = null
         }
         /**
@@ -135,7 +141,7 @@ export const ResizableSplit = ({
         window.addEventListener('pointerup', finish)
         window.addEventListener('pointercancel', finish)
         // Keeps the resize cursor while the pointer is over the panes
-        document.body.style.cursor = 'col-resize'
+        document.body.classList.add(...DRAG_CURSOR_CLASSES)
         // Lets the unmount cleanup above stop this drag
         stopDragRef.current = stop
         // Shows the drag's highlight straight away, before the pointer moves
