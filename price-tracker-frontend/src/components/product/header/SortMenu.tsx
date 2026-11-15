@@ -13,7 +13,7 @@ export const SortMenu = ({ sortValue, setSort, isAscending, children }: SortMenu
         <>
             <Menu>
                 <Menu.Target>
-                    <Button className="min-w-30">Sort</Button>
+                    <Button className="lg:min-w-30">Sort</Button>
                 </Menu.Target>
 
                 <Menu.Dropdown>
