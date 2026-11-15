@@ -225,9 +225,9 @@ describe.for(productLists)('$name product details', ({ List }) => {
         const details = dates.previousElementSibling!.getBoundingClientRect()
         // The row's divider is its bottom border, one pixel tall
         const dividerTop = dates.closest('.border-b')!.getBoundingClientRect().bottom - 1
-        // The dates' line itself, inside the space added above it. The letters' own edges aren't used: Inter centers
-        // its letters in their line, but the dates' p, y, and commas reach about 2 px below the rest, so the letters
-        // measure about 2 px lower than the line.
+        // The dates' line itself, below the span's top padding, which is the space between it and the details. The
+        // letters' own edges aren't used: Inter centers its letters in their line, but the dates' p, y, and commas
+        // reach about 2 px below the rest, so the letters measure about 2 px lower than the line.
         const line = dates.getBoundingClientRect()
         const lineTop = line.top + parseFloat(getComputedStyle(dates).paddingTop)
 
