@@ -1,13 +1,13 @@
 import { Button, Center, Collapse, Switch, Text, TextInput } from '@mantine/core'
 import type { ProductType } from '@/types/product'
-import type { PricePeriod } from '@/types/price'
+import type { PricePeriod, PriceType } from '@/types/price'
 import type { PeriodType } from '@/types/period'
 import { RecentDataScroller } from '@/components/common/RecentDataScroller'
 import { SubmitButton } from '@/components/common/SubmitButton'
 import { AddSalePeriodPanel } from '@/components/period/AddSalePeriodPanel'
 import { PriceDateTimePicker } from '@/components/price/PriceDateTimePicker'
 import { useEffect, useState } from 'react'
-import { getFormattedDateRangeString, getFormattedDateTimeString } from '@/utils/dateUtils'
+import { getFormattedDateRangeString, getFormattedDateTimeString, getLocalDateFromUTC } from '@/utils/dateUtils'
 import { useDisclosure } from '@mantine/hooks'
 import { useAddPrice } from '@/hooks/price/useAddPrice'
 import { useRecentPriceData } from '@/hooks/price/useRecentPriceData'
@@ -22,10 +22,11 @@ interface AddPriceForm {
     product: ProductType
     setDateToday: (newVal: Date) => void
     close: () => void
-    quickAdd?: boolean
+    // For Quick Price: the price to fill the form from, the product's newest price
+    quickAddPrice?: PriceType
 }
 
-export const AddPriceForm = ({ product, setDateToday, close, quickAdd = false }: AddPriceForm) => {
+export const AddPriceForm = ({ product, setDateToday, close, quickAddPrice }: AddPriceForm) => {
     // Track state of expanding the end date input
     const [expandEndDate, { open: openEndDate, close: closeEndDate }] = useDisclosure(false)
     // Track button group state for selecting start date, start + end date, or a sale period
@@ -42,26 +43,31 @@ export const AddPriceForm = ({ product, setDateToday, close, quickAdd = false }:
     // Hook for the named periods of the product's store, along with the ones for every store
     const { query: periodsQuery } = usePeriods(product.store)
 
-    // Prefill quick add with the most recent price once recent price data loads
+    // Prefill quick add from the given price. All of its values come from that one price, rather than from the recent
+    // price data, whose lists cover every product's prices and each run in their own order.
     const { setField } = priceDTO
-    const recentPriceData = recentPriceQuery.data
     useEffect(() => {
-        if (!quickAdd || !recentPriceData) return
+        if (!quickAddPrice) return
 
-        const amount = recentPriceData.baseAmounts[0]
-        const discountPercentage = recentPriceData.discountPercentages[0]
-        const returnPercentage = recentPriceData.returnPercentages[0]
+        const { amount, discountPercentage, returnPercentage } = quickAddPrice
+        // Worked out from the percentages, as the form does when a percentage is typed
         const discountAmount = getDiscountAmount(amount, discountPercentage)
 
         setField('amount', amount)
-        setField('currency', recentPriceData.currencies[0])
+        setField('currency', quickAddPrice.currency)
         setField('discountPercentage', discountPercentage)
         setField('discountAmount', discountAmount)
-        setField('priceEnded', recentPriceData.pricesEnded[0])
-        setField('priceStarted', recentPriceData.pricesStarted[0])
+        setField('priceStarted', quickAddPrice.priceStarted)
+        // A price with no end date gets the end of its start day, like a new price, so a start and end date still starts
+        // out valid. The form's own default (the end of today) would come before a price that starts after today.
+        setField(
+            'priceEnded',
+            quickAddPrice.priceEnded ??
+                getLocalDateFromUTC(new Date(quickAddPrice.priceStarted)).endOf('day').second(0).format()
+        )
         setField('returnPercentage', returnPercentage)
         setField('returnAmount', getReturnAmount(amount, discountAmount, returnPercentage))
-    }, [quickAdd, recentPriceData, setField])
+    }, [quickAddPrice, setField])
 
     const recentDescriptions = recentPriceQuery.data?.descriptions.map((description: string, idx: number) => (
         <Button key={idx} onClick={() => priceDTO.setField('description', description)}>
