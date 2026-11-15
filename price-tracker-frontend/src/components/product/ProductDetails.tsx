@@ -89,7 +89,6 @@ export const ProductDetails = ({ productBody, dateToday, setDateToday, children 
                     start={
                         <PriceHistoryChart
                             prices={pricesQuery.data}
-                            dateToday={dateToday}
                             timeRange={timeRange}
                             setTimeRange={setTimeRange}
                             averagePrice={productBody.averagePrice}
