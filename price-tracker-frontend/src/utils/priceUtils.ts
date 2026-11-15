@@ -1,27 +1,5 @@
 import type { PriceType } from '@/types/price'
 
-// Sorts the given PriceType array ascending by date
-const sortPricesByDateAscending = (prices: PriceType[]) => {
-    if (!prices) return []
-
-    return prices.toSorted((a, b) => {
-        return Date.parse(a.priceStarted) - Date.parse(b.priceStarted)
-    })
-}
-
-// Filter Price(s) that occurred before the given date
-const filterPricesBeforeDate = (prices: PriceType[], date: Date) => {
-    if (!prices) return []
-
-    const filter = Date.parse(date.toUTCString())
-
-    return prices.filter((price) => {
-        if (Date.parse(price.priceStarted) > filter) {
-            return price
-        }
-    })
-}
-
 /**
  * Calculates the percentage from the given float. Percentages below 1 percent include 2 decimal points.
  * @param float The float to convert to a percentage.
@@ -37,36 +15,6 @@ const getPriceDiscount = (price: PriceType | undefined) => {
     if (!price) return 0
 
     return getPercentage(price.totalPercentage)
-}
-
-// Gets the best discount found in the array of Prices
-const getBestDiscount = (prices: PriceType[]) => {
-    if (!prices || prices.length <= 1) return 0
-
-    let lowest = prices[0].totalAmount
-    let highest = prices[0].totalAmount
-    let profit = highest - lowest
-
-    for (const price of prices) {
-        const priceVal = price.totalAmount
-        if (priceVal < lowest) {
-            lowest = priceVal
-            profit = highest - lowest
-        } else if (priceVal > highest) {
-            highest = priceVal
-            profit = highest - lowest
-        }
-    }
-
-    return getPercentage(profit / highest)
-}
-
-// Get an array of Price(s) up to one year ago in ascending order
-const getXYearAgoPrices = (prices: PriceType[], yearsAgo: number) => {
-    const xYearAgo = new Date(Date.now())
-    xYearAgo.setFullYear(xYearAgo.getFullYear() - yearsAgo)
-
-    return sortPricesByDateAscending(filterPricesBeforeDate(prices, xYearAgo))
 }
 
 /**
@@ -111,15 +59,4 @@ const getReturnAmount = (amount: number, discountAmount: number, returnPercentag
     return Math.min(discountAmount, amount) * returnPercentage
 }
 
-export {
-    sortPricesByDateAscending,
-    filterPricesBeforeDate,
-    getPriceDiscount,
-    getPercentage,
-    getBestDiscount,
-    getXYearAgoPrices,
-    getPriceString,
-    getAmountString,
-    getDiscountAmount,
-    getReturnAmount
-}
+export { getPriceDiscount, getPercentage, getPriceString, getAmountString, getDiscountAmount, getReturnAmount }

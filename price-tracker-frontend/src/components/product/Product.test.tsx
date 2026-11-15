@@ -1,11 +1,12 @@
-import { describe, expect } from 'vitest'
-import { userEvent as pointer } from 'vitest/browser'
+import { afterEach, beforeEach, describe, expect } from 'vitest'
+import { page, userEvent as pointer } from 'vitest/browser'
 import { createPrice, createProduct, createProductBody, renderWithClient, screen, test, userEvent } from '@/test-utils'
 import type { ProductBody } from '@/types/product'
 import { Product } from './Product'
 import { Accordion } from '@mantine/core'
 import { useState } from 'react'
 import { http, HttpResponse } from 'msw'
+import { getPriceString } from '@/utils/priceUtils'
 // The actions button fades in and out with Tailwind classes, so the visibility tests need the app's styles
 import '@/styles/index.css'
 
@@ -49,6 +50,46 @@ const renderWithAccordion = (ui: React.ReactNode) => {
 
     return renderWithClient(<AccordionWrapper>{ui}</AccordionWrapper>)
 }
+
+describe('Product title layout', () => {
+    // Above 1024 px wide the root font is 18 px, so the title's parts reach their desktop maximum widths
+    let defaultViewport = { width: 0, height: 0 }
+    beforeEach(async () => {
+        defaultViewport = { width: window.innerWidth, height: window.innerHeight }
+        await page.viewport(1280, 900)
+    })
+    afterEach(async () => {
+        await page.viewport(defaultViewport.width, defaultViewport.height)
+    })
+
+    // The name, store, and brand each cut off at a maximum width, but at those maximums together they need more room
+    // than a row leaves beside the price, so the title has to shrink rather than push the price out
+    test("should keep the price inside its row when the product's name, store, and brand are long", async () => {
+        const longProduct = createProduct(1, {
+            name: 'Extra large adjustable standing desk converter with keyboard tray and monitor shelf',
+            store: 'Maple Home Goods and Furniture Outlet',
+            brand: 'Meridian Workspace Solutions International'
+        })
+        // 800 px, narrower than the three maximum widths added up (about 836 px), so a title that can't shrink has to
+        // push the price out
+        renderWithClient(
+            <div style={{ width: 800 }}>
+                <Accordion variant="unstyled" value={[]} multiple>
+                    <Product
+                        productBody={createProductBody(longProduct, { priceToday: price1 })}
+                        setDateToday={() => {}}
+                        dateToday={new Date()}
+                        value="item-1"
+                    />
+                </Accordion>
+            </div>
+        )
+
+        const row = document.querySelector('.mantine-Accordion-item')!.getBoundingClientRect()
+        const price = (await screen.findByText(getPriceString(price1))).getBoundingClientRect()
+        expect(price.right, `price ends at ${price.right} px, row at ${row.right} px`).toBeLessThanOrEqual(row.right)
+    })
+})
 
 describe('Product Component', () => {
     test('should render product name', async () => {
