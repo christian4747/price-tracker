@@ -14,8 +14,9 @@ const DETAILS_SPLIT_STORAGE_KEY = 'product-details-split'
 const DETAILS_SPLIT_DEFAULT_SHARE = 0.7
 // Room for the time range control and the dates under the chart
 const PRICE_CHART_MIN_WIDTH = 360
-// Room for the Add Price and Quick Price buttons side by side
-const PRICE_LIST_MIN_WIDTH = 240
+// Room for the Add Price and Quick Price buttons side by side, and for whole dates, at the desktop font size (the
+// larger one). 300 px is the least that fits; the rest leaves room for fonts that render a little wider.
+const PRICE_LIST_MIN_WIDTH = 320
 
 export interface ProductDetails {
     dateToday: Date

@@ -99,6 +99,21 @@ const staysOnOneLine = (element: HTMLElement, part: string) => {
 }
 
 /**
+ * Find the divider between the chart and the price list, wait for it to measure its width, and focus it, ready for
+ * Home and End to move it to either pane's minimum. The split it moves is forgotten when the test finishes.
+ * @returns The divider
+ */
+const focusMeasuredDivider = async () => {
+    // The split is remembered, so later tests start from the default again
+    onTestFinished(() => localStorage.removeItem('product-details-split'))
+    const separator = screen.getByRole('separator', { name: 'Resize chart and price list' })
+    // Until the split measures its width its limits are 0 and 100%, and Home and End would ignore the minimums
+    await expect.poll(() => separator.getAttribute('aria-valuemin')).not.toBe('0')
+    separator.focus()
+    return separator
+}
+
+/**
  * Serve a failed first price request, and the live price for every request after it, to test retrying.
  * @returns The request handler
  */
@@ -345,15 +360,10 @@ describe('Product Details Layout', () => {
 
     // The chart alone sets the panel's height, so neither the narrowest chart nor the narrowest price list changes it
     test('should be as tall after the divider between the chart and the price list moves', async ({ worker }) => {
-        // The split is remembered, so later tests start from the default again
-        onTestFinished(() => localStorage.removeItem('product-details-split'))
         const user = userEvent.setup()
         const { panel } = await renderDetailsWithPrices(worker, createDailyPrices(20))
         const startHeight = panel.offsetHeight
-        const separator = screen.getByRole('separator', { name: 'Resize chart and price list' })
-        // Until the split measures its width its limits are 0 and 100%, and Home and End would ignore the minimums
-        await expect.poll(() => separator.getAttribute('aria-valuemin')).not.toBe('0')
-        separator.focus()
+        const separator = await focusMeasuredDivider()
 
         // The chart at its narrowest. The divider's value is checked too, so the test fails if it didn't move.
         await user.keyboard('{Home}')
@@ -402,6 +412,34 @@ describe('Product Details Layout', () => {
         const deletedDate = within(priceList).getByText('Sep 25, 2026')
         expect(countLines(deletedDate)).toBe(1)
         expect(deletedDate.scrollWidth).toBeLessThanOrEqual(deletedDate.clientWidth)
+    })
+
+    // The price list's minimum width is meant to leave room for its buttons and dates. Checked at the desktop font
+    // size (this describe's viewport), the larger of the two, so it fits at both.
+    test('should fit the buttons and whole dates in the narrowest price list', async ({ worker }) => {
+        const user = userEvent.setup()
+        // The widest date and time there are, as in the test above, on two prices the same day so their rows show times
+        const prices = [
+            createPrice(2, { priceStarted: new Date(2026, 8, 30, 12, 45).toISOString() }),
+            createPrice(1, { priceStarted: new Date(2026, 8, 30, 9, 5).toISOString() })
+        ]
+        const { priceList } = await renderDetailsWithPrices(worker, prices, undefined, 'Sep 30, 2026 12:45 PM')
+        const separator = await focusMeasuredDivider()
+
+        // The price list at its narrowest
+        await user.keyboard('{End}')
+        expect(separator).toHaveAttribute('aria-valuenow', separator.getAttribute('aria-valuemax'))
+
+        // A label wider than its button is cut off, as in "Add Pr"
+        for (const name of ['Add Price', 'Quick Price']) {
+            const label = screen.getByRole('button', { name }).querySelector('.mantine-Button-label') as HTMLElement
+            expect(label.scrollWidth, name).toBeLessThanOrEqual(label.clientWidth)
+        }
+        // The date and time may sit on separate lines, but neither is split, and neither runs into the amount
+        const date = within(priceList).getByText('Sep 30, 2026 12:45 PM')
+        expect(staysOnOneLine(date, 'Sep 30, 2026')).toBe(true)
+        expect(staysOnOneLine(date, '12:45 PM')).toBe(true)
+        expect(date.scrollWidth).toBeLessThanOrEqual(date.clientWidth)
     })
 
     // Two lines fit a sale's end date after its description, which a single cut-off line would hide
