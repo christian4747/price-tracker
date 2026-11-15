@@ -425,11 +425,19 @@ describe('Price List Component', () => {
     })
 
     // The form's own default end date is the end of today, which comes before a price that starts after today
-    test('should end Quick Price after it starts when the newest price starts after today', async ({ worker }) => {
+    // "Tomorrow" moves with the clock, so the expected end is worked out from the start rather than written out
+    test('should end Quick Price at the end of its start day when the newest price starts after today', async ({
+        worker
+    }) => {
         const tomorrowNoon = dayjs().add(1, 'day').hour(12).startOf('hour')
         await openQuickPrice(worker, [{ ...newestPrice, priceStarted: tomorrowNoon.toISOString(), priceEnded: null }])
 
-        await waitFor(() => expect(quickPriceFields().priceStarted).toBe(tomorrowNoon.format('MMM D, YYYY h:mm A')))
+        await waitFor(() =>
+            expect(quickPriceFields()).toMatchObject({
+                priceStarted: tomorrowNoon.format('MMM D, YYYY h:mm A'),
+                priceEnded: tomorrowNoon.endOf('day').format('MMM D, YYYY h:mm A')
+            })
+        )
         expect(screen.queryByText('End date must be after the start date')).not.toBeInTheDocument()
     })
 
