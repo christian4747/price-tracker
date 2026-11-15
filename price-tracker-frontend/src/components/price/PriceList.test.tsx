@@ -12,6 +12,8 @@ import {
     within
 } from '@/test-utils'
 import { http, HttpResponse } from 'msw'
+import type { SetupWorker } from 'msw/browser'
+import dayjs from 'dayjs'
 import type { PriceType } from '@/types/price'
 import { PriceList } from './PriceList'
 import { useState } from 'react'
@@ -152,6 +154,72 @@ const footerContentBox = () => {
  */
 const showDeletedSwitchBox = () =>
     screen.getByRole('switch', { name: 'Show deleted' }).closest('.mantine-Switch-root')!.getBoundingClientRect()
+
+// The product's newest price, with every field Quick Price fills set apart from createPrice's defaults
+const newestPrice = createPrice(3, {
+    amount: 120,
+    currency: 'EUR',
+    discountPercentage: 0.25,
+    returnPercentage: 0.1,
+    priceStarted: new Date(2026, 8, 6, 12).toISOString(),
+    priceEnded: new Date(2026, 8, 8, 12).toISOString()
+})
+
+// Recent price data whose first entries all differ from newestPrice, like the recent values of other products' prices
+const otherRecentPriceData = {
+    baseAmounts: [50],
+    currencies: ['JPY'],
+    descriptions: ['Recent description'],
+    discountPercentages: [0.5],
+    pricesStarted: [new Date(2026, 8, 1, 12).toISOString()],
+    pricesEnded: [new Date(2026, 8, 2, 12).toISOString()],
+    returnPercentages: [0.3],
+    pricePeriods: []
+}
+
+/**
+ * Open Quick Price for a product with the given prices, with the recent price data offering other values, and show the
+ * end date. It waits for the recent data to load, so a field filled from it rather than from a listed price shows.
+ * @param worker The mock service worker, to serve the recent price data
+ * @param prices The prices to list, newest first, like the API sends them
+ */
+const openQuickPrice = async (worker: SetupWorker, prices: PriceType[]) => {
+    worker.use(http.get(pricesApiUrl + '/recent/:productId', () => HttpResponse.json(otherRecentPriceData)))
+    const user = userEvent.setup()
+    renderPriceList(createProductBody(product), prices)
+
+    await user.click(screen.getByRole('button', { name: 'Quick Price' }))
+    // The recent description's button shows once the recent data has loaded
+    await screen.findByRole('button', { name: 'Recent description' })
+    // The end date is only shown for a start and end date
+    await user.click(screen.getByRole('button', { name: 'Start and End Date' }))
+}
+
+/**
+ * Get what the add price form shows in each field Quick Price fills.
+ * @returns Each field's text, with the dates as the date pickers show them
+ */
+const quickPriceFields = () => {
+    const inputValue = (name: string) => (screen.getByRole('textbox', { name }) as HTMLInputElement).value
+    return {
+        basePrice: inputValue('Base Price'),
+        currency: inputValue('Currency'),
+        discountPercentage: inputValue('Discount %'),
+        returnPercentage: inputValue('Return %'),
+        priceStarted: screen.getByRole('button', { name: 'Start Date' }).textContent,
+        priceEnded: screen.getByRole('button', { name: 'End Date' }).textContent
+    }
+}
+
+// What the form shows when Quick Price fills it from newestPrice
+const newestPriceFields = {
+    basePrice: '120.00',
+    currency: 'EUR',
+    discountPercentage: '25.00',
+    returnPercentage: '10.00',
+    priceStarted: 'Sep 6, 2026 12:00 PM',
+    priceEnded: 'Sep 8, 2026 12:00 PM'
+}
 
 describe('Price List Component', () => {
     test('should render product prices', async () => {
@@ -343,24 +411,6 @@ describe('Price List Component', () => {
         await expect.element(await screen.findByRole('dialog', { name: 'Add Price' })).toBeInTheDocument()
     })
 
-    test('should open the add price modal filled from the latest price from the Quick Price button', async ({
-        worker
-    }) => {
-        worker.use(
-            http.get(pricesApiUrl + '/recent/:productId', () =>
-                HttpResponse.json({ ...emptyRecentPriceData, baseAmounts: [100], currencies: ['USD'] })
-            )
-        )
-        const user = userEvent.setup()
-        renderPriceList()
-
-        await user.click(screen.getByRole('button', { name: 'Quick Price' }))
-
-        const dialog = within(await screen.findByRole('dialog', { name: 'Add Price' }))
-        const basePrice = dialog.getByRole('textbox', { name: /base price/i }) as HTMLInputElement
-        await waitFor(() => expect(basePrice.value).toBe('100.00'))
-    })
-
     // Quick Price copies the latest price, so there's nothing to copy yet
     test('should not show the Quick Price button for a product without prices', async () => {
         renderPriceList(undefined, [])
@@ -375,6 +425,81 @@ describe('Price List Component', () => {
 
         await expect.element(screen.getByText('Sep 4, 2026')).toBeInTheDocument()
         expect(screen.queryByRole('button', { name: 'Add Price' })).not.toBeInTheDocument()
+        expect(screen.queryByRole('button', { name: 'Quick Price' })).not.toBeInTheDocument()
+    })
+
+    test("should fill every Quick Price field from the product's newest price", async ({ worker }) => {
+        await openQuickPrice(worker, [newestPrice, price2, price1])
+
+        await waitFor(() => expect(quickPriceFields()).toEqual(newestPriceFields))
+    })
+
+    // The recent price data lists values by when prices were entered, which isn't what the list goes by
+    test('should fill Quick Price from the price that started last, not the one entered last', async ({ worker }) => {
+        const enteredLast = createPrice(4, {
+            amount: 90,
+            priceStarted: new Date(2026, 8, 5, 12).toISOString(),
+            createdAt: new Date(2026, 8, 20, 12).toISOString()
+        })
+
+        await openQuickPrice(worker, [newestPrice, enteredLast, price1])
+
+        await waitFor(() => expect(quickPriceFields()).toEqual(newestPriceFields))
+    })
+
+    // Deleted prices are in the list while Show deleted prices is on
+    test('should skip deleted prices in Quick Price', async ({ worker }) => {
+        const deletedPrice = createPrice(4, {
+            amount: 90,
+            priceStarted: new Date(2026, 8, 7, 12).toISOString(),
+            deletedAt: new Date(2026, 8, 9, 12).toISOString()
+        })
+
+        await openQuickPrice(worker, [deletedPrice, newestPrice, price2])
+
+        await waitFor(() => expect(quickPriceFields()).toEqual(newestPriceFields))
+    })
+
+    // Today's entry is a copy of the price in effect now, starting now, so its start date isn't a real price's
+    test("should skip today's entry in Quick Price", async ({ worker }) => {
+        const todayEntry = { ...newestPrice, today: true, priceStarted: new Date(2026, 8, 10, 12).toISOString() }
+
+        await openQuickPrice(worker, [todayEntry, newestPrice, price2])
+
+        await waitFor(() => expect(quickPriceFields()).toEqual(newestPriceFields))
+    })
+
+    // The recent end dates leave out prices with no end date, so their first entry belongs to some other price
+    // Like a new price, it ends at the end of its start day, so a start and end date starts out valid
+    test('should end Quick Price on its start day when the newest price has no end date', async ({ worker }) => {
+        await openQuickPrice(worker, [{ ...newestPrice, priceEnded: null }, price2])
+
+        await waitFor(() =>
+            expect(quickPriceFields()).toEqual({ ...newestPriceFields, priceEnded: 'Sep 6, 2026 11:59 PM' })
+        )
+    })
+
+    // The form's own default end date is the end of today, which comes before a price that starts after today
+    // "Tomorrow" moves with the clock, so the expected end is worked out from the start rather than written out
+    test('should end Quick Price at the end of its start day when the newest price starts after today', async ({
+        worker
+    }) => {
+        const tomorrowNoon = dayjs().add(1, 'day').hour(12).startOf('hour')
+        await openQuickPrice(worker, [{ ...newestPrice, priceStarted: tomorrowNoon.toISOString(), priceEnded: null }])
+
+        await waitFor(() =>
+            expect(quickPriceFields()).toMatchObject({
+                priceStarted: tomorrowNoon.format('MMM D, YYYY h:mm A'),
+                priceEnded: tomorrowNoon.endOf('day').format('MMM D, YYYY h:mm A')
+            })
+        )
+        expect(screen.queryByText('End date must be after the start date')).not.toBeInTheDocument()
+    })
+
+    test('should not offer Quick Price when every listed price is deleted', async () => {
+        renderPriceList(createProductBody(product), [{ ...price1, deletedAt: new Date(2026, 8, 6, 12).toISOString() }])
+
+        await expect.element(screen.getByRole('button', { name: 'Add Price' })).toBeInTheDocument()
         expect(screen.queryByRole('button', { name: 'Quick Price' })).not.toBeInTheDocument()
     })
 
@@ -438,8 +563,9 @@ describe('Price List Component', () => {
         expect(screen.queryByText(/average/i)).not.toBeInTheDocument()
     })
 
-    // The narrowest the planned resizable split lets the list be. The switch can wrap to a line of its own there, but
-    // the average shouldn't break between "Average" and its amount.
+    // The split beside the chart keeps the list at least 320 px wide, but gives that up when the details are too narrow
+    // for both panes, so the list can be narrower than this. The switch can wrap to a line of its own there, but the
+    // average shouldn't break between "Average" and its amount.
     test('should keep the average price on one line when the list is narrow', async () => {
         renderPriceList(createProductBody(product, { ...averages, averagePrice: 12345.67 }), [price1, price2], 240)
 
@@ -477,10 +603,11 @@ describe('Price List Component', () => {
         expect(add.width, 'both buttons are as wide').toBeCloseTo(quick.width, 0)
     })
 
-    // 240 px is the narrowest the planned resizable split lets the list be, tried in a window above 1024 px, where the
-    // root font is 18 px and the buttons are at their widest. 220 px is about how wide the list is today in an 800 px
-    // window, where the root font is 16 px. 280 px is still a little too narrow for the icons, so it checks they go for
-    // every list too narrow for them, not just the narrowest.
+    // The split beside the chart keeps the list at least 320 px wide, but gives that up when the details are too narrow
+    // for both panes, so the list can be narrower. 240 px and 280 px are tried in a window above 1024 px, where the root
+    // font is 18 px and the buttons are at their widest, and 220 px in a window below it, where the root font is 16 px.
+    // 280 px is still a little too narrow for the icons, so it checks they go for every list too narrow for them, not
+    // just the narrowest.
     test.for([
         { windowWidth: 1280, listWidth: 240 },
         { windowWidth: 1280, listWidth: 280 },

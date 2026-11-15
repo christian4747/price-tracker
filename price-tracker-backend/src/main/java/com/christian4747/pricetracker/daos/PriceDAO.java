@@ -1,8 +1,8 @@
 package com.christian4747.pricetracker.daos;
 
 import com.christian4747.pricetracker.models.Price;
+import com.christian4747.pricetracker.models.PriceLows;
 import com.christian4747.pricetracker.models.PricePeriod;
-import com.christian4747.pricetracker.models.PriceTotalPercentages;
 import com.christian4747.pricetracker.models.StartedPrice;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -189,19 +189,22 @@ public interface PriceDAO extends JpaRepository<Price, Integer>, JpaSpecificatio
     List<StartedPrice> findStartedPrices(@Param("productId") Integer productId);
 
     /**
-     * Gets the one-year, two-year, and all-time low percentages of the given productId's Price(s) that are not deleted.
-     * @param productId The productId to get percentages for
-     * @param oneYearAgo The date one year ago
-     * @param twoYearsAgo The date two years ago
-     * @return The one-year, two-year, and all-time low percentages of the given productId's Price(s)
+     * Gets the one-year, two-year, and all-time lows of the given productId's Price(s) that are not deleted. A low is
+     * the cheapest amount paid (totalAmount, after discounts and returns), not the biggest discount, since a higher
+     * regular price with a discount can still cost more.
+     * @param productId The productId to get the lows for
+     * @param oneYearAgo The date one year ago; only prices that started since then count toward the one-year low
+     * @param twoYearsAgo The date two years ago; only prices that started since then count toward the two-year low
+     * @return The one-year, two-year, and all-time lows of the given productId's Price(s), each null when no price
+     * started in its window
      */
     @Query(value = """
         SELECT
-        	(SELECT MAX(p.totalPercentage) FROM Price p WHERE p.priceStarted >= :oneYearAgo AND p.product.productId = :productId AND p.deletedAt IS NULL) AS oneYearLow,
-        	(SELECT MAX(p.totalPercentage) FROM Price p WHERE p.priceStarted >= :twoYearsAgo AND p.product.productId = :productId AND p.deletedAt IS NULL) AS twoYearLow,
-        	(SELECT MAX(p.totalPercentage) FROM Price p WHERE p.product.productId = :productId AND p.deletedAt IS NULL) AS allTimeLow
+        	(SELECT MIN(p.totalAmount) FROM Price p WHERE p.priceStarted >= :oneYearAgo AND p.product.productId = :productId AND p.deletedAt IS NULL) AS oneYearLow,
+        	(SELECT MIN(p.totalAmount) FROM Price p WHERE p.priceStarted >= :twoYearsAgo AND p.product.productId = :productId AND p.deletedAt IS NULL) AS twoYearLow,
+        	(SELECT MIN(p.totalAmount) FROM Price p WHERE p.product.productId = :productId AND p.deletedAt IS NULL) AS allTimeLow
     """)
-    Optional<PriceTotalPercentages> findPriceTotalPercentages(@Param("productId") Integer productId, Timestamp oneYearAgo, Timestamp twoYearsAgo);
+    Optional<PriceLows> findPriceLows(@Param("productId") Integer productId, Timestamp oneYearAgo, Timestamp twoYearsAgo);
 
     /**
      * Gets the non-deleted Prices of non-deleted Products that fall within the given dates, newest start first. A Price matches when both its

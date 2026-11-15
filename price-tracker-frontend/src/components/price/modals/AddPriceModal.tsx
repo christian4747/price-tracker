@@ -1,5 +1,6 @@
 import { Button } from '@mantine/core'
 import type { ProductType } from '@/types/product'
+import type { PriceType } from '@/types/price'
 import { useDisclosure } from '@mantine/hooks'
 import { useIsMutating } from '@tanstack/react-query'
 import { AddPriceForm } from '@/components/price/forms/AddPriceForm'
@@ -10,14 +11,15 @@ import { MdAdd, MdBolt } from 'react-icons/md'
 interface AddPriceModal {
     product: ProductType
     setDateToday: (newVal: Date) => void
-    quickAdd?: boolean
+    // Makes this the Quick Price button, which fills the form from this price
+    quickAddPrice?: PriceType
 }
 
 /**
  * The Add Price or Quick Price button in the footer under a product's price list, with the add price modal it opens.
- * Quick Price fills the modal from the product's latest price.
+ * Quick Price fills the modal from the price it's given, the product's newest price.
  */
-export const AddPriceModal = ({ product, setDateToday, quickAdd = false }: AddPriceModal) => {
+export const AddPriceModal = ({ product, setDateToday, quickAddPrice }: AddPriceModal) => {
     // Track state of modal open/close
     const [opened, { open, close }] = useDisclosure(false)
     // The save runs in the form, so check for it by its key
@@ -29,7 +31,12 @@ export const AddPriceModal = ({ product, setDateToday, quickAdd = false }: AddPr
         // would otherwise take a share of the line's gaps.
         <div className="flex flex-1">
             <SaveModal pending={saving} opened={opened} onClose={close} title="Add Price" size="lg">
-                <AddPriceForm product={product} setDateToday={setDateToday} close={close} quickAdd={quickAdd} />
+                <AddPriceForm
+                    product={product}
+                    setDateToday={setDateToday}
+                    close={close}
+                    quickAddPrice={quickAddPrice}
+                />
             </SaveModal>
             {/* Small, so the footer leaves the list more room. Quick Price is outlined so it reads as the second choice
                 beside the filled Add Price. The icons go when the footer's button line (a container) is under 16rem,
@@ -39,11 +46,11 @@ export const AddPriceModal = ({ product, setDateToday, quickAdd = false }: AddPr
                 className="flex-1"
                 classNames={{ section: '@max-[16rem]:hidden' }}
                 size="xs"
-                variant={quickAdd ? 'default' : 'filled'}
-                leftSection={quickAdd ? <MdBolt size={16} /> : <MdAdd size={16} />}
+                variant={quickAddPrice ? 'default' : 'filled'}
+                leftSection={quickAddPrice ? <MdBolt size={16} /> : <MdAdd size={16} />}
                 onClick={open}
             >
-                {quickAdd ? 'Quick Price' : 'Add Price'}
+                {quickAddPrice ? 'Quick Price' : 'Add Price'}
             </Button>
         </div>
     )

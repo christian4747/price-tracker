@@ -9,7 +9,7 @@ import { PermanentlyDeletePriceModal } from './modals/PermanentlyDeletePriceModa
 import { useDisclosure } from '@mantine/hooks'
 import { useState } from 'react'
 import { Switch } from '@mantine/core'
-import { getPriceChanges, getSameDayPriceIds } from '@/utils/priceListUtils'
+import { getPriceChanges, getQuickAddPrice, getSameDayPriceIds } from '@/utils/priceListUtils'
 
 interface PriceList {
     productBody: ProductBody
@@ -33,6 +33,8 @@ export const PriceList = ({ productBody, setDateToday, prices, showDeleted, setS
     const sameDayPriceIds = getSameDayPriceIds(prices)
     // Each price's arrow compares it with the price before it
     const priceChanges = getPriceChanges(prices)
+    // Quick Price copies the newest live price, so it's only offered when there is one
+    const quickAddPrice = getQuickAddPrice(prices)
     // The delete confirmations name the price the same way as its row
     const currentPriceShowsTime = currentPrice !== undefined && sameDayPriceIds.has(currentPrice.priceId)
     // Track state of modal open/close
@@ -58,7 +60,8 @@ export const PriceList = ({ productBody, setDateToday, prices, showDeleted, setS
 
     return (
         <>
-            <div className="flex flex-col h-full border border-smoke rounded-sm overflow-hidden justify-between">
+            {/* No border of its own: the box it shares with the chart draws one around both */}
+            <div className="flex flex-col h-full overflow-hidden justify-between">
                 {/* White rows with thin dividers, like the product rows. The columns, which every row shares, are the
                     date, the change arrow, the amount, and the actions button, each as wide as its widest row. */}
                 <ul
@@ -102,8 +105,12 @@ export const PriceList = ({ productBody, setDateToday, prices, showDeleted, setS
                         // A container, so the buttons can drop their icons when it's too narrow for them
                         <div className="@container flex gap-2">
                             <AddPriceModal product={product} setDateToday={setDateToday} />
-                            {prices && prices.length > 0 && (
-                                <AddPriceModal product={product} setDateToday={setDateToday} quickAdd={true} />
+                            {quickAddPrice && (
+                                <AddPriceModal
+                                    product={product}
+                                    setDateToday={setDateToday}
+                                    quickAddPrice={quickAddPrice}
+                                />
                             )}
                         </div>
                     )}
