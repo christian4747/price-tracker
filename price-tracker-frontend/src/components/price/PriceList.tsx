@@ -9,7 +9,7 @@ import { PermanentlyDeletePriceModal } from './modals/PermanentlyDeletePriceModa
 import { useDisclosure } from '@mantine/hooks'
 import { Fragment, useState } from 'react'
 import { Checkbox } from '@mantine/core'
-import { getPriceChanges, getPriceTimeline, getSameDayPriceIds } from '@/utils/priceListUtils'
+import { getPriceChanges, getPriceTimeline, getQuickAddPrice, getSameDayPriceIds } from '@/utils/priceListUtils'
 import { MdSchedule } from 'react-icons/md'
 
 interface PriceList {
@@ -40,6 +40,8 @@ export const PriceList = ({ productBody, setDateToday, prices, showDeleted, setS
     // The list is newest first, so the upcoming prices are all at the top and their label goes above the first one
     // Today's entry is skipped, since it shares the current price's ID and the list doesn't draw it
     const firstUpcomingPrice = prices.find((price) => !price.today && upcomingPriceIds.has(price.priceId))
+    // Quick Price copies the newest live price, so it's only offered when there is one
+    const quickAddPrice = getQuickAddPrice(prices)
     // The delete confirmations name the price the same way as its row
     const currentPriceShowsTime = currentPrice !== undefined && sameDayPriceIds.has(currentPrice.priceId)
     // Track state of modal open/close
@@ -65,7 +67,8 @@ export const PriceList = ({ productBody, setDateToday, prices, showDeleted, setS
 
     return (
         <>
-            <div className="flex flex-col h-full border border-smoke rounded-sm overflow-hidden justify-between">
+            {/* No border of its own: the box it shares with the chart draws one around both */}
+            <div className="flex flex-col h-full overflow-hidden justify-between">
                 {/* White rows with thin dividers, like the product rows. The columns, which every row shares, are the
                     date, the change arrow, the amount, and the actions button, each as wide as its widest row. */}
                 <ul
@@ -116,8 +119,12 @@ export const PriceList = ({ productBody, setDateToday, prices, showDeleted, setS
                     {!productDeleted && (
                         <div className="flex gap-1 justify-center">
                             <AddPriceModal product={product} setDateToday={setDateToday} />
-                            {prices && prices.length > 0 && (
-                                <AddPriceModal product={product} setDateToday={setDateToday} quickAdd={true} />
+                            {quickAddPrice && (
+                                <AddPriceModal
+                                    product={product}
+                                    setDateToday={setDateToday}
+                                    quickAddPrice={quickAddPrice}
+                                />
                             )}
                         </div>
                     )}
