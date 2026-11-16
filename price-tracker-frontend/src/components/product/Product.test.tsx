@@ -97,6 +97,52 @@ describe('Product title layout', () => {
     })
 })
 
+describe('Product details window size', () => {
+    /**
+     * Get the size of the area a fixed element fills, which is the screen a modal can cover. The test browser's frame
+     * can leave this narrower than the window it reports, so it's measured rather than taken from the viewport size.
+     * @returns The area's width and height
+     */
+    const getScreenArea = () => {
+        const probe = document.createElement('div')
+        probe.style.cssText = 'position: fixed; inset: 0; pointer-events: none'
+        document.body.append(probe)
+        const { width, height } = probe.getBoundingClientRect()
+        probe.remove()
+        return { width, height }
+    }
+
+    describe('on a phone', () => {
+        useViewport(375, 812)
+
+        // A phone has no room to spare around a window, and the chart and price list need all of its width
+        test("should fill the phone's screen with the details", async () => {
+            renderProduct()
+            const { width, height } = getScreenArea()
+
+            const dialog = (await openDetails()).getBoundingClientRect()
+
+            expect([dialog.left, dialog.top, dialog.width, dialog.height]).toEqual([0, 0, width, height])
+        })
+    })
+
+    describe('at desktop width', () => {
+        useViewport(1280, 900)
+
+        // The list stays in view around the details on a wider screen
+        test('should show the details in a centered window, narrower than the screen', async () => {
+            renderProduct()
+            const { width, height } = getScreenArea()
+
+            const dialog = (await openDetails()).getBoundingClientRect()
+
+            expect(dialog.width).toBeLessThan(width)
+            expect(Math.abs(dialog.left - (width - dialog.right))).toBeLessThan(1)
+            expect(Math.abs(dialog.top - (height - dialog.bottom))).toBeLessThan(1)
+        })
+    })
+})
+
 describe('Product details header layout at desktop width', () => {
     useViewport(1280, 900)
 

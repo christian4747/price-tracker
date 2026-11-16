@@ -1,6 +1,7 @@
 import { Modal } from '@mantine/core'
-import { useWindowEvent } from '@mantine/hooks'
+import { useMediaQuery, useWindowEvent } from '@mantine/hooks'
 import { useRef } from 'react'
+import { PHONE_MEDIA_QUERY } from '@/utils/mediaQueries'
 
 interface ProductDetailsModal {
     opened: boolean
@@ -15,10 +16,13 @@ interface ProductDetailsModal {
 // up with the price beside them. 1.75rem is the buttons' own height.
 const HEADER_BUTTONS_OFFSET = 'calc((var(--spacing) * 11.25 - 1.75rem) / 2)'
 
-// A product's details in a large window of their own, opened from the product's row. The header shows the row's
-// title bar, so the name, banner, discount, and price stay in view above the chart and price list, with the product's
-// actions beside it, since the window covers the row's own.
+// A product's details in a large window of their own, opened from the product's row, which fills the screen on a
+// phone. The header shows the row's title bar, so the name, banner, discount, and price stay in view above the chart
+// and price list, with the product's actions beside it, since the window covers the row's own.
 export const ProductDetailsModal = ({ opened, onClose, header, actions, children }: ProductDetailsModal) => {
+    // Read on the first render rather than after it, so the window doesn't open centered and then jump to fill a
+    // phone's screen
+    const isPhone = useMediaQuery(PHONE_MEDIA_QUERY, undefined, { getInitialValueInEffect: false })
     // Something inside this modal's own window, to find the window from
     const bodyRef = useRef<HTMLDivElement>(null)
 
@@ -53,7 +57,8 @@ export const ProductDetailsModal = ({ opened, onClose, header, actions, children
             // page reloads. Mantine pauses what it keeps, so closed details don't fetch prices.
             keepMounted
             size="70rem"
-            centered
+            fullScreen={isPhone}
+            centered={!isPhone}
             // The title takes the header's width beside the buttons, so the price sits at its right end, as in the row
             classNames={{ title: 'flex-1' }}
             styles={{

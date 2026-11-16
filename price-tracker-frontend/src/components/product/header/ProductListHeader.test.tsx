@@ -99,6 +99,18 @@ describe('Product List Header toolbar layout', () => {
         }
     })
 
+    // The four buttons on the left are wider together than a phone. A phone widens the whole page to fit them, which
+    // also pushes the right edge of a window that fills the screen, such as a product's details, out of view.
+    test("should keep every button inside a phone's page", async () => {
+        // A phone has no scrollbar beside the page, so the page is the phone's whole width
+        const pageBox = (await renderHeaderAtWidth(375, 375)).getBoundingClientRect()
+
+        for (const button of toolbarButtons()) {
+            const box = button.getBoundingClientRect()
+            expect(box.right, `${button.textContent} ends at ${box.right} px`).toBeLessThanOrEqual(pageBox.right)
+        }
+    })
+
     // Below desktop width the left buttons are only as wide as their labels, so one row holds down to about a 856 px
     // window, where buttons 120 px wide each would wrap below about 965 px. 900 px is between the two.
     test('should keep the toolbar on one line on a 900 px window', async () => {
