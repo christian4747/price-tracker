@@ -149,8 +149,9 @@ const footerContentBox = () => {
 }
 
 /**
- * Measure the Show deleted switch with its label, for the footer's layout tests.
- * @returns The box around the switch and its label
+ * Get where the Show deleted switch and its label sit on the page, for the footer's layout tests. The switch role is on
+ * a hidden input, so this takes Mantine's root around the switch and its label instead.
+ * @returns The edges of the switch and its label together
  */
 const showDeletedSwitchBox = () =>
     screen.getByRole('switch', { name: 'Show deleted' }).closest('.mantine-Switch-root')!.getBoundingClientRect()
