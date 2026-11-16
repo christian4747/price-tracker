@@ -49,7 +49,6 @@ const PRICE_CHART_HEADROOM = 1.25
 
 type PriceHistoryChartProps = {
     prices: PriceType[]
-    dateToday: Date
     timeRange: PriceTimeRange
     setTimeRange: (newVal: PriceTimeRange) => void
     // The plain average of the product's whole history, or null when it has none
@@ -57,15 +56,8 @@ type PriceHistoryChartProps = {
     currency: string
 }
 
-const PriceHistoryChart = ({
-    prices,
-    dateToday,
-    timeRange,
-    setTimeRange,
-    averagePrice,
-    currency
-}: PriceHistoryChartProps) => {
-    const priceData = usePriceData(dateToday).createPriceData(prices)
+const PriceHistoryChart = ({ prices, timeRange, setTimeRange, averagePrice, currency }: PriceHistoryChartProps) => {
+    const priceData = usePriceData().createPriceData(prices)
 
     // A dashed line at the average, as thick as the price line but a lighter gray, so the prices stand out over it.
     // Two pixels keep at least one row of pixels at full strength wherever the average falls, while a one pixel line

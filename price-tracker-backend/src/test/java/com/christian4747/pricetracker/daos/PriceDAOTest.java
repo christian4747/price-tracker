@@ -1,8 +1,8 @@
 package com.christian4747.pricetracker.daos;
 
 import com.christian4747.pricetracker.models.Price;
+import com.christian4747.pricetracker.models.PriceLows;
 import com.christian4747.pricetracker.models.PricePeriod;
-import com.christian4747.pricetracker.models.PriceTotalPercentages;
 import com.christian4747.pricetracker.models.Product;
 import com.christian4747.pricetracker.models.StartedPrice;
 import jakarta.persistence.EntityManager;
@@ -23,6 +23,8 @@ class PriceDAOTest {
     private static final Timestamp TWO_YEARS_AGO = Timestamp.valueOf("2024-06-01 00:00:00");
     private static final Timestamp EIGHTEEN_MONTHS_AGO = Timestamp.valueOf("2024-12-01 00:00:00");
     private static final Timestamp ONE_YEAR_AGO = Timestamp.valueOf("2025-06-01 00:00:00");
+    private static final Timestamp SIX_MONTHS_AGO = Timestamp.valueOf("2025-12-01 00:00:00");
+    private static final Timestamp THREE_MONTHS_AGO = Timestamp.valueOf("2026-03-01 00:00:00");
     private static final PricePeriod BLACK_FRIDAY = new PricePeriod(
             Timestamp.valueOf("2026-11-27 00:00:00"), Timestamp.valueOf("2026-11-30 23:59:00"));
     private static final PricePeriod HOLIDAY_SALE = new PricePeriod(
@@ -45,12 +47,20 @@ class PriceDAOTest {
         return product;
     }
 
-    private void addPrice(Product product, Timestamp priceStarted, double totalPercentage) {
+    /**
+     * Adds a price with the given start date and amount paid, and no discount.
+     * @param product The product the price belongs to
+     * @param priceStarted When the price started
+     * @param totalAmount The amount paid
+     * @return The added price, which tests can still change before the fixtures are saved
+     */
+    private Price addPrice(Product product, Timestamp priceStarted, double totalAmount) {
         Price price = new Price();
         price.setProduct(product);
         price.setPriceStarted(priceStarted);
-        price.setTotalPercentage(totalPercentage);
+        price.setTotalAmount(totalAmount);
         entityManager.persist(price);
+        return price;
     }
 
     private Price addPeriodPrice(Product product, PricePeriod period, Timestamp deletedAt) {
@@ -68,34 +78,76 @@ class PriceDAOTest {
         return priceDAO.findDistinctPricePeriods(FIRST_PAGE).getContent();
     }
 
-    private PriceTotalPercentages findPercentages(Product product) {
+    /**
+     * Saves the fixtures and gets the product's one-year, two-year, and all-time lows.
+     * @param product The product to get the lows of
+     * @return The product's lows
+     */
+    private PriceLows findLows(Product product) {
         testDatabase.saveFixtures();
-        return priceDAO.findPriceTotalPercentages(product.getProductId(), ONE_YEAR_AGO, TWO_YEARS_AGO).orElseThrow();
+        return priceDAO.findPriceLows(product.getProductId(), ONE_YEAR_AGO, TWO_YEARS_AGO).orElseThrow();
     }
 
     @Test
-    void percentagesHaveOnlyAnAllTimeLowWhenEveryPriceIsOlderThanTwoYears() {
+    void lowsHaveOnlyAnAllTimeLowWhenEveryPriceIsOlderThanTwoYears() {
         Product product = addProduct();
         addPrice(product, THREE_YEARS_AGO, 5);
 
-        PriceTotalPercentages percentages = findPercentages(product);
+        PriceLows lows = findLows(product);
 
-        assertThat(percentages.oneYearLow()).isNull();
-        assertThat(percentages.twoYearLow()).isNull();
-        assertThat(percentages.allTimeLow()).isEqualTo(5);
+        assertThat(lows.oneYearLow()).isNull();
+        assertThat(lows.twoYearLow()).isNull();
+        assertThat(lows.allTimeLow()).isEqualTo(5);
     }
 
+    /**
+     * The older price is the cheaper one, so the two-year low leaving it out shows the window's start date is used,
+     * and the all-time low including it shows the all-time low has no start date.
+     */
     @Test
-    void percentagesHaveNoOneYearLowWhenEveryPriceIsOlderThanOneYear() {
+    void lowsHaveNoOneYearLowWhenEveryPriceIsOlderThanOneYear() {
         Product product = addProduct();
-        addPrice(product, THREE_YEARS_AGO, 5);
-        addPrice(product, EIGHTEEN_MONTHS_AGO, 3);
+        addPrice(product, THREE_YEARS_AGO, 3);
+        addPrice(product, EIGHTEEN_MONTHS_AGO, 5);
 
-        PriceTotalPercentages percentages = findPercentages(product);
+        PriceLows lows = findLows(product);
 
-        assertThat(percentages.oneYearLow()).isNull();
-        assertThat(percentages.twoYearLow()).isEqualTo(3);
-        assertThat(percentages.allTimeLow()).isEqualTo(5);
+        assertThat(lows.oneYearLow()).isNull();
+        assertThat(lows.twoYearLow()).isEqualTo(5);
+        assertThat(lows.allTimeLow()).isEqualTo(3);
+    }
+
+    /**
+     * A sale with a big discount can still cost more than a later price with none, such as after the regular price
+     * dropped, and the low is whichever costs less.
+     */
+    @Test
+    void lowsAreTheCheapestPricePaidRatherThanTheBiggestDiscount() {
+        Product product = addProduct();
+        addPrice(product, SIX_MONTHS_AGO, 10.79).setTotalPercentage(0.2);
+        addPrice(product, THREE_MONTHS_AGO, 9.99);
+
+        PriceLows lows = findLows(product);
+
+        assertThat(lows.oneYearLow()).isEqualTo(9.99);
+        assertThat(lows.twoYearLow()).isEqualTo(9.99);
+        assertThat(lows.allTimeLow()).isEqualTo(9.99);
+    }
+
+    /**
+     * A deleted price was a mistake or is no longer wanted, so even when it's the cheapest it doesn't set any low.
+     */
+    @Test
+    void lowsLeaveOutDeletedPrices() {
+        Product product = addProduct();
+        addPrice(product, SIX_MONTHS_AGO, 10);
+        addPrice(product, THREE_MONTHS_AGO, 1).setDeletedAt(THREE_MONTHS_AGO);
+
+        PriceLows lows = findLows(product);
+
+        assertThat(lows.oneYearLow()).isEqualTo(10);
+        assertThat(lows.twoYearLow()).isEqualTo(10);
+        assertThat(lows.allTimeLow()).isEqualTo(10);
     }
 
     @Test
