@@ -11,19 +11,25 @@ interface BannerStyle {
     color: string
     bg: string
     text: string
+    // The small banner's label for a low with no discount to show instead
+    shortText: string
 }
 
-// Returns the appropriate color, bg, and text depending on the given banner type string
+/**
+ * Get the colors and labels for the given banner type.
+ * @param bannerType The low today's price is at ('one-year', 'two-year', or 'all-time'), or '' for none
+ * @returns The text color, background, full label, and short label, all empty when there's no low
+ */
 const getBannerStyle = (bannerType: string): BannerStyle => {
     switch (bannerType) {
         case 'one-year':
-            return { color: 'one-year', bg: 'one-year-bg', text: 'ONE YEAR LOW' }
+            return { color: 'one-year', bg: 'one-year-bg', text: 'ONE YEAR LOW', shortText: '1-yr low' }
         case 'two-year':
-            return { color: 'two-year', bg: 'two-year-bg', text: 'TWO YEAR LOW' }
+            return { color: 'two-year', bg: 'two-year-bg', text: 'TWO YEAR LOW', shortText: '2-yr low' }
         case 'all-time':
-            return { color: 'all-time', bg: 'all-time-bg', text: 'LOWEST EVER' }
+            return { color: 'all-time', bg: 'all-time-bg', text: 'LOWEST EVER', shortText: 'Lowest' }
         default:
-            return { color: '', bg: '', text: '' }
+            return { color: '', bg: '', text: '', shortText: '' }
     }
 }
 
@@ -97,7 +103,7 @@ export const PriceBanner = ({ productBody, dateToday, setDateToday, mini }: Pric
     const discountPercent = getPriceDiscount(productBody.priceToday)
 
     // Banner style based on banner type & percentage
-    const { color, bg, text } = getBannerStyle(productBody.priceCategory)
+    const { color, bg, text, shortText } = getBannerStyle(productBody.priceCategory)
     const textStyle: string = color ? color : discountPercent >= 50 ? 'good-deal' : ''
 
     // Calculate time since last price before today
@@ -157,10 +163,10 @@ export const PriceBanner = ({ productBody, dateToday, setDateToday, mini }: Pric
                 {/* Informational indicators */}
                 {priceIndicators}
 
-                {/* Price banner */}
+                {/* Price banner: the discount, or a short label when the low comes from a lower regular price */}
                 {text.length > 0 && (
                     <div className={'text-cloud rounded-sm p-1 font-bold flex justify-center ' + bg}>
-                        -{discountPercent}%
+                        {discountPercent > 0 ? `-${discountPercent}%` : shortText}
                     </div>
                 )}
             </>

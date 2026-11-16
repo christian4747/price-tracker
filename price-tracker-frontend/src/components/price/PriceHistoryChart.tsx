@@ -42,8 +42,8 @@ function ChartTooltip({ label, payload }: ChartTooltipProps) {
 // Sets the height of every product's details panel, so its loading placeholder uses it too
 export const PRICE_CHART_HEIGHT = 280
 
-// The box around the chart, shared with the loading placeholder so both are the same size
-export const PRICE_CHART_BOX_CLASS = 'w-7/10 border rounded-sm p-5'
+// The room around the chart inside its pane, shared with the loading placeholder so both are the same size
+export const PRICE_CHART_BOX_CLASS = 'p-5'
 
 // The space above the chart's plot area, in pixels, which the average legend and the time range control sit in, so
 // they stay clear of the line and the highest label
@@ -51,7 +51,6 @@ const PRICE_CHART_TOP_MARGIN = 28
 
 type PriceHistoryChartProps = {
     prices: PriceType[]
-    dateToday: Date
     timeRange: PriceTimeRange
     setTimeRange: (newVal: PriceTimeRange) => void
     // The plain average of the product's whole history, or null when it has none
@@ -59,15 +58,8 @@ type PriceHistoryChartProps = {
     currency: string
 }
 
-const PriceHistoryChart = ({
-    prices,
-    dateToday,
-    timeRange,
-    setTimeRange,
-    averagePrice,
-    currency
-}: PriceHistoryChartProps) => {
-    const priceData = usePriceData(dateToday).createPriceData(prices)
+const PriceHistoryChart = ({ prices, timeRange, setTimeRange, averagePrice, currency }: PriceHistoryChartProps) => {
+    const priceData = usePriceData().createPriceData(prices)
 
     // The y scale, fitted to the prices in view and the average rather than starting from zero, so the line fills the
     // chart's height and its steps are a visible size. It's null with neither, when the chart has nothing to draw.
@@ -95,7 +87,7 @@ const PriceHistoryChart = ({
               ]
 
     return (
-        <div className={`${PRICE_CHART_BOX_CLASS} border-smoke relative`}>
+        <div className={`${PRICE_CHART_BOX_CLASS} w-full relative`}>
             {/* Placed over the chart's corner, so it doesn't change the panel's height */}
             <SegmentedControl
                 aria-label="Time range"

@@ -76,7 +76,8 @@ export const GroupedProduct = ({ productBodies, dateToday, setDateToday }: Group
                     dateToday={dateToday}
                     setDateToday={setDateToday}
                 >
-                    <div className="flex items-center w-auto gap-2">
+                    {/* Inset from the edges of the box it shares with the chart and price list */}
+                    <div className="flex items-center w-auto gap-2 px-2 pt-2">
                         <Box className="w-full">
                             <Combobox
                                 store={combobox}
