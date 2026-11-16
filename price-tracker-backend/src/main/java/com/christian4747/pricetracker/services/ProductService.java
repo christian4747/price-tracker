@@ -507,7 +507,7 @@ public class ProductService {
     /**
      * Checks whether the given price reaches the given low.
      * @param price The price to compare to the low
-     * @param low The cheapest amount paid in a time window, which is null when no price started in it
+     * @param low The cheapest amount paid in a time window, which is null when no price ran in it
      * @return Whether there is a low and the price costs no more than it, beyond rounding
      */
     private static boolean isAtLow(Price price, Double low) {
