@@ -135,7 +135,7 @@ const useViewportWidth = async (width: number) => {
 }
 
 /**
- * Measure the footer under the list inside its padding, where its lines start and end, for its layout tests.
+ * Get the box of the footer under the list inside its padding, where its lines start and end, for its layout tests.
  * @returns The left and right edges of the footer's content
  */
 const footerContentBox = () => {
