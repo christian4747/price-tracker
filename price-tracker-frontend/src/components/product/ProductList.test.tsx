@@ -1,6 +1,5 @@
 import type { ComponentType } from 'react'
-import { afterEach, beforeEach, describe, expect } from 'vitest'
-import { page } from 'vitest/browser'
+import { describe, expect } from 'vitest'
 import {
     act,
     createProduct,
@@ -8,6 +7,7 @@ import {
     renderWithClient,
     screen,
     test,
+    useViewport,
     userEvent,
     waitFor,
     within
@@ -33,7 +33,7 @@ const productA = createProductBody(createProduct(1, { name: 'Product A' }))
 const productB = createProductBody(createProduct(2, { name: 'Product B' }))
 const productC = createProductBody(createProduct(3, { name: 'Product C' }))
 
-// Names of the products whose accordion items are open
+// Names of the products whose details are open, as their rows report it
 const getOpenedProductNames = () =>
     screen
         .queryAllByRole('button', { expanded: true })
@@ -72,36 +72,16 @@ const clickLastProductAction = async (name: string) => {
 }
 
 /**
- * Run each test in the calling describe block at a desktop width, then put the browser's size back. Above 1024 px
- * wide the root font is 18 px instead of 16 px, so this gives the sizes the app has on a desktop.
- */
-const useDesktopViewport = () => {
-    let defaultViewport = { width: 0, height: 0 }
-    beforeEach(async () => {
-        defaultViewport = { width: window.innerWidth, height: window.innerHeight }
-        await page.viewport(1280, 900)
-    })
-    afterEach(async () => {
-        await page.viewport(defaultViewport.width, defaultViewport.height)
-    })
-}
-
-/**
- * Open the named product and wait for its panel to finish sliding open, so measurements see the panel's final layout.
+ * Open the named product's details from its row.
  * @param name The product's name, as its row shows it
- * @returns The product's added and last updated dates line
+ * @returns The details' window, and their added and last updated dates line
  */
 const openProductDetails = async (name: string) => {
-    const control = await screen.findByRole('button', { name: new RegExp(name) })
-    await userEvent.setup().click(control)
+    await userEvent.setup().click(await screen.findByRole('button', { name: new RegExp(name) }))
     // Closed products keep their details in the page too, hidden, so look only inside the one that opened
-    const item = control.closest<HTMLElement>('.mantine-Accordion-item')!
-    const dates = await within(item).findByText(/^Added /)
-    const panel = dates.closest<HTMLElement>('.mantine-Accordion-panel')!
-    // While it slides open, Mantine gives the panel a fixed height that grows, so the space under its contents passes
-    // through every size on the way. Once it's open, Mantine removes that height.
-    await waitFor(() => expect(panel.style.height).toBe(''))
-    return dates
+    const dialog = await screen.findByRole('dialog')
+    const dates = await within(dialog).findByText(/^Added /)
+    return { dialog, dates }
 }
 
 // Serves a count that needs two pages, and records the page and name of each request
@@ -211,20 +191,21 @@ describe.for(productLists)('$name product modals', ({ List }) => {
 })
 
 describe.for(productLists)('$name product details', ({ List }) => {
-    useDesktopViewport()
+    // A desktop width, for the sizes the app has on a desktop
+    useViewport(1280, 900)
 
     // The dates line sits in its own row under the chart and price list, so it should be as far from them as from
-    // the divider under the product
-    test('should center the dates line between the details and the next divider', async ({ worker }) => {
+    // the bottom of the details' window
+    test("should center the dates line between the details and the bottom of the details' window", async ({
+        worker
+    }) => {
         // No prices: the chart and price list still draw their boxes, and only the space around them is measured
         worker.use(http.get(pricesApiUrl + '/product/:productId', () => HttpResponse.json([])))
         // A second, closed product, so the test also checks it measures the open product's dates, not a hidden copy
         renderList(worker, List, [productA, productB])
 
-        const dates = await openProductDetails('Product A')
+        const { dialog, dates } = await openProductDetails('Product A')
         const details = dates.previousElementSibling!.getBoundingClientRect()
-        // The row's divider is its bottom border, one pixel tall
-        const dividerTop = dates.closest('.border-b')!.getBoundingClientRect().bottom - 1
         // The dates' line itself, below the span's top padding, which is the space between it and the details. The
         // letters' own edges aren't used: Inter centers its letters in their line, but the dates' p, y, and commas
         // reach about 2 px below the rest, so the letters measure about 2 px lower than the line.
@@ -232,7 +213,7 @@ describe.for(productLists)('$name product details', ({ List }) => {
         const lineTop = line.top + parseFloat(getComputedStyle(dates).paddingTop)
 
         const above = lineTop - details.bottom
-        const below = dividerTop - line.bottom
+        const below = dialog.getBoundingClientRect().bottom - line.bottom
         // Within a pixel, since rem sizes at an 18 px root font land on fractions of a pixel
         expect(Math.abs(above - below), `${above} px above, ${below} px below`).toBeLessThan(1)
     })

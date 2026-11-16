@@ -1,5 +1,4 @@
-import { afterEach, beforeEach, describe, expect, onTestFinished } from 'vitest'
-import { page } from 'vitest/browser'
+import { describe, expect, onTestFinished } from 'vitest'
 import {
     cleanup,
     createPrice,
@@ -8,6 +7,7 @@ import {
     renderWithClient,
     screen,
     test,
+    useViewport,
     userEvent,
     waitFor,
     within
@@ -324,14 +324,7 @@ describe('Product Details Time Range', () => {
 
 describe('Product Details Layout', () => {
     // Below 1024 px wide the root font drops to 16 px, so use a desktop width to get desktop sizes
-    let defaultViewport = { width: 0, height: 0 }
-    beforeEach(async () => {
-        defaultViewport = { width: window.innerWidth, height: window.innerHeight }
-        await page.viewport(1280, 900)
-    })
-    afterEach(async () => {
-        await page.viewport(defaultViewport.width, defaultViewport.height)
-    })
+    useViewport(1280, 900)
 
     test('should be as tall with many prices as with a few', async ({ worker }) => {
         const { panel: fewPricesPanel } = await renderDetailsWithPrices(worker, createDailyPrices(2))

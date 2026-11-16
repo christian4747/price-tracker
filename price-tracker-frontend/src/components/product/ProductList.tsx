@@ -1,4 +1,3 @@
-import { Accordion } from '@mantine/core'
 import type { ProductBody, ProductFilterDTO } from '@/types/product'
 import { useDebounce } from '@/hooks/common/useDebounce'
 import { Product } from './Product'
@@ -6,7 +5,6 @@ import { useProductPage } from '@/hooks/product/useProductPage'
 import { ProductListFooter } from './ProductListFooter'
 import { ProductModals } from './ProductModals'
 import ProductListSkeleton from './ProductListSkeleton'
-import { productAccordionStyles } from './productAccordionStyles'
 
 export interface ProductList {
     filter: ProductFilterDTO
@@ -15,11 +13,7 @@ export interface ProductList {
 // TODO: Use productStatusFilter and searchedTerm for product list
 export const ProductList = ({ filter }: ProductList) => {
     // Hook for getting products grouped
-    const { changePageNumber, currentlyOpened, currentPageNumber, query, setCurrentlyOpened } = useProductPage(
-        undefined,
-        undefined,
-        filter
-    )
+    const { changePageNumber, currentPageNumber, query } = useProductPage(undefined, undefined, filter)
 
     // Debounce for setting list's today's date state
     const { value: dateToday, setValueWithDebounce: setDateToday } = useDebounce(new Date())
@@ -31,28 +25,20 @@ export const ProductList = ({ filter }: ProductList) => {
         <>
             <div className="flex pb-5 flex-col mb-15">
                 <ProductModals>
-                    <Accordion
-                        multiple
-                        variant="unstyled"
-                        styles={productAccordionStyles}
-                        chevronIconSize={24}
-                        value={currentlyOpened}
-                        onChange={setCurrentlyOpened}
-                        transitionDuration={400}
-                    >
+                    {/* Each row opens its own details in a modal */}
+                    <div>
                         {query.data.content.map((productBody: ProductBody) => {
-                            // Key open state by product so it follows the product when the list changes
+                            // Keyed by product, so an open product stays open when the list changes around it
                             return (
                                 <Product
                                     productBody={productBody}
                                     dateToday={dateToday}
                                     setDateToday={setDateToday}
-                                    value={`product-${productBody.product.productId}`}
                                     key={productBody.product.productId}
                                 />
                             )
                         })}
-                    </Accordion>
+                    </div>
                 </ProductModals>
 
                 <ProductListFooter total={query.data.count} value={currentPageNumber} onChange={changePageNumber} />

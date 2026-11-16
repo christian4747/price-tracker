@@ -1,7 +1,15 @@
 import { describe, expect, vi } from 'vitest'
-import { createPrice, createProduct, createProductBody, renderWithClient, screen, test, userEvent } from '@/test-utils'
+import {
+    createPrice,
+    createProduct,
+    createProductBody,
+    renderWithClient,
+    screen,
+    test,
+    userEvent,
+    within
+} from '@/test-utils'
 import { GroupedProduct } from './GroupedProduct'
-import { Accordion } from '@mantine/core'
 import { useState } from 'react'
 import type { ProductBody } from '@/types/product'
 import { EditProductContext } from './ProductContext'
@@ -11,30 +19,6 @@ const product = createProduct(1, { name: 'Product 1' })
 const price1 = createPrice(1)
 
 const productBody = createProductBody(product, { priceToday: price1 })
-
-const renderWithAccordion = (ui: React.ReactNode) => {
-    function AccordionWrapper({ children }: { children: React.ReactNode }) {
-        const [currentlyOpened, setCurrentlyOpened] = useState<string[]>(['item-1'])
-
-        return (
-            <Accordion
-                multiple
-                variant="unstyled"
-                styles={{
-                    control: { cursor: 'default' },
-                    chevron: { cursor: 'pointer' }
-                }}
-                chevronIconSize={24}
-                value={currentlyOpened}
-                onChange={setCurrentlyOpened}
-            >
-                {children}
-            </Accordion>
-        )
-    }
-
-    return renderWithClient(<AccordionWrapper>{ui}</AccordionWrapper>)
-}
 
 const storeABody: ProductBody = { ...productBody, product: { ...product, productId: 1, store: 'Store A' } }
 const storeBBody: ProductBody = { ...productBody, product: { ...product, productId: 2, store: 'Store B' } }
@@ -55,9 +39,7 @@ function StoreSelectionHarness({ initialBodies }: { initialBodies: ProductBody[]
             >
                 Remove Store B
             </button>
-            <Accordion.Item value="item-1">
-                <GroupedProduct productBodies={productBodies} dateToday={new Date()} setDateToday={() => {}} />
-            </Accordion.Item>
+            <GroupedProduct productBodies={productBodies} dateToday={new Date()} setDateToday={() => {}} />
         </>
     )
 }
@@ -66,8 +48,39 @@ function StoreSelectionHarness({ initialBodies }: { initialBodies: ProductBody[]
 const fullText = (text: string) => (_: string, element: Element | null) =>
     element?.textContent === text && Array.from(element.children).every((child) => child.textContent !== text)
 
-// Picks toStore in the store picker, which shows fromStore until then
+/**
+ * Get the button that makes up the top of the group's row and opens its details.
+ * @returns The row's button
+ */
+const rowButton = () => document.querySelector<HTMLElement>('button[aria-haspopup="dialog"]')!
+
+/**
+ * Open the group's details from its row, as a click would.
+ * @param user The user to click with
+ * @returns The details' window
+ */
+const openDetails = async (user: ReturnType<typeof userEvent.setup>) => {
+    await user.click(rowButton())
+    return screen.findByRole('dialog')
+}
+
+/**
+ * Close the group's details from their close button, so the row's own controls can be reached again.
+ * @param user The user to click with
+ */
+const closeDetails = async (user: ReturnType<typeof userEvent.setup>) => {
+    await user.click(screen.getByRole('button', { name: 'Close details' }))
+    await expect.poll(() => screen.queryByRole('dialog')).not.toBeInTheDocument()
+}
+
+/**
+ * Pick a store in the store picker, inside the group's details, opening them first if they're closed.
+ * @param user The user to click with
+ * @param fromStore The store the picker shows until then
+ * @param toStore The store to pick
+ */
 const chooseStore = async (user: ReturnType<typeof userEvent.setup>, fromStore: string, toStore: string) => {
+    if (!screen.queryByRole('dialog')) await openDetails(user)
     await user.click(await screen.findByRole('button', { name: fromStore }))
     await user.click(await screen.findByRole('option', { name: new RegExp(toStore, 'i') }))
     await expect.element(await screen.findByRole('button', { name: toStore })).toBeInTheDocument()
@@ -75,47 +88,64 @@ const chooseStore = async (user: ReturnType<typeof userEvent.setup>, fromStore: 
 
 describe('Grouped Product Component', () => {
     test('should render grouped product', async () => {
-        renderWithAccordion(
-            <Accordion.Item value="item-1">
-                <GroupedProduct productBodies={[productBody]} dateToday={new Date()} setDateToday={() => {}} />
-            </Accordion.Item>
+        renderWithClient(
+            <GroupedProduct productBodies={[productBody]} dateToday={new Date()} setDateToday={() => {}} />
         )
 
-        const productName = screen.getByText('Product 1')
-        await expect.element(productName).toBeInTheDocument()
+        await expect.element(within(rowButton()).getByText('Product 1')).toBeInTheDocument()
     })
 
     // A button or link inside the row's own button is invalid HTML, and can't be reached properly with the keyboard
-    test("should keep buttons and links out of the row's toggle", async () => {
-        renderWithAccordion(<StoreSelectionHarness initialBodies={[storeABody, storeBBody]} />)
+    test("should keep buttons and links out of the row's button", async () => {
+        renderWithClient(<StoreSelectionHarness initialBodies={[storeABody, storeBBody]} />)
 
-        const toggle = document.querySelector('.mantine-Accordion-control')!
-        expect(toggle.querySelectorAll('button, a, [role="button"]')).toHaveLength(0)
+        expect(rowButton().querySelectorAll('button, a, [role="button"]')).toHaveLength(0)
     })
 
-    test('should keep the row open when its actions menu is opened', async () => {
+    // The actions button sits beside the row's button, so opening its menu shouldn't count as a click on the row
+    test('should keep the details closed when the actions menu is opened', async () => {
         const user = userEvent.setup()
-        renderWithAccordion(<StoreSelectionHarness initialBodies={[storeABody, storeBBody]} />)
+        renderWithClient(<StoreSelectionHarness initialBodies={[storeABody, storeBBody]} />)
 
         await user.click(screen.getByRole('button', { name: 'Product actions' }))
         await screen.findByRole('menu')
 
-        await expect
-            .element(document.querySelector<HTMLElement>('.mantine-Accordion-control')!)
-            .toHaveAttribute('aria-expanded', 'true')
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     })
 
-    // One menu for the whole group, so the panel doesn't repeat the product's actions
+    test('should open the details with the store picker when the row is clicked', async () => {
+        const user = userEvent.setup()
+        renderWithClient(<StoreSelectionHarness initialBodies={[storeABody, storeBBody]} />)
+
+        const dialog = await openDetails(user)
+
+        expect(within(dialog).getByRole('button', { name: 'Store A' })).toBeVisible()
+    })
+
+    // The header shows the row's title bar, so it changes with the store the way the row does
+    test("should show the chosen store's title in the details' header", async () => {
+        const user = userEvent.setup()
+        renderWithClient(<StoreSelectionHarness initialBodies={[storeABody, storeBBody]} />)
+
+        await chooseStore(user, 'Store A', 'Store B')
+
+        const heading = within(screen.getByRole('dialog')).getByRole('heading')
+        expect(heading).toHaveTextContent('Store B (+1 other store)')
+        expect(heading).not.toHaveTextContent('Store A')
+    })
+
+    // One menu for the whole group, so the details don't repeat the product's actions
     test('should offer one actions menu, for the chosen store', async () => {
         const openEditProductModal = vi.fn()
         const user = userEvent.setup()
-        renderWithAccordion(
+        renderWithClient(
             <EditProductContext value={openEditProductModal}>
                 <StoreSelectionHarness initialBodies={[storeABody, storeBBody]} />
             </EditProductContext>
         )
 
         await chooseStore(user, 'Store A', 'Store B')
+        await closeDetails(user)
         expect(screen.getAllByRole('button', { name: 'Product actions' })).toHaveLength(1)
         await user.click(screen.getByRole('button', { name: 'Product actions' }))
         await user.click(await screen.findByRole('menuitem', { name: 'Edit' }))
@@ -123,21 +153,39 @@ describe('Grouped Product Component', () => {
         expect(openEditProductModal).toHaveBeenCalledWith(storeBBody.product)
     })
 
-    test('should keep the chosen store when the product list is refetched', async () => {
+    // The details cover the row's menu, so the header's menu has to act on the same store as the row's did
+    test("should offer the chosen store's actions in the details' header", async () => {
+        const openEditProductModal = vi.fn()
         const user = userEvent.setup()
-        renderWithAccordion(<StoreSelectionHarness initialBodies={[storeABody, storeBBody]} />)
+        renderWithClient(
+            <EditProductContext value={openEditProductModal}>
+                <StoreSelectionHarness initialBodies={[storeABody, storeBBody]} />
+            </EditProductContext>
+        )
 
         await chooseStore(user, 'Store A', 'Store B')
+        await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Product actions' }))
+        await user.click(await screen.findByRole('menuitem', { name: 'Edit' }))
+
+        expect(openEditProductModal).toHaveBeenCalledWith(storeBBody.product)
+    })
+
+    test('should keep the chosen store when the product list is refetched', async () => {
+        const user = userEvent.setup()
+        renderWithClient(<StoreSelectionHarness initialBodies={[storeABody, storeBBody]} />)
+
+        await chooseStore(user, 'Store A', 'Store B')
+        await closeDetails(user)
         await user.click(screen.getByRole('button', { name: 'Refetch' }))
 
-        await expect.element(screen.getByText(fullText('Store B (+1 other store)'))).toBeInTheDocument()
+        await expect.element(within(rowButton()).getByText(fullText('Store B (+1 other store)'))).toBeInTheDocument()
     })
 
     test('should count every other store in the group', async () => {
         const storeCBody: ProductBody = { ...productBody, product: { ...product, productId: 3, store: 'Store C' } }
-        renderWithAccordion(<StoreSelectionHarness initialBodies={[storeABody, storeBBody, storeCBody]} />)
+        renderWithClient(<StoreSelectionHarness initialBodies={[storeABody, storeBBody, storeCBody]} />)
 
-        await expect.element(screen.getByText(fullText('Store A (+2 other stores)'))).toBeInTheDocument()
+        await expect.element(within(rowButton()).getByText(fullText('Store A (+2 other stores)'))).toBeInTheDocument()
     })
 
     test('should strike through only the name of a deleted product', async () => {
@@ -145,43 +193,46 @@ describe('Grouped Product Component', () => {
             ...storeABody,
             product: { ...storeABody.product, deletedAt: new Date(2026, 8, 4, 12).toISOString() }
         }
-        renderWithAccordion(<StoreSelectionHarness initialBodies={[deletedStoreABody, storeBBody]} />)
+        renderWithClient(<StoreSelectionHarness initialBodies={[deletedStoreABody, storeBBody]} />)
+        const row = within(rowButton())
 
-        await expect.element(screen.getByText('Product 1')).toHaveClass('line-through', 'text-raincloud')
-        await expect.element(screen.getByText('Store A', { exact: true })).not.toHaveClass('line-through')
-        await expect.element(screen.getByText(fullText('Store A (+1 other store)'))).not.toHaveClass('line-through')
+        await expect.element(row.getByText('Product 1')).toHaveClass('line-through', 'text-raincloud')
+        await expect.element(row.getByText('Store A', { exact: true })).not.toHaveClass('line-through')
+        await expect.element(row.getByText(fullText('Store A (+1 other store)'))).not.toHaveClass('line-through')
     })
 
     test('should show the brand of the chosen store', async () => {
         const brandedStoreABody: ProductBody = { ...storeABody, product: { ...storeABody.product, brand: 'Brand A' } }
         const brandedStoreBBody: ProductBody = { ...storeBBody, product: { ...storeBBody.product, brand: 'Brand B' } }
         const user = userEvent.setup()
-        renderWithAccordion(<StoreSelectionHarness initialBodies={[brandedStoreABody, brandedStoreBBody]} />)
+        renderWithClient(<StoreSelectionHarness initialBodies={[brandedStoreABody, brandedStoreBBody]} />)
 
-        await expect.element(screen.getByText('Brand A')).toBeInTheDocument()
+        await expect.element(within(rowButton()).getByText('Brand A')).toBeInTheDocument()
         await chooseStore(user, 'Store A', 'Store B')
 
-        await expect.element(screen.getByText('Brand B')).toBeInTheDocument()
-        expect(screen.queryByText('Brand A')).not.toBeInTheDocument()
+        await expect.element(within(rowButton()).getByText('Brand B')).toBeInTheDocument()
+        expect(within(rowButton()).queryByText('Brand A')).not.toBeInTheDocument()
     })
 
     test('should hide the brand when the chosen store has none', async () => {
         const brandedStoreABody: ProductBody = { ...storeABody, product: { ...storeABody.product, brand: 'Brand A' } }
         const user = userEvent.setup()
-        renderWithAccordion(<StoreSelectionHarness initialBodies={[brandedStoreABody, storeBBody]} />)
+        renderWithClient(<StoreSelectionHarness initialBodies={[brandedStoreABody, storeBBody]} />)
 
         await chooseStore(user, 'Store A', 'Store B')
 
-        expect(screen.queryByText('Brand A')).not.toBeInTheDocument()
+        expect(within(rowButton()).queryByText('Brand A')).not.toBeInTheDocument()
     })
 
     test('should show the first store when the chosen store leaves the list', async () => {
         const user = userEvent.setup()
-        renderWithAccordion(<StoreSelectionHarness initialBodies={[storeABody, storeBBody]} />)
+        renderWithClient(<StoreSelectionHarness initialBodies={[storeABody, storeBBody]} />)
 
         await chooseStore(user, 'Store A', 'Store B')
+        await closeDetails(user)
         await user.click(screen.getByRole('button', { name: 'Remove Store B' }))
+        const dialog = await openDetails(user)
 
-        await expect.element(await screen.findByRole('button', { name: 'Store A' })).toBeInTheDocument()
+        await expect.element(within(dialog).getByRole('button', { name: 'Store A' })).toBeInTheDocument()
     })
 })
