@@ -316,6 +316,42 @@ describe('Product Component', () => {
         expect(rowButton()).toHaveAttribute('aria-expanded', 'false')
     })
 
+    // On a phone the details fill the screen, and the back gesture is how people close what fills it
+    test('should close the details on going back, staying on the page', async () => {
+        const address = location.href
+        renderProduct()
+        await openDetails()
+
+        // The details' own entry, so going back can't leave the test's page instead
+        expect(history.state).toMatchObject({ closeOnBackEntry: expect.any(Number) })
+
+        // Going back finishes after the call returns, with the browser's popstate event
+        const wentBack = new Promise((resolve) => window.addEventListener('popstate', resolve, { once: true }))
+        history.back()
+        await wentBack
+
+        await expect.poll(() => screen.queryByRole('dialog')).not.toBeInTheDocument()
+        expect(location.href).toBe(address)
+    })
+
+    // Going back closes what's on top, as Escape does, rather than the details under a price's modal
+    test('should close only a price modal opened from the details on going back', async () => {
+        const user = userEvent.setup()
+        renderProduct()
+        const details = await openDetails()
+        // Under the price list, once the prices have loaded
+        await user.click(await within(details).findByRole('button', { name: 'Add Price' }))
+        await screen.findByRole('dialog', { name: 'Add Price' })
+        expect(history.state).toMatchObject({ closeOnBackEntry: expect.any(Number) })
+
+        const wentBack = new Promise((resolve) => window.addEventListener('popstate', resolve, { once: true }))
+        history.back()
+        await wentBack
+
+        await expect.poll(() => screen.queryByRole('dialog', { name: 'Add Price' })).not.toBeInTheDocument()
+        expect(details).toBeVisible()
+    })
+
     // A closed row kept its time range, and the details keep it the same way until the page reloads
     test('should keep the time range when the details are closed and opened again', async () => {
         const user = userEvent.setup()

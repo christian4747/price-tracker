@@ -2,6 +2,7 @@ import { Modal } from '@mantine/core'
 import { useMediaQuery, useWindowEvent } from '@mantine/hooks'
 import { useRef } from 'react'
 import { PHONE_MEDIA_QUERY } from '@/utils/mediaQueries'
+import { useCloseOnBack } from '@/hooks/common/useCloseOnBack'
 
 interface ProductDetailsModal {
     opened: boolean
@@ -45,6 +46,10 @@ export const ProductDetailsModal = ({ opened, onClose, header, actions, children
         if (!targetDialog || targetDialog === dialog) onClose()
     }
     useWindowEvent('keydown', closeOnEscape)
+
+    // Going back closes the details rather than leaving the page, as the back gesture does for what fills a phone's
+    // screen. Desktop browsers' back button works the same way.
+    useCloseOnBack(opened, onClose)
 
     return (
         // Built from Mantine's modal parts rather than its one Modal, so the actions can sit beside the close button
