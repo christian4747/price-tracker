@@ -149,12 +149,11 @@ const footerContentBox = () => {
 }
 
 /**
- * Get where the Show deleted switch and its label sit on the page, for the footer's layout tests. The switch role is on
- * a hidden input, so this takes Mantine's root around the switch and its label instead.
+ * Get where the Show deleted switch and its label sit on the page, for the footer's layout tests. Mantine hides the
+ * switch's input but stretches it over the switch and its label, so its box covers both.
  * @returns The edges of the switch and its label together
  */
-const showDeletedSwitchBox = () =>
-    screen.getByRole('switch', { name: 'Show deleted' }).closest('.mantine-Switch-root')!.getBoundingClientRect()
+const showDeletedSwitchBox = () => screen.getByRole('switch', { name: 'Show deleted' }).getBoundingClientRect()
 
 // The product's newest price, with every field Quick Price fills set apart from createPrice's defaults
 const newestPrice = createPrice(3, {
