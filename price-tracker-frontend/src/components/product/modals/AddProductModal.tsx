@@ -117,9 +117,7 @@ const AddProductModal = () => {
                     Add Product
                 </SubmitButton>
             </SaveModal>
-            <Button className="m-2" onClick={open}>
-                Add Product
-            </Button>
+            <Button onClick={open}>Add Product</Button>
         </>
     )
 }

@@ -27,12 +27,12 @@ const recordSavedPeriods = (worker: SetupWorker, status = 200) => {
     return savedPeriods
 }
 
-const renderPanel = (datesInvalid = false) =>
+const renderPanel = (datesInvalid = false, end: string | null = periodEnded) =>
     renderWithClient(
         <AddSalePeriodPanel
             store="Store 1"
             periodStarted={periodStarted}
-            periodEnded={periodEnded}
+            periodEnded={end}
             datesInvalid={datesInvalid}
         />
     )
@@ -153,6 +153,16 @@ describe('AddSalePeriodPanel', () => {
     test('should not save while the dates are invalid', async () => {
         const user = userEvent.setup()
         renderPanel(true)
+
+        await openPanel(user)
+
+        expect(screen.getByRole('button', { name: 'Save sale period' })).toBeDisabled()
+    })
+
+    // A period needs an end date, so it isn't saved with an invalid one
+    test('should not save without an end date', async () => {
+        const user = userEvent.setup()
+        renderPanel(false, null)
 
         await openPanel(user)
 

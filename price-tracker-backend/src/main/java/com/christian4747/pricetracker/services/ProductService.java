@@ -5,7 +5,7 @@ import com.christian4747.pricetracker.exceptions.NotFoundException;
 import com.christian4747.pricetracker.daos.PriceDAO;
 import com.christian4747.pricetracker.daos.ProductDAO;
 import com.christian4747.pricetracker.models.Price;
-import com.christian4747.pricetracker.models.PriceTotalPercentages;
+import com.christian4747.pricetracker.models.PriceLows;
 import com.christian4747.pricetracker.models.Product;
 import com.christian4747.pricetracker.models.StartedPrice;
 import com.christian4747.pricetracker.models.dtos.*;
@@ -356,13 +356,13 @@ public class ProductService {
         Price nextPrice = priceDAO.findNextPriceAfterToday(product.getProductId()).orElse(null);
         Integer priceCount = priceDAO.findPriceCount(product.getProductId());
         Timestamp lastUpdated = priceDAO.findLastUpdated(product.getProductId()).orElse(null);
-        PriceTotalPercentages priceTotalPercentages = getPriceTotalPercentages(product.getProductId(), priceToday);
+        PriceLows priceLows = getPriceLows(product.getProductId(), priceToday);
         // Without a price today, no price has started
         List<StartedPrice> startedPrices = priceToday == null ? List.of() : priceDAO.findStartedPrices(product.getProductId());
         boolean canAverage = canAverage(startedPrices);
         Double averagePrice = canAverage ? getAveragePrice(startedPrices) : null;
         Double weightedAveragePrice = canAverage ? getWeightedAveragePrice(startedPrices) : null;
-        return new OutgoingProductDTO(product, priceToday, nextPrice, lastUpdated, getPriceCategory(priceTotalPercentages, priceToday, priceCount), averagePrice, weightedAveragePrice, isBelowAverage(priceToday, averagePrice));
+        return new OutgoingProductDTO(product, priceToday, nextPrice, lastUpdated, getPriceCategory(priceLows, priceToday, priceCount), averagePrice, weightedAveragePrice, isBelowAverage(priceToday, averagePrice));
     }
 
     /**
@@ -373,18 +373,53 @@ public class ProductService {
      */
     private static boolean canAverage(List<StartedPrice> startedPrices) {
         return startedPrices.stream()
-                .map(price -> price.currency() == null || price.currency().isEmpty() ? "USD" : price.currency())
+                .map(ProductService::getDisplayCurrency)
                 .distinct()
                 .count() == 1;
     }
 
+    private static String getDisplayCurrency(StartedPrice price) {
+        return price.currency() == null || price.currency().isEmpty() ? "USD" : price.currency();
+    }
+
     /**
-     * Gets the average total amount of the given prices, counting each price once however long it lasted.
-     * @param startedPrices The prices to average
+     * Gets the average total amount of the given prices, counting each price once however long it lasted. Within a
+     * sale, each distinct total counts once, so a return that splits a sale into several rows doesn't count the sale's
+     * price more than once, while the return's lower price still counts.
+     * @param startedPrices The prices to average, from oldest to newest
      * @return The average
      */
     private static double getAveragePrice(List<StartedPrice> startedPrices) {
-        return startedPrices.stream().mapToDouble(StartedPrice::totalAmount).sum() / startedPrices.size();
+        double countedTotal = 0;
+        int countedPrices = 0;
+        Set<Double> saleTotals = new HashSet<>();
+        StartedPrice previousPrice = null;
+
+        for (StartedPrice price : startedPrices) {
+            if (previousPrice == null || !isSameSale(previousPrice, price)) saleTotals.clear();
+            if (saleTotals.add(price.totalAmount())) {
+                countedTotal += price.totalAmount();
+                countedPrices++;
+            }
+            previousPrice = price;
+        }
+
+        return countedTotal / countedPrices;
+    }
+
+    /**
+     * Checks whether two back-to-back prices belong to the same sale, which is when they share a base amount,
+     * discounted amount, currency, and description. A return isn't compared, since it's what splits a sale into rows.
+     * @param previousPrice The earlier price
+     * @param price The price that started next
+     * @return Whether they're the same sale
+     */
+    private static boolean isSameSale(StartedPrice previousPrice, StartedPrice price) {
+        return previousPrice.amount() == price.amount()
+                && previousPrice.discountAmount() == price.discountAmount()
+                && getDisplayCurrency(previousPrice).equals(getDisplayCurrency(price))
+                && Objects.requireNonNullElse(previousPrice.description(), "")
+                        .equals(Objects.requireNonNullElse(price.description(), ""));
     }
 
     /**
@@ -423,7 +458,13 @@ public class ProductService {
         return averagePrice - priceToday.getTotalAmount() >= HALF_CENT;
     }
 
-    private PriceTotalPercentages getPriceTotalPercentages(Integer productId, Price priceToday) {
+    /**
+     * Gets the cheapest prices paid for the given product in the last year, the last two years, and of all time.
+     * @param productId The product to get the lows of
+     * @param priceToday The product's price today, without which there's nothing to compare the lows to
+     * @return The product's lows, or null when it has no price today
+     */
+    private PriceLows getPriceLows(Integer productId, Price priceToday) {
         if (priceToday == null) {
             return null;
         }
@@ -437,25 +478,27 @@ public class ProductService {
                 .minusYears(2)
                 .toInstant());
 
-        return priceDAO.findPriceTotalPercentages(productId, oneYearAgo, twoYearsAgo).orElse(null);
+        return priceDAO.findPriceLows(productId, oneYearAgo, twoYearsAgo).orElse(null);
     }
 
     /**
-     * Gets the price category of the given price.
-     * @param percentages The highest price total percentages one year ago, two years ago, and of all time
+     * Gets the price category of the given price, from the widest window whose low it reaches.
+     * @param lows The cheapest prices paid in the last year, the last two years, and of all time
      * @param price The price to get the category for
+     * @param priceCount How many prices the product has; a single price is trivially its own low, so it gets none
      * @return A string representing the price category the price belongs to
      */
-    private static @NonNull String getPriceCategory(PriceTotalPercentages percentages, Price price, Integer priceCount) {
-        if (percentages == null || price == null || priceCount <= 1) return "";
+    private static @NonNull String getPriceCategory(PriceLows lows, Price price, Integer priceCount) {
+        if (lows == null || price == null || priceCount <= 1) return "";
 
         String priceCategory = "";
 
-        if (isAtLow(price, percentages.allTimeLow())) {
+        // The widest window wins, since a lowest-ever price is also the lowest of the last two years and the last year
+        if (isAtLow(price, lows.allTimeLow())) {
             priceCategory = "all-time";
-        } else if (isAtLow(price, percentages.twoYearLow())) {
+        } else if (isAtLow(price, lows.twoYearLow())) {
             priceCategory = "two-year";
-        } else if (isAtLow(price, percentages.oneYearLow())) {
+        } else if (isAtLow(price, lows.oneYearLow())) {
             priceCategory = "one-year";
         }
         return priceCategory;
@@ -464,11 +507,12 @@ public class ProductService {
     /**
      * Checks whether the given price reaches the given low.
      * @param price The price to compare to the low
-     * @param low The low, which is null when no price started in its time window
-     * @return Whether there is a low and the price reaches it
+     * @param low The cheapest amount paid in a time window, which is null when no price started in it
+     * @return Whether there is a low and the price costs no more than it, beyond rounding
      */
     private static boolean isAtLow(Price price, Double low) {
-        return low != null && price.getTotalPercentage() >= low;
+        // Less than half a cent above the low is the same price in cents, such as 0.1 + 0.2 against 0.3
+        return low != null && price.getTotalAmount() - low < HALF_CENT;
     }
 
     /**

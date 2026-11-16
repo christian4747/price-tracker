@@ -37,6 +37,9 @@ class PriceSpecificationTest {
     @Autowired
     private EntityManager entityManager;
 
+    @Autowired
+    private TestDatabase testDatabase;
+
     private Product product;
 
     @BeforeEach
@@ -76,8 +79,7 @@ class PriceSpecificationTest {
 
     /** The IDs of the product's prices that match, newest first. */
     private List<Integer> findPriceIds(PriceFilterDTO filter, boolean showDeleted) {
-        entityManager.flush();
-        entityManager.clear();
+        testDatabase.saveFixtures();
         return priceDAO.findAll(
                         PriceSpecification.filterPricesBy(product.getProductId(), filter, showDeleted),
                         PriceService.NEWEST_FIRST)
@@ -239,8 +241,7 @@ class PriceSpecificationTest {
         Instant future = Instant.parse("2999-01-01T00:00:00Z");
         Price older = addPrice(future);
         Price newer = addPrice(future);
-        entityManager.flush();
-        entityManager.clear();
+        testDatabase.saveFixtures();
 
         PriceService priceService = new PriceService(priceDAO, productDAO);
         List<Price> prices = priceService.getPricesByProductId(product.getProductId(), NO_FILTER, false);
@@ -254,8 +255,7 @@ class PriceSpecificationTest {
         for (int i = 0; i < 25; i++) {
             addPrice(firstStart.plus(i * 30L, ChronoUnit.DAYS));
         }
-        entityManager.flush();
-        entityManager.clear();
+        testDatabase.saveFixtures();
 
         PriceService priceService = new PriceService(priceDAO, productDAO);
         List<Price> prices = priceService.getPricesByProductId(product.getProductId(), NO_FILTER, false);

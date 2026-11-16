@@ -101,7 +101,8 @@ describe('useAddPrice', () => {
 
         await waitFor(() => expect(result.current.singleMutation.isSuccess).toBe(true))
         expect(requestBodies).toHaveLength(1)
-        expect(requestBodies[0].priceEnded).toBe('')
+        // null, as the API returns it and the database stores it, rather than an empty string the backend must convert
+        expect(requestBodies[0].priceEnded).toBeNull()
     })
 
     test('should keep the default end date after adding an unedited price', async ({ worker }) => {
@@ -178,6 +179,29 @@ describe('useDeletePrice', () => {
 })
 
 describe('useEditPrice', () => {
+    test.for([
+        ['no end date', null],
+        ['an end date', new Date(2026, 8, 10, 23, 59).toISOString()]
+    ] as const)('should send the end date of a price with %s unchanged', async ([, priceEnded], { worker }) => {
+        const requestBodies: PriceDTO[] = []
+        worker.use(
+            http.put(pricesApiUrl + '/:priceId', async ({ request }) => {
+                requestBodies.push((await request.json()) as PriceDTO)
+                return HttpResponse.json(price1)
+            })
+        )
+        const price = createPrice(1, { priceEnded })
+        const { result } = renderHook(() => useEditPrice(price, 1), { wrapper: RenderClientWrapper })
+
+        act(() => {
+            result.current.mutation.mutate()
+        })
+
+        await waitFor(() => expect(result.current.mutation.isSuccess).toBe(true))
+        expect(requestBodies).toHaveLength(1)
+        expect(requestBodies[0].priceEnded).toBe(priceEnded)
+    })
+
     test('should not modify the price being edited', async ({ worker }) => {
         worker.use(http.put(pricesApiUrl + '/:priceId', () => HttpResponse.json(price1)))
         const price = { ...price1 }

@@ -9,6 +9,7 @@ import {
     screen,
     test,
     userEvent,
+    waitFor,
     within
 } from '@/test-utils'
 import { http, HttpResponse } from 'msw'
@@ -47,20 +48,76 @@ const renderDetails = (children?: React.ReactNode) =>
 // The panel is replaced once the prices load, so look it up again for each measurement
 const getPanel = () => screen.getByTestId('details-width').firstElementChild as HTMLElement
 
-// Renders the details with the given prices and waits for the first one to show. Returns the whole panel and the
-// scrolling list that holds the price rows (the parent of each row).
-const renderDetailsWithPrices = async (worker: SetupWorker, prices: PriceType[], children?: React.ReactNode) => {
+/**
+ * Render the details with the given prices, and wait for the first one to show in the price list.
+ * @param worker The test's mock service worker, which serves the prices
+ * @param prices The prices to serve, newest first like the API
+ * @param children Anything to show above the price list, as the grouped list's store picker does
+ * @param firstDate The date of the first row, to know the list has loaded
+ * @returns The whole panel, and the scrolling list that holds the price rows
+ */
+const renderDetailsWithPrices = async (
+    worker: SetupWorker,
+    prices: PriceType[],
+    children?: React.ReactNode,
+    firstDate = 'Sep 1, 2026'
+) => {
     worker.use(http.get(pricesApiUrl + '/product/:productId', () => HttpResponse.json(prices)))
     renderDetails(children)
 
-    const firstPriceRow = (await screen.findByText('9/1/2026')).parentElement!
-    return {
-        panel: getPanel(),
-        priceList: firstPriceRow.parentElement!
-    }
+    // Looked for in the list, since the chart's axis can show the same date
+    const priceList = await screen.findByRole('list', { name: 'Prices' })
+    await within(priceList).findByText(firstDate)
+    return { panel: getPanel(), priceList }
 }
 
-// Fails the first price request, then answers later ones with the live price
+/**
+ * Count the lines an element's text takes up on screen, including any hidden past a line limit.
+ * @param element The element whose text to measure
+ * @returns The number of lines
+ */
+const countLines = (element: HTMLElement) => {
+    // A range over the text has one box for each line the text is laid out on, so the distinct tops are the lines
+    const range = document.createRange()
+    range.selectNodeContents(element)
+    return new Set([...range.getClientRects()].map((rect) => Math.round(rect.top))).size
+}
+
+/**
+ * Check whether part of an element's text shows on a single line, so it wasn't split by a wrap.
+ * @param element The element, whose first child is its text
+ * @param part The part to check, such as "12:45 PM", written with ordinary spaces
+ * @returns Whether the part sits on one line
+ */
+const staysOnOneLine = (element: HTMLElement, part: string) => {
+    const text = element.firstChild!
+    // The text holds non-breaking spaces, so they're matched as ordinary ones to find where the part starts
+    const start = text.textContent!.replace(/\s/g, ' ').indexOf(part)
+    const range = document.createRange()
+    range.setStart(text, start)
+    range.setEnd(text, start + part.length)
+    return new Set([...range.getClientRects()].map((rect) => Math.round(rect.top))).size === 1
+}
+
+/**
+ * Find the divider between the chart and the price list, wait for it to measure its width, and focus it, ready for
+ * Home and End to move it to either pane's minimum. The split it moves is forgotten when the test finishes.
+ * @returns The divider
+ */
+const focusMeasuredDivider = async () => {
+    // The split is remembered, so later tests start from the default again
+    onTestFinished(() => localStorage.removeItem('product-details-split'))
+    const separator = screen.getByRole('separator', { name: 'Resize chart and price list' })
+    // Until the split measures its width its limits are 0 and 100%, and Home and End would ignore the minimums
+    await expect.poll(() => separator.getAttribute('aria-valuemin')).not.toBe('0')
+    separator.focus()
+    return separator
+}
+
+/**
+ * Serve a failed first price request, and the live price for every request after it, to test retrying.
+ * @returns The request handler
+ */
 const failFirstPriceRequest = () => {
     let requestCount = 0
     return http.get(pricesApiUrl + '/product/:productId', () => {
@@ -71,33 +128,52 @@ const failFirstPriceRequest = () => {
     })
 }
 
+/**
+ * Serve the live price, plus the deleted one when the list asks for deleted prices, to test the Show deleted switch.
+ * @returns The request handler
+ */
+const serveDeletedPriceWhenAsked = () =>
+    http.get(pricesApiUrl + '/product/:productId', ({ request }) => {
+        const showDeleted = new URL(request.url).searchParams.get('showDeleted') === 'true'
+        return HttpResponse.json(showDeleted ? [livePrice, deletedPrice] : [livePrice])
+    })
+
 describe('Product Details Component', () => {
     test('should render product prices', async () => {
         renderWithClient(<ProductDetails productBody={productBody} dateToday={new Date()} setDateToday={() => {}} />)
 
-        const price1Date = await screen.findByText('9/4/2026')
+        const price1Date = await screen.findByText('Sep 4, 2026')
         await expect.element(price1Date).toBeInTheDocument()
 
-        const price2Date = await screen.findByText('9/5/2026')
+        const price2Date = await screen.findByText('Sep 5, 2026')
         await expect.element(price2Date).toBeInTheDocument()
     })
 
     test('should still list deleted prices when they are shown', async ({ worker }) => {
-        worker.use(
-            http.get(pricesApiUrl + '/product/:productId', ({ request }) => {
-                const showDeleted = new URL(request.url).searchParams.get('showDeleted') === 'true'
-                return HttpResponse.json(showDeleted ? [livePrice, deletedPrice] : [livePrice])
-            })
-        )
+        worker.use(serveDeletedPriceWhenAsked())
         const user = userEvent.setup()
         renderWithClient(<ProductDetails productBody={productBody} dateToday={new Date()} setDateToday={() => {}} />)
 
-        await screen.findByText('9/4/2026')
-        expect(screen.queryByText('9/5/2026')).not.toBeInTheDocument()
+        await screen.findByText('Sep 4, 2026')
+        expect(screen.queryByText('Sep 5, 2026')).not.toBeInTheDocument()
 
-        await user.click(screen.getByRole('checkbox', { name: 'Show deleted prices' }))
+        await user.click(screen.getByRole('switch', { name: 'Show deleted' }))
 
-        await expect.element(await screen.findByText('9/5/2026')).toBeInTheDocument()
+        await expect.element(await screen.findByText('Sep 5, 2026')).toBeInTheDocument()
+    })
+
+    test('should hide deleted prices again when the Show deleted switch is turned off', async ({ worker }) => {
+        worker.use(serveDeletedPriceWhenAsked())
+        const user = userEvent.setup()
+        renderWithClient(<ProductDetails productBody={productBody} dateToday={new Date()} setDateToday={() => {}} />)
+        await screen.findByText('Sep 4, 2026')
+        await user.click(screen.getByRole('switch', { name: 'Show deleted' }))
+        await screen.findByText('Sep 5, 2026')
+
+        await user.click(screen.getByRole('switch', { name: 'Show deleted' }))
+
+        await waitFor(() => expect(screen.queryByText('Sep 5, 2026')).not.toBeInTheDocument())
+        expect(screen.getByText('Sep 4, 2026')).toBeInTheDocument()
     })
 
     test('should show a message with a retry button when the prices fail to load', async ({ worker }) => {
@@ -115,7 +191,7 @@ describe('Product Details Component', () => {
 
         await user.click(await screen.findByRole('button', { name: 'Retry' }))
 
-        await expect.element(await screen.findByText('9/4/2026')).toBeInTheDocument()
+        await expect.element(await screen.findByText('Sep 4, 2026')).toBeInTheDocument()
         expect(screen.queryByText("Couldn't load prices")).not.toBeInTheDocument()
     })
 })
@@ -163,7 +239,7 @@ describe('Product Details Time Range', () => {
         const requests = answerByStartDate(worker)
         renderWithClient(detailsForProduct())
 
-        await screen.findByText('9/1/2026')
+        await screen.findByText('Sep 1, 2026')
 
         expect(screen.getByRole('radio', { name: '1 year' })).toBeChecked()
         expect(requests.map((params) => params.get('startDate'))).toEqual([oneYearStart])
@@ -173,7 +249,7 @@ describe('Product Details Time Range', () => {
         const requests = answerByStartDate(worker)
         renderWithClient(detailsForProduct())
 
-        await screen.findByText('9/1/2026')
+        await screen.findByText('Sep 1, 2026')
 
         expect(requests[0].has('page')).toBe(false)
         expect(requests[0].has('size')).toBe(false)
@@ -183,11 +259,11 @@ describe('Product Details Time Range', () => {
         const requests = answerByStartDate(worker)
         const user = userEvent.setup()
         renderWithClient(detailsForProduct())
-        await screen.findByText('9/1/2026')
+        await screen.findByText('Sep 1, 2026')
 
         await user.click(screen.getByText('2 years'))
 
-        await expect.element(await screen.findByText('3/1/2025')).toBeInTheDocument()
+        await expect.element(await screen.findByText('Mar 1, 2025')).toBeInTheDocument()
         await expect.element(await screen.findByText('Mar 1, 2025 12:00 PM')).toBeInTheDocument()
         expect(requests.at(-1)?.get('startDate')).toBe(twoYearsStart)
     })
@@ -196,11 +272,11 @@ describe('Product Details Time Range', () => {
         const requests = answerByStartDate(worker)
         const user = userEvent.setup()
         renderWithClient(detailsForProduct())
-        await screen.findByText('9/1/2026')
+        await screen.findByText('Sep 1, 2026')
 
         await user.click(screen.getByText('All'))
 
-        await expect.element(await screen.findByText('1/1/2023')).toBeInTheDocument()
+        await expect.element(await screen.findByText('Jan 1, 2023')).toBeInTheDocument()
         await expect.element(await screen.findByText('Jan 1, 2023 12:00 PM')).toBeInTheDocument()
         expect(requests.at(-1)?.has('startDate')).toBe(false)
     })
@@ -216,14 +292,33 @@ describe('Product Details Time Range', () => {
         )
         const first = within(screen.getByTestId('first'))
         const second = within(screen.getByTestId('second'))
-        await first.findByText('9/1/2026')
-        await second.findByText('9/1/2026')
+        await first.findByText('Sep 1, 2026')
+        await second.findByText('Sep 1, 2026')
 
         await user.click(first.getByText('All'))
 
-        await expect.element(await first.findByText('1/1/2023')).toBeInTheDocument()
+        await expect.element(await first.findByText('Jan 1, 2023')).toBeInTheDocument()
         expect(second.getByRole('radio', { name: '1 year' })).toBeChecked()
-        expect(second.queryByText('1/1/2023')).not.toBeInTheDocument()
+        expect(second.queryByText('Jan 1, 2023')).not.toBeInTheDocument()
+    })
+
+    // The chart shows the plain average, like the price list, from the product's whole history
+    test('should keep the plain average line when the time range changes', async ({ worker }) => {
+        answerByStartDate(worker)
+        const user = userEvent.setup()
+        const productBody = createProductBody(createProduct(1), {
+            priceToday: recentPrice,
+            averagePrice: 15,
+            weightedAveragePrice: 17.5
+        })
+        renderWithClient(<ProductDetails productBody={productBody} dateToday={dateToday} setDateToday={() => {}} />)
+        await expect.element(await screen.findByText('Average $15.00')).toBeInTheDocument()
+
+        await user.click(screen.getByText('All'))
+        await screen.findByText('Jan 1, 2023')
+
+        expect(screen.getByText('Average $15.00')).toBeInTheDocument()
+        expect(screen.queryByText('Average $17.50')).not.toBeInTheDocument()
     })
 })
 
@@ -278,9 +373,27 @@ describe('Product Details Layout', () => {
         const loadingHeight = getPanel().offsetHeight
 
         showPrices()
-        await screen.findByText('9/1/2026')
+        await screen.findByText('Sep 1, 2026')
 
         expect(getPanel().offsetHeight).toBe(loadingHeight)
+    })
+
+    // The chart alone sets the panel's height, so neither the narrowest chart nor the narrowest price list changes it
+    test('should be as tall after the divider between the chart and the price list moves', async ({ worker }) => {
+        const user = userEvent.setup()
+        const { panel } = await renderDetailsWithPrices(worker, createDailyPrices(20))
+        const startHeight = panel.offsetHeight
+        const separator = await focusMeasuredDivider()
+
+        // The chart at its narrowest. The divider's value is checked too, so the test fails if it didn't move.
+        await user.keyboard('{Home}')
+        expect(separator).toHaveAttribute('aria-valuenow', separator.getAttribute('aria-valuemin'))
+        expect(getPanel().offsetHeight).toBe(startHeight)
+
+        // The price list at its narrowest
+        await user.keyboard('{End}')
+        expect(separator).toHaveAttribute('aria-valuenow', separator.getAttribute('aria-valuemax'))
+        expect(getPanel().offsetHeight).toBe(startHeight)
     })
 
     test('should scroll a long price list inside the panel', async ({ worker }) => {
@@ -292,10 +405,160 @@ describe('Product Details Layout', () => {
         expect(priceList.scrollTop).toBe(50)
     })
 
+    // The column can be too narrow for both beside the amount, so the time can move to its own line, but neither the
+    // date nor the time is split, and neither runs into the amount. A deleted price is shown too, since a deleted
+    // price's actions once made every row's actions wider, leaving the dates too little room
+    test('should keep a date and its time each whole, without running into the amount', async ({ worker }) => {
+        // Two prices on the same day, so their rows show times, on Sep 30 with its two-digit day and at 12:45 PM, about
+        // the widest date and time there are
+        const prices = [
+            createPrice(3, { priceStarted: new Date(2026, 8, 30, 12, 45).toISOString() }),
+            createPrice(2, { priceStarted: new Date(2026, 8, 30, 9, 5).toISOString() }),
+            createPrice(1, {
+                priceStarted: new Date(2026, 8, 25, 12).toISOString(),
+                deletedAt: new Date(2026, 8, 26, 12).toISOString()
+            })
+        ]
+        const { priceList } = await renderDetailsWithPrices(worker, prices, undefined, 'Sep 30, 2026 12:45 PM')
+
+        const date = within(priceList).getByText('Sep 30, 2026 12:45 PM')
+        // The column is too narrow for both on one line, so the checks below also cover where the wrap happens. If a
+        // change ever made room for one line, they would pass without testing the wrap at all.
+        expect(countLines(date)).toBe(2)
+        expect(staysOnOneLine(date, 'Sep 30, 2026')).toBe(true)
+        expect(staysOnOneLine(date, '12:45 PM')).toBe(true)
+        // Text wider than its box would spill into the next column and overlap the amount beside it
+        expect(date.scrollWidth).toBeLessThanOrEqual(date.clientWidth)
+        const deletedDate = within(priceList).getByText('Sep 25, 2026')
+        expect(countLines(deletedDate)).toBe(1)
+        expect(deletedDate.scrollWidth).toBeLessThanOrEqual(deletedDate.clientWidth)
+    })
+
+    // The price list's minimum width is meant to leave room for its buttons and dates. Checked at the desktop font
+    // size (this describe's viewport), the larger of the two, so it fits at both.
+    test('should fit the buttons and whole dates in the narrowest price list', async ({ worker }) => {
+        const user = userEvent.setup()
+        // The widest date and time there are, as in the test above, on two prices the same day so their rows show times
+        const prices = [
+            createPrice(2, { priceStarted: new Date(2026, 8, 30, 12, 45).toISOString() }),
+            createPrice(1, { priceStarted: new Date(2026, 8, 30, 9, 5).toISOString() })
+        ]
+        const { priceList } = await renderDetailsWithPrices(worker, prices, undefined, 'Sep 30, 2026 12:45 PM')
+        const separator = await focusMeasuredDivider()
+
+        // The price list at its narrowest
+        await user.keyboard('{End}')
+        expect(separator).toHaveAttribute('aria-valuenow', separator.getAttribute('aria-valuemax'))
+
+        // A label wider than its button is cut off, as in "Add Pr"
+        for (const name of ['Add Price', 'Quick Price']) {
+            const label = screen.getByRole('button', { name }).querySelector('.mantine-Button-label') as HTMLElement
+            expect(label.scrollWidth, name).toBeLessThanOrEqual(label.clientWidth)
+        }
+        // The date and time may sit on separate lines, but neither is split, and neither runs into the amount
+        const date = within(priceList).getByText('Sep 30, 2026 12:45 PM')
+        expect(staysOnOneLine(date, 'Sep 30, 2026')).toBe(true)
+        expect(staysOnOneLine(date, '12:45 PM')).toBe(true)
+        expect(date.scrollWidth).toBeLessThanOrEqual(date.clientWidth)
+    })
+
+    // Two lines fit a sale's end date after its description, which a single cut-off line would hide
+    test('should wrap a long details line onto a second line and show all of it', async ({ worker }) => {
+        const description = 'A description far too long to fit beside the amount in the narrow price column'
+        await renderDetailsWithPrices(worker, [createPrice(1, { ...createDailyPrices(1)[0], description })])
+
+        const details = screen.getByText(description)
+        expect(countLines(details)).toBe(2)
+        expect(details.scrollHeight).toBeLessThanOrEqual(details.clientHeight)
+    })
+
+    // A very long description stops after two lines, so it can't make its row much taller than the others
+    test('should cut off a details line after two lines', async ({ worker }) => {
+        // Three times the description that takes two lines, so it needs about six
+        const description = 'A description far too long to fit beside the amount in the narrow price column. '.repeat(3)
+        await renderDetailsWithPrices(worker, [createPrice(1, { ...createDailyPrices(1)[0], description })])
+
+        // The text is trimmed on screen, so the trailing space from the repeat is dropped to find it
+        const details = screen.getByText(description.trim())
+        // The line shows two lines' height, with the rest of the text hidden below
+        expect(details.clientHeight).toBe(2 * parseFloat(getComputedStyle(details).lineHeight))
+        expect(details.scrollHeight).toBeGreaterThan(details.clientHeight)
+    })
+
+    // Under the amount and actions button too, rather than only the date's part of the row, so it has room to wrap
+    test('should give the details line the whole width of its row', async ({ worker }) => {
+        const description = 'A description far too long to fit beside the amount in the narrow price column'
+        await renderDetailsWithPrices(worker, [createPrice(1, { ...createDailyPrices(1)[0], description })])
+
+        const details = screen.getByText(description)
+        const row = details.closest('li')!
+        const { paddingLeft, paddingRight } = getComputedStyle(row)
+        expect(details.clientWidth).toBe(row.clientWidth - parseFloat(paddingLeft) - parseFloat(paddingRight))
+    })
+
+    // Like a table: amounts of different widths, and a deleted price, don't move the columns
+    test('should line up the arrows, amounts, and actions buttons of every row', async ({ worker }) => {
+        // Amounts of two widths, short enough to leave the rows spare width, which only the date should take. Price 3
+        // is deleted, since a deleted price's row once had a wider actions column than the others.
+        const prices = [
+            createPrice(4, { priceStarted: new Date(2026, 8, 4, 12).toISOString(), totalAmount: 9.5 }),
+            createPrice(3, {
+                priceStarted: new Date(2026, 8, 3, 12).toISOString(),
+                totalAmount: 9,
+                deletedAt: new Date(2026, 8, 5, 12).toISOString()
+            }),
+            createPrice(2, { priceStarted: new Date(2026, 8, 2, 12).toISOString(), totalAmount: 95 }),
+            createPrice(1, { priceStarted: new Date(2026, 8, 1, 12).toISOString(), totalAmount: 9.25 })
+        ]
+        const { priceList } = await renderDetailsWithPrices(worker, prices)
+        // A wide panel leaves the rows plenty of spare width, however wide the font makes the text
+        screen.getByTestId('details-width').style.width = '1600px'
+
+        // Every amount in the list, such as "$9.50"
+        const amounts = within(priceList).getAllByText(/^\$[\d,]+\.\d\d$/)
+        // The distinct positions of one edge across the boxes, to the pixel: a single one means they line up
+        const edges = (rects: DOMRect[], edge: 'left' | 'right') => new Set(rects.map((rect) => Math.round(rect[edge])))
+        const boxes = (elements: Element[]) => elements.map((element) => element.getBoundingClientRect())
+        // Where the text itself ends, since an amount's box fills its column however its text is aligned
+        const textBoxes = (elements: Element[]) =>
+            elements.map((element) => {
+                const range = document.createRange()
+                range.selectNodeContents(element)
+                return range.getBoundingClientRect()
+            })
+        expect(amounts).toHaveLength(4)
+        // The arrow's space sits just before each amount, whether or not the row has an arrow
+        expect(edges(boxes(amounts.map((amount) => amount.previousElementSibling!)), 'left').size).toBe(1)
+        expect(edges(textBoxes(amounts), 'right').size).toBe(1)
+        const actionsButtons = within(priceList).getAllByRole('button', { name: 'Price actions' })
+        expect(actionsButtons).toHaveLength(4)
+        expect(edges(boxes(actionsButtons), 'left').size).toBe(1)
+
+        // The date takes the leftover space, so the actions buttons end at the row's right edge
+        const row = actionsButtons[0].closest('li')!
+        const rowContentRight = row.getBoundingClientRect().right - parseFloat(getComputedStyle(row).paddingRight)
+        // Within half a pixel, since spreading the spare width over every column moves it by only a little
+        expect(actionsButtons[0].getBoundingClientRect().right).toBeCloseTo(rowContentRight, 0)
+    })
+
     test('should keep a short price list at its own height', async ({ worker }) => {
         const { priceList } = await renderDetailsWithPrices(worker, createDailyPrices(2))
-        const rowsHeight = [...priceList.children].reduce((total, row) => total + (row as HTMLElement).offsetHeight, 0)
+        // Exact heights, since a row can be a fraction of a pixel tall, which offsetHeight would round
+        const rowsHeight = [...priceList.children].reduce((total, row) => total + row.getBoundingClientRect().height, 0)
 
-        expect(priceList.offsetHeight).toBe(rowsHeight)
+        expect(priceList.getBoundingClientRect().height).toBeCloseTo(rowsHeight, 1)
+        // Each row is only as tall as its tallest item needs. Without this, the check above would pass if the list
+        // grew and the grid stretched its rows to fill it, since the rows would still add up to the list's height.
+        for (const row of priceList.children) {
+            const { paddingTop, paddingBottom, borderTopWidth, borderBottomWidth } = getComputedStyle(row)
+            const tallestItem = Math.max(...[...row.children].map((item) => item.getBoundingClientRect().height))
+            const naturalHeight =
+                tallestItem +
+                [paddingTop, paddingBottom, borderTopWidth, borderBottomWidth].reduce(
+                    (total, value) => total + parseFloat(value),
+                    0
+                )
+            expect(row.getBoundingClientRect().height).toBeCloseTo(naturalHeight, 1)
+        }
     })
 })

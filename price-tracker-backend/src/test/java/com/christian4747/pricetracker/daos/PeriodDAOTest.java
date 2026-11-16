@@ -24,6 +24,9 @@ class PeriodDAOTest {
     @Autowired
     private EntityManager entityManager;
 
+    @Autowired
+    private TestDatabase testDatabase;
+
     private Period addPeriod(String name, Timestamp deletedAt) {
         Period period = new Period(0, name, PeriodType.SALE, null, START, END, null, deletedAt, null);
         entityManager.persist(period);
@@ -36,15 +39,10 @@ class PeriodDAOTest {
         return period;
     }
 
-    private void saveFixtures() {
-        entityManager.flush();
-        entityManager.clear();
-    }
-
     @Test
     void findAllByNameIgnoreCaseMatchesADifferentCase() {
         addPeriod("Black Friday", null);
-        saveFixtures();
+        testDatabase.saveFixtures();
 
         assertThat(periodDAO.findAllByNameIgnoreCase("black FRIDAY"))
                 .extracting(Period::getName)
@@ -54,7 +52,7 @@ class PeriodDAOTest {
     @Test
     void findAllByNameIgnoreCaseIncludesDeletedPeriods() {
         addPeriod("Black Friday", DELETED);
-        saveFixtures();
+        testDatabase.saveFixtures();
 
         assertThat(periodDAO.findAllByNameIgnoreCase("Black Friday"))
                 .extracting(Period::getName)
@@ -64,7 +62,7 @@ class PeriodDAOTest {
     @Test
     void findAllByNameIgnoreCaseLeavesOutNamesThatOnlyContainIt() {
         addPeriod("Black Friday weekend", null);
-        saveFixtures();
+        testDatabase.saveFixtures();
 
         assertThat(periodDAO.findAllByNameIgnoreCase("Black Friday")).isEmpty();
     }
@@ -72,10 +70,10 @@ class PeriodDAOTest {
     @Test
     void deleteByIdKeepsThePeriodWithADeletedTime() {
         Period period = addPeriod("Black Friday", null);
-        saveFixtures();
+        testDatabase.saveFixtures();
 
         periodDAO.deleteById(period.getPeriodId());
-        saveFixtures();
+        testDatabase.saveFixtures();
 
         assertThat(entityManager.find(Period.class, period.getPeriodId()).getDeletedAt()).isNotNull();
     }
@@ -83,10 +81,10 @@ class PeriodDAOTest {
     @Test
     void deleteByIdKeepsTheFirstDeletedTime() {
         Period period = addPeriod("Black Friday", DELETED);
-        saveFixtures();
+        testDatabase.saveFixtures();
 
         periodDAO.deleteById(period.getPeriodId());
-        saveFixtures();
+        testDatabase.saveFixtures();
 
         assertThat(entityManager.find(Period.class, period.getPeriodId()).getDeletedAt()).isEqualTo(DELETED);
     }
@@ -94,7 +92,7 @@ class PeriodDAOTest {
     @Test
     void permanentlyDeleteByIdRemovesASoftDeletedPeriod() {
         Period period = addPeriod("Black Friday", DELETED);
-        saveFixtures();
+        testDatabase.saveFixtures();
 
         int removed = periodDAO.permanentlyDeleteById(period.getPeriodId());
         entityManager.clear();
@@ -106,7 +104,7 @@ class PeriodDAOTest {
     @Test
     void permanentlyDeleteByIdLeavesAPeriodThatIsNotDeleted() {
         Period period = addPeriod("Black Friday", null);
-        saveFixtures();
+        testDatabase.saveFixtures();
 
         int removed = periodDAO.permanentlyDeleteById(period.getPeriodId());
         entityManager.clear();
@@ -119,7 +117,7 @@ class PeriodDAOTest {
     void findAllForStoreLeavesOutDeletedPeriods() {
         addPeriod("Black Friday", null);
         addPeriod("Cyber Monday", DELETED);
-        saveFixtures();
+        testDatabase.saveFixtures();
 
         assertThat(periodDAO.findAllForStore(null, false, NOW))
                 .extracting(Period::getName)
@@ -130,7 +128,7 @@ class PeriodDAOTest {
     void findAllForStoreWithShowDeletedIncludesDeletedPeriods() {
         addPeriod("Black Friday", null);
         addPeriod("Cyber Monday", DELETED);
-        saveFixtures();
+        testDatabase.saveFixtures();
 
         assertThat(periodDAO.findAllForStore(null, true, NOW))
                 .extracting(Period::getName)
@@ -142,7 +140,7 @@ class PeriodDAOTest {
         addStorePeriod("Corner shop sale", "Corner shop", START, END);
         addStorePeriod("Black Friday", null, START, END);
         addStorePeriod("Other shop sale", "Other shop", START, END);
-        saveFixtures();
+        testDatabase.saveFixtures();
 
         assertThat(periodDAO.findAllForStore("Corner shop", false, NOW))
                 .extracting(Period::getName)
@@ -154,7 +152,7 @@ class PeriodDAOTest {
         addStorePeriod("Corner shop sale", "Corner shop", START, END);
         addStorePeriod("Black Friday", null, START, END);
         addStorePeriod("Other shop sale", "Other shop", START, END);
-        saveFixtures();
+        testDatabase.saveFixtures();
 
         assertThat(periodDAO.findAllForStore(null, false, NOW))
                 .extracting(Period::getName)
@@ -167,7 +165,7 @@ class PeriodDAOTest {
         addStorePeriod("Past sale", null, Timestamp.valueOf("2026-11-01 00:00:00"), Timestamp.valueOf("2026-11-02 00:00:00"));
         addStorePeriod("Soon sale", null, Timestamp.valueOf("2026-12-01 00:00:00"), Timestamp.valueOf("2026-12-02 00:00:00"));
         addStorePeriod("Long sale", null, Timestamp.valueOf("2026-11-01 00:00:00"), Timestamp.valueOf("2026-12-31 00:00:00"));
-        saveFixtures();
+        testDatabase.saveFixtures();
 
         assertThat(periodDAO.findAllForStore(null, false, NOW))
                 .extracting(Period::getName)
@@ -178,7 +176,7 @@ class PeriodDAOTest {
     void findAllForStorePutsPastPeriodsMostRecentlyEndedFirst() {
         addStorePeriod("Short sale", null, Timestamp.valueOf("2026-11-10 00:00:00"), Timestamp.valueOf("2026-11-12 00:00:00"));
         addStorePeriod("Long sale", null, Timestamp.valueOf("2026-10-01 00:00:00"), Timestamp.valueOf("2026-11-25 00:00:00"));
-        saveFixtures();
+        testDatabase.saveFixtures();
 
         assertThat(periodDAO.findAllForStore(null, false, NOW))
                 .extracting(Period::getName)
@@ -190,7 +188,7 @@ class PeriodDAOTest {
         addStorePeriod("Ending sale", null, Timestamp.valueOf("2026-11-01 00:00:00"), NOW);
         addStorePeriod("Past sale", null, Timestamp.valueOf("2026-10-01 00:00:00"), Timestamp.valueOf("2026-10-02 00:00:00"));
         addStorePeriod("Soon sale", null, Timestamp.valueOf("2026-12-01 00:00:00"), Timestamp.valueOf("2026-12-02 00:00:00"));
-        saveFixtures();
+        testDatabase.saveFixtures();
 
         assertThat(periodDAO.findAllForStore(null, false, NOW))
                 .extracting(Period::getName)

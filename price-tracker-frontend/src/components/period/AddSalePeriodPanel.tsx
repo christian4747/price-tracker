@@ -7,7 +7,8 @@ import dayjs from 'dayjs'
 interface AddSalePeriodPanel {
     store: string
     periodStarted: string
-    periodEnded: string
+    // A period needs an end date, so it can't be saved without one
+    periodEnded: string | null
     // True when the dates can't be saved, such as an end date before the start
     datesInvalid: boolean
 }
@@ -38,9 +39,11 @@ export const AddSalePeriodPanel = ({ store, periodStarted, periodEnded, datesInv
         setOpened(!opened)
     }
 
+    const canSave = !datesInvalid && periodEnded !== null
+
     const savePeriod = () => {
         setSaveTried(true)
-        if (nameBlank) return
+        if (nameBlank || !canSave) return
 
         mutation.mutate(
             {
@@ -103,7 +106,7 @@ export const AddSalePeriodPanel = ({ store, periodStarted, periodEnded, datesInv
                             color="blue.8"
                             className="mt-3"
                             loading={mutation.isPending}
-                            disabled={datesInvalid}
+                            disabled={!canSave}
                             onClick={savePeriod}
                         >
                             Save sale period

@@ -3,8 +3,11 @@ package com.christian4747.pricetracker.controllers;
 import com.christian4747.pricetracker.exceptions.ConflictException;
 import com.christian4747.pricetracker.models.Product;
 import com.christian4747.pricetracker.models.dtos.PriceFilterDTO;
+import com.christian4747.pricetracker.models.dtos.ProductFilterDTO;
 import com.christian4747.pricetracker.services.ProductService;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
@@ -16,6 +19,7 @@ import java.time.Instant;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -83,5 +87,49 @@ public class ProductControllerTest {
 
         PriceFilterDTO expectedFilter = new PriceFilterDTO(null, null, null, null, Instant.parse("2025-11-08T03:00:00Z"), null);
         verify(productService).getAllProductsFiltered(any(), eq(expectedFilter), any());
+    }
+
+    @Test
+    public void getAllProducts_productDatesInIsoFormat_passInstantsToService() throws Exception {
+        // A different moment for each date, so a date passed to the wrong field fails the check
+        mockMvc.perform(get("/products")
+                        .param("startUpdatedAt", "2025-06-01T00:00:00.000Z")
+                        .param("endUpdatedAt", "2025-06-02T00:00:00.000Z")
+                        .param("startCreatedAt", "2025-06-03T00:00:00.000Z")
+                        .param("endCreatedAt", "2025-06-04T00:00:00.000Z")
+                        .param("startDeletedAt", "2025-06-05T00:00:00.000Z")
+                        .param("endDeletedAt", "2025-06-06T00:00:00.000Z"))
+                .andExpect(status().isOk());
+
+        ProductFilterDTO expectedFilter = new ProductFilterDTO(
+                null, null, null, null,
+                Instant.parse("2025-06-01T00:00:00Z"), Instant.parse("2025-06-02T00:00:00Z"),
+                Instant.parse("2025-06-03T00:00:00Z"), Instant.parse("2025-06-04T00:00:00Z"),
+                null,
+                Instant.parse("2025-06-05T00:00:00Z"), Instant.parse("2025-06-06T00:00:00Z")
+        );
+        verify(productService).getAllProductsFiltered(eq(expectedFilter), any(), any());
+    }
+
+    // An empty value is what a cleared date field sends
+    @ParameterizedTest
+    @ValueSource(strings = {"startUpdatedAt", "endUpdatedAt", "startCreatedAt", "endCreatedAt", "startDeletedAt", "endDeletedAt"})
+    public void getAllProducts_emptyProductDate_passNoDateToService(String dateParam) throws Exception {
+        mockMvc.perform(get("/products").param(dateParam, ""))
+                .andExpect(status().isOk());
+
+        ProductFilterDTO expectedFilter = new ProductFilterDTO(null, null, null, null, null, null, null, null, null, null, null);
+        verify(productService).getAllProductsFiltered(eq(expectedFilter), any(), any());
+    }
+
+    // A date without a time zone could only be read in the server's own, so it's rejected rather than guessed at
+    @ParameterizedTest
+    @ValueSource(strings = {"startUpdatedAt", "endUpdatedAt", "startCreatedAt", "endCreatedAt", "startDeletedAt", "endDeletedAt"})
+    public void getAllProducts_productDateInOtherFormat_return400(String dateParam) throws Exception {
+        mockMvc.perform(get("/products").param(dateParam, "2025-06-01 00:00:00"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
+
+        verifyNoInteractions(productService);
     }
 }

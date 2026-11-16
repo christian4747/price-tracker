@@ -24,6 +24,9 @@ class ProductDAOTest {
     @Autowired
     private EntityManager entityManager;
 
+    @Autowired
+    private TestDatabase testDatabase;
+
     private Product addProduct(String store, Timestamp deletedAt) {
         Product product = new Product();
         product.setName("Apple");
@@ -39,25 +42,11 @@ class ProductDAOTest {
         return product;
     }
 
-    /** createdAt is set automatically on insert, so a fixed value has to be written afterwards. */
-    private void setCreatedAt(Product product, Timestamp createdAt) {
-        entityManager.flush();
-        entityManager.createQuery("UPDATE Product p SET p.createdAt = :createdAt WHERE p.productId = :id")
-                .setParameter("createdAt", createdAt)
-                .setParameter("id", product.getProductId())
-                .executeUpdate();
-    }
-
-    private void saveFixtures() {
-        entityManager.flush();
-        entityManager.clear();
-    }
-
     @Test
     void findDistinctStoresLeavesOutDeletedProducts() {
         addProduct("Corner shop", null);
         addProduct("Closed shop", OLDER);
-        saveFixtures();
+        testDatabase.saveFixtures();
 
         assertThat(productDAO.findDistinctStores(FIRST_PAGE).getContent()).containsExactly("Corner shop");
     }
@@ -66,7 +55,7 @@ class ProductDAOTest {
     void findDistinctStoresKeepsAStoreWhoseNewestProductIsDeleted() {
         addProduct("Corner shop", null);
         addProduct("Corner shop", OLDER);
-        saveFixtures();
+        testDatabase.saveFixtures();
 
         assertThat(productDAO.findDistinctStores(FIRST_PAGE).getContent()).containsExactly("Corner shop");
     }
@@ -76,7 +65,7 @@ class ProductDAOTest {
         addProduct("Corner shop", null);
         addProduct("", null);
         addProduct(null, null);
-        saveFixtures();
+        testDatabase.saveFixtures();
 
         assertThat(productDAO.findDistinctStores(FIRST_PAGE).getContent()).containsExactly("Corner shop");
     }
@@ -85,7 +74,7 @@ class ProductDAOTest {
     void findDistinctStoresReturnsEachStoreOnce() {
         addProduct("Corner shop", null);
         addProduct("Corner shop", null);
-        saveFixtures();
+        testDatabase.saveFixtures();
 
         assertThat(productDAO.findDistinctStores(FIRST_PAGE).getContent()).containsExactly("Corner shop");
     }
@@ -94,9 +83,9 @@ class ProductDAOTest {
     void findDistinctStoresPutsRecentlyAddedStoresFirst() {
         Product older = addProduct("Older shop", null);
         Product newer = addProduct("Newer shop", null);
-        setCreatedAt(older, OLDER);
-        setCreatedAt(newer, NEWER);
-        saveFixtures();
+        testDatabase.setCreatedAt(older, OLDER);
+        testDatabase.setCreatedAt(newer, NEWER);
+        testDatabase.saveFixtures();
 
         assertThat(productDAO.findDistinctStores(FIRST_PAGE).getContent()).containsExactly("Newer shop", "Older shop");
     }
@@ -105,9 +94,9 @@ class ProductDAOTest {
     void findDistinctStoresLimitsThePageAndCountsEveryStore() {
         Product older = addProduct("Older shop", null);
         Product newer = addProduct("Newer shop", null);
-        setCreatedAt(older, OLDER);
-        setCreatedAt(newer, NEWER);
-        saveFixtures();
+        testDatabase.setCreatedAt(older, OLDER);
+        testDatabase.setCreatedAt(newer, NEWER);
+        testDatabase.saveFixtures();
 
         Page<String> stores = productDAO.findDistinctStores(PageRequest.of(0, 1));
 
@@ -119,7 +108,7 @@ class ProductDAOTest {
     void findDistinctBrandsLeavesOutDeletedProducts() {
         addBrandedProduct("Acme", null);
         addBrandedProduct("Gone", OLDER);
-        saveFixtures();
+        testDatabase.saveFixtures();
 
         assertThat(productDAO.findDistinctBrands(FIRST_PAGE).getContent()).containsExactly("Acme");
     }
@@ -128,7 +117,7 @@ class ProductDAOTest {
     void findDistinctBrandsKeepsABrandWhoseNewestProductIsDeleted() {
         addBrandedProduct("Acme", null);
         addBrandedProduct("Acme", OLDER);
-        saveFixtures();
+        testDatabase.saveFixtures();
 
         assertThat(productDAO.findDistinctBrands(FIRST_PAGE).getContent()).containsExactly("Acme");
     }
@@ -138,7 +127,7 @@ class ProductDAOTest {
         addBrandedProduct("Acme", null);
         addBrandedProduct("", null);
         addBrandedProduct(null, null);
-        saveFixtures();
+        testDatabase.saveFixtures();
 
         assertThat(productDAO.findDistinctBrands(FIRST_PAGE).getContent()).containsExactly("Acme");
     }
@@ -147,7 +136,7 @@ class ProductDAOTest {
     void findDistinctBrandsReturnsEachBrandOnce() {
         addBrandedProduct("Acme", null);
         addBrandedProduct("Acme", null);
-        saveFixtures();
+        testDatabase.saveFixtures();
 
         assertThat(productDAO.findDistinctBrands(FIRST_PAGE).getContent()).containsExactly("Acme");
     }
@@ -156,9 +145,9 @@ class ProductDAOTest {
     void findDistinctBrandsPutsRecentlyAddedBrandsFirst() {
         Product older = addBrandedProduct("Older brand", null);
         Product newer = addBrandedProduct("Newer brand", null);
-        setCreatedAt(older, OLDER);
-        setCreatedAt(newer, NEWER);
-        saveFixtures();
+        testDatabase.setCreatedAt(older, OLDER);
+        testDatabase.setCreatedAt(newer, NEWER);
+        testDatabase.saveFixtures();
 
         assertThat(productDAO.findDistinctBrands(FIRST_PAGE).getContent()).containsExactly("Newer brand", "Older brand");
     }
@@ -166,7 +155,7 @@ class ProductDAOTest {
     @Test
     void permanentlyDeleteByIdRemovesASoftDeletedProduct() {
         Product product = addProduct("Corner shop", OLDER);
-        saveFixtures();
+        testDatabase.saveFixtures();
 
         int removed = productDAO.permanentlyDeleteById(product.getProductId());
         entityManager.clear();
@@ -178,7 +167,7 @@ class ProductDAOTest {
     @Test
     void permanentlyDeleteByIdLeavesAProductThatIsNotDeleted() {
         Product product = addProduct("Corner shop", null);
-        saveFixtures();
+        testDatabase.saveFixtures();
 
         int removed = productDAO.permanentlyDeleteById(product.getProductId());
         entityManager.clear();

@@ -17,7 +17,7 @@ export const createInitialPriceDTO = (initialPriceDTO: PriceDTO | undefined) => 
             description: '',
             discountAmount: 0,
             discountPercentage: 0,
-            priceEnded: '',
+            priceEnded: null,
             priceStarted: '',
             productId: -1,
             returnAmount: 0,

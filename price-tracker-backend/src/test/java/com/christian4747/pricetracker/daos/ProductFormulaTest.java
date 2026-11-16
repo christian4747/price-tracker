@@ -21,6 +21,9 @@ class ProductFormulaTest {
     @Autowired
     private EntityManager entityManager;
 
+    @Autowired
+    private TestDatabase testDatabase;
+
     private Product addProduct() {
         Product product = new Product();
         product.setName("Apple");
@@ -38,11 +41,6 @@ class ProductFormulaTest {
         return price;
     }
 
-    private void saveFixtures() {
-        entityManager.flush();
-        entityManager.clear();
-    }
-
     /** The formula fields have no getters, so they're read with a query. */
     private <T> T readFormula(Product product, String field, Class<T> type) {
         return entityManager
@@ -56,7 +54,7 @@ class ProductFormulaTest {
         Product product = addProduct();
         addPrice(product, OLDER_PAST, 10, 1);
         addPrice(product, NEWER_PAST, 20, 2);
-        saveFixtures();
+        testDatabase.saveFixtures();
 
         assertThat(readFormula(product, "currentPrice", Double.class)).isEqualTo(20);
     }
@@ -66,7 +64,7 @@ class ProductFormulaTest {
         Product product = addProduct();
         addPrice(product, NEWER_PAST, 20, 2);
         addPrice(product, NEAR_FUTURE, 30, 3);
-        saveFixtures();
+        testDatabase.saveFixtures();
 
         assertThat(readFormula(product, "currentPrice", Double.class)).isEqualTo(20);
     }
@@ -76,7 +74,7 @@ class ProductFormulaTest {
         Product product = addProduct();
         addPrice(product, OLDER_PAST, 10, 1);
         addPrice(addProduct(), NEWER_PAST, 20, 2);
-        saveFixtures();
+        testDatabase.saveFixtures();
 
         assertThat(readFormula(product, "currentPrice", Double.class)).isEqualTo(10);
     }
@@ -86,7 +84,7 @@ class ProductFormulaTest {
         Product product = addProduct();
         addPrice(product, OLDER_PAST, 10, 1);
         addPrice(product, NEWER_PAST, 20, 2).setDeletedAt(NEWER_PAST);
-        saveFixtures();
+        testDatabase.saveFixtures();
 
         assertThat(readFormula(product, "currentPrice", Double.class)).isEqualTo(10);
     }
@@ -97,7 +95,7 @@ class ProductFormulaTest {
         addPrice(product, OLDER_PAST, 10, 1);
         addPrice(product, NEWER_PAST, 20, 2);
         addPrice(product, NEAR_FUTURE, 30, 3);
-        saveFixtures();
+        testDatabase.saveFixtures();
 
         assertThat(readFormula(product, "currentDiscount", Double.class)).isEqualTo(2);
     }
@@ -107,7 +105,7 @@ class ProductFormulaTest {
         Product product = addProduct();
         addPrice(product, OLDER_PAST, 10, 1);
         addPrice(product, NEWER_PAST, 20, 2).setDeletedAt(NEWER_PAST);
-        saveFixtures();
+        testDatabase.saveFixtures();
 
         assertThat(readFormula(product, "currentDiscount", Double.class)).isEqualTo(1);
     }
@@ -118,7 +116,7 @@ class ProductFormulaTest {
         addPrice(product, NEWER_PAST, 20, 2);
         addPrice(product, FAR_FUTURE, 40, 4);
         addPrice(product, NEAR_FUTURE, 30, 3);
-        saveFixtures();
+        testDatabase.saveFixtures();
 
         assertThat(readFormula(product, "timeRemaining", Timestamp.class)).isEqualTo(NEAR_FUTURE);
     }
@@ -128,7 +126,7 @@ class ProductFormulaTest {
         Product product = addProduct();
         addPrice(product, NEAR_FUTURE, 30, 3).setDeletedAt(NEWER_PAST);
         addPrice(product, FAR_FUTURE, 40, 4);
-        saveFixtures();
+        testDatabase.saveFixtures();
 
         assertThat(readFormula(product, "timeRemaining", Timestamp.class)).isEqualTo(FAR_FUTURE);
     }

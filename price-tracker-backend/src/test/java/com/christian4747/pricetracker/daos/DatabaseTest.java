@@ -13,14 +13,14 @@ import java.lang.annotation.Target;
 
 /**
  * Runs a test class against a real Postgres database in a Docker container. These tests only run with the
- * database-tests Maven profile.
+ * database-tests Maven profile. They can autowire {@link TestDatabase} for the shared helpers.
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @ActiveProfiles("test")
-@Import(PostgresContainerConfig.class)
+@Import({PostgresContainerConfig.class, TestDatabase.class})
 @Tag("database")
 public @interface DatabaseTest {
 }

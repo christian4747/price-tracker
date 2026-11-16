@@ -21,8 +21,8 @@ export function useEditPrice(price: PriceType, productId: number) {
             description: price.description,
             discountAmount: price.discountAmount,
             discountPercentage: price.discountPercentage,
-            // The form uses an empty string for no end date, which the backend saves as null
-            priceEnded: price.priceEnded ?? '',
+            // Null for no end date, as the API returns it
+            priceEnded: price.priceEnded,
             priceStarted: price.priceStarted,
             productId,
             returnAmount: price.returnAmount,
