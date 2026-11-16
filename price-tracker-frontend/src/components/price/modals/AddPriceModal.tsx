@@ -6,6 +6,7 @@ import { useIsMutating } from '@tanstack/react-query'
 import { AddPriceForm } from '@/components/price/forms/AddPriceForm'
 import { SaveModal } from '@/components/common/SaveModal'
 import { getAddPriceMutationKey } from '@/hooks/price/useAddPrice'
+import { MdAdd, MdBolt } from 'react-icons/md'
 
 interface AddPriceModal {
     product: ProductType
@@ -15,8 +16,8 @@ interface AddPriceModal {
 }
 
 /**
- * The Add Price or Quick Price button under a product's price list, with the add price modal it opens. Quick Price
- * fills the modal from the price it's given, the product's newest price.
+ * The Add Price or Quick Price button in the footer under a product's price list, with the add price modal it opens.
+ * Quick Price fills the modal from the price it's given, the product's newest price.
  */
 export const AddPriceModal = ({ product, setDateToday, quickAddPrice }: AddPriceModal) => {
     // Track state of modal open/close
@@ -25,7 +26,10 @@ export const AddPriceModal = ({ product, setDateToday, quickAddPrice }: AddPrice
     const saving = useIsMutating({ mutationKey: getAddPriceMutationKey(product.productId) }) > 0
 
     return (
-        <>
+        // One item in the footer's flex line, taking an equal share of it with the other button. The modal goes in a
+        // portal at the end of the page, but without portals (as in tests) it leaves a node beside the button, which
+        // would otherwise take a share of the line's gaps.
+        <div className="flex flex-1">
             <SaveModal pending={saving} opened={opened} onClose={close} title="Add Price" size="lg">
                 <AddPriceForm
                     product={product}
@@ -34,9 +38,20 @@ export const AddPriceModal = ({ product, setDateToday, quickAddPrice }: AddPrice
                     quickAddPrice={quickAddPrice}
                 />
             </SaveModal>
-            <Button className="m-2" onClick={open}>
+            {/* Small, so the footer leaves the list more room. Quick Price is outlined so it reads as the second choice
+                beside the filled Add Price. The icons go when the footer's button line (a container) is under 16rem,
+                where both buttons with icons need more room than it has (about 15.5rem) and would run out of the
+                footer. The labels say what the buttons do, so they stay. */}
+            <Button
+                className="flex-1"
+                classNames={{ section: '@max-[16rem]:hidden' }}
+                size="xs"
+                variant={quickAddPrice ? 'default' : 'filled'}
+                leftSection={quickAddPrice ? <MdBolt size={16} /> : <MdAdd size={16} />}
+                onClick={open}
+            >
                 {quickAddPrice ? 'Quick Price' : 'Add Price'}
             </Button>
-        </>
+        </div>
     )
 }
