@@ -1,5 +1,4 @@
-import { afterEach, beforeEach, describe, expect, onTestFinished } from 'vitest'
-import { page } from 'vitest/browser'
+import { describe, expect, onTestFinished } from 'vitest'
 import {
     cleanup,
     createPrice,
@@ -8,6 +7,7 @@ import {
     renderWithClient,
     screen,
     test,
+    useViewport,
     userEvent,
     waitFor,
     within
@@ -255,30 +255,46 @@ describe('Product Details Time Range', () => {
         expect(requests[0].has('size')).toBe(false)
     })
 
-    test('should show two years of prices in the list and chart after choosing 2 years', async ({ worker }) => {
-        const requests = answerByStartDate(worker)
-        const user = userEvent.setup()
-        renderWithClient(detailsForProduct())
-        await screen.findByText('Sep 1, 2026')
+    describe('in the list and the chart', () => {
+        // Which dates the chart's axis labels depends on its width, since it leaves out labels that don't fit. At this
+        // desktop width the chart is wide enough to label the oldest price in each range, which a narrower one may not.
+        useViewport(1280, 900)
 
-        await user.click(screen.getByText('2 years'))
+        /**
+         * Find a label on the chart itself. Recharts measures each label it might draw with a hidden copy of its text in
+         * the page's body, which keeps the last text measured, so a page-wide search can find a label the chart left out.
+         * @param container The element the details were rendered into
+         * @param text The label's text
+         * @returns The label, once the chart draws it
+         */
+        const findChartLabel = (container: HTMLElement, text: string) =>
+            within(container.querySelector<HTMLElement>('.recharts-wrapper')!).findByText(text)
 
-        await expect.element(await screen.findByText('Mar 1, 2025')).toBeInTheDocument()
-        await expect.element(await screen.findByText('Mar 1, 2025 12:00 PM')).toBeInTheDocument()
-        expect(requests.at(-1)?.get('startDate')).toBe(twoYearsStart)
-    })
+        test('should show two years of prices in the list and chart after choosing 2 years', async ({ worker }) => {
+            const requests = answerByStartDate(worker)
+            const user = userEvent.setup()
+            const { container } = renderWithClient(detailsForProduct())
+            await screen.findByText('Sep 1, 2026')
 
-    test('should show every price after choosing All', async ({ worker }) => {
-        const requests = answerByStartDate(worker)
-        const user = userEvent.setup()
-        renderWithClient(detailsForProduct())
-        await screen.findByText('Sep 1, 2026')
+            await user.click(screen.getByText('2 years'))
 
-        await user.click(screen.getByText('All'))
+            await expect.element(await screen.findByText('Mar 1, 2025')).toBeInTheDocument()
+            await expect.element(await findChartLabel(container, 'Mar 1, 2025 12:00 PM')).toBeInTheDocument()
+            expect(requests.at(-1)?.get('startDate')).toBe(twoYearsStart)
+        })
 
-        await expect.element(await screen.findByText('Jan 1, 2023')).toBeInTheDocument()
-        await expect.element(await screen.findByText('Jan 1, 2023 12:00 PM')).toBeInTheDocument()
-        expect(requests.at(-1)?.has('startDate')).toBe(false)
+        test('should show every price after choosing All', async ({ worker }) => {
+            const requests = answerByStartDate(worker)
+            const user = userEvent.setup()
+            const { container } = renderWithClient(detailsForProduct())
+            await screen.findByText('Sep 1, 2026')
+
+            await user.click(screen.getByText('All'))
+
+            await expect.element(await screen.findByText('Jan 1, 2023')).toBeInTheDocument()
+            await expect.element(await findChartLabel(container, 'Jan 1, 2023 12:00 PM')).toBeInTheDocument()
+            expect(requests.at(-1)?.has('startDate')).toBe(false)
+        })
     })
 
     test('should keep each product to its own time range', async ({ worker }) => {
@@ -324,14 +340,7 @@ describe('Product Details Time Range', () => {
 
 describe('Product Details Layout', () => {
     // Below 1024 px wide the root font drops to 16 px, so use a desktop width to get desktop sizes
-    let defaultViewport = { width: 0, height: 0 }
-    beforeEach(async () => {
-        defaultViewport = { width: window.innerWidth, height: window.innerHeight }
-        await page.viewport(1280, 900)
-    })
-    afterEach(async () => {
-        await page.viewport(defaultViewport.width, defaultViewport.height)
-    })
+    useViewport(1280, 900)
 
     test('should be as tall with many prices as with a few', async ({ worker }) => {
         const { panel: fewPricesPanel } = await renderDetailsWithPrices(worker, createDailyPrices(2))
@@ -560,5 +569,76 @@ describe('Product Details Layout', () => {
                 )
             expect(row.getBoundingClientRect().height).toBeCloseTo(naturalHeight, 1)
         }
+    })
+})
+
+describe('Product Details Phone Layout', () => {
+    // A phone's size, narrower than the chart's and price list's minimum widths side by side
+    useViewport(375, 812)
+
+    /**
+     * Render the details at the phone's full width, as the modal does, with the given prices.
+     * @param worker The test's mock service worker, which serves the prices
+     * @param prices The prices to serve, newest first like the API
+     * @returns The whole panel, and the scrolling list that holds the price rows
+     */
+    const renderPhoneDetailsWithPrices = async (worker: SetupWorker, prices: PriceType[]) => {
+        worker.use(http.get(pricesApiUrl + '/product/:productId', () => HttpResponse.json(prices)))
+        renderWithClient(
+            <div data-testid="details-width">
+                <ProductDetails productBody={productBody} dateToday={new Date()} setDateToday={() => {}} />
+            </div>
+        )
+        const priceList = await screen.findByRole('list', { name: 'Prices' })
+        await within(priceList).findByText('Sep 1, 2026')
+        return { panel: getPanel(), priceList }
+    }
+
+    test('should put the price list under the chart, each the full width', async ({ worker }) => {
+        const { panel, priceList } = await renderPhoneDetailsWithPrices(worker, createDailyPrices(2))
+        // The box around both, inside the panel, which holds the chart and then the price list's column
+        const boxElement = panel.firstElementChild!
+        const box = boxElement.getBoundingClientRect()
+        const chart = boxElement.firstElementChild!.getBoundingClientRect()
+        const columnElement = boxElement.lastElementChild!
+        expect(columnElement).toContainElement(priceList)
+        const column = columnElement.getBoundingClientRect()
+
+        expect(column.top).toBeGreaterThanOrEqual(chart.bottom)
+        // Both span the box, inside its one-pixel border
+        for (const part of [chart, column]) {
+            expect(Math.abs(part.left - (box.left + 1))).toBeLessThan(1)
+            expect(Math.abs(part.right - (box.right - 1))).toBeLessThan(1)
+        }
+    })
+
+    // The divider's line is gone with it, so a plain line keeps the chart and the list apart, as beside each other
+    test('should draw a line between the chart and the price list', async ({ worker }) => {
+        const { priceList } = await renderPhoneDetailsWithPrices(worker, createDailyPrices(2))
+
+        const column = getComputedStyle(priceList.parentElement!.parentElement!)
+        expect(column.borderTopWidth).toBe('1px')
+        expect(column.borderTopStyle).toBe('solid')
+    })
+
+    // Dragging a divider up and down on a phone would fight with scrolling the page
+    test('should leave out the divider between the chart and the price list', async ({ worker }) => {
+        await renderPhoneDetailsWithPrices(worker, createDailyPrices(2))
+
+        expect(screen.queryByRole('separator', { name: 'Resize chart and price list' })).not.toBeInTheDocument()
+    })
+
+    // Nothing beside the list sets its height on a phone, so a long list would otherwise make the details very tall
+    test('should keep the price list the same height with many prices, scrolling for the rest', async ({ worker }) => {
+        const { priceList: fewPricesList } = await renderPhoneDetailsWithPrices(worker, createDailyPrices(2))
+        const fewPricesHeight = fewPricesList.parentElement!.parentElement!.offsetHeight
+        cleanup()
+
+        const { priceList } = await renderPhoneDetailsWithPrices(worker, createDailyPrices(20))
+
+        expect(priceList.parentElement!.parentElement!.offsetHeight).toBe(fewPricesHeight)
+        // Only a scroll container moves; on anything else scrollTop stays at 0
+        priceList.scrollTop = 50
+        expect(priceList.scrollTop).toBe(50)
     })
 })

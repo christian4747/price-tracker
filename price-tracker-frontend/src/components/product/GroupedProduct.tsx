@@ -1,9 +1,12 @@
 import type { ProductBody } from '@/types/product'
-import { Accordion, Box, Combobox, Input, InputBase, useCombobox } from '@mantine/core'
+import { Box, Combobox, Input, InputBase, useCombobox } from '@mantine/core'
+import { useDisclosure } from '@mantine/hooks'
 import { useState } from 'react'
 import { ProductTitleBar } from './ProductTitleBar'
 import { PriceBanner } from '@/components/price/PriceBanner'
 import { ProductDetails } from './ProductDetails'
+import { ProductDetailsModal } from './ProductDetailsModal'
+import { ProductActionsMenu } from './ProductActionsMenu'
 import { ProductRowControl } from './ProductRowControl'
 
 export interface GroupedProduct {
@@ -12,7 +15,11 @@ export interface GroupedProduct {
     setDateToday: (newVal: Date) => void
 }
 
+// A group's row in the list: one product at several stores, showing the selected store's product. Its details open
+// in a modal, with a picker for the store.
 export const GroupedProduct = ({ productBodies, dateToday, setDateToday }: GroupedProduct) => {
+    // Kept here, so it follows the group (its key in the list) when groups are added or removed around it
+    const [detailsOpened, { open: openDetails, close: closeDetails }] = useDisclosure(false)
     // Store picked by the user, if any // TODO: Show store with cheapest price
     const [chosenStore, setChosenStore] = useState<string | undefined>(undefined)
     // Use mantine combobox
@@ -51,20 +58,26 @@ export const GroupedProduct = ({ productBodies, dateToday, setDateToday }: Group
     const otherStoresText =
         otherStoreCount > 0 ? `(+${otherStoreCount} other ${otherStoreCount === 1 ? 'store' : 'stores'})` : undefined
 
-    // ProductTitleBar for each product
-    const productTitleBars = productBodies.map((productBody) => {
-        if (productBody.product.store === selectedStore) {
-            return (
-                <ProductTitleBar
-                    key={productBody.product.productId}
-                    productBody={productBody}
-                    dateToday={dateToday}
-                    setDateToday={setDateToday}
-                    otherStoresText={otherStoresText}
-                />
-            )
-        }
-    })
+    /**
+     * Make the selected store's title bar, for the row and for the details' header.
+     * @param wrap Whether the title bar has room to show the whole title, as in the details' header
+     * @returns The title bar for each product, which is empty for the stores that aren't selected
+     */
+    const renderTitleBars = (wrap: boolean) =>
+        productBodies.map((productBody) => {
+            if (productBody.product.store === selectedStore) {
+                return (
+                    <ProductTitleBar
+                        key={productBody.product.productId}
+                        productBody={productBody}
+                        dateToday={dateToday}
+                        setDateToday={setDateToday}
+                        otherStoresText={otherStoresText}
+                        wrap={wrap}
+                    />
+                )
+            }
+        })
 
     // GroupedProductDescription for each product
     const productDescriptions = productBodies.map((productBody) => {
@@ -116,15 +129,22 @@ export const GroupedProduct = ({ productBodies, dateToday, setDateToday }: Group
 
     return (
         <div className="h-full w-full border-b border-smoke flex flex-col">
-            <ProductRowControl product={selectedProduct}>
+            <ProductRowControl product={selectedProduct} opened={detailsOpened} onOpen={openDetails}>
                 {/* Top content */}
-                {productTitleBars}
+                {renderTitleBars(false)}
             </ProductRowControl>
 
-            <Accordion.Panel>
-                {/* Lower content */}
+            {/* The selected store's details, with the store picker. The header follows the picked store, as the row
+                does, with room to show the whole title. */}
+            <ProductDetailsModal
+                opened={detailsOpened}
+                onClose={closeDetails}
+                header={renderTitleBars(true)}
+                // The window covers the row's own menu, so the picked store's actions come along
+                actions={<ProductActionsMenu product={selectedProduct} />}
+            >
                 {productDescriptions}
-            </Accordion.Panel>
+            </ProductDetailsModal>
         </div>
     )
 }
