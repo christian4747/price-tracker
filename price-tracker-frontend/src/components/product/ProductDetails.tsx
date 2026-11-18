@@ -98,8 +98,9 @@ export const ProductDetails = ({ productBody, dateToday, setDateToday, children 
                         />
                     }
                     // contain-size stops the list's contents from setting its height, so the chart alone sets the
-                    // panel's height and every product's panel matches; the price list scrolls in the room left
-                    endClassName="flex flex-col gap-2 contain-size"
+                    // panel's height and every product's panel matches; the price list scrolls in the room left. No gap,
+                    // so a store picker's divider sits right on top of the list.
+                    endClassName="flex flex-col contain-size"
                     end={
                         <>
                             {children}
