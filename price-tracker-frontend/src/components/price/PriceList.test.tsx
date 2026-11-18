@@ -134,7 +134,9 @@ const renderPriceList = (productBody = createProductBody(product), prices = [pri
         const [checked, setChecked] = useState(false)
 
         return (
-            <div style={{ width }}>
+            // In the app the list sits in a Mantine accordion panel, which sets overflow-wrap: break-word, and the rows
+            // inherit it. That lets the browser split a word that doesn't fit, so the tests get it too.
+            <div style={{ width, overflowWrap: 'break-word' }}>
                 <PriceList
                     productBody={productBody}
                     prices={prices}
@@ -187,6 +189,36 @@ const footerContentBox = () => {
  * @returns The edges of the switch and its label together
  */
 const showDeletedSwitchBox = () => screen.getByRole('switch', { name: 'Show deleted' }).getBoundingClientRect()
+
+/**
+ * Get the lines the browser draws an element's text on, with plain spaces. Each character is measured on its own, and
+ * characters at the same height share a line, so this shows where the text really wraps, even inside a word.
+ * @param element The element whose text to split into lines
+ * @returns Each drawn line's text, from the top, without the spaces at its ends
+ */
+const drawnLinesOf = async (element: Element) => {
+    // The app's Inter font only loads once something uses it, and until then the text is drawn in a narrower fallback
+    // font, which can fit on a line that Inter doesn't. Waiting for it makes the lines the same as in the app, however
+    // early in the run the test is.
+    await document.fonts.load(`${getComputedStyle(element).fontSize} Inter`)
+    const lines = new Map<number, string>()
+    const range = document.createRange()
+    const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT)
+    for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+        const text = node.textContent ?? ''
+        for (let i = 0; i < text.length; i++) {
+            range.setStart(node, i)
+            range.setEnd(node, i + 1)
+            // A space where the text wraps can take no room and have no box, so it's left out with the line's ends
+            const box = range.getClientRects()[0]
+            if (!box) continue
+            const top = Math.round(box.top)
+            lines.set(top, (lines.get(top) ?? '') + text[i])
+        }
+    }
+
+    return [...lines.keys()].sort((a, b) => a - b).map((top) => lines.get(top)!.replace(/\s/g, ' ').trim())
+}
 
 // The product's newest price, with every field Quick Price fills set apart from createPrice's defaults
 const newestPrice = createPrice(3, {
@@ -388,15 +420,46 @@ describe('Price List Component', () => {
         await expect.element(screen.getByText('Sep 4, 2026 9:05 AM')).toBeInTheDocument()
     })
 
-    // Non-breaking spaces hold the date and the time together, so a narrow column can only move the time to its own
-    // line, never split "Sep 4, 2026" or "4:30 PM"
-    test('should only let a date and time break between the date and the time', async () => {
+    // Non-breaking spaces hold "Sep 4" and "4:30 PM" together, so a narrow column can only move the year or the time to
+    // a line of its own
+    test('should only let a date and time break after the comma and between the date and the time', async () => {
         renderPriceList(undefined, [priceOnSep4(2, 16, 30), priceOnSep4(1, 9, 5)])
 
         // getByText treats every kind of space alike, so the exact characters are checked separately: non-breaking
-        // spaces inside the date and the time, and one ordinary space between them
+        // spaces inside "Sep 4" and the time, and ordinary spaces after the comma and before the time
         const date = screen.getByText('Sep 4, 2026 4:30 PM')
-        expect(date.textContent).toBe('Sep 4, 2026 4:30 PM')
+        expect(date.textContent).toBe('Sep\u00a04, 2026 4:30\u00a0PM')
+    })
+
+    test('should only let a date without a time break after the comma', async () => {
+        renderPriceList()
+
+        const date = screen.getByText('Sep 4, 2026')
+        expect(date.textContent).toBe('Sep\u00a04, 2026')
+    })
+
+    // The split beside the chart lets the list go down to 240 px, where the date doesn't fit on one line in a window
+    // above 1024 px, with its 18 px root font. It should wrap after the comma, not partway through the year.
+    test('should move the year to its own line when the list is too narrow for the date', async () => {
+        await useViewportWidth(1280)
+        renderPriceList(undefined, [price1, price2], 240)
+
+        expect(await drawnLinesOf(screen.getByText('Sep 4, 2026'))).toEqual(['Sep 4,', '2026'])
+    })
+
+    // With a time too, the row has the most to fit. Wherever it wraps, each line should hold whole parts: "Sep 4,",
+    // "2026", and "4:30 PM".
+    test('should keep the parts of a date and time whole when the list is too narrow for them', async () => {
+        await useViewportWidth(1280)
+        renderPriceList(undefined, [priceOnSep4(2, 16, 30), priceOnSep4(1, 9, 5)], 240)
+
+        const lines = await drawnLinesOf(screen.getByText('Sep 4, 2026 4:30 PM'))
+        expect(lines.length, 'the date and time wrap').toBeGreaterThan(1)
+        for (const line of lines) {
+            expect(['Sep 4,', 'Sep 4, 2026', '2026', '2026 4:30 PM', '4:30 PM'], `"${line}" is whole parts`).toContain(
+                line
+            )
+        }
     })
 
     test('should not show the start time of a price on a day of its own', async () => {
@@ -551,7 +614,7 @@ describe('Price List Component', () => {
         await expect.element(await screen.findByRole('dialog', { name: 'Add Price' })).toBeInTheDocument()
     })
 
-    // Quick Price copies the latest price, so there's nothing to copy yet
+    // Quick Price copies the newest price that isn't deleted, so there's nothing to copy yet
     test('should not show the Quick Price button for a product without prices', async () => {
         renderPriceList(undefined, [])
 
@@ -587,7 +650,7 @@ describe('Price List Component', () => {
         await waitFor(() => expect(quickPriceFields()).toEqual(newestPriceFields))
     })
 
-    // Deleted prices are in the list while Show deleted prices is on
+    // Deleted prices are in the list while Show deleted is on
     test('should skip deleted prices in Quick Price', async ({ worker }) => {
         const deletedPrice = createPrice(4, {
             amount: 90,

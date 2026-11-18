@@ -60,8 +60,8 @@ const getPriceDateString = (price: PriceType, showTime: boolean) => {
 }
 
 /**
- * Get the same name as getPriceDateString, with the date and the time each held together by non-breaking spaces, so a
- * narrow row can move the time to its own line without splitting either one.
+ * Get the same name as getPriceDateString, with the month and day, and the time, each held together by non-breaking
+ * spaces. A narrow row can then only wrap after the comma, moving the year to the next line, or before the time.
  * @param price The price to name
  * @param showTime Whether another price in the list starts on the same day
  * @returns The formatted start date, with the time when asked for
@@ -73,7 +73,9 @@ const getPriceRowDateString = (price: PriceType, showTime: boolean) => {
      * @returns The text with non-breaking spaces
      */
     const keepTogether = (text: string) => text.replaceAll(' ', ' ')
-    const date = keepTogether(getFormattedDateString(price.priceStarted))
+    // The space after the comma stays ordinary. Without anywhere to wrap, a date too wide for its column would be split
+    // wherever it ran out of room, since the list's accordion panel lets the browser break inside a word.
+    const date = keepTogether(getFormattedDateString(price.priceStarted)).replace(', ', ', ')
     if (!showTime) return date
 
     const time = getLocalDateFromUTC(new Date(price.priceStarted)).format('h:mm A')
@@ -170,7 +172,7 @@ const getPriceChanges = (prices: PriceType[]) => {
 /**
  * Get the price Quick Price fills the add price form from: the newest listed price, which is the top row of the list.
  * The list is already newest first by start date, with prices that start together in the order the backend breaks the
- * tie, so the first price that counts is the newest. Deleted prices (listed while Show deleted prices is on) and
+ * tie, so the first price that counts is the newest. Deleted prices (listed while Show deleted is on) and
  * today's entry (a copy of the price in effect now, starting now) don't count.
  * @param prices The prices in the list, newest first
  * @returns The newest live price, or undefined when every listed price is deleted
