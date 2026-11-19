@@ -230,6 +230,87 @@ class PriceDAOTest {
         assertThat(periods.getTotalElements()).isEqualTo(2);
     }
 
+    /**
+     * Adds a price with the given base amount, and sets when it was added.
+     * @param product The product the price belongs to
+     * @param amount The price's base amount
+     * @param createdAt When the price was added
+     */
+    private void addBaseAmountPrice(Product product, double amount, Timestamp createdAt) {
+        Price price = new Price();
+        price.setProduct(product);
+        price.setAmount(amount);
+        entityManager.persist(price);
+        testDatabase.setCreatedAt(price, createdAt);
+    }
+
+    /**
+     * Adds a price with the given currency, and sets when it was added.
+     * @param product The product the price belongs to
+     * @param currency The price's currency
+     * @param createdAt When the price was added
+     */
+    private void addCurrencyPrice(Product product, String currency, Timestamp createdAt) {
+        Price price = new Price();
+        price.setProduct(product);
+        price.setCurrency(currency);
+        entityManager.persist(price);
+        testDatabase.setCreatedAt(price, createdAt);
+    }
+
+    /**
+     * The amounts are neither added nor valued in the expected order, so only sorting by when each was added, newest
+     * first, passes.
+     */
+    @Test
+    void findDistinctBaseAmountsPutsRecentlyAddedAmountsFirst() {
+        Product product = addProduct();
+        addBaseAmountPrice(product, 5, THREE_YEARS_AGO);
+        addBaseAmountPrice(product, 10, TWO_YEARS_AGO);
+        addBaseAmountPrice(product, 7, ONE_YEAR_AGO);
+        testDatabase.saveFixtures();
+
+        List<Double> amounts = priceDAO.findDistinctBaseAmounts(FIRST_PAGE, product.getProductId()).getContent();
+
+        assertThat(amounts).containsExactly(7.0, 10.0, 5.0);
+    }
+
+    /**
+     * With more amounts than fit on a page, the oldest is the one left out, so a recent amount is never cut off. The
+     * oldest is added first, so a list in the order the prices were added would keep it and drop the newest instead.
+     */
+    @Test
+    void findDistinctBaseAmountsKeepsTheNewestAmountsWhenThereAreMoreThanAPage() {
+        Product product = addProduct();
+        // Amounts 1 to 21, each added a day after the one before, so amount 1 is the oldest
+        for (int amount = 1; amount <= 21; amount++) {
+            Timestamp createdAt = Timestamp.valueOf(THREE_YEARS_AGO.toLocalDateTime().plusDays(amount));
+            addBaseAmountPrice(product, amount, createdAt);
+        }
+        testDatabase.saveFixtures();
+
+        List<Double> amounts = priceDAO.findDistinctBaseAmounts(FIRST_PAGE, product.getProductId()).getContent();
+
+        assertThat(amounts).hasSize(20).doesNotContain(1.0).startsWith(21.0);
+    }
+
+    /**
+     * The currencies are neither added nor named in the expected order, so only sorting by when each was added, newest
+     * first, passes.
+     */
+    @Test
+    void findDistinctCurrencyPutsRecentlyAddedCurrenciesFirst() {
+        Product product = addProduct();
+        addCurrencyPrice(product, "EUR", THREE_YEARS_AGO);
+        addCurrencyPrice(product, "USD", TWO_YEARS_AGO);
+        addCurrencyPrice(product, "JPY", ONE_YEAR_AGO);
+        testDatabase.saveFixtures();
+
+        List<String> currencies = priceDAO.findDistinctCurrency(FIRST_PAGE).getContent();
+
+        assertThat(currencies).containsExactly("JPY", "USD", "EUR");
+    }
+
     private Product addStoreProduct(String store) {
         Product product = addProduct();
         product.setStore(store);
