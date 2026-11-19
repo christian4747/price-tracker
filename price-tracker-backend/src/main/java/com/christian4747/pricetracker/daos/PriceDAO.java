@@ -69,17 +69,17 @@ public interface PriceDAO extends JpaRepository<Price, Integer>, JpaSpecificatio
      * Gets a distinct list of recently added non-deleted Price base amounts for the given product ID.
      * @param pageable Pagination settings
      * @param productId Product to fetch base amounts for
-     * @return A distinct list of recently added Price base amounts for the given product ID (default 20)
+     * @return A distinct list of recently added Price base amounts for the given product ID, newest first (default 20)
      */
-    @Query(value = "SELECT p.amount FROM Price p WHERE p.priceId IN (SELECT MAX(p.priceId) FROM Price p WHERE p.deletedAt IS NULL AND p.product.productId = :productId GROUP BY p.amount)")
+    @Query(value = "SELECT p.amount FROM Price p WHERE p.priceId IN (SELECT MAX(p.priceId) FROM Price p WHERE p.deletedAt IS NULL AND p.product.productId = :productId GROUP BY p.amount) ORDER BY p.createdAt DESC")
     Page<Double> findDistinctBaseAmounts(Pageable pageable, Integer productId);
 
     /**
      * Gets a distinct list of recently added non-deleted Price currencies.
      * @param pageable Pagination settings
-     * @return A distinct list of recently added Price currencies (default 20)
+     * @return A distinct list of recently added Price currencies, newest first (default 20)
      */
-    @Query(value = "SELECT p.currency FROM Price p WHERE p.priceId IN (SELECT MAX(p.priceId) FROM Price p WHERE p.currency <> '' AND p.deletedAt IS NULL GROUP BY p.currency)")
+    @Query(value = "SELECT p.currency FROM Price p WHERE p.priceId IN (SELECT MAX(p.priceId) FROM Price p WHERE p.currency <> '' AND p.deletedAt IS NULL GROUP BY p.currency) ORDER BY p.createdAt DESC")
     Page<String> findDistinctCurrency(Pageable pageable);
 
     /**
