@@ -17,6 +17,8 @@ import com.christian4747.pricetracker.models.dtos.ResponseAndCount;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentMatchers;
 import org.mockito.InOrder;
 import org.mockito.InjectMocks;
@@ -35,6 +37,7 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -45,6 +48,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -365,6 +369,85 @@ public class ProductServiceTest {
         verify(productDAO).findAll(ArgumentMatchers.<Specification<Product>>any(), eq(PageRequest.of(2, 10, expectedSort)));
     }
 
+    /**
+     * A field Product doesn't have is rejected with a message naming it, instead of failing inside the query.
+     */
+    @Test
+    public void getAllProductsFiltered_unknownSortField_throwException() {
+        expectRejectedSort(Sort.by("nope"), "nope", this::getPlainList);
+    }
+
+    /**
+     * Prices is a list of records, so it has no single value to sort products by.
+     */
+    @Test
+    public void getAllProductsFiltered_listSortField_throwException() {
+        expectRejectedSort(Sort.by("prices"), "prices", this::getPlainList);
+    }
+
+    /**
+     * Only Product's own fields are allowed, not a part of one. Spring Data finds 'createdAt.time' through Timestamp's
+     * getTime(), but the query can't sort by it. A single-value field is used so the list rule can't reject it first.
+     */
+    @Test
+    public void getAllProductsFiltered_nestedSortField_throwException() {
+        expectRejectedSort(Sort.by("createdAt.time"), "createdAt.time", this::getPlainList);
+    }
+
+    /**
+     * Every field is checked, not only the first, since a request can sort by several.
+     */
+    @Test
+    public void getAllProductsFiltered_unknownSortFieldAfterAValidOne_throwException() {
+        expectRejectedSort(Sort.by("name", "nope"), "nope", this::getPlainList);
+    }
+
+    /**
+     * Each field the sort menu offers still reaches the query.
+     * @param field A sort field from the frontend's sort menu
+     */
+    @ParameterizedTest
+    @ValueSource(strings = {"name", "brand", "store", "currentPrice", "currentDiscount", "createdAt", "updatedAt", "timeRemaining"})
+    public void getAllProductsFiltered_sortMenuField_queriesWithThatSort(String field) {
+        when(productDAO.findAll(ArgumentMatchers.<Specification<Product>>any(), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of()));
+
+        getPlainList(Sort.by(field));
+
+        verify(productDAO).findAll(ArgumentMatchers.<Specification<Product>>any(),
+                ArgumentMatchers.<Pageable>argThat(pageable -> pageable.getSort().getOrderFor(field) != null));
+    }
+
+    /**
+     * Requests the first page of the plain list with the given sort.
+     * @param sort The sort to request
+     */
+    private void getPlainList(Sort sort) {
+        productService.getAllProductsFiltered(productFilterDTO, priceFilterDTO, PageRequest.of(0, 10, sort));
+    }
+
+    /**
+     * Requests the first page of the grouped list with the given sort.
+     * @param sort The sort to request
+     */
+    private void getGroupedList(Sort sort) {
+        productService.getProductsGroupedByName(productFilterDTO, priceFilterDTO, PageRequest.of(0, 10, sort), "name");
+    }
+
+    /**
+     * Requests a list with the given sort, and checks it's rejected with a message naming the field, before any query
+     * runs.
+     * @param sort The sort to request
+     * @param rejectedField The field the message should name
+     * @param getList Requests one of the two lists with a sort
+     */
+    private void expectRejectedSort(Sort sort, String rejectedField, Consumer<Sort> getList) {
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> getList.accept(sort));
+
+        assertEquals("Can't sort by '" + rejectedField + "'!", exception.getMessage());
+        verifyNoInteractions(productDAO);
+    }
+
     @Test
     public void getProductById_nonExistentProduct_throwException() {
         when(productDAO.findById(anyInt())).thenReturn(Optional.empty());
@@ -665,6 +748,39 @@ public class ProductServiceTest {
     @Test
     public void getProductById_noPricesInLastYearAndNotAtTwoYearLow_noCategory() {
         assertEquals("", getCategory(30, null, 20.0, 10.0));
+    }
+
+    /**
+     * The grouped list rejects a field Product doesn't have in the same way as the plain list.
+     */
+    @Test
+    public void getProductsGroupedByName_unknownSortField_throwException() {
+        expectRejectedSort(Sort.by("nope"), "nope", this::getGroupedList);
+    }
+
+    /**
+     * The grouped list rejects the list of prices in the same way as the plain list.
+     */
+    @Test
+    public void getProductsGroupedByName_listSortField_throwException() {
+        expectRejectedSort(Sort.by("prices"), "prices", this::getGroupedList);
+    }
+
+    /**
+     * Each field the sort menu offers still reaches the names query.
+     * @param field A sort field from the frontend's sort menu
+     */
+    @ParameterizedTest
+    @ValueSource(strings = {"name", "brand", "store", "currentPrice", "currentDiscount", "createdAt", "updatedAt", "timeRemaining"})
+    public void getProductsGroupedByName_sortMenuField_queriesWithThatSort(String field) {
+        when(productDAO.findDistinctNames(ArgumentMatchers.<Specification<Product>>any(), any(Pageable.class)))
+                .thenReturn(Page.empty());
+        when(productDAO.findAll(ArgumentMatchers.<Specification<Product>>any(), any(Sort.class))).thenReturn(List.of());
+
+        getGroupedList(Sort.by(field));
+
+        verify(productDAO).findDistinctNames(ArgumentMatchers.<Specification<Product>>any(),
+                ArgumentMatchers.<Pageable>argThat(pageable -> pageable.getSort().getOrderFor(field) != null));
     }
 
     @Test
