@@ -18,6 +18,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.core.PropertyPath;
+import org.springframework.data.core.PropertyReferenceException;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -224,6 +226,8 @@ public class ProductService {
      * @return All products with applied pagination and filter details
      */
     public ResponseAndCount<OutgoingProductDTO> getAllProductsFiltered(ProductFilterDTO productFilterDTO, PriceFilterDTO priceFilterDTO, Pageable pageable) {
+        checkSortFields(pageable.getSort());
+
         Specification<Product> productSpecification = ProductSpecification
                 .filterProductBy(productFilterDTO)
                 .and(ProductSpecification.filterProductPriceBy(priceFilterDTO));
@@ -234,6 +238,38 @@ public class ProductService {
                 productList.stream().map(this::getProductWithPriceToday).toList();
 
         return new ResponseAndCount<>(productsWithDateToday, productPage.getTotalElements());
+    }
+
+    /**
+     * Checks that each field in the given sort is one of Product's own fields that holds a single value.
+     * Without this, an unknown field fails inside the query as a 500, and the list of prices sorts each product by one
+     * of its prices.
+     * @param sort The requested sort
+     * @throws IllegalArgumentException If a field can't be sorted on, naming the first such field
+     */
+    private static void checkSortFields(Sort sort) {
+        for (Sort.Order order : sort) {
+            if (!isSortableField(order.getProperty())) {
+                throw new IllegalArgumentException("Can't sort by '" + order.getProperty() + "'!");
+            }
+        }
+    }
+
+    /**
+     * Checks whether products can be sorted by the given field.
+     * @param field The field name from the request
+     * @return Whether the field is one of Product's own fields and holds a single value
+     */
+    private static boolean isSortableField(String field) {
+        try {
+            // Spring Data reads sort fields the same way, so this accepts exactly the fields it can find
+            PropertyPath path = PropertyPath.from(field, Product.class);
+            // A path with a next part reaches into a related record, such as 'prices.amount'
+            return !path.hasNext() && !path.isCollection();
+        } catch (PropertyReferenceException exception) {
+            // Product has no field by that name
+            return false;
+        }
     }
 
     /**
@@ -272,6 +308,8 @@ public class ProductService {
      * @return A list of ProductNameGroupDTO
      */
     public ResponseAndCount<ProductNameGroupDTO> getProductsGroupedByName(ProductFilterDTO productFilterDTO, PriceFilterDTO priceFilterDTO, Pageable pageable, String groupBy) {
+        checkSortFields(pageable.getSort());
+
         Specification<Product> filterSpecification = ProductSpecification
                 .filterProductBy(productFilterDTO)
                 .and(ProductSpecification.filterProductPriceBy(priceFilterDTO));
