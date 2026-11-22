@@ -17,7 +17,7 @@ export const Product = ({ productBody, dateToday, setDateToday, value }: Product
             <div className="h-full w-full border-b border-smoke flex flex-col">
                 <ProductRowControl product={productBody.product}>
                     {/* Top content */}
-                    <ProductTitleBar productBody={productBody} dateToday={dateToday} setDateToday={setDateToday} />
+                    <ProductTitleBar productBody={productBody} setDateToday={setDateToday} />
                 </ProductRowControl>
 
                 <Accordion.Panel>

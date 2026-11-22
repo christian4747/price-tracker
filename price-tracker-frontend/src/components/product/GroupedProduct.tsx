@@ -42,7 +42,7 @@ export const GroupedProduct = ({ productBodies, dateToday, setDateToday }: Group
             className="flex items-center gap-2"
         >
             {productBody.product.store}
-            <PriceBanner productBody={productBody} dateToday={dateToday} setDateToday={setDateToday} mini />
+            <PriceBanner productBody={productBody} setDateToday={setDateToday} mini />
         </Combobox.Option>
     ))
 
@@ -58,7 +58,6 @@ export const GroupedProduct = ({ productBodies, dateToday, setDateToday }: Group
                 <ProductTitleBar
                     key={productBody.product.productId}
                     productBody={productBody}
-                    dateToday={dateToday}
                     setDateToday={setDateToday}
                     otherStoresText={otherStoresText}
                 />
