@@ -30,6 +30,9 @@ import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.christian4747.pricetracker.utils.TextUtils.nullSafeStrip;
+import static com.christian4747.pricetracker.utils.TextUtils.stripToNull;
+
 @Service
 public class ProductService {
 
@@ -60,11 +63,13 @@ public class ProductService {
         String store = productDTO.getStore().strip();
         checkForDuplicate(name, store, null);
 
+        // The brand is stripped too, since the brand suggestions group by exact text, and so is the link, so a pasted
+        // link with a space after it still opens cleanly
         Product newProduct = new Product(
                 0,
                 stripToNull(productDTO.getBrand()),
                 name,
-                productDTO.getLink(),
+                nullSafeStrip(productDTO.getLink()),
                 store,
                 true,
                 null,
@@ -211,17 +216,6 @@ public class ProductService {
             logger.info("Attempted to save a Product without a store: {}", productDTO.getName());
             throw new IllegalArgumentException("Store is required!");
         }
-    }
-
-    /**
-     * Strips spaces from both ends of a value, and converts a blank value to null. Stripping keeps a brand with stray
-     * spaces from showing up twice in the brand suggestions, and null sorts with the other empty values instead of
-     * before them.
-     * @param value The value to strip
-     * @return Null if the value is blank, otherwise the value without spaces at either end
-     */
-    private String stripToNull(String value) {
-        return value == null || value.isBlank() ? null : value.strip();
     }
 
     /**
@@ -583,7 +577,7 @@ public class ProductService {
 
         productToUpdate.setBrand(stripToNull(productDTO.getBrand()));
         productToUpdate.setName(name);
-        productToUpdate.setLink(productDTO.getLink());
+        productToUpdate.setLink(nullSafeStrip(productDTO.getLink()));
         productToUpdate.setStore(store);
         productToUpdate.setActive(productDTO.isActive());
 

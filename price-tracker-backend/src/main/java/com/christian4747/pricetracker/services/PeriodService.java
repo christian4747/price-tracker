@@ -22,6 +22,8 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
+import static com.christian4747.pricetracker.utils.TextUtils.stripToNull;
+
 @Service
 public class PeriodService {
 
@@ -44,7 +46,8 @@ public class PeriodService {
      * @return A list of the store's Periods
      */
     public List<Period> getPeriods(String store, Boolean showDeleted) {
-        return periodDAO.findAllForStore(nullIfBlank(store), showDeleted, Timestamp.from(Instant.now()));
+        // Stored stores are stripped, so the store looked up is stripped too
+        return periodDAO.findAllForStore(stripToNull(store), showDeleted, Timestamp.from(Instant.now()));
     }
 
     /**
@@ -76,7 +79,9 @@ public class PeriodService {
         checkRequiredFields(periodDTO);
         checkDates(periodDTO);
         String name = periodDTO.getName().strip();
-        String store = nullIfBlank(periodDTO.getStore());
+        // A Period's Prices are found by comparing its store exactly with each Product's store, and Product stores are
+        // saved stripped, so a store with stray spaces would match no Prices
+        String store = stripToNull(periodDTO.getStore());
         checkForDuplicateName(name, null);
 
         Period newPeriod = new Period(
@@ -109,7 +114,7 @@ public class PeriodService {
         checkRequiredFields(periodDTO);
         checkDates(periodDTO);
         String name = periodDTO.getName().strip();
-        String store = nullIfBlank(periodDTO.getStore());
+        String store = stripToNull(periodDTO.getStore());
         checkForDuplicateName(name, periodId);
 
         periodToUpdate.setName(name);
@@ -246,14 +251,5 @@ public class PeriodService {
             throw new ConflictException("A deleted period has this name. Restore it instead!");
         }
         throw new ConflictException("A period with this name already exists!");
-    }
-
-    /**
-     * Converts a blank value to null, so a blank store means all stores.
-     * @param value The value to check
-     * @return Null if the value is blank, otherwise the value
-     */
-    private String nullIfBlank(String value) {
-        return value == null || value.isBlank() ? null : value;
     }
 }

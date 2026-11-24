@@ -125,6 +125,17 @@ public class PeriodServiceTest {
         verify(periodDAO).findAllForStore(isNull(), eq(false), any());
     }
 
+    /**
+     * Product stores are saved trimmed, so a store with stray spaces is looked up without them, or it would find
+     * nothing.
+     */
+    @Test
+    public void getPeriods_storeWithSurroundingSpaces_passTrimmedStore() {
+        periodService.getPeriods(" Corner shop  ", false);
+
+        verify(periodDAO).findAllForStore(eq("Corner shop"), eq(false), any());
+    }
+
     @Test
     public void getPeriods_showDeleted_passShowDeletedToDAO() {
         periodService.getPeriods("Corner shop", true);
@@ -279,6 +290,20 @@ public class PeriodServiceTest {
         verify(periodDAO).save(argThat(period -> "Store".equals(period.getStore())));
     }
 
+    /**
+     * A period's prices are found by comparing its store exactly with each product's store, and product stores are
+     * saved trimmed, so a period's store must be too or it would match no prices.
+     */
+    @Test
+    public void addPeriod_storeWithSurroundingSpaces_saveTrimmedStore() {
+        periodDTO.setStore(" Store  ");
+        saveReturnsThePeriod();
+
+        periodService.addPeriod(periodDTO);
+
+        verify(periodDAO).save(argThat(period -> "Store".equals(period.getStore())));
+    }
+
     @Test
     public void addPeriod_blankStore_saveNullStore() {
         periodDTO.setStore("  ");
@@ -390,6 +415,20 @@ public class PeriodServiceTest {
     public void updatePeriod_store_saveStore() {
         storePeriod(null, null);
         periodDTO.setStore("Store");
+        saveReturnsThePeriod();
+
+        periodService.updatePeriod(1, periodDTO);
+
+        verify(periodDAO).save(argThat(period -> "Store".equals(period.getStore())));
+    }
+
+    /**
+     * Editing trims the store the same way adding does, so an edit can't leave a period matching no prices.
+     */
+    @Test
+    public void updatePeriod_storeWithSurroundingSpaces_saveTrimmedStore() {
+        storePeriod(null, null);
+        periodDTO.setStore(" Store  ");
         saveReturnsThePeriod();
 
         periodService.updatePeriod(1, periodDTO);

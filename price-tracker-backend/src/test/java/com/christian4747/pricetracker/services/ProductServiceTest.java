@@ -246,6 +246,19 @@ public class ProductServiceTest {
         verify(productDAO).save(argThat(product -> "Brand".equals(product.getBrand())));
     }
 
+    /**
+     * A link pasted with a space after it is trimmed before saving, so the saved link opens cleanly.
+     */
+    @Test
+    public void addProduct_paddedLink_saveTrimmedLink() {
+        productDTO.setLink(" https://example.com/product  ");
+        when(productDAO.save(any())).thenReturn(addedProduct);
+
+        productService.addProduct(productDTO);
+
+        verify(productDAO).save(argThat(product -> "https://example.com/product".equals(product.getLink())));
+    }
+
     @Test
     public void getRecentBrands_twoBrands_returnTwoBrands() {
         Page<String> brandPage = new PageImpl<>(List.of("Brand2", "Brand"));
@@ -979,6 +992,20 @@ public class ProductServiceTest {
                 assertThrows(ConflictException.class, () -> productService.updateProduct(1, productDTO));
         assertEquals("Product already exists!", exception.getMessage());
         verify(productDAO, never()).save(any());
+    }
+
+    /**
+     * Editing trims the link the same way adding does, so an edit can't bring stray spaces back.
+     */
+    @Test
+    public void updateProduct_paddedLink_saveTrimmedLink() {
+        productDTO.setLink(" https://example.com/product  ");
+        when(productDAO.findById(anyInt())).thenReturn(Optional.of(addedProduct));
+        when(productDAO.save(any())).thenReturn(addedProduct);
+
+        productService.updateProduct(1, productDTO);
+
+        verify(productDAO).save(argThat(product -> "https://example.com/product".equals(product.getLink())));
     }
 
     /**
