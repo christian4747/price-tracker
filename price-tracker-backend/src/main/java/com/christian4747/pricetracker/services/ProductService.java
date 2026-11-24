@@ -54,14 +54,18 @@ public class ProductService {
      */
     public Product addProduct(IncomingProductDTO productDTO) {
         checkRequiredFields(productDTO);
-        checkForDuplicate(productDTO.getName(), productDTO.getStore(), null);
+        // Spaces at either end are invisible in the app, so drop them before checking for duplicates and saving.
+        // strip() also drops full-width spaces, the same spaces the blank check above ignores.
+        String name = productDTO.getName().strip();
+        String store = productDTO.getStore().strip();
+        checkForDuplicate(name, store, null);
 
         Product newProduct = new Product(
                 0,
-                nullIfBlank(productDTO.getBrand()),
-                productDTO.getName(),
+                stripToNull(productDTO.getBrand()),
+                name,
                 productDTO.getLink(),
-                productDTO.getStore(),
+                store,
                 true,
                 null,
                 null,
@@ -210,12 +214,14 @@ public class ProductService {
     }
 
     /**
-     * Converts a blank value to null, so it sorts with the other empty values instead of before them.
-     * @param value The value to check
-     * @return Null if the value is blank, otherwise the value
+     * Strips spaces from both ends of a value, and converts a blank value to null. Stripping keeps a brand with stray
+     * spaces from showing up twice in the brand suggestions, and null sorts with the other empty values instead of
+     * before them.
+     * @param value The value to strip
+     * @return Null if the value is blank, otherwise the value without spaces at either end
      */
-    private String nullIfBlank(String value) {
-        return value == null || value.isBlank() ? null : value;
+    private String stripToNull(String value) {
+        return value == null || value.isBlank() ? null : value.strip();
     }
 
     /**
@@ -568,14 +574,17 @@ public class ProductService {
         }
 
         checkRequiredFields(productDTO);
-        checkForDuplicate(productDTO.getName(), productDTO.getStore(), productId);
+        // Trimmed the same way as when adding, so an edit can't bring stray spaces back
+        String name = productDTO.getName().strip();
+        String store = productDTO.getStore().strip();
+        checkForDuplicate(name, store, productId);
 
         Product productToUpdate = existingProduct.get();
 
-        productToUpdate.setBrand(nullIfBlank(productDTO.getBrand()));
-        productToUpdate.setName(productDTO.getName());
+        productToUpdate.setBrand(stripToNull(productDTO.getBrand()));
+        productToUpdate.setName(name);
         productToUpdate.setLink(productDTO.getLink());
-        productToUpdate.setStore(productDTO.getStore());
+        productToUpdate.setStore(store);
         productToUpdate.setActive(productDTO.isActive());
 
         Product savedProduct = productDAO.save(productToUpdate);
