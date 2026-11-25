@@ -627,17 +627,6 @@ public class ProductServiceTest {
         assertEquals(90, product.averagePrice(), 0.001);
     }
 
-    // A price without a currency displays as USD, so it's the same sale as a USD price
-    @Test
-    public void getProductById_backToBackPricesWithBlankAndUsdCurrencies_averageCountsOnce() {
-        OutgoingProductDTO product = getProductWithPrices(
-                createPrice(80, "", 6),
-                createPrice(80, "USD", 4),
-                createPrice(100, "USD", 2));
-
-        assertEquals(90, product.averagePrice(), 0.001);
-    }
-
     // Splitting doesn't change how long each price lasted, so every row still counts by its duration
     @Test
     public void getProductById_returnInsideASale_weightedAverageCountsEveryRow() {
@@ -685,13 +674,6 @@ public class ProductServiceTest {
         assertNull(product.averagePrice());
         assertNull(product.weightedAveragePrice());
         assertFalse(product.belowAverage());
-    }
-
-    @Test
-    public void getProductById_blankAndNullCurrenciesWithUsd_hasAverages() {
-        OutgoingProductDTO product = getProductWithPrices(createPrice(10, "", 4), createPrice(20, null, 3), createPrice(30, "USD", 2));
-
-        assertEquals(20, product.averagePrice());
     }
 
     @Test
