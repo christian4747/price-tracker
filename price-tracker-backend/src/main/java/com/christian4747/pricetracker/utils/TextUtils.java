@@ -11,8 +11,9 @@ public final class TextUtils {
     }
 
     /**
-     * Strips spaces from both ends of a value, and converts a blank value to null. Null keeps an empty optional value,
-     * such as a brand or a Period's store, together with the other empty values when sorting and matching.
+     * Strips spaces from both ends of a value, and converts a blank value to null. Null is used for blank values so
+     * every empty optional field is the same: a Product with no brand sorts with the other Products without a brand,
+     * and a Period with no store applies to every store.
      * @param value The value to strip
      * @return Null if the value is null or blank, otherwise the value without spaces at either end
      */
