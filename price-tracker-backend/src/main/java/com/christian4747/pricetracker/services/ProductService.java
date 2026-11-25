@@ -30,6 +30,9 @@ import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.christian4747.pricetracker.utils.TextUtils.nullSafeStrip;
+import static com.christian4747.pricetracker.utils.TextUtils.stripToNull;
+
 @Service
 public class ProductService {
 
@@ -54,14 +57,20 @@ public class ProductService {
      */
     public Product addProduct(IncomingProductDTO productDTO) {
         checkRequiredFields(productDTO);
-        checkForDuplicate(productDTO.getName(), productDTO.getStore(), null);
+        // Spaces at either end are invisible in the app, so drop them before checking for duplicates and saving.
+        // strip() also drops full-width spaces, the same spaces the blank check above ignores.
+        String name = productDTO.getName().strip();
+        String store = productDTO.getStore().strip();
+        checkForDuplicate(name, store, null);
 
+        // The brand is stripped too, since the brand suggestions group by exact text, and so is the link, so a pasted
+        // link with a space after it still opens cleanly
         Product newProduct = new Product(
                 0,
-                nullIfBlank(productDTO.getBrand()),
-                productDTO.getName(),
-                productDTO.getLink(),
-                productDTO.getStore(),
+                stripToNull(productDTO.getBrand()),
+                name,
+                nullSafeStrip(productDTO.getLink()),
+                store,
                 true,
                 null,
                 null,
@@ -207,15 +216,6 @@ public class ProductService {
             logger.info("Attempted to save a Product without a store: {}", productDTO.getName());
             throw new IllegalArgumentException("Store is required!");
         }
-    }
-
-    /**
-     * Converts a blank value to null, so it sorts with the other empty values instead of before them.
-     * @param value The value to check
-     * @return Null if the value is blank, otherwise the value
-     */
-    private String nullIfBlank(String value) {
-        return value == null || value.isBlank() ? null : value;
     }
 
     /**
@@ -568,14 +568,17 @@ public class ProductService {
         }
 
         checkRequiredFields(productDTO);
-        checkForDuplicate(productDTO.getName(), productDTO.getStore(), productId);
+        // Trimmed the same way as when adding, so an edit can't bring stray spaces back
+        String name = productDTO.getName().strip();
+        String store = productDTO.getStore().strip();
+        checkForDuplicate(name, store, productId);
 
         Product productToUpdate = existingProduct.get();
 
-        productToUpdate.setBrand(nullIfBlank(productDTO.getBrand()));
-        productToUpdate.setName(productDTO.getName());
-        productToUpdate.setLink(productDTO.getLink());
-        productToUpdate.setStore(productDTO.getStore());
+        productToUpdate.setBrand(stripToNull(productDTO.getBrand()));
+        productToUpdate.setName(name);
+        productToUpdate.setLink(nullSafeStrip(productDTO.getLink()));
+        productToUpdate.setStore(store);
         productToUpdate.setActive(productDTO.isActive());
 
         Product savedProduct = productDAO.save(productToUpdate);
