@@ -1,15 +1,23 @@
 import { usePriceData } from '@/hooks/price/usePriceData'
 import type { PriceTimeRange, PriceType } from '@/types/price'
+import { getDefaultCurrency } from '@/utils/currencyUtils'
 import { getPriceChartScale, getPriceChartTickString } from '@/utils/priceChartScale'
 import { PRICE_TIME_RANGE_OPTIONS } from '@/utils/priceTimeRange'
 import { LineChart, type ChartTooltipProps } from '@mantine/charts'
 import { Paper, SegmentedControl, Text } from '@mantine/core'
 
+/**
+ * Get an amount in the given currency for the chart. A currency that isn't a three-letter code, such as "$", can't be
+ * formatted and throws, so the amount falls back to the default currency instead.
+ * @param amount The amount to format
+ * @param currency The currency to format it with
+ * @returns The formatted amount
+ */
 const getPriceWithCurrency = (amount: number, currency: string) => {
     try {
         return new Intl.NumberFormat(undefined, { style: 'currency', currency: currency }).format(amount)
     } catch {
-        return new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD' }).format(amount)
+        return new Intl.NumberFormat(undefined, { style: 'currency', currency: getDefaultCurrency() }).format(amount)
     }
 }
 

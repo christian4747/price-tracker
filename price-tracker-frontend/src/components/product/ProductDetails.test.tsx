@@ -138,6 +138,16 @@ const serveDeletedPriceWhenAsked = () =>
         return HttpResponse.json(showDeleted ? [livePrice, deletedPrice] : [livePrice])
     })
 
+/**
+ * Get the labels of the chart's price scale, as drawn.
+ * @param panel The details panel the chart is in
+ * @returns The text of each label, or an empty list before the chart has drawn its scale
+ */
+const getChartScaleLabels = (panel: HTMLElement) =>
+    [...panel.querySelectorAll('.recharts-yAxis-tick-labels .recharts-cartesian-axis-tick-value')].map(
+        (label) => label.textContent ?? ''
+    )
+
 describe('Product Details Component', () => {
     test('should render product prices', async () => {
         renderWithClient(<ProductDetails productBody={productBody} dateToday={new Date()} setDateToday={() => {}} />)
@@ -319,6 +329,19 @@ describe('Product Details Time Range', () => {
 
         expect(screen.getByText('Average $15.00')).toBeInTheDocument()
         expect(screen.queryByText('Average $17.50')).not.toBeInTheDocument()
+    })
+})
+
+describe('Product Details Currency', () => {
+    // Before any price has started there's no price today to take the currency from, but the chart still draws the
+    // prices (upcoming ones, say), so its scale is in their currency rather than the default one
+    test("should label the chart in the prices' currency when no price is in effect today", async ({ worker }) => {
+        const euroPrice = createPrice(1, { currency: 'EUR', priceStarted: new Date(2026, 8, 1, 12).toISOString() })
+        const { panel } = await renderDetailsWithPrices(worker, [euroPrice])
+
+        // The chart draws its scale after the list shows, so wait for its labels
+        await expect.poll(() => getChartScaleLabels(panel)).not.toEqual([])
+        expect(getChartScaleLabels(panel).every((label) => label.startsWith('€'))).toBe(true)
     })
 })
 

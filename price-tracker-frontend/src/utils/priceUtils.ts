@@ -18,14 +18,14 @@ const getPriceDiscount = (price: PriceType | undefined) => {
 }
 
 /**
- * Get the Price's total amount in the given currency format, default to USD.
+ * Get the Price's total amount in its own currency.
  * @param price The price to format with currency
- * @returns The Price's total amount in the given currency format or an empty string
+ * @returns The Price's total amount in its currency, or an empty string when there's no price
  */
 const getPriceString = (price: PriceType | undefined) => {
     if (!price) return ''
 
-    return getAmountString(price.totalAmount, price.currency || 'USD')
+    return getAmountString(price.totalAmount, price.currency)
 }
 
 /**

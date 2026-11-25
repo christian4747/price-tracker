@@ -14,7 +14,7 @@ const HALF_CENT = 0.005
  * @returns The details, or an empty string for a plain full price
  */
 const getPriceDetailsString = (price: PriceType, now: number) => {
-    const currency = price.currency || 'USD'
+    const currency = price.currency
     const discounted = price.amount > 0 && price.amount - price.discountAmount >= HALF_CENT
     const returned = price.returnAmount >= HALF_CENT
     const description = price.description?.trim()
@@ -146,8 +146,8 @@ const getPriceChanges = (prices: PriceType[]) => {
 
     comparedPrices.forEach((price, index) => {
         const previous = comparedPrices[index - 1]
-        const currency = price.currency || 'USD'
-        if (previous === undefined || (previous.currency || 'USD') !== currency) return
+        const currency = price.currency
+        if (previous === undefined || previous.currency !== currency) return
 
         // Compared to the cent, so floating-point leftovers don't show a change that isn't there
         const cents = Math.round(price.totalAmount * 100)

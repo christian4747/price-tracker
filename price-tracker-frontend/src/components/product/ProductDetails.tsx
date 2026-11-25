@@ -8,6 +8,7 @@ import { AddedUpdatedText } from '@/components/common/AddedUpdatedText'
 import { ResizableSplit } from '@/components/common/ResizableSplit'
 import type { PriceTimeRange } from '@/types/price'
 import { DEFAULT_PRICE_TIME_RANGE, getPriceTimeRangeStart } from '@/utils/priceTimeRange'
+import { getChartCurrency } from '@/utils/currencyUtils'
 
 // Every product's panel shares one remembered split between the chart and the price list
 const DETAILS_SPLIT_STORAGE_KEY = 'product-details-split'
@@ -93,8 +94,8 @@ export const ProductDetails = ({ productBody, dateToday, setDateToday, children 
                             timeRange={timeRange}
                             setTimeRange={setTimeRange}
                             averagePrice={productBody.averagePrice}
-                            // The currency the price list shows the average in
-                            currency={productBody.priceToday?.currency || 'USD'}
+                            // The currency the price list shows the average in, or the prices' own when there's none
+                            currency={getChartCurrency(productBody.priceToday, pricesQuery.data)}
                         />
                     }
                     // contain-size stops the list's contents from setting its height, so the chart alone sets the
