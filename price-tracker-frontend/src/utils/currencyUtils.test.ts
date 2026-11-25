@@ -26,7 +26,7 @@ describe('getChartCurrency', () => {
         expect(getChartCurrency(null, upcomingPrices)).toBe('EUR')
     })
 
-    test('should use the default currency when the product has no prices', () => {
+    test('should use the default currency when no prices are listed', () => {
         expect(getChartCurrency(null, [])).toBe(getDefaultCurrency())
     })
 })

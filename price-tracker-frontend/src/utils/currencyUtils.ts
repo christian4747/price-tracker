@@ -15,7 +15,8 @@ const getDefaultCurrency = () => DEFAULT_CURRENCY
 /**
  * Get the currency the price chart labels its scale and average in. The average is in the currency of the price in
  * effect today, so that one comes first. Before any price has started there's none today, but the chart still draws
- * the upcoming prices, so the newest listed price comes next, and the default only when there are no prices at all.
+ * the upcoming prices, so the newest listed price comes next. The default is only for when the list has no prices, such
+ * as when every price is deleted and Show deleted is off.
  * @param priceToday The price in effect today, or null when no price has started
  * @param prices The prices the chart draws, newest first
  * @returns The currency code
