@@ -23,9 +23,9 @@ import java.util.Random;
  * generator with a fixed seed for each Product, so the same day always gives the same data.
  * <p>
  * A few Products are set up by hand for specific cases: the lowest discount of all time, of two years, and of one year
- * today ("E-reader", "Air fryer", and "Robot vacuum"), a free price ("Loyalty tote bag"), Prices without a currency
- * ("Green tea 100 bags"), a discontinued Product whose last Price has an end date ("Down vest"), a deleted Product with
- * a Price deleted before it ("Bluetooth speaker"), and Products without Prices.
+ * today ("E-reader", "Air fryer", and "Robot vacuum"), a free price ("Loyalty tote bag"), a discontinued Product whose
+ * last Price has an end date ("Down vest"), a deleted Product with a Price deleted before it ("Bluetooth speaker"), and
+ * Products without Prices. Every Price is in USD.
  */
 public final class DevSeedData {
 
@@ -151,8 +151,7 @@ public final class DevSeedData {
             product("Olive oil 1 L", NORTHWIND).brand("Verde").history(12.99, -800).sale(anniversary, 0.2);
             product("USB-C cable 2 m", NORTHWIND).history(9.99, -260);
             product("Dark chocolate 6-pack", NORTHWIND).history(17.49, -700).sale(flashSale, 0.15);
-            product("Green tea 100 bags", NORTHWIND).history(8.99, -1070).blankCurrencyBefore(-365)
-                    .sale(anniversary, 0.1);
+            product("Green tea 100 bags", NORTHWIND).history(8.99, -1070).sale(anniversary, 0.1);
             product("Oat milk 6-pack", NORTHWIND).history(15.99, -600).sale(anniversary, 0.15);
             product("Rice 5 kg", NORTHWIND).history(18.99, -1000).cashback(holidayCashback, 0.05)
                     .price(30, 21.49, "");
@@ -301,7 +300,6 @@ public final class DevSeedData {
             private boolean stopped;
             private Integer deletedDay;
             private Integer addedDay;
-            private Integer blankCurrencyBeforeDay;
             private final List<Step> extraSteps = new ArrayList<>();
             // Every sale and return, named or not
             private final List<Sale> sales = new ArrayList<>();
@@ -401,17 +399,6 @@ public final class DevSeedData {
             }
 
             /**
-             * Leaves the currency blank on Prices that start before the given day, so the data has Prices with a blank
-             * currency, which the app counts as USD.
-             * @param day The first day whose Prices have a currency
-             * @return This spec
-             */
-            private ProductSpec blankCurrencyBefore(int day) {
-                this.blankCurrencyBeforeDay = day;
-                return this;
-            }
-
-            /**
              * Adds a regular Price on the given day, which may be in the future.
              * @param day The day it starts
              * @param amount Its amount
@@ -506,21 +493,21 @@ public final class DevSeedData {
                     Step step = steps.get(i);
                     boolean last = i == steps.size() - 1;
                     Instant ended = stopped && last ? endOf(lastDay) : null;
-                    prices.add(new SeedPrice(step.amount(), currency(step.start()), step.description(), 0, 0,
+                    prices.add(new SeedPrice(step.amount(), "USD", step.description(), 0, 0,
                             step.start(), ended, false, priceCreatedAt(step.start().plus(Duration.ofHours(2))), null));
                 }
                 // Each sale or return is a Price over its dates, on the regular amount in effect when it starts. Each was
                 // added the day before it started, as if announced ahead.
                 for (Sale sale : allSales) {
                     double amount = amountAt(steps, sale.start());
-                    prices.add(new SeedPrice(amount, currency(sale.start()), sale.description(), sale.discount(),
+                    prices.add(new SeedPrice(amount, "USD", sale.description(), sale.discount(),
                             sale.returnPercentage(), sale.start(), sale.end(), true,
                             priceCreatedAt(sale.start().minus(Duration.ofDays(1))), null));
                 }
                 // Each mistyped Price was deleted 25 minutes after it was added, as if the mistake was spotted
                 for (Step typo : typos) {
                     Instant typoCreatedAt = priceCreatedAt(typo.start());
-                    prices.add(new SeedPrice(typo.amount(), currency(typo.start()), "", 0, 0, typo.start(), null, false,
+                    prices.add(new SeedPrice(typo.amount(), "USD", "", 0, 0, typo.start(), null, false,
                             typoCreatedAt, typoCreatedAt.plus(Duration.ofMinutes(25))));
                 }
                 prices.sort(Comparator.comparing(SeedPrice::priceStarted));
@@ -634,15 +621,6 @@ public final class DevSeedData {
                 // A stopped Product was last edited when it stopped. Any other one somewhere between 5% and 90% of the
                 // way from being added to now (or to its delete).
                 return createdAt.plus(Duration.ofMinutes((long) (span * (stopped ? 1 : 0.05 + random.nextDouble() * 0.85))));
-            }
-
-            /**
-             * Gets the currency of a Price starting at a moment.
-             * @param moment When the Price starts
-             * @return USD, or blank before the Product's blank currency day
-             */
-            private String currency(Instant moment) {
-                return blankCurrencyBeforeDay != null && moment.isBefore(startOf(blankCurrencyBeforeDay)) ? "" : "USD";
             }
 
             /**

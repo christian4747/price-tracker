@@ -316,11 +316,11 @@ class DevSeedDataTest {
     }
 
     /**
-     * Prices with a blank currency, which the app counts as USD.
+     * Every Price is in USD, the currency the app saves a blank one as, so the seed doesn't depend on that fallback.
      */
     @Test
-    void somePricesHaveNoCurrency() {
-        assertThat(anyPrice(productPrice -> shownPrice(productPrice) && productPrice.price().currency().isEmpty())).isTrue();
+    void everyPriceIsInUsd() {
+        assertThat(allPrices()).allMatch(productPrice -> "USD".equals(productPrice.price().currency()));
     }
 
     /**
