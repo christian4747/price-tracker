@@ -13,6 +13,9 @@ import com.christian4747.pricetracker.models.dtos.PriceFilterDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -123,18 +126,37 @@ public class PriceServiceTest {
 
     /**
      * The currency and description suggestions group by exact text, so a value with stray spaces would show up as a
-     * second suggestion. Trimming before saving keeps one suggestion per value.
+     * second suggestion. Trimming before saving keeps one suggestion per value. The currency isn't USD, so the test
+     * also shows a given currency is kept rather than replaced by the USD a blank one gets.
      */
     @Test
     public void addPrice_paddedCurrencyAndDescription_saveTrimmed() {
-        priceDTO.setCurrency(" USD  ");
+        priceDTO.setCurrency(" EUR  ");
         priceDTO.setDescription("  Sale ");
         when(productDAO.findById(anyInt())).thenReturn(Optional.of(product));
         when(priceDAO.save(any())).thenReturn(price);
 
         priceService.addPrice(priceDTO);
 
-        verify(priceDAO).save(argThat(saved -> "USD".equals(saved.getCurrency()) && "Sale".equals(saved.getDescription())));
+        verify(priceDAO).save(argThat(saved -> "EUR".equals(saved.getCurrency()) && "Sale".equals(saved.getDescription())));
+    }
+
+    /**
+     * Every Price gets a currency, so the app never has to guess one when showing it. A missing, empty, or spaces-only
+     * currency is saved as USD.
+     * @param currency A blank currency
+     */
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = {"   ", "　"})
+    public void addPrice_blankCurrency_saveUsd(String currency) {
+        priceDTO.setCurrency(currency);
+        when(productDAO.findById(anyInt())).thenReturn(Optional.of(product));
+        when(priceDAO.save(any())).thenReturn(price);
+
+        priceService.addPrice(priceDTO);
+
+        verify(priceDAO).save(argThat(saved -> "USD".equals(saved.getCurrency())));
     }
 
     @Test
@@ -253,14 +275,28 @@ public class PriceServiceTest {
     @Test
     public void addPriceRange_paddedValuesWithUseEndDateDesc_endPriceTrimmed() {
         IncomingPriceRangeDTO rangeDTO = createRangeDTO();
-        rangeDTO.setCurrency(" USD  ");
+        rangeDTO.setCurrency(" EUR  ");
         rangeDTO.setDescription("  Sale ");
         rangeDTO.setUseEndDateDesc(true);
 
         Price endPrice = saveRange(rangeDTO).getLast();
 
-        assertEquals("USD", endPrice.getCurrency());
+        assertEquals("EUR", endPrice.getCurrency());
         assertEquals("Sale", endPrice.getDescription());
+    }
+
+    /**
+     * The end Price copies the range's currency, so a blank one has to become USD on both Prices, not only the first.
+     */
+    @Test
+    public void addPriceRange_blankCurrency_bothPricesSaveUsd() {
+        IncomingPriceRangeDTO rangeDTO = createRangeDTO();
+        rangeDTO.setCurrency("  ");
+
+        List<Price> savedPrices = saveRange(rangeDTO);
+
+        assertEquals("USD", savedPrices.getFirst().getCurrency());
+        assertEquals("USD", savedPrices.getLast().getCurrency());
     }
 
     @Test
@@ -541,14 +577,32 @@ public class PriceServiceTest {
      */
     @Test
     public void updatePrice_paddedCurrencyAndDescription_saveTrimmed() {
-        priceDTO.setCurrency(" USD  ");
+        priceDTO.setCurrency(" EUR  ");
         priceDTO.setDescription("  Sale ");
         when(priceDAO.findById(anyInt())).thenReturn(Optional.of(price));
         when(priceDAO.save(any())).thenReturn(price);
 
         priceService.updatePrice(1, priceDTO);
 
-        verify(priceDAO).save(argThat(saved -> "USD".equals(saved.getCurrency()) && "Sale".equals(saved.getDescription())));
+        verify(priceDAO).save(argThat(saved -> "EUR".equals(saved.getCurrency()) && "Sale".equals(saved.getDescription())));
+    }
+
+    /**
+     * Editing saves a blank currency as USD the same way adding does, so clearing the currency in an edit can't leave a
+     * Price without one.
+     * @param currency A blank currency
+     */
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = {"   ", "　"})
+    public void updatePrice_blankCurrency_saveUsd(String currency) {
+        priceDTO.setCurrency(currency);
+        when(priceDAO.findById(anyInt())).thenReturn(Optional.of(price));
+        when(priceDAO.save(any())).thenReturn(price);
+
+        priceService.updatePrice(1, priceDTO);
+
+        verify(priceDAO).save(argThat(saved -> "USD".equals(saved.getCurrency())));
     }
 
     @Test

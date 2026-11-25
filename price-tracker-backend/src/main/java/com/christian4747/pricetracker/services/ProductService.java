@@ -404,20 +404,15 @@ public class ProductService {
     }
 
     /**
-     * Checks whether the prices can be averaged. An average across different currencies wouldn't mean anything. A price
-     * without a currency counts as USD, since that's how it displays.
+     * Checks whether the prices can be averaged. An average across different currencies wouldn't mean anything.
      * @param startedPrices The prices to check
      * @return Whether at least one price has started and they all share a currency
      */
     private static boolean canAverage(List<StartedPrice> startedPrices) {
         return startedPrices.stream()
-                .map(ProductService::getDisplayCurrency)
+                .map(StartedPrice::currency)
                 .distinct()
                 .count() == 1;
-    }
-
-    private static String getDisplayCurrency(StartedPrice price) {
-        return price.currency() == null || price.currency().isEmpty() ? "USD" : price.currency();
     }
 
     /**
@@ -447,7 +442,8 @@ public class ProductService {
 
     /**
      * Checks whether two back-to-back prices belong to the same sale, which is when they share a base amount,
-     * discounted amount, currency, and description. A return isn't compared, since it's what splits a sale into rows.
+     * discounted amount, and description. A return isn't compared, since it's what splits a sale into rows. The
+     * currency isn't compared either: prices are only averaged when they all share one (see canAverage).
      * @param previousPrice The earlier price
      * @param price The price that started next
      * @return Whether they're the same sale
@@ -455,7 +451,6 @@ public class ProductService {
     private static boolean isSameSale(StartedPrice previousPrice, StartedPrice price) {
         return previousPrice.amount() == price.amount()
                 && previousPrice.discountAmount() == price.discountAmount()
-                && getDisplayCurrency(previousPrice).equals(getDisplayCurrency(price))
                 && Objects.requireNonNullElse(previousPrice.description(), "")
                         .equals(Objects.requireNonNullElse(price.description(), ""));
     }
