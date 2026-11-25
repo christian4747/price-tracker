@@ -18,6 +18,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.core.PropertyPath;
+import org.springframework.data.core.PropertyReferenceException;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +29,9 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static com.christian4747.pricetracker.utils.TextUtils.nullSafeStrip;
+import static com.christian4747.pricetracker.utils.TextUtils.stripToNull;
 
 @Service
 public class ProductService {
@@ -52,14 +57,20 @@ public class ProductService {
      */
     public Product addProduct(IncomingProductDTO productDTO) {
         checkRequiredFields(productDTO);
-        checkForDuplicate(productDTO.getName(), productDTO.getStore(), null);
+        // Spaces at either end are invisible in the app, so drop them before checking for duplicates and saving.
+        // strip() also drops full-width spaces, the same spaces the blank check above ignores.
+        String name = productDTO.getName().strip();
+        String store = productDTO.getStore().strip();
+        checkForDuplicate(name, store, null);
 
+        // The brand is stripped too, since the brand suggestions group by exact text, and so is the link, so a pasted
+        // link with a space after it still opens cleanly
         Product newProduct = new Product(
                 0,
-                nullIfBlank(productDTO.getBrand()),
-                productDTO.getName(),
-                productDTO.getLink(),
-                productDTO.getStore(),
+                stripToNull(productDTO.getBrand()),
+                name,
+                nullSafeStrip(productDTO.getLink()),
+                store,
                 true,
                 null,
                 null,
@@ -208,15 +219,6 @@ public class ProductService {
     }
 
     /**
-     * Converts a blank value to null, so it sorts with the other empty values instead of before them.
-     * @param value The value to check
-     * @return Null if the value is blank, otherwise the value
-     */
-    private String nullIfBlank(String value) {
-        return value == null || value.isBlank() ? null : value;
-    }
-
-    /**
      * Gets all the products with the given pagination settings, product filter DTO, and price filter DTO.
      * @param productFilterDTO Product filter details
      * @param priceFilterDTO Current price filter details
@@ -224,6 +226,8 @@ public class ProductService {
      * @return All products with applied pagination and filter details
      */
     public ResponseAndCount<OutgoingProductDTO> getAllProductsFiltered(ProductFilterDTO productFilterDTO, PriceFilterDTO priceFilterDTO, Pageable pageable) {
+        checkSortFields(pageable.getSort());
+
         Specification<Product> productSpecification = ProductSpecification
                 .filterProductBy(productFilterDTO)
                 .and(ProductSpecification.filterProductPriceBy(priceFilterDTO));
@@ -234,6 +238,38 @@ public class ProductService {
                 productList.stream().map(this::getProductWithPriceToday).toList();
 
         return new ResponseAndCount<>(productsWithDateToday, productPage.getTotalElements());
+    }
+
+    /**
+     * Checks that each field in the given sort is one of Product's own fields that holds a single value.
+     * Without this, an unknown field fails inside the query as a 500, and the list of prices sorts each product by one
+     * of its prices.
+     * @param sort The requested sort
+     * @throws IllegalArgumentException If a field can't be sorted on, naming the first such field
+     */
+    private static void checkSortFields(Sort sort) {
+        for (Sort.Order order : sort) {
+            if (!isSortableField(order.getProperty())) {
+                throw new IllegalArgumentException("Can't sort by '" + order.getProperty() + "'!");
+            }
+        }
+    }
+
+    /**
+     * Checks whether products can be sorted by the given field.
+     * @param field The field name from the request
+     * @return Whether the field is one of Product's own fields and holds a single value
+     */
+    private static boolean isSortableField(String field) {
+        try {
+            // Spring Data reads sort fields the same way, so this accepts exactly the fields it can find
+            PropertyPath path = PropertyPath.from(field, Product.class);
+            // A path with a next part reaches into a related record, such as 'prices.amount'
+            return !path.hasNext() && !path.isCollection();
+        } catch (PropertyReferenceException exception) {
+            // Product has no field by that name
+            return false;
+        }
     }
 
     /**
@@ -272,6 +308,8 @@ public class ProductService {
      * @return A list of ProductNameGroupDTO
      */
     public ResponseAndCount<ProductNameGroupDTO> getProductsGroupedByName(ProductFilterDTO productFilterDTO, PriceFilterDTO priceFilterDTO, Pageable pageable, String groupBy) {
+        checkSortFields(pageable.getSort());
+
         Specification<Product> filterSpecification = ProductSpecification
                 .filterProductBy(productFilterDTO)
                 .and(ProductSpecification.filterProductPriceBy(priceFilterDTO));
@@ -366,20 +404,15 @@ public class ProductService {
     }
 
     /**
-     * Checks whether the prices can be averaged. An average across different currencies wouldn't mean anything. A price
-     * without a currency counts as USD, since that's how it displays.
+     * Checks whether the prices can be averaged. An average across different currencies wouldn't mean anything.
      * @param startedPrices The prices to check
      * @return Whether at least one price has started and they all share a currency
      */
     private static boolean canAverage(List<StartedPrice> startedPrices) {
         return startedPrices.stream()
-                .map(ProductService::getDisplayCurrency)
+                .map(StartedPrice::currency)
                 .distinct()
                 .count() == 1;
-    }
-
-    private static String getDisplayCurrency(StartedPrice price) {
-        return price.currency() == null || price.currency().isEmpty() ? "USD" : price.currency();
     }
 
     /**
@@ -409,7 +442,8 @@ public class ProductService {
 
     /**
      * Checks whether two back-to-back prices belong to the same sale, which is when they share a base amount,
-     * discounted amount, currency, and description. A return isn't compared, since it's what splits a sale into rows.
+     * discounted amount, and description. A return isn't compared, since it's what splits a sale into rows. The
+     * currency isn't compared either: prices are only averaged when they all share one (see canAverage).
      * @param previousPrice The earlier price
      * @param price The price that started next
      * @return Whether they're the same sale
@@ -417,7 +451,6 @@ public class ProductService {
     private static boolean isSameSale(StartedPrice previousPrice, StartedPrice price) {
         return previousPrice.amount() == price.amount()
                 && previousPrice.discountAmount() == price.discountAmount()
-                && getDisplayCurrency(previousPrice).equals(getDisplayCurrency(price))
                 && Objects.requireNonNullElse(previousPrice.description(), "")
                         .equals(Objects.requireNonNullElse(price.description(), ""));
     }
@@ -507,7 +540,7 @@ public class ProductService {
     /**
      * Checks whether the given price reaches the given low.
      * @param price The price to compare to the low
-     * @param low The cheapest amount paid in a time window, which is null when no price started in it
+     * @param low The cheapest amount paid in a time window, which is null when no price ran in it
      * @return Whether there is a low and the price costs no more than it, beyond rounding
      */
     private static boolean isAtLow(Price price, Double low) {
@@ -530,14 +563,17 @@ public class ProductService {
         }
 
         checkRequiredFields(productDTO);
-        checkForDuplicate(productDTO.getName(), productDTO.getStore(), productId);
+        // Trimmed the same way as when adding, so an edit can't bring stray spaces back
+        String name = productDTO.getName().strip();
+        String store = productDTO.getStore().strip();
+        checkForDuplicate(name, store, productId);
 
         Product productToUpdate = existingProduct.get();
 
-        productToUpdate.setBrand(nullIfBlank(productDTO.getBrand()));
-        productToUpdate.setName(productDTO.getName());
-        productToUpdate.setLink(productDTO.getLink());
-        productToUpdate.setStore(productDTO.getStore());
+        productToUpdate.setBrand(stripToNull(productDTO.getBrand()));
+        productToUpdate.setName(name);
+        productToUpdate.setLink(nullSafeStrip(productDTO.getLink()));
+        productToUpdate.setStore(store);
         productToUpdate.setActive(productDTO.isActive());
 
         Product savedProduct = productDAO.save(productToUpdate);

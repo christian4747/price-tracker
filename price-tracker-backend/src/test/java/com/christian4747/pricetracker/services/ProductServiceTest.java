@@ -17,6 +17,8 @@ import com.christian4747.pricetracker.models.dtos.ResponseAndCount;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentMatchers;
 import org.mockito.InOrder;
 import org.mockito.InjectMocks;
@@ -35,6 +37,7 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -45,6 +48,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -107,6 +111,47 @@ public class ProductServiceTest {
         ConflictException exception =
                 assertThrows(ConflictException.class, () -> productService.addProduct(productDTO));
         assertEquals("Product already exists as a deleted product. Restore it instead!", exception.getMessage());
+        verify(productDAO, never()).save(any());
+    }
+
+    /**
+     * Spaces at either end of a name or store are invisible in the app, so they're trimmed before saving rather than
+     * stored.
+     */
+    @Test
+    public void addProduct_paddedNameAndStore_saveTrimmed() {
+        productDTO.setName("  Product ");
+        productDTO.setStore(" Store  ");
+        when(productDAO.save(any())).thenReturn(addedProduct);
+
+        productService.addProduct(productDTO);
+
+        verify(productDAO).save(argThat(product ->
+                product.getName().equals("Product") && product.getStore().equals("Store")));
+    }
+
+    /**
+     * A name with stray spaces is looked up without them, so it still finds the product it would duplicate.
+     */
+    @Test
+    public void addProduct_paddedNameMatchesProduct_throwException() {
+        productDTO.setName(" Product ");
+        // Only the trimmed name finds the existing product; any other lookup returns an empty list
+        when(productDAO.findAllByName("Product")).thenReturn(List.of(addedProduct));
+
+        assertThrows(ConflictException.class, () -> productService.addProduct(productDTO));
+        verify(productDAO, never()).save(any());
+    }
+
+    /**
+     * A store with stray spaces is compared without them, so it still matches the product it would duplicate.
+     */
+    @Test
+    public void addProduct_paddedStoreMatchesProduct_throwException() {
+        productDTO.setStore("Store ");
+        when(productDAO.findAllByName("Product")).thenReturn(List.of(addedProduct));
+
+        assertThrows(ConflictException.class, () -> productService.addProduct(productDTO));
         verify(productDAO, never()).save(any());
     }
 
@@ -185,6 +230,33 @@ public class ProductServiceTest {
         productService.addProduct(productDTO);
 
         verify(productDAO).save(argThat(product -> product.getBrand() == null));
+    }
+
+    /**
+     * The brand suggestions group brands by their exact text, so a brand with stray spaces would show up twice.
+     * Trimming it before saving keeps one entry per brand.
+     */
+    @Test
+    public void addProduct_paddedBrand_saveTrimmedBrand() {
+        productDTO.setBrand(" Brand  ");
+        when(productDAO.save(any())).thenReturn(addedProduct);
+
+        productService.addProduct(productDTO);
+
+        verify(productDAO).save(argThat(product -> "Brand".equals(product.getBrand())));
+    }
+
+    /**
+     * A link pasted with a space after it is trimmed before saving, so the saved link opens cleanly.
+     */
+    @Test
+    public void addProduct_paddedLink_saveTrimmedLink() {
+        productDTO.setLink(" https://example.com/product  ");
+        when(productDAO.save(any())).thenReturn(addedProduct);
+
+        productService.addProduct(productDTO);
+
+        verify(productDAO).save(argThat(product -> "https://example.com/product".equals(product.getLink())));
     }
 
     @Test
@@ -365,6 +437,85 @@ public class ProductServiceTest {
         verify(productDAO).findAll(ArgumentMatchers.<Specification<Product>>any(), eq(PageRequest.of(2, 10, expectedSort)));
     }
 
+    /**
+     * A field Product doesn't have is rejected with a message naming it, instead of failing inside the query.
+     */
+    @Test
+    public void getAllProductsFiltered_unknownSortField_throwException() {
+        expectRejectedSort(Sort.by("nope"), "nope", this::getPlainList);
+    }
+
+    /**
+     * Prices is a list of records, so it has no single value to sort products by.
+     */
+    @Test
+    public void getAllProductsFiltered_listSortField_throwException() {
+        expectRejectedSort(Sort.by("prices"), "prices", this::getPlainList);
+    }
+
+    /**
+     * Only Product's own fields are allowed, not a part of one. Spring Data finds 'createdAt.time' through Timestamp's
+     * getTime(), but the query can't sort by it. A single-value field is used so the list rule can't reject it first.
+     */
+    @Test
+    public void getAllProductsFiltered_nestedSortField_throwException() {
+        expectRejectedSort(Sort.by("createdAt.time"), "createdAt.time", this::getPlainList);
+    }
+
+    /**
+     * Every field is checked, not only the first, since a request can sort by several.
+     */
+    @Test
+    public void getAllProductsFiltered_unknownSortFieldAfterAValidOne_throwException() {
+        expectRejectedSort(Sort.by("name", "nope"), "nope", this::getPlainList);
+    }
+
+    /**
+     * Each field the sort menu offers still reaches the query.
+     * @param field A sort field from the frontend's sort menu
+     */
+    @ParameterizedTest
+    @ValueSource(strings = {"name", "brand", "store", "currentPrice", "currentDiscount", "createdAt", "updatedAt", "timeRemaining"})
+    public void getAllProductsFiltered_sortMenuField_queriesWithThatSort(String field) {
+        when(productDAO.findAll(ArgumentMatchers.<Specification<Product>>any(), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of()));
+
+        getPlainList(Sort.by(field));
+
+        verify(productDAO).findAll(ArgumentMatchers.<Specification<Product>>any(),
+                ArgumentMatchers.<Pageable>argThat(pageable -> pageable.getSort().getOrderFor(field) != null));
+    }
+
+    /**
+     * Requests the first page of the plain list with the given sort.
+     * @param sort The sort to request
+     */
+    private void getPlainList(Sort sort) {
+        productService.getAllProductsFiltered(productFilterDTO, priceFilterDTO, PageRequest.of(0, 10, sort));
+    }
+
+    /**
+     * Requests the first page of the grouped list with the given sort.
+     * @param sort The sort to request
+     */
+    private void getGroupedList(Sort sort) {
+        productService.getProductsGroupedByName(productFilterDTO, priceFilterDTO, PageRequest.of(0, 10, sort), "name");
+    }
+
+    /**
+     * Requests a list with the given sort, and checks it's rejected with a message naming the field, before any query
+     * runs.
+     * @param sort The sort to request
+     * @param rejectedField The field the message should name
+     * @param getList Requests one of the two lists with a sort
+     */
+    private void expectRejectedSort(Sort sort, String rejectedField, Consumer<Sort> getList) {
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> getList.accept(sort));
+
+        assertEquals("Can't sort by '" + rejectedField + "'!", exception.getMessage());
+        verifyNoInteractions(productDAO);
+    }
+
     @Test
     public void getProductById_nonExistentProduct_throwException() {
         when(productDAO.findById(anyInt())).thenReturn(Optional.empty());
@@ -476,17 +627,6 @@ public class ProductServiceTest {
         assertEquals(90, product.averagePrice(), 0.001);
     }
 
-    // A price without a currency displays as USD, so it's the same sale as a USD price
-    @Test
-    public void getProductById_backToBackPricesWithBlankAndUsdCurrencies_averageCountsOnce() {
-        OutgoingProductDTO product = getProductWithPrices(
-                createPrice(80, "", 6),
-                createPrice(80, "USD", 4),
-                createPrice(100, "USD", 2));
-
-        assertEquals(90, product.averagePrice(), 0.001);
-    }
-
     // Splitting doesn't change how long each price lasted, so every row still counts by its duration
     @Test
     public void getProductById_returnInsideASale_weightedAverageCountsEveryRow() {
@@ -534,13 +674,6 @@ public class ProductServiceTest {
         assertNull(product.averagePrice());
         assertNull(product.weightedAveragePrice());
         assertFalse(product.belowAverage());
-    }
-
-    @Test
-    public void getProductById_blankAndNullCurrenciesWithUsd_hasAverages() {
-        OutgoingProductDTO product = getProductWithPrices(createPrice(10, "", 4), createPrice(20, null, 3), createPrice(30, "USD", 2));
-
-        assertEquals(20, product.averagePrice());
     }
 
     @Test
@@ -665,6 +798,39 @@ public class ProductServiceTest {
     @Test
     public void getProductById_noPricesInLastYearAndNotAtTwoYearLow_noCategory() {
         assertEquals("", getCategory(30, null, 20.0, 10.0));
+    }
+
+    /**
+     * The grouped list rejects a field Product doesn't have in the same way as the plain list.
+     */
+    @Test
+    public void getProductsGroupedByName_unknownSortField_throwException() {
+        expectRejectedSort(Sort.by("nope"), "nope", this::getGroupedList);
+    }
+
+    /**
+     * The grouped list rejects the list of prices in the same way as the plain list.
+     */
+    @Test
+    public void getProductsGroupedByName_listSortField_throwException() {
+        expectRejectedSort(Sort.by("prices"), "prices", this::getGroupedList);
+    }
+
+    /**
+     * Each field the sort menu offers still reaches the names query.
+     * @param field A sort field from the frontend's sort menu
+     */
+    @ParameterizedTest
+    @ValueSource(strings = {"name", "brand", "store", "currentPrice", "currentDiscount", "createdAt", "updatedAt", "timeRemaining"})
+    public void getProductsGroupedByName_sortMenuField_queriesWithThatSort(String field) {
+        when(productDAO.findDistinctNames(ArgumentMatchers.<Specification<Product>>any(), any(Pageable.class)))
+                .thenReturn(Page.empty());
+        when(productDAO.findAll(ArgumentMatchers.<Specification<Product>>any(), any(Sort.class))).thenReturn(List.of());
+
+        getGroupedList(Sort.by(field));
+
+        verify(productDAO).findDistinctNames(ArgumentMatchers.<Specification<Product>>any(),
+                ArgumentMatchers.<Pageable>argThat(pageable -> pageable.getSort().getOrderFor(field) != null));
     }
 
     @Test
@@ -807,6 +973,90 @@ public class ProductServiceTest {
         ConflictException exception =
                 assertThrows(ConflictException.class, () -> productService.updateProduct(1, productDTO));
         assertEquals("Product already exists!", exception.getMessage());
+        verify(productDAO, never()).save(any());
+    }
+
+    /**
+     * Editing trims the link the same way adding does, so an edit can't bring stray spaces back.
+     */
+    @Test
+    public void updateProduct_paddedLink_saveTrimmedLink() {
+        productDTO.setLink(" https://example.com/product  ");
+        when(productDAO.findById(anyInt())).thenReturn(Optional.of(addedProduct));
+        when(productDAO.save(any())).thenReturn(addedProduct);
+
+        productService.updateProduct(1, productDTO);
+
+        verify(productDAO).save(argThat(product -> "https://example.com/product".equals(product.getLink())));
+    }
+
+    /**
+     * Editing trims the brand the same way adding does, so an edit can't bring stray spaces back.
+     */
+    @Test
+    public void updateProduct_paddedBrand_saveTrimmedBrand() {
+        productDTO.setBrand(" Brand  ");
+        when(productDAO.findById(anyInt())).thenReturn(Optional.of(addedProduct));
+        when(productDAO.save(any())).thenReturn(addedProduct);
+
+        productService.updateProduct(1, productDTO);
+
+        verify(productDAO).save(argThat(product -> "Brand".equals(product.getBrand())));
+    }
+
+    /**
+     * Editing trims the name and store the same way adding does, so an edit can't bring stray spaces back.
+     */
+    @Test
+    public void updateProduct_paddedNameAndStore_saveTrimmed() {
+        productDTO.setName("  Product2 ");
+        productDTO.setStore(" Store2  ");
+        when(productDAO.findById(anyInt())).thenReturn(Optional.of(addedProduct));
+        when(productDAO.save(any())).thenReturn(addedProduct);
+
+        productService.updateProduct(1, productDTO);
+
+        verify(productDAO).save(argThat(product ->
+                product.getName().equals("Product2") && product.getStore().equals("Store2")));
+    }
+
+    /**
+     * Editing a product to another product's name plus stray spaces is still caught as a duplicate.
+     */
+    @Test
+    public void updateProduct_paddedNameMatchesOtherProduct_throwException() {
+        addedProduct.setProductId(1);
+        Product otherProduct = new Product();
+        otherProduct.setProductId(2);
+        otherProduct.setName("Product2");
+        otherProduct.setStore("Store");
+        productDTO.setName(" Product2 ");
+
+        when(productDAO.findById(anyInt())).thenReturn(Optional.of(addedProduct));
+        // Only the trimmed name finds the other product; any other lookup returns an empty list
+        when(productDAO.findAllByName("Product2")).thenReturn(List.of(otherProduct));
+
+        assertThrows(ConflictException.class, () -> productService.updateProduct(1, productDTO));
+        verify(productDAO, never()).save(any());
+    }
+
+    /**
+     * Editing a product to another product's store plus stray spaces is still caught as a duplicate.
+     */
+    @Test
+    public void updateProduct_paddedStoreMatchesOtherProduct_throwException() {
+        addedProduct.setProductId(1);
+        addedProduct.setStore("Store2");
+        Product otherProduct = new Product();
+        otherProduct.setProductId(2);
+        otherProduct.setName("Product");
+        otherProduct.setStore("Store");
+        productDTO.setStore(" Store");
+
+        when(productDAO.findById(anyInt())).thenReturn(Optional.of(addedProduct));
+        when(productDAO.findAllByName("Product")).thenReturn(List.of(addedProduct, otherProduct));
+
+        assertThrows(ConflictException.class, () -> productService.updateProduct(1, productDTO));
         verify(productDAO, never()).save(any());
     }
 
