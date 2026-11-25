@@ -36,6 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -118,6 +119,22 @@ public class PriceServiceTest {
         when(priceDAO.save(any())).thenReturn(price);
 
         assertEquals(1, priceService.addPrice(priceDTO).getProduct().getProductId());
+    }
+
+    /**
+     * The currency and description suggestions group by exact text, so a value with stray spaces would show up as a
+     * second suggestion. Trimming before saving keeps one suggestion per value.
+     */
+    @Test
+    public void addPrice_paddedCurrencyAndDescription_saveTrimmed() {
+        priceDTO.setCurrency(" USD  ");
+        priceDTO.setDescription("  Sale ");
+        when(productDAO.findById(anyInt())).thenReturn(Optional.of(product));
+        when(priceDAO.save(any())).thenReturn(price);
+
+        priceService.addPrice(priceDTO);
+
+        verify(priceDAO).save(argThat(saved -> "USD".equals(saved.getCurrency()) && "Sale".equals(saved.getDescription())));
     }
 
     @Test
@@ -227,6 +244,23 @@ public class PriceServiceTest {
         rangeDTO.setUseEndDateDesc(true);
 
         assertEquals("Sale", saveRange(rangeDTO).getLast().getDescription());
+    }
+
+    /**
+     * The end price copies the range's currency, and its description when the switch is on, so the copies are trimmed
+     * too.
+     */
+    @Test
+    public void addPriceRange_paddedValuesWithUseEndDateDesc_endPriceTrimmed() {
+        IncomingPriceRangeDTO rangeDTO = createRangeDTO();
+        rangeDTO.setCurrency(" USD  ");
+        rangeDTO.setDescription("  Sale ");
+        rangeDTO.setUseEndDateDesc(true);
+
+        Price endPrice = saveRange(rangeDTO).getLast();
+
+        assertEquals("USD", endPrice.getCurrency());
+        assertEquals("Sale", endPrice.getDescription());
     }
 
     @Test
@@ -500,6 +534,21 @@ public class PriceServiceTest {
         when(priceDAO.save(any())).thenReturn(price);
 
         assertEquals(1, priceService.updatePrice(1, priceDTO).getProduct().getProductId());
+    }
+
+    /**
+     * Editing trims the currency and description the same way adding does, so an edit can't bring stray spaces back.
+     */
+    @Test
+    public void updatePrice_paddedCurrencyAndDescription_saveTrimmed() {
+        priceDTO.setCurrency(" USD  ");
+        priceDTO.setDescription("  Sale ");
+        when(priceDAO.findById(anyInt())).thenReturn(Optional.of(price));
+        when(priceDAO.save(any())).thenReturn(price);
+
+        priceService.updatePrice(1, priceDTO);
+
+        verify(priceDAO).save(argThat(saved -> "USD".equals(saved.getCurrency()) && "Sale".equals(saved.getDescription())));
     }
 
     @Test

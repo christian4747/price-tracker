@@ -114,6 +114,47 @@ public class ProductServiceTest {
         verify(productDAO, never()).save(any());
     }
 
+    /**
+     * Spaces at either end of a name or store are invisible in the app, so they're trimmed before saving rather than
+     * stored.
+     */
+    @Test
+    public void addProduct_paddedNameAndStore_saveTrimmed() {
+        productDTO.setName("  Product ");
+        productDTO.setStore(" Store  ");
+        when(productDAO.save(any())).thenReturn(addedProduct);
+
+        productService.addProduct(productDTO);
+
+        verify(productDAO).save(argThat(product ->
+                product.getName().equals("Product") && product.getStore().equals("Store")));
+    }
+
+    /**
+     * A name with stray spaces is looked up without them, so it still finds the product it would duplicate.
+     */
+    @Test
+    public void addProduct_paddedNameMatchesProduct_throwException() {
+        productDTO.setName(" Product ");
+        // Only the trimmed name finds the existing product; any other lookup returns an empty list
+        when(productDAO.findAllByName("Product")).thenReturn(List.of(addedProduct));
+
+        assertThrows(ConflictException.class, () -> productService.addProduct(productDTO));
+        verify(productDAO, never()).save(any());
+    }
+
+    /**
+     * A store with stray spaces is compared without them, so it still matches the product it would duplicate.
+     */
+    @Test
+    public void addProduct_paddedStoreMatchesProduct_throwException() {
+        productDTO.setStore("Store ");
+        when(productDAO.findAllByName("Product")).thenReturn(List.of(addedProduct));
+
+        assertThrows(ConflictException.class, () -> productService.addProduct(productDTO));
+        verify(productDAO, never()).save(any());
+    }
+
     @Test
     public void addProduct_productExistsDiffStore_returnProduct() {
         addedProduct.setStore("Store2");
@@ -189,6 +230,33 @@ public class ProductServiceTest {
         productService.addProduct(productDTO);
 
         verify(productDAO).save(argThat(product -> product.getBrand() == null));
+    }
+
+    /**
+     * The brand suggestions group brands by their exact text, so a brand with stray spaces would show up twice.
+     * Trimming it before saving keeps one entry per brand.
+     */
+    @Test
+    public void addProduct_paddedBrand_saveTrimmedBrand() {
+        productDTO.setBrand(" Brand  ");
+        when(productDAO.save(any())).thenReturn(addedProduct);
+
+        productService.addProduct(productDTO);
+
+        verify(productDAO).save(argThat(product -> "Brand".equals(product.getBrand())));
+    }
+
+    /**
+     * A link pasted with a space after it is trimmed before saving, so the saved link opens cleanly.
+     */
+    @Test
+    public void addProduct_paddedLink_saveTrimmedLink() {
+        productDTO.setLink(" https://example.com/product  ");
+        when(productDAO.save(any())).thenReturn(addedProduct);
+
+        productService.addProduct(productDTO);
+
+        verify(productDAO).save(argThat(product -> "https://example.com/product".equals(product.getLink())));
     }
 
     @Test
@@ -923,6 +991,90 @@ public class ProductServiceTest {
         ConflictException exception =
                 assertThrows(ConflictException.class, () -> productService.updateProduct(1, productDTO));
         assertEquals("Product already exists!", exception.getMessage());
+        verify(productDAO, never()).save(any());
+    }
+
+    /**
+     * Editing trims the link the same way adding does, so an edit can't bring stray spaces back.
+     */
+    @Test
+    public void updateProduct_paddedLink_saveTrimmedLink() {
+        productDTO.setLink(" https://example.com/product  ");
+        when(productDAO.findById(anyInt())).thenReturn(Optional.of(addedProduct));
+        when(productDAO.save(any())).thenReturn(addedProduct);
+
+        productService.updateProduct(1, productDTO);
+
+        verify(productDAO).save(argThat(product -> "https://example.com/product".equals(product.getLink())));
+    }
+
+    /**
+     * Editing trims the brand the same way adding does, so an edit can't bring stray spaces back.
+     */
+    @Test
+    public void updateProduct_paddedBrand_saveTrimmedBrand() {
+        productDTO.setBrand(" Brand  ");
+        when(productDAO.findById(anyInt())).thenReturn(Optional.of(addedProduct));
+        when(productDAO.save(any())).thenReturn(addedProduct);
+
+        productService.updateProduct(1, productDTO);
+
+        verify(productDAO).save(argThat(product -> "Brand".equals(product.getBrand())));
+    }
+
+    /**
+     * Editing trims the name and store the same way adding does, so an edit can't bring stray spaces back.
+     */
+    @Test
+    public void updateProduct_paddedNameAndStore_saveTrimmed() {
+        productDTO.setName("  Product2 ");
+        productDTO.setStore(" Store2  ");
+        when(productDAO.findById(anyInt())).thenReturn(Optional.of(addedProduct));
+        when(productDAO.save(any())).thenReturn(addedProduct);
+
+        productService.updateProduct(1, productDTO);
+
+        verify(productDAO).save(argThat(product ->
+                product.getName().equals("Product2") && product.getStore().equals("Store2")));
+    }
+
+    /**
+     * Editing a product to another product's name plus stray spaces is still caught as a duplicate.
+     */
+    @Test
+    public void updateProduct_paddedNameMatchesOtherProduct_throwException() {
+        addedProduct.setProductId(1);
+        Product otherProduct = new Product();
+        otherProduct.setProductId(2);
+        otherProduct.setName("Product2");
+        otherProduct.setStore("Store");
+        productDTO.setName(" Product2 ");
+
+        when(productDAO.findById(anyInt())).thenReturn(Optional.of(addedProduct));
+        // Only the trimmed name finds the other product; any other lookup returns an empty list
+        when(productDAO.findAllByName("Product2")).thenReturn(List.of(otherProduct));
+
+        assertThrows(ConflictException.class, () -> productService.updateProduct(1, productDTO));
+        verify(productDAO, never()).save(any());
+    }
+
+    /**
+     * Editing a product to another product's store plus stray spaces is still caught as a duplicate.
+     */
+    @Test
+    public void updateProduct_paddedStoreMatchesOtherProduct_throwException() {
+        addedProduct.setProductId(1);
+        addedProduct.setStore("Store2");
+        Product otherProduct = new Product();
+        otherProduct.setProductId(2);
+        otherProduct.setName("Product");
+        otherProduct.setStore("Store");
+        productDTO.setStore(" Store");
+
+        when(productDAO.findById(anyInt())).thenReturn(Optional.of(addedProduct));
+        when(productDAO.findAllByName("Product")).thenReturn(List.of(addedProduct, otherProduct));
+
+        assertThrows(ConflictException.class, () -> productService.updateProduct(1, productDTO));
         verify(productDAO, never()).save(any());
     }
 

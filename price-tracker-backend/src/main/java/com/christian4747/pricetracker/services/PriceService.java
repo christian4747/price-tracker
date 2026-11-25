@@ -29,6 +29,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
+import static com.christian4747.pricetracker.utils.TextUtils.nullSafeStrip;
+
 @Service
 public class PriceService {
 
@@ -69,11 +71,13 @@ public class PriceService {
 
         requireActiveProduct(existingProduct.get());
 
+        // The currency and description suggestions group by exact text, so both are stripped to keep stray spaces from
+        // making one value show up as two. A range's end Price is saved through here too, so its copies are stripped.
         Price newPrice = new Price(
                 0,
                 priceDTO.getAmount(),
-                priceDTO.getCurrency(),
-                priceDTO.getDescription(),
+                nullSafeStrip(priceDTO.getCurrency()),
+                nullSafeStrip(priceDTO.getDescription()),
                 priceDTO.getDiscountAmount(),
                 priceDTO.getDiscountPercentage(),
                 false,
@@ -405,8 +409,8 @@ public class PriceService {
         Price priceToUpdate = existingPrice.get();
         requireActiveProduct(priceToUpdate.getProduct());
         priceToUpdate.setAmount(priceDTO.getAmount());
-        priceToUpdate.setCurrency(priceDTO.getCurrency());
-        priceToUpdate.setDescription(priceDTO.getDescription());
+        priceToUpdate.setCurrency(nullSafeStrip(priceDTO.getCurrency()));
+        priceToUpdate.setDescription(nullSafeStrip(priceDTO.getDescription()));
         priceToUpdate.setDiscountAmount(priceDTO.getDiscountAmount());
         priceToUpdate.setDiscountPercentage(priceDTO.getDiscountPercentage());
         priceToUpdate.setPriceStarted(priceDTO.getPriceStarted());
