@@ -27,9 +27,11 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import static com.christian4747.pricetracker.utils.TextUtils.nullSafeStrip;
+import static com.christian4747.pricetracker.utils.TextUtils.stripToNull;
 
 @Service
 public class PriceService {
@@ -39,6 +41,9 @@ public class PriceService {
     // A product's prices, newest first. Prices that start at the same moment are newest first by ID, so their order
     // doesn't change between requests.
     public static final Sort NEWEST_FIRST = Sort.by(Sort.Direction.DESC, "priceStarted", "priceId");
+
+    // The currency a Price is saved with when none is given
+    private static final String DEFAULT_CURRENCY = "USD";
 
     private final PriceDAO priceDAO;
     private final ProductDAO productDAO;
@@ -72,11 +77,12 @@ public class PriceService {
         requireActiveProduct(existingProduct.get());
 
         // The currency and description suggestions group by exact text, so both are stripped to keep stray spaces from
-        // making one value show up as two. A range's end Price is saved through here too, so its copies are stripped.
+        // making one value show up as two. A range's end Price is saved through here too, so its copies are stripped,
+        // and a blank currency becomes USD on both of its Prices.
         Price newPrice = new Price(
                 0,
                 priceDTO.getAmount(),
-                nullSafeStrip(priceDTO.getCurrency()),
+                getSavedCurrency(priceDTO.getCurrency()),
                 nullSafeStrip(priceDTO.getDescription()),
                 priceDTO.getDiscountAmount(),
                 priceDTO.getDiscountPercentage(),
@@ -133,6 +139,17 @@ public class PriceService {
         Price savedEndPrice = addPrice(endPriceDTO);
 
         return List.of(savedPrice, savedEndPrice);
+    }
+
+    /**
+     * Gets the currency to save a Price with: the given one without spaces at either end, or USD when it's missing or
+     * blank, so every Price has a currency and the app never has to guess one when showing it.
+     * @param currency The currency the Price was sent with
+     * @return The stripped currency, or USD if it's null or blank
+     */
+    private static String getSavedCurrency(String currency) {
+        // stripToNull turns a blank currency into null, which then falls back to USD
+        return Objects.requireNonNullElse(stripToNull(currency), DEFAULT_CURRENCY);
     }
 
     /**
@@ -409,7 +426,7 @@ public class PriceService {
         Price priceToUpdate = existingPrice.get();
         requireActiveProduct(priceToUpdate.getProduct());
         priceToUpdate.setAmount(priceDTO.getAmount());
-        priceToUpdate.setCurrency(nullSafeStrip(priceDTO.getCurrency()));
+        priceToUpdate.setCurrency(getSavedCurrency(priceDTO.getCurrency()));
         priceToUpdate.setDescription(nullSafeStrip(priceDTO.getDescription()));
         priceToUpdate.setDiscountAmount(priceDTO.getDiscountAmount());
         priceToUpdate.setDiscountPercentage(priceDTO.getDiscountPercentage());

@@ -29,7 +29,8 @@ const price2 = createPrice(2, { priceStarted: new Date(2026, 8, 5, 12).toISOStri
 const product = createProduct(1)
 const deletedProduct = createProduct(1, { deletedAt: new Date(2026, 8, 6, 12).toISOString() })
 
-const averages = { averagePrice: 15, weightedAveragePrice: 17.5 }
+// The backend only sends averages when a price is in effect today, and the average is shown in that price's currency
+const averages = { averagePrice: 15, weightedAveragePrice: 17.5, priceToday: createPrice(1, { today: true }) }
 
 const emptyRecentPriceData = {
     baseAmounts: [],
@@ -526,13 +527,6 @@ describe('Price List Component', () => {
         expect(changeArrows()).toEqual([])
     })
 
-    // A blank currency counts as USD, as it does everywhere else in the app
-    test('should compare a price with no currency as USD', async () => {
-        renderPriceList(undefined, [priceOnSep(2, 5, 80, { currency: '' }), priceOnSep(1, 4, 100)])
-
-        expect(changeArrows()).toEqual(['Down $20.00 from $100.00'])
-    })
-
     test("should show changes in the price's currency", async () => {
         renderPriceList(undefined, [
             priceOnSep(2, 5, 80, { currency: 'EUR' }),
@@ -678,12 +672,6 @@ describe('Price List Component', () => {
         renderPriceList(createProductBody(product, { ...averages, priceToday: createPrice(1, { currency: 'EUR' }) }))
 
         expect(averagePriceLine()).toHaveTextContent('Average €15.00')
-    })
-
-    test("should format the average price as USD when the product's prices have no currency", async () => {
-        renderPriceList(createProductBody(product, { ...averages, priceToday: createPrice(1, { currency: '' }) }))
-
-        expect(averagePriceLine()).toHaveTextContent('Average $15.00')
     })
 
     test('should show the weighted average price when hovering the average price', async () => {

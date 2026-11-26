@@ -355,6 +355,24 @@ class PriceDAOTest {
         assertThat(currencies).containsExactly("JPY", "USD", "EUR");
     }
 
+    /**
+     * Prices are saved with USD when their currency is blank, but prices saved before that can still have an empty or
+     * missing currency, and those shouldn't show up as a blank suggestion. The blank ones are the newest, so they'd be
+     * listed first if the query let them through.
+     */
+    @Test
+    void findDistinctCurrencyLeavesOutBlankCurrencies() {
+        Product product = addProduct();
+        addCurrencyPrice(product, "EUR", THREE_YEARS_AGO);
+        addCurrencyPrice(product, "", TWO_YEARS_AGO);
+        addCurrencyPrice(product, null, ONE_YEAR_AGO);
+        testDatabase.saveFixtures();
+
+        List<String> currencies = priceDAO.findDistinctCurrency(FIRST_PAGE).getContent();
+
+        assertThat(currencies).containsExactly("EUR");
+    }
+
     private Product addStoreProduct(String store) {
         Product product = addProduct();
         product.setStore(store);

@@ -1,3 +1,5 @@
+import { getDefaultCurrency } from './currencyUtils'
+
 // The space left below the lowest value and above the highest, as a share of the spread between them, so the line
 // doesn't run along the chart's edges
 const PADDING = 0.1
@@ -110,8 +112,9 @@ const getPriceChartTickString = (value: number, step: number, currency: string) 
     try {
         return new Intl.NumberFormat(undefined, { ...options, currency }).format(value)
     } catch {
-        // An unknown currency code throws, so fall back to dollars like the rest of the chart
-        return new Intl.NumberFormat(undefined, { ...options, currency: 'USD' }).format(value)
+        // A currency that isn't a three-letter code throws, so fall back to the default currency like the rest of the
+        // chart
+        return new Intl.NumberFormat(undefined, { ...options, currency: getDefaultCurrency() }).format(value)
     }
 }
 

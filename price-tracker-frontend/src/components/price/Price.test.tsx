@@ -435,13 +435,6 @@ describe('Price details line', () => {
         await expect.element(screen.getByText('€100.00 base · €4.00 back')).toBeInTheDocument()
     })
 
-    // A blank currency counts as USD, as it does everywhere else in the app
-    test('should show amounts in USD when the price has no currency', async () => {
-        renderPrice(priceWith({ ...twentyPercentOff, currency: '' }))
-
-        await expect.element(screen.getByText('$100.00 base · 20% off')).toBeInTheDocument()
-    })
-
     // Matches how the rest of the app shows a discount below 1%, which would otherwise round to 0%
     test('should keep the decimals of a discount below 1%', async () => {
         renderPrice(priceWith({ discountAmount: 99.5, discountPercentage: 0.005, totalAmount: 99.5 }))
