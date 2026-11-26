@@ -62,12 +62,16 @@ const TimeTooltip = ({ timeLeft, tooltipText }: TimeTooltip) => {
 
 export interface PriceBanner {
     productBody: ProductBody
-    dateToday: Date
     setDateToday: (newVal: Date) => void
     mini?: boolean
 }
 
-export const PriceBanner = ({ productBody, dateToday, setDateToday, mini }: PriceBanner) => {
+/**
+ * Shows today's price for a product, with its discount, low banner, and indicator icons.
+ * Day counts start from the current time rather than the list's dateToday, which is only set when the list loads and
+ * when a price is added or a countdown ends, so it falls behind when the page stays open (#119).
+ */
+export const PriceBanner = ({ productBody, setDateToday, mini }: PriceBanner) => {
     // Calculate the time left for timer. Called before the early return so hooks run on every render.
     const timerText = usePriceTimer(
         productBody.nextPrice ? dayjs(productBody.nextPrice.priceStarted).valueOf() / 1000 : undefined,
@@ -78,8 +82,11 @@ export const PriceBanner = ({ productBody, dateToday, setDateToday, mini }: Pric
         return <></>
     }
 
+    // The moment the day counts below start from
+    const now = dayjs()
+
     // Number of days since last recorded price
-    const priceListLastUpdated = dayjs(dateToday).diff(productBody.lastUpdated, 'day')
+    const priceListLastUpdated = now.diff(productBody.lastUpdated, 'day')
     let lastUpdatedIndicator = undefined
     if (priceListLastUpdated > 7) {
         lastUpdatedIndicator = (
@@ -108,7 +115,7 @@ export const PriceBanner = ({ productBody, dateToday, setDateToday, mini }: Pric
 
     // Calculate time since last price before today
     let recentPriceChange = undefined
-    const recentPriceChangeDays = dayjs(dateToday).diff(productBody.priceToday.priceStarted, 'day')
+    const recentPriceChangeDays = now.diff(productBody.priceToday.priceStarted, 'day')
     if (recentPriceChangeDays <= 6) {
         recentPriceChange = (
             <div>
@@ -128,13 +135,14 @@ export const PriceBanner = ({ productBody, dateToday, setDateToday, mini }: Pric
 
     let timeTooltip = undefined
     if (productBody.priceToday && productBody.nextPrice && productBody.nextPrice !== productBody.priceToday) {
-        const timeLeft = dayjs(productBody.nextPrice.priceStarted).diff(dayjs(), 'day')
+        const timeLeft = dayjs(productBody.nextPrice.priceStarted).diff(now, 'day')
         if (timeLeft <= 6) {
             timeTooltip = <TimeTooltip timeLeft={timeLeft} tooltipText={timerText} />
         }
     }
 
-    // Shows recent price changes, last updated (if < 7 days), and time left on current price (if < 7 days)
+    // Shows a below average sparkle, a recent price change (6 days ago or less), the last update (more than 7 days
+    // ago), and the time left on today's price (6 days or less)
     const priceIndicators = (
         <>
             {/* Below average indicator */}
