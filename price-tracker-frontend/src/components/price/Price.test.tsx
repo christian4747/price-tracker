@@ -21,14 +21,10 @@ const deletedPrice = createPrice(1, {
     deletedAt: new Date(2026, 8, 6, 12).toISOString()
 })
 
-// The "now" a row's end date is compared with, unless a test gives its own: the moment the fixtures start, so every
-// end date is still to come. A fixed time keeps the tests from changing their answers as the real date moves on.
-const NOW_AT_START = Date.parse(price.priceStarted)
-
 /**
  * Render a price row inside a list, since the row is a list item, for a product that isn't deleted.
  * @param priceToRender The price the row shows
- * @param handlers Props to override, such as a modal handler a test wants to watch, or "now"; the others do nothing
+ * @param handlers Props to override, such as a modal handler a test wants to watch; the others do nothing
  * @returns The render result
  */
 const renderPrice = (priceToRender: PriceType, handlers: Partial<ComponentProps<typeof Price>> = {}) => {
@@ -40,7 +36,6 @@ const renderPrice = (priceToRender: PriceType, handlers: Partial<ComponentProps<
                 openDeletePriceModal={() => {}}
                 openPermanentlyDeletePriceModal={() => {}}
                 productDeleted={false}
-                now={NOW_AT_START}
                 {...handlers}
             />
         </ul>
@@ -361,54 +356,29 @@ describe('Price details line', () => {
         await expect.element(screen.getByText('$100.00 base · 20% off')).toBeInTheDocument()
     })
 
-    test('should show when a price with an end date ends', async () => {
-        renderPrice(priceWith({ priceEnded: new Date(2026, 8, 30, 23, 59).toISOString() }))
+    // The next price's row already shows when a price changed, and an end date could say a sale ended while it's still
+    // today's price, such as after the price that ends it is deleted (#287)
+    // A year far from today, so the end is still to come whenever the test runs, where the row used to say "until"
+    test('should leave out the end date of a price that ends later', async () => {
+        renderPrice(priceWith({ ...twentyPercentOff, priceEnded: new Date(2100, 0, 5, 23, 59).toISOString() }))
 
-        await expect.element(screen.getByText('until Sep 30')).toBeInTheDocument()
+        // An exact match, so nothing can follow the discount
+        await expect.element(screen.getByText('$100.00 base · 20% off')).toBeInTheDocument()
     })
 
-    // The date alone would repeat the row's own date
-    test('should show the end time of a price that ends on the day it starts', async () => {
+    // The fixture's own start month, long past, where the row used to say "ended"
+    test('should leave out the end date of a price whose end has passed', async () => {
+        renderPrice(priceWith({ ...twentyPercentOff, priceEnded: new Date(2026, 8, 30, 23, 59).toISOString() }))
+
+        await expect.element(screen.getByText('$100.00 base · 20% off')).toBeInTheDocument()
+    })
+
+    test('should show no details for a price with no discount and only an end date', async () => {
         renderPrice(priceWith({ priceEnded: new Date(2026, 8, 4, 23, 59).toISOString() }))
 
-        await expect.element(screen.getByText('until 11:59 PM')).toBeInTheDocument()
-    })
-
-    // "until" would read as if the price were still running
-    test('should say a price whose end has passed ended', async () => {
-        const ended = new Date(2026, 8, 30, 23, 59)
-        renderPrice(priceWith({ priceEnded: ended.toISOString() }), { now: ended.getTime() + 60_000 })
-
-        await expect.element(screen.getByText('ended Sep 30')).toBeInTheDocument()
-    })
-
-    // At its very end the price has stopped, so it counts as ended
-    test('should say a price ending exactly now ended', async () => {
-        const ended = new Date(2026, 8, 30, 23, 59)
-        renderPrice(priceWith({ priceEnded: ended.toISOString() }), { now: ended.getTime() })
-
-        await expect.element(screen.getByText('ended Sep 30')).toBeInTheDocument()
-    })
-
-    test('should say a price ending a moment from now lasts until then', async () => {
-        const ended = new Date(2026, 8, 30, 23, 59)
-        renderPrice(priceWith({ priceEnded: ended.toISOString() }), { now: ended.getTime() - 60_000 })
-
-        await expect.element(screen.getByText('until Sep 30')).toBeInTheDocument()
-    })
-
-    test('should show the end time of a price that ended on the day it started', async () => {
-        renderPrice(priceWith({ priceEnded: new Date(2026, 8, 4, 23, 59).toISOString() }), {
-            now: new Date(2026, 8, 5, 12).getTime()
-        })
-
-        await expect.element(screen.getByText('ended 11:59 PM')).toBeInTheDocument()
-    })
-
-    test('should show the year of an end date in a later year than the start', async () => {
-        renderPrice(priceWith({ priceEnded: new Date(2027, 0, 2, 12).toISOString() }))
-
-        await expect.element(screen.getByText('until Jan 2, 2027')).toBeInTheDocument()
+        // Wait for the row, then check nothing mentions the end, as a date or as the time on the start day
+        await expect.element(screen.getByText('Sep 4, 2026')).toBeInTheDocument()
+        expect(screen.getByRole('listitem').textContent).not.toMatch(/until|ended|11:59/)
     })
 
     test('should show every part in order', async () => {
@@ -419,27 +389,17 @@ describe('Price details line', () => {
                 returnAmount: 4,
                 returnPercentage: 0.05,
                 totalAmount: 76,
-                description: 'Black Friday',
-                priceEnded: new Date(2026, 8, 30, 23, 59).toISOString()
+                description: 'Black Friday'
             })
         )
 
-        await expect
-            .element(screen.getByText('$100.00 base · 20% off · $4.00 back · Black Friday · until Sep 30'))
-            .toBeInTheDocument()
+        await expect.element(screen.getByText('$100.00 base · 20% off · $4.00 back · Black Friday')).toBeInTheDocument()
     })
 
     test("should show amounts in the price's currency", async () => {
         renderPrice(priceWith({ currency: 'EUR', returnAmount: 4, returnPercentage: 0.04, totalAmount: 96 }))
 
         await expect.element(screen.getByText('€100.00 base · €4.00 back')).toBeInTheDocument()
-    })
-
-    // A blank currency counts as USD, as it does everywhere else in the app
-    test('should show amounts in USD when the price has no currency', async () => {
-        renderPrice(priceWith({ ...twentyPercentOff, currency: '' }))
-
-        await expect.element(screen.getByText('$100.00 base · 20% off')).toBeInTheDocument()
     })
 
     // Matches how the rest of the app shows a discount below 1%, which would otherwise round to 0%

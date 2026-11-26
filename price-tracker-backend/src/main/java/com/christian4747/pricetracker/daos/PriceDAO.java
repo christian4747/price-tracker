@@ -69,17 +69,17 @@ public interface PriceDAO extends JpaRepository<Price, Integer>, JpaSpecificatio
      * Gets a distinct list of recently added non-deleted Price base amounts for the given product ID.
      * @param pageable Pagination settings
      * @param productId Product to fetch base amounts for
-     * @return A distinct list of recently added Price base amounts for the given product ID (default 20)
+     * @return A distinct list of recently added Price base amounts for the given product ID, newest first (default 20)
      */
-    @Query(value = "SELECT p.amount FROM Price p WHERE p.priceId IN (SELECT MAX(p.priceId) FROM Price p WHERE p.deletedAt IS NULL AND p.product.productId = :productId GROUP BY p.amount)")
+    @Query(value = "SELECT p.amount FROM Price p WHERE p.priceId IN (SELECT MAX(p.priceId) FROM Price p WHERE p.deletedAt IS NULL AND p.product.productId = :productId GROUP BY p.amount) ORDER BY p.createdAt DESC")
     Page<Double> findDistinctBaseAmounts(Pageable pageable, Integer productId);
 
     /**
      * Gets a distinct list of recently added non-deleted Price currencies.
      * @param pageable Pagination settings
-     * @return A distinct list of recently added Price currencies (default 20)
+     * @return A distinct list of recently added Price currencies, newest first (default 20)
      */
-    @Query(value = "SELECT p.currency FROM Price p WHERE p.priceId IN (SELECT MAX(p.priceId) FROM Price p WHERE p.currency <> '' AND p.deletedAt IS NULL GROUP BY p.currency)")
+    @Query(value = "SELECT p.currency FROM Price p WHERE p.priceId IN (SELECT MAX(p.priceId) FROM Price p WHERE p.currency <> '' AND p.deletedAt IS NULL GROUP BY p.currency) ORDER BY p.createdAt DESC")
     Page<String> findDistinctCurrency(Pageable pageable);
 
     /**
@@ -192,16 +192,36 @@ public interface PriceDAO extends JpaRepository<Price, Integer>, JpaSpecificatio
      * Gets the one-year, two-year, and all-time lows of the given productId's Price(s) that are not deleted. A low is
      * the cheapest amount paid (totalAmount, after discounts and returns), not the biggest discount, since a higher
      * regular price with a discount can still cost more.
+     * <p>
+     * A window's low counts every price that ran at some point inside the window. A price runs from its start until
+     * the next price starts, or until its own end date if that comes first. So besides the prices that started inside
+     * the window, it counts the one running when the window opened: the newest live price that started before it,
+     * unless that price had already ended. Older prices without an end date don't count, since a newer one replaced
+     * them before the window opened. This matches the price a time range starts with (PriceSpecification).
      * @param productId The productId to get the lows for
-     * @param oneYearAgo The date one year ago; only prices that started since then count toward the one-year low
-     * @param twoYearsAgo The date two years ago; only prices that started since then count toward the two-year low
+     * @param oneYearAgo The date one year ago, when the one-year window opens
+     * @param twoYearsAgo The date two years ago, when the two-year window opens
      * @return The one-year, two-year, and all-time lows of the given productId's Price(s), each null when no price
-     * started in its window
+     * ran in its window
      */
     @Query(value = """
         SELECT
-        	(SELECT MIN(p.totalAmount) FROM Price p WHERE p.priceStarted >= :oneYearAgo AND p.product.productId = :productId AND p.deletedAt IS NULL) AS oneYearLow,
-        	(SELECT MIN(p.totalAmount) FROM Price p WHERE p.priceStarted >= :twoYearsAgo AND p.product.productId = :productId AND p.deletedAt IS NULL) AS twoYearLow,
+        	(SELECT MIN(p.totalAmount) FROM Price p
+        	    WHERE p.product.productId = :productId AND p.deletedAt IS NULL
+        	    AND (p.priceStarted >= :oneYearAgo
+        	        OR (p.priceStarted = (
+        	                SELECT MAX(earlier.priceStarted) FROM Price earlier
+        	                WHERE earlier.product.productId = :productId AND earlier.deletedAt IS NULL
+        	                AND earlier.priceStarted < :oneYearAgo)
+        	            AND (p.priceEnded IS NULL OR p.priceEnded >= :oneYearAgo)))) AS oneYearLow,
+        	(SELECT MIN(p.totalAmount) FROM Price p
+        	    WHERE p.product.productId = :productId AND p.deletedAt IS NULL
+        	    AND (p.priceStarted >= :twoYearsAgo
+        	        OR (p.priceStarted = (
+        	                SELECT MAX(earlier.priceStarted) FROM Price earlier
+        	                WHERE earlier.product.productId = :productId AND earlier.deletedAt IS NULL
+        	                AND earlier.priceStarted < :twoYearsAgo)
+        	            AND (p.priceEnded IS NULL OR p.priceEnded >= :twoYearsAgo)))) AS twoYearLow,
         	(SELECT MIN(p.totalAmount) FROM Price p WHERE p.product.productId = :productId AND p.deletedAt IS NULL) AS allTimeLow
     """)
     Optional<PriceLows> findPriceLows(@Param("productId") Integer productId, Timestamp oneYearAgo, Timestamp twoYearsAgo);

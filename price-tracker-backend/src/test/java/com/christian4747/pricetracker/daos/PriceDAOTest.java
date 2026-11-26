@@ -19,10 +19,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DatabaseTest
 class PriceDAOTest {
 
-    private static final Timestamp THREE_YEARS_AGO = Timestamp.valueOf("2023-06-01 00:00:00");
+    private static final Timestamp FOUR_YEARS_AGO = Timestamp.valueOf("2022-06-01 00:00:00");
+    private static final Timestamp THREE_YEARS_AGO =Timestamp.valueOf("2023-06-01 00:00:00");
+    private static final Timestamp THIRTY_MONTHS_AGO = Timestamp.valueOf("2023-12-01 00:00:00");
     private static final Timestamp TWO_YEARS_AGO = Timestamp.valueOf("2024-06-01 00:00:00");
     private static final Timestamp EIGHTEEN_MONTHS_AGO = Timestamp.valueOf("2024-12-01 00:00:00");
+    private static final Timestamp THIRTEEN_MONTHS_AGO = Timestamp.valueOf("2025-05-01 00:00:00");
     private static final Timestamp ONE_YEAR_AGO = Timestamp.valueOf("2025-06-01 00:00:00");
+    private static final Timestamp ELEVEN_MONTHS_AGO = Timestamp.valueOf("2025-07-01 00:00:00");
     private static final Timestamp SIX_MONTHS_AGO = Timestamp.valueOf("2025-12-01 00:00:00");
     private static final Timestamp THREE_MONTHS_AGO = Timestamp.valueOf("2026-03-01 00:00:00");
     private static final PricePeriod BLACK_FRIDAY = new PricePeriod(
@@ -88,10 +92,14 @@ class PriceDAOTest {
         return priceDAO.findPriceLows(product.getProductId(), ONE_YEAR_AGO, TWO_YEARS_AGO).orElseThrow();
     }
 
+    /**
+     * A sale that ended before both windows opened was never on offer inside them, even though it was the newest
+     * price when they opened, so only the all-time low counts it.
+     */
     @Test
-    void lowsHaveOnlyAnAllTimeLowWhenEveryPriceIsOlderThanTwoYears() {
+    void lowsHaveOnlyAnAllTimeLowWhenEveryPriceEndedBeforeTwoYearsAgo() {
         Product product = addProduct();
-        addPrice(product, THREE_YEARS_AGO, 5);
+        addPrice(product, THREE_YEARS_AGO, 5).setPriceEnded(THIRTY_MONTHS_AGO);
 
         PriceLows lows = findLows(product);
 
@@ -101,20 +109,56 @@ class PriceDAOTest {
     }
 
     /**
-     * The older price is the cheaper one, so the two-year low leaving it out shows the window's start date is used,
-     * and the all-time low including it shows the all-time low has no start date.
+     * A price runs until the next one starts, so none of these prices needs an end date. Each window counts the price
+     * running when it opened (the $3 price for two years, the $5 price for one year), but not an older one that was
+     * replaced before it opened (the $2 price for two years, the $3 price for one year).
      */
     @Test
-    void lowsHaveNoOneYearLowWhenEveryPriceIsOlderThanOneYear() {
+    void lowsCountThePriceRunningWhenEachWindowOpened() {
         Product product = addProduct();
+        addPrice(product, FOUR_YEARS_AGO, 2);
         addPrice(product, THREE_YEARS_AGO, 3);
         addPrice(product, EIGHTEEN_MONTHS_AGO, 5);
+        addPrice(product, SIX_MONTHS_AGO, 7);
 
         PriceLows lows = findLows(product);
 
-        assertThat(lows.oneYearLow()).isNull();
+        assertThat(lows.oneYearLow()).isEqualTo(5);
+        assertThat(lows.twoYearLow()).isEqualTo(3);
+        assertThat(lows.allTimeLow()).isEqualTo(2);
+    }
+
+    /**
+     * The sale started a month before the one-year window opened and ran a month into it, so it was on offer inside
+     * the window and is cheaper than the price that followed it.
+     */
+    @Test
+    void lowsCountASaleThatStartedBeforeTheWindowAndEndedInsideIt() {
+        Product product = addProduct();
+        addPrice(product, THREE_YEARS_AGO, 100);
+        addPrice(product, THIRTEEN_MONTHS_AGO, 80).setPriceEnded(ELEVEN_MONTHS_AGO);
+        addPrice(product, ELEVEN_MONTHS_AGO, 90);
+
+        PriceLows lows = findLows(product);
+
+        assertThat(lows.oneYearLow()).isEqualTo(80);
+    }
+
+    /**
+     * A deleted price never ran, so the price running when each window opened is the newest live one before it, not
+     * the deleted one that started later.
+     */
+    @Test
+    void lowsSkipDeletedPricesWhenFindingThePriceRunningWhenTheWindowOpened() {
+        Product product = addProduct();
+        addPrice(product, THREE_YEARS_AGO, 5);
+        addPrice(product, THIRTY_MONTHS_AGO, 6).setDeletedAt(THREE_MONTHS_AGO);
+        addPrice(product, SIX_MONTHS_AGO, 7);
+
+        PriceLows lows = findLows(product);
+
+        assertThat(lows.oneYearLow()).isEqualTo(5);
         assertThat(lows.twoYearLow()).isEqualTo(5);
-        assertThat(lows.allTimeLow()).isEqualTo(3);
     }
 
     /**
@@ -228,6 +272,105 @@ class PriceDAOTest {
 
         assertThat(periods.getContent()).containsExactly(BLACK_FRIDAY);
         assertThat(periods.getTotalElements()).isEqualTo(2);
+    }
+
+    /**
+     * Adds a price with the given base amount, and sets when it was added.
+     * @param product The product the price belongs to
+     * @param amount The price's base amount
+     * @param createdAt When the price was added
+     */
+    private void addBaseAmountPrice(Product product, double amount, Timestamp createdAt) {
+        Price price = new Price();
+        price.setProduct(product);
+        price.setAmount(amount);
+        entityManager.persist(price);
+        testDatabase.setCreatedAt(price, createdAt);
+    }
+
+    /**
+     * Adds a price with the given currency, and sets when it was added.
+     * @param product The product the price belongs to
+     * @param currency The price's currency
+     * @param createdAt When the price was added
+     */
+    private void addCurrencyPrice(Product product, String currency, Timestamp createdAt) {
+        Price price = new Price();
+        price.setProduct(product);
+        price.setCurrency(currency);
+        entityManager.persist(price);
+        testDatabase.setCreatedAt(price, createdAt);
+    }
+
+    /**
+     * The amounts are neither added nor valued in the expected order, so only sorting by when each was added, newest
+     * first, passes.
+     */
+    @Test
+    void findDistinctBaseAmountsPutsRecentlyAddedAmountsFirst() {
+        Product product = addProduct();
+        addBaseAmountPrice(product, 5, THREE_YEARS_AGO);
+        addBaseAmountPrice(product, 10, TWO_YEARS_AGO);
+        addBaseAmountPrice(product, 7, ONE_YEAR_AGO);
+        testDatabase.saveFixtures();
+
+        List<Double> amounts = priceDAO.findDistinctBaseAmounts(FIRST_PAGE, product.getProductId()).getContent();
+
+        assertThat(amounts).containsExactly(7.0, 10.0, 5.0);
+    }
+
+    /**
+     * With more amounts than fit on a page, the oldest is the one left out, so a recent amount is never cut off. The
+     * oldest is added first, so a list in the order the prices were added would keep it and drop the newest instead.
+     */
+    @Test
+    void findDistinctBaseAmountsKeepsTheNewestAmountsWhenThereAreMoreThanAPage() {
+        Product product = addProduct();
+        // Amounts 1 to 21, each added a day after the one before, so amount 1 is the oldest
+        for (int amount = 1; amount <= 21; amount++) {
+            Timestamp createdAt = Timestamp.valueOf(THREE_YEARS_AGO.toLocalDateTime().plusDays(amount));
+            addBaseAmountPrice(product, amount, createdAt);
+        }
+        testDatabase.saveFixtures();
+
+        List<Double> amounts = priceDAO.findDistinctBaseAmounts(FIRST_PAGE, product.getProductId()).getContent();
+
+        assertThat(amounts).hasSize(20).doesNotContain(1.0).startsWith(21.0);
+    }
+
+    /**
+     * The currencies are neither added nor named in the expected order, so only sorting by when each was added, newest
+     * first, passes.
+     */
+    @Test
+    void findDistinctCurrencyPutsRecentlyAddedCurrenciesFirst() {
+        Product product = addProduct();
+        addCurrencyPrice(product, "EUR", THREE_YEARS_AGO);
+        addCurrencyPrice(product, "USD", TWO_YEARS_AGO);
+        addCurrencyPrice(product, "JPY", ONE_YEAR_AGO);
+        testDatabase.saveFixtures();
+
+        List<String> currencies = priceDAO.findDistinctCurrency(FIRST_PAGE).getContent();
+
+        assertThat(currencies).containsExactly("JPY", "USD", "EUR");
+    }
+
+    /**
+     * Prices are saved with USD when their currency is blank, but prices saved before that can still have an empty or
+     * missing currency, and those shouldn't show up as a blank suggestion. The blank ones are the newest, so they'd be
+     * listed first if the query let them through.
+     */
+    @Test
+    void findDistinctCurrencyLeavesOutBlankCurrencies() {
+        Product product = addProduct();
+        addCurrencyPrice(product, "EUR", THREE_YEARS_AGO);
+        addCurrencyPrice(product, "", TWO_YEARS_AGO);
+        addCurrencyPrice(product, null, ONE_YEAR_AGO);
+        testDatabase.saveFixtures();
+
+        List<String> currencies = priceDAO.findDistinctCurrency(FIRST_PAGE).getContent();
+
+        assertThat(currencies).containsExactly("EUR");
     }
 
     private Product addStoreProduct(String store) {

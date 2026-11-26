@@ -13,10 +13,11 @@ interface PriceAverage {
 export const PriceAverage = ({ productBody }: PriceAverage) => {
     const { averagePrice, weightedAveragePrice, priceToday } = productBody
 
-    // The backend leaves these out when no price has started or the prices use different currencies
-    if (averagePrice === null || weightedAveragePrice === null) return <></>
+    // The backend leaves these out when no price has started or the prices use different currencies. When it sends
+    // them, a price is in effect today, and the averages are in its currency, since every price shares it.
+    if (averagePrice === null || weightedAveragePrice === null || priceToday === null) return <></>
 
-    const currency = priceToday?.currency || 'USD'
+    const currency = priceToday.currency
 
     return (
         <Tooltip

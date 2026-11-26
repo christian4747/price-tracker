@@ -21,16 +21,14 @@ export const Product = ({ productBody, dateToday, setDateToday }: Product) => {
         <div className="h-full w-full border-b border-smoke flex flex-col">
             <ProductRowControl product={productBody.product} opened={detailsOpened} onOpen={openDetails}>
                 {/* Top content */}
-                <ProductTitleBar productBody={productBody} dateToday={dateToday} setDateToday={setDateToday} />
+                <ProductTitleBar productBody={productBody} setDateToday={setDateToday} />
             </ProductRowControl>
 
             <ProductDetailsModal
                 opened={detailsOpened}
                 onClose={closeDetails}
                 // The row's title bar, with room to show the whole title
-                header={
-                    <ProductTitleBar productBody={productBody} dateToday={dateToday} setDateToday={setDateToday} wrap />
-                }
+                header={<ProductTitleBar productBody={productBody} setDateToday={setDateToday} wrap />}
                 // The window covers the row's own menu, so the product's actions come along
                 actions={<ProductActionsMenu product={productBody.product} />}
             >

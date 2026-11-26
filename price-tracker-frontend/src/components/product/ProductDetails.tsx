@@ -10,6 +10,7 @@ import { ResizableSplit } from '@/components/common/ResizableSplit'
 import type { PriceTimeRange } from '@/types/price'
 import { DEFAULT_PRICE_TIME_RANGE, getPriceTimeRangeStart } from '@/utils/priceTimeRange'
 import { PHONE_MEDIA_QUERY } from '@/utils/mediaQueries'
+import { getChartCurrency } from '@/utils/currencyUtils'
 
 // Every product's panel shares one remembered split between the chart and the price list
 const DETAILS_SPLIT_STORAGE_KEY = 'product-details-split'
@@ -89,8 +90,8 @@ export const ProductDetails = ({ productBody, dateToday, setDateToday, children 
             timeRange={timeRange}
             setTimeRange={setTimeRange}
             averagePrice={productBody.averagePrice}
-            // The currency the price list shows the average in
-            currency={productBody.priceToday?.currency || 'USD'}
+            // The currency the price list shows the average in, or the prices' own when there's none
+            currency={getChartCurrency(productBody.priceToday, pricesQuery.data)}
         />
     )
 
@@ -116,10 +117,10 @@ export const ProductDetails = ({ productBody, dateToday, setDateToday, children 
                     // A phone is too narrow for the chart and price list side by side (their minimum widths), and
                     // dragging a divider up and down would fight with scrolling the page, so there's no divider. The
                     // line above the list matches the divider's. The list scrolls in its fixed height rather than
-                    // growing with its prices.
+                    // growing with its prices. No gap, so a store picker's divider sits right on top of the list.
                     <>
                         {chart}
-                        <div className={`flex flex-col gap-2 border-t border-smoke ${STACKED_PRICE_LIST_CLASS}`}>
+                        <div className={`flex flex-col border-t border-smoke ${STACKED_PRICE_LIST_CLASS}`}>
                             {priceList}
                         </div>
                     </>
@@ -133,8 +134,9 @@ export const ProductDetails = ({ productBody, dateToday, setDateToday, children 
                         storageKey={DETAILS_SPLIT_STORAGE_KEY}
                         start={chart}
                         // contain-size stops the list's contents from setting its height, so the chart alone sets the
-                        // panel's height and every product's panel matches; the price list scrolls in the room left
-                        endClassName="flex flex-col gap-2 contain-size"
+                        // panel's height and every product's panel matches; the price list scrolls in the room left.
+                        // No gap, so a store picker's divider sits right on top of the list.
+                        endClassName="flex flex-col contain-size"
                         end={priceList}
                     />
                 )}

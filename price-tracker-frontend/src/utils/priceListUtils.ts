@@ -6,15 +6,14 @@ import { getAmountString, getPercentage } from './priceUtils'
 const HALF_CENT = 0.005
 
 /**
- * Get the details line shown under a price's date: the base price, discount, return, description, and end date, each
- * only when it applies, joined with " · ". An end date says "ended" once it has passed, and "until" before then, since
- * "until" reads as if the price were still running.
+ * Get the details line shown under a price's date: the base price, discount, return, and description, each only when
+ * it applies, joined with " · ". The end date is left out: the next price's row already shows when the price changed,
+ * and today's price goes by start dates only, so an end date could say a sale ended while it's still in effect (#287).
  * @param price The price to describe
- * @param now The moment the end date is compared with, in milliseconds, the same one the list uses for what's upcoming
  * @returns The details, or an empty string for a plain full price
  */
-const getPriceDetailsString = (price: PriceType, now: number) => {
-    const currency = price.currency || 'USD'
+const getPriceDetailsString = (price: PriceType) => {
+    const currency = price.currency
     const discounted = price.amount > 0 && price.amount - price.discountAmount >= HALF_CENT
     const returned = price.returnAmount >= HALF_CENT
     const description = price.description?.trim()
@@ -24,28 +23,8 @@ const getPriceDetailsString = (price: PriceType, now: number) => {
     if (discounted) parts.push(`${getPercentage(1 - price.discountAmount / price.amount)}% off`)
     if (returned) parts.push(`${getAmountString(price.returnAmount, currency)} back`)
     if (description) parts.push(description)
-    if (price.priceEnded) {
-        // A price has stopped at its very end, so an end exactly at now counts as ended
-        const endWord = Date.parse(price.priceEnded) <= now ? 'ended' : 'until'
-        parts.push(`${endWord} ${getEndDateString(price.priceStarted, price.priceEnded)}`)
-    }
 
     return parts.join(' · ')
-}
-
-/**
- * Get when a price ends, for its details line: the time if it ends on the day it starts, since the row already shows
- * that date, or else the month and day, with the year only when it's in a different year from the start.
- * @param priceStarted When the price starts, in UTC
- * @param priceEnded When the price ends, in UTC
- * @returns The end time, or the end date
- */
-const getEndDateString = (priceStarted: string, priceEnded: string) => {
-    const started = getLocalDateFromUTC(new Date(priceStarted))
-    const ended = getLocalDateFromUTC(new Date(priceEnded))
-
-    if (ended.isSame(started, 'day')) return ended.format('h:mm A')
-    return ended.format(ended.year() === started.year() ? 'MMM D' : 'MMM D, YYYY')
 }
 
 /**
@@ -102,8 +81,6 @@ type PriceTimeline = {
     currentPriceId: number | null
     // The prices that start after now, deleted ones included when they're shown
     upcomingPriceIds: Set<number>
-    // The moment that counts as now, in milliseconds, which end dates are also compared with
-    now: number
 }
 
 /**
@@ -112,7 +89,7 @@ type PriceTimeline = {
  * gives both: its ID is the current price's, and its start is the "now" that later prices are upcoming from. Without
  * it, when no price has started, the current time is used instead.
  * @param prices The prices in the list
- * @returns The current price's ID, the upcoming prices' IDs, and the moment that counts as now
+ * @returns The current price's ID and the upcoming prices' IDs
  */
 const getPriceTimeline = (prices: PriceType[]): PriceTimeline => {
     const todayEntry = prices.find((price) => price.today)
@@ -121,7 +98,7 @@ const getPriceTimeline = (prices: PriceType[]): PriceTimeline => {
         prices.filter((price) => !price.today && Date.parse(price.priceStarted) > now).map((price) => price.priceId)
     )
 
-    return { currentPriceId: todayEntry?.priceId ?? null, upcomingPriceIds, now }
+    return { currentPriceId: todayEntry?.priceId ?? null, upcomingPriceIds }
 }
 
 type PriceChange = {
@@ -146,8 +123,8 @@ const getPriceChanges = (prices: PriceType[]) => {
 
     comparedPrices.forEach((price, index) => {
         const previous = comparedPrices[index - 1]
-        const currency = price.currency || 'USD'
-        if (previous === undefined || (previous.currency || 'USD') !== currency) return
+        const currency = price.currency
+        if (previous === undefined || previous.currency !== currency) return
 
         // Compared to the cent, so floating-point leftovers don't show a change that isn't there
         const cents = Math.round(price.totalAmount * 100)

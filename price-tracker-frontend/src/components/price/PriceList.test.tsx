@@ -29,7 +29,8 @@ const price2 = createPrice(2, { priceStarted: new Date(2026, 8, 5, 12).toISOStri
 const product = createProduct(1)
 const deletedProduct = createProduct(1, { deletedAt: new Date(2026, 8, 6, 12).toISOString() })
 
-const averages = { averagePrice: 15, weightedAveragePrice: 17.5 }
+// The backend only sends averages when a price is in effect today, and the average is shown in that price's currency
+const averages = { averagePrice: 15, weightedAveragePrice: 17.5, priceToday: createPrice(1, { today: true }) }
 
 const emptyRecentPriceData = {
     baseAmounts: [],
@@ -344,43 +345,6 @@ describe('Price List Component', () => {
         expect(screen.queryByText('Upcoming')).not.toBeInTheDocument()
     })
 
-    // Today's entry starts on Sep 6, so a sale ending Sep 7 is still running, even though Sep 7 is past by the real
-    // date. The same "now" decides what's upcoming, so the list can't call a price both upcoming and ended.
-    test("should compare end dates with today's entry's start", async () => {
-        renderPriceList(undefined, [
-            priceOnSep(2, 6, 80, { today: true, priceEnded: new Date(2026, 8, 7, 23, 59).toISOString() }),
-            priceOnSep(2, 5, 80, { priceEnded: new Date(2026, 8, 7, 23, 59).toISOString() }),
-            priceOnSep(1, 4, 100, { priceEnded: new Date(2026, 8, 4, 23, 59).toISOString() })
-        ])
-
-        await expect.element(screen.getByText('until Sep 7')).toBeInTheDocument()
-        await expect.element(screen.getByText('ended 11:59 PM')).toBeInTheDocument()
-    })
-
-    // Without today's entry, the current time is "now". Years far from today keep these on the same side of it
-    // whenever the test runs.
-    test("should say a price ended in the past ended without today's entry", async () => {
-        renderPriceList(undefined, [
-            createPrice(1, {
-                priceStarted: new Date(2020, 0, 1, 12).toISOString(),
-                priceEnded: new Date(2020, 0, 5, 23, 59).toISOString()
-            })
-        ])
-
-        await expect.element(screen.getByText('ended Jan 5')).toBeInTheDocument()
-    })
-
-    test("should say a price ending in the future lasts until then without today's entry", async () => {
-        renderPriceList(undefined, [
-            createPrice(1, {
-                priceStarted: new Date(2100, 0, 1, 12).toISOString(),
-                priceEnded: new Date(2100, 0, 5, 23, 59).toISOString()
-            })
-        ])
-
-        await expect.element(screen.getByText('until Jan 5')).toBeInTheDocument()
-    })
-
     test('should show the start times of prices that start on the same day', async () => {
         renderPriceList(undefined, [priceOnSep4(2, 16, 30), priceOnSep4(1, 9, 5)])
 
@@ -524,13 +488,6 @@ describe('Price List Component', () => {
         // Waits for the list to show, so the empty check below isn't made before anything renders
         await expect.element(screen.getByText('€80.00')).toBeInTheDocument()
         expect(changeArrows()).toEqual([])
-    })
-
-    // A blank currency counts as USD, as it does everywhere else in the app
-    test('should compare a price with no currency as USD', async () => {
-        renderPriceList(undefined, [priceOnSep(2, 5, 80, { currency: '' }), priceOnSep(1, 4, 100)])
-
-        expect(changeArrows()).toEqual(['Down $20.00 from $100.00'])
     })
 
     test("should show changes in the price's currency", async () => {
@@ -678,12 +635,6 @@ describe('Price List Component', () => {
         renderPriceList(createProductBody(product, { ...averages, priceToday: createPrice(1, { currency: 'EUR' }) }))
 
         expect(averagePriceLine()).toHaveTextContent('Average €15.00')
-    })
-
-    test("should format the average price as USD when the product's prices have no currency", async () => {
-        renderPriceList(createProductBody(product, { ...averages, priceToday: createPrice(1, { currency: '' }) }))
-
-        expect(averagePriceLine()).toHaveTextContent('Average $15.00')
     })
 
     test('should show the weighted average price when hovering the average price', async () => {
