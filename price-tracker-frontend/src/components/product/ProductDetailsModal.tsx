@@ -1,4 +1,4 @@
-import { Modal } from '@mantine/core'
+import { Modal, getDefaultZIndex } from '@mantine/core'
 import { useMediaQuery, useWindowEvent } from '@mantine/hooks'
 import { useRef } from 'react'
 import { PHONE_MEDIA_QUERY } from '@/utils/mediaQueries'
@@ -61,6 +61,10 @@ export const ProductDetailsModal = ({ opened, onClose, header, actions, children
             // Kept in the page while closed, as the rows' panels were, so each product keeps its time range until the
             // page reloads. Mantine pauses what it keeps, so closed details don't fetch prices.
             keepMounted
+            // One step under every other modal, so whatever opens over the details is drawn on top of them, even a modal
+            // that comes earlier in the page. Modals share one layer and otherwise stack in page order, and the page's
+            // own product modals, such as Delete Product, mount with the list, before the rows and their details.
+            zIndex={getDefaultZIndex('modal') - 1}
             size="70rem"
             fullScreen={isPhone}
             centered={!isPhone}

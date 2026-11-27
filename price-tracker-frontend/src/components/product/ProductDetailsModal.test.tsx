@@ -3,6 +3,8 @@ import { Button, Menu, Modal, TextInput } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { fireEvent, renderWithClient, screen, test, userEvent, within } from '@/test-utils'
 import { ProductDetailsModal } from './ProductDetailsModal'
+// The app's styles, so the modals are drawn as layers over the page, as they are in the app
+import '@/styles/index.css'
 
 /**
  * Details that open already, with the kinds of things the real details hold: a button beside the title, as the
@@ -106,5 +108,28 @@ describe('ProductDetailsModal', () => {
         fireEvent.keyDown(document.body, { key: 'Escape' })
 
         await expect.poll(() => detailsDialog()).not.toBeInTheDocument()
+    })
+
+    // The page's own product modals, such as Delete Product, mount with the list, before the rows and their details.
+    // Modals share one layer, so without this the details, coming later in the page, would cover a confirmation
+    // opened from their header's menu.
+    test('should stay under a modal that opens over it, even one earlier in the page', async () => {
+        renderWithClient(
+            <>
+                <Modal opened onClose={() => {}} title="Delete Product">
+                    <Button>Confirm</Button>
+                </Modal>
+                <ProductDetailsModal opened onClose={() => {}} header="Product 1">
+                    <span>Details</span>
+                </ProductDetailsModal>
+            </>
+        )
+        const confirm = screen.getByRole('button', { name: 'Confirm' })
+        await expect.element(confirm).toBeVisible()
+
+        // Whatever is drawn on top at the button's middle is what a click there would reach
+        const box = confirm.getBoundingClientRect()
+        const topmost = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2)
+        expect(confirm.contains(topmost)).toBe(true)
     })
 })
