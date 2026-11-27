@@ -80,8 +80,9 @@ export const ProductListHeader = ({
                         {/* The buttons share a minimum width on a desktop window, so they look even and a label
                             change such as "Hide Deleted" to "Show Deleted" doesn't shift the others. On a narrower
                             window each is only as wide as its label, so the toolbar keeps one line down to about a 856 px
-                            window instead of 965 px. */}
-                        <div className="flex gap-2">
+                            window instead of 965 px. On a phone the four are wider together than the screen, so they
+                            wrap too. */}
+                        <div className="flex flex-wrap gap-2">
                             <Menu>
                                 <Menu.Target>
                                     <Button className="lg:min-w-30">{productFilterDTO.active}</Button>

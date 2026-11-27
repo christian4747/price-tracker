@@ -14,8 +14,6 @@ export function useListWithPagination<Filter>(pageNumber: number = 1, pageSize: 
 
     // Current page size state
     const [currentPageSize] = useState(pageSize)
-    // Opened Accordion state (allows control over open accordion items over a component's lifecycle)
-    const [currentlyOpened, setCurrentlyOpened] = useState<string[]>([])
 
     /**
      * Changes the current page of the list.
@@ -23,15 +21,12 @@ export function useListWithPagination<Filter>(pageNumber: number = 1, pageSize: 
      */
     const changePageNumber = (pageNumber: number) => {
         setCurrentPageNumber(pageNumber)
-        setCurrentlyOpened([])
     }
 
     const useListWithPaginationProps = {
         changePageNumber: changePageNumber,
-        currentlyOpened: currentlyOpened,
         currentPageNumber: currentPageNumber,
         currentPageSize: currentPageSize,
-        setCurrentlyOpened: setCurrentlyOpened,
         setCurrentPageNumber: setCurrentPageNumber
     }
 
